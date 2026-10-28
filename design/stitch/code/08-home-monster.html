@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>펫과함께 - 몬스터 홈 (Screen 8)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            clayBg: '#FFF4D6',
+            clayBorder: '#F0DFB8',
+            clayCoral: '#FF8A65',
+            clayCoralHover: '#FF7043',
+            clayText: '#3B2F2F',
+            claySubtext: '#7C6F65'
+          },
+          fontFamily: {
+            sans: ['"Noto Sans KR"', '"Plus Jakarta Sans"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #F5EFE6;
+      font-family: 'Noto Sans KR', 'Plus Jakarta Sans', sans-serif;
+      color: #3B2F2F;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Polka dot pattern matching Screen 2, Screen 4, Screen 5 */
+    .bg-clay-pattern {
+      background-color: #FFF4D6;
+      background-image: radial-gradient(#E8D3A7 1.5px, transparent 1.5px);
+      background-size: 18px 18px;
+    }
+
+    /* Monster breathing & bouncing motion */
+    @keyframes monsterBounceBreath {
+      0%, 100% {
+        transform: translateY(0px) scale(1, 1);
+      }
+      50% {
+        transform: translateY(-8px) scale(1.02, 0.98);
+      }
+    }
+
+    @keyframes shadowPulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 0.28;
+      }
+      50% {
+        transform: scale(0.86);
+        opacity: 0.16;
+      }
+    }
+
+    @keyframes gentleSparkle {
+      0%, 100% { opacity: 0.4; transform: scale(0.9) rotate(0deg); }
+      50% { opacity: 1; transform: scale(1.1) rotate(15deg); }
+    }
+
+    .animate-monster {
+      animation: monsterBounceBreath 3.2s ease-in-out infinite;
+      transform-origin: center bottom;
+    }
+
+    .animate-shadow {
+      animation: shadowPulse 3.2s ease-in-out infinite;
+      transform-origin: center center;
+    }
+
+    .animate-sparkle {
+      animation: gentleSparkle 2.6s ease-in-out infinite;
+    }
+
+    .clay-card {
+      background: #FFFFFF;
+      border: 2px solid #F0DFB8;
+      box-shadow: 0 8px 24px -4px rgba(184, 142, 85, 0.12), 0 2px 6px rgba(184, 142, 85, 0.06);
+      border-radius: 28px;
+    }
+
+    .clay-subcard {
+      background: #FFFDF8;
+      border: 1.5px solid #F4E8D0;
+      border-radius: 20px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .animate-monster, .animate-shadow, .animate-sparkle {
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen py-4 sm:py-8">
+
+  <!-- Mobile Screen Container: exactly 390px portrait -->
+  <main class="w-[390px] h-[844px] bg-clay-pattern relative rounded-[40px] shadow-2xl overflow-hidden flex flex-col border-[5px] border-[#EADBB8]">
+
+    <!-- Slim Top Bar: "펫과함께" + "초록집사" nickname pill -->
+    <header class="w-full pt-4 pb-2 px-5 flex items-center justify-between z-10">
+      <div class="flex items-center gap-1.5">
+        <span class="text-clayCoral text-lg font-black tracking-tight flex items-center gap-1">
+          <svg class="w-5 h-5 fill-current inline-block" viewBox="0 0 24 24">
+            <path d="M12 4.5C10.5 4.5 9.2 5.6 9 7.1C9.6 7.4 10 8 10 8.7C10 9.7 9.2 10.5 8.2 10.5C7.3 10.5 6.6 9.9 6.4 9.1C5.2 9.6 4.3 10.8 4.3 12.3C4.3 14.5 6.2 16.3 8.4 16.3C8.9 16.3 9.4 16.2 9.8 16C10.3 17.2 11.5 18 12.9 18C14.7 18 16.2 16.6 16.4 14.8C17.7 14.6 18.7 13.5 18.7 12.1C18.7 10.5 17.5 9.2 15.9 9.1C15.8 8.1 15.1 7.2 14.1 6.8C13.8 5.5 12.9 4.5 12 4.5Z" opacity="0.3"/>
+            <path d="M4.5 10.5c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm15 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-12-5c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm9 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM12 11.5c-3.04 0-5.5 2.01-5.5 4.5 0 2.21 2.46 4 5.5 4s5.5-1.79 5.5-4c0-2.49-2.46-4.5-5.5-4.5z"/>
+          </svg>
+          <span class="tracking-tight text-[17px] font-extrabold text-[#D96B43]">펫과함께</span>
+        </span>
+      </div>
+
+      <!-- Nickname Pill: "초록집사" -->
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-white/90 border border-[#E8DAB7] rounded-full shadow-xs">
+        <span class="w-2 h-2 rounded-full bg-[#52B788] animate-pulse"></span>
+        <span class="text-xs font-bold text-[#3B2F2F]">초록집사</span>
+        <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-[#E8F5E9] text-[#2E7D32] font-semibold">정원사</span>
+      </div>
+    </header>
+
+    <!-- Scrollable Content Area (No currency counters, No bottom navigation bar) -->
+    <div class="flex-1 px-4 pb-5 overflow-y-auto flex flex-col gap-3.5 no-scrollbar">
+
+      <!-- 1. Large White Stage Card with Baby Monster "구름이" -->
+      <section class="clay-card p-4 pt-3 flex flex-col items-center relative overflow-hidden">
+        <!-- Background subtle halo & decor inside card -->
+        <div class="absolute -top-12 -right-12 w-36 h-36 bg-[#FFECC7]/60 rounded-full blur-xl pointer-events-none"></div>
+        <div class="absolute -bottom-8 -left-8 w-28 h-28 bg-[#E6F4EA]/60 rounded-full blur-xl pointer-events-none"></div>
+
+        <!-- Stage Header / Status Badge -->
+        <div class="w-full flex items-center justify-between z-10 mb-1">
+          <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-[#8C7A6B] bg-[#FFF8EC] px-2.5 py-0.5 rounded-full border border-[#F4E3C4]">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#FF8A65]"></span>
+            따스한 보육실
+          </span>
+          <span class="text-[11px] font-medium text-[#A8988B] flex items-center gap-0.5">
+            <span class="material-symbols-rounded text-sm text-[#FFB094]">favorite</span>
+            친밀도 MAX
+          </span>
+        </div>
+
+        <!-- Fluffy Cloud-Wool Baby Sheep Monster Illustration & Animation -->
+        <div class="relative w-48 h-48 flex items-center justify-center my-0.5">
+          <!-- Sparkles / Atmosphere floating bits -->
+          <div class="absolute -top-1 left-4 animate-sparkle" style="animation-delay: 0s;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#FFC107">
+              <path d="M12 2L14.2 9.8L22 12L14.2 14.2L12 22L9.8 14.2L2 12L9.8 9.8L12 2Z"/>
+            </svg>
+          </div>
+          <div class="absolute top-8 right-3 animate-sparkle" style="animation-delay: 1.2s;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#FF8A65">
+              <path d="M12 2L14.2 9.8L22 12L14.2 14.2L12 22L9.8 14.2L2 12L9.8 9.8L12 2Z"/>
+            </svg>
+          </div>
+          <div class="absolute bottom-10 left-3 text-xs opacity-60">🍃</div>
+          <div class="absolute top-12 left-1 text-[10px] opacity-40 font-bold text-[#FF8A65]">✨</div>
+
+          <!-- Fluffy Cloud Monster SVG (Breathing & Bouncing) -->
+          <div class="animate-monster z-10 w-40 h-40 flex items-center justify-center">
+            <svg viewBox="0 0 160 160" class="w-full h-full filter drop-shadow-[0_6px_10px_rgba(255,138,101,0.12)]">
+              <!-- Definitions for gradients -->
+              <defs>
+                <linearGradient id="cloudGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#FFFFFF" />
+                  <stop offset="100%" stop-color="#FFF5EA" />
+                </linearGradient>
+                <linearGradient id="hornGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#FCE1A2" />
+                  <stop offset="100%" stop-color="#F2B765" />
+                </linearGradient>
+                <linearGradient id="leafGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#6BCB77" />
+                  <stop offset="100%" stop-color="#4D96FF" />
+                </linearGradient>
+              </defs>
+
+              <!-- Cute curled baby sheep horns / warm clay spiral -->
+              <!-- Left Horn -->
+              <g>
+                <path d="M 46 64 C 36 60, 24 68, 26 80 C 28 89, 40 91, 45 83 C 48 78, 47 70, 46 64 Z" 
+                      fill="url(#hornGrad)" stroke="#3B2F2F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M 33 73 C 34 77, 38 79, 41 78" stroke="#DCA24E" stroke-width="2" stroke-linecap="round" fill="none"/>
+              </g>
+
+              <!-- Right Horn -->
+              <g>
+                <path d="M 114 64 C 124 60, 136 68, 134 80 C 132 89, 120 91, 115 83 C 112 78, 113 70, 114 64 Z" 
+                      fill="url(#hornGrad)" stroke="#3B2F2F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M 127 73 C 126 77, 122 79, 119 78" stroke="#DCA24E" stroke-width="2" stroke-linecap="round" fill="none"/>
+              </g>
+
+              <!-- Baby Sprout / Wind Leaf Headband on Top -->
+              <g>
+                <path d="M 80 43 C 74 34, 66 36, 68 45 C 72 48, 77 47, 80 43 Z" fill="#6BCB77" stroke="#3B2F2F" stroke-width="2.5" stroke-linejoin="round"/>
+                <path d="M 80 43 C 86 33, 94 35, 92 44 C 88 47, 83 46, 80 43 Z" fill="#4D96FF" stroke="#3B2F2F" stroke-width="2.5" stroke-linejoin="round"/>
+                <circle cx="80" cy="44" r="3" fill="#FF8A65" stroke="#3B2F2F" stroke-width="2"/>
+              </g>
+
+              <!-- Fluffy Cloud Wool Body (Composed of overlapping soft fluffy puffy circles) -->
+              <g>
+                <!-- Base silhouette outline and fills -->
+                <path d="M 54 58 
+                         C 42 46, 26 62, 34 76 
+                         C 22 84, 26 104, 40 108 
+                         C 34 122, 54 134, 68 126 
+                         C 76 135, 94 135, 102 126 
+                         C 116 134, 136 122, 130 108 
+                         C 144 104, 148 84, 136 76 
+                         C 144 62, 128 46, 116 58 
+                         C 106 46, 94 48, 85 52 
+                         C 76 48, 64 46, 54 58 Z" 
+                      fill="url(#cloudGrad)" 
+                      stroke="#3B2F2F" 
+                      stroke-width="3.5" 
+                      stroke-linecap="round" 
+                      stroke-linejoin="round" />
+
+                <!-- Fluffy cloud inner bumps for wool depth -->
+                <path d="M 40 78 C 45 74, 52 76, 55 81" stroke="#F5DFBD" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                <path d="M 120 78 C 115 74, 108 76, 105 81" stroke="#F5DFBD" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                <path d="M 62 124 C 67 119, 74 120, 78 124" stroke="#F5DFBD" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                <path d="M 92 124 C 96 119, 103 120, 107 124" stroke="#F5DFBD" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+              </g>
+
+              <!-- Cute Face (Chibi baby expression) -->
+              <g>
+                <!-- Blushing Cheek Ovals (Soft pastel coral) -->
+                <ellipse cx="55" cy="94" rx="8" ry="4.5" fill="#FFAAA6" opacity="0.85"/>
+                <ellipse cx="105" cy="94" rx="8" ry="4.5" fill="#FFAAA6" opacity="0.85"/>
+
+                <!-- Sparkling Big Chibi Eyes -->
+                <!-- Left Eye -->
+                <circle cx="63" cy="85" r="6" fill="#3B2F2F"/>
+                <circle cx="61.5" cy="83" r="2.2" fill="#FFFFFF"/>
+                <circle cx="65" cy="87" r="1.1" fill="#FFFFFF"/>
+
+                <!-- Right Eye -->
+                <circle cx="97" cy="85" r="6" fill="#3B2F2F"/>
+                <circle cx="95.5" cy="83" r="2.2" fill="#FFFFFF"/>
+                <circle cx="99" cy="87" r="1.1" fill="#FFFFFF"/>
+
+                <!-- Cute Baby Mouth (w-shape / cat baby mouth) -->
+                <path d="M 76 92 C 77.5 94.5, 79.5 94.5, 80 93 C 80.5 94.5, 82.5 94.5, 84 92" 
+                      stroke="#3B2F2F" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+
+                <!-- Tiny nose dot -->
+                <circle cx="80" cy="89" r="1.2" fill="#D97457"/>
+                
+                <!-- Baby Forehead Wool Curl -->
+                <path d="M 75 66 C 73 60, 87 60, 85 67 C 84 71, 79 72, 77 69" stroke="#E6C89C" stroke-width="2" stroke-linecap="round" fill="none"/>
+              </g>
+
+              <!-- Tiny Cute Baby Paws -->
+              <g>
+                <ellipse cx="66" cy="113" rx="5.5" ry="4" fill="#FFFFFF" stroke="#3B2F2F" stroke-width="2.5"/>
+                <ellipse cx="94" cy="113" rx="5.5" ry="4" fill="#FFFFFF" stroke="#3B2F2F" stroke-width="2.5"/>
+              </g>
+            </svg>
+          </div>
+
+          <!-- Soft Shadow Ellipse below monster (pulsing in sync with bounce) -->
+          <div class="absolute bottom-2.5 w-32 h-5 bg-[#8C6D46] rounded-full animate-shadow filter blur-[2px]"></div>
+          
+          <!-- Cloud pedestal / cushion base -->
+          <div class="absolute bottom-0 w-36 h-3 bg-white/70 rounded-full border border-[#F4E8D0] -z-0"></div>
+        </div>
+
+        <!-- Monster Name: "구름이" (Big & Warm) -->
+        <h1 class="text-2xl font-black text-[#3B2F2F] tracking-tight mt-1 mb-1.5 flex items-center justify-center gap-1.5">
+          <span>구름이</span>
+          <span class="text-base text-[#FF8A65]">☁️</span>
+        </h1>
+
+        <!-- Badges Row: Species "몽실", Round wind element icon "바람", "Lv.1" pill -->
+        <div class="flex items-center justify-center gap-2 mb-1 flex-wrap">
+          <!-- Species: 몽실 -->
+          <div class="inline-flex items-center gap-1 px-3 py-1 bg-[#FFF6EA] border border-[#F5E2C4] rounded-full text-xs font-bold text-[#8C643E] shadow-2xs">
+            <span class="text-[10px] text-[#C49B71] font-medium">종족</span>
+            <span>몽실</span>
+          </div>
+
+          <!-- Wind Element: Round wind element icon "바람" -->
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#E8F5FD] border border-[#C5E5F9] rounded-full text-xs font-bold text-[#1E7FA8] shadow-2xs">
+            <span class="w-4 h-4 rounded-full bg-[#38BDF8] text-white flex items-center justify-center text-[10px] leading-none font-bold">
+              ༄
+            </span>
+            <span>바람 속성</span>
+          </div>
+
+          <!-- Level Pill: Lv.1 -->
+          <div class="inline-flex items-center px-2.5 py-1 bg-[#FFEFEB] border border-[#FFD2C7] rounded-full text-xs font-extrabold text-[#E65100] shadow-2xs">
+            Lv.1
+          </div>
+        </div>
+
+        <p class="text-[11px] text-[#9A8A7A] mt-1 text-center font-medium">
+          "포근한 솜털 바람을 일으키며 방긋 웃고 있어요!"
+        </p>
+      </section>
+
+      <!-- 2. "능력치" Stats Card with Six Horizontal Pastel Bars -->
+      <section class="clay-card p-4 flex flex-col gap-2.5 relative">
+        <!-- Card Header: Title "능력치" + Small Link "자세히 보기 >" -->
+        <div class="flex items-center justify-between border-b border-[#F5EAD4] pb-2">
+          <div class="flex items-center gap-1.5">
+            <div class="w-6 h-6 rounded-lg bg-[#FFEFE5] text-[#FF8A65] flex items-center justify-center font-bold text-xs">
+              📊
+            </div>
+            <h2 class="text-[15px] font-extrabold text-[#3B2F2F]">능력치</h2>
+            <span class="text-[11px] font-medium text-[#A08E7F] bg-[#FAF3E5] px-2 py-0.5 rounded-full ml-1">총점 249</span>
+          </div>
+
+          <!-- Small text link "자세히 보기 >" -->
+          <a href="#details" class="text-xs font-bold text-[#D96B43] hover:text-[#B84E29] flex items-center gap-0.5 transition-colors">
+            자세히 보기
+            <span class="material-symbols-rounded text-sm">chevron_right</span>
+          </a>
+        </div>
+
+        <!-- Six Stats Horizontal Bars Grid -->
+        <div class="flex flex-col gap-2 pt-0.5">
+
+          <!-- 1. 체력 42 (Soft Pastel Rose / Pink) -->
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center justify-between text-xs font-bold">
+              <span class="flex items-center gap-1.5 text-[#5C4D44]">
+                <span class="w-2 h-2 rounded-full bg-[#FF8080]"></span>
+                체력 (HP)
+              </span>
+              <span class="text-[#3B2F2F] font-extrabold">42<span class="text-[10px] text-[#A6978A] font-normal"> / 100</span></span>
+            </div>
+            <div class="w-full h-2.5 bg-[#FFF0E8] rounded-full overflow-hidden p-0.5 border border-[#FBE3D8]">
+              <div class="h-full bg-gradient-to-r from-[#FFB4A2] to-[#FF8080] rounded-full transition-all duration-500 shadow-xs" style="width: 42%;"></div>
+            </div>
+          </div>
+
+          <!-- 2. 공격 28 (Soft Pastel Coral / Orange) -->
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center justify-between text-xs font-bold">
+              <span class="flex items-center gap-1.5 text-[#5C4D44]">
+                <span class="w-2 h-2 rounded-full bg-[#FFA07A]"></span>
+                공격 (ATK)
+              </span>
+              <span class="text-[#3B2F2F] font-extrabold">28<span class="text-[10px] text-[#A6978A] font-normal"> / 100</span></span>
+            </div>
+            <div class="w-full h-2.5 bg-[#FFF4ED] rounded-full overflow-hidden p-0.5 border border-[#FDE5D8]">
+              <div class="h-full bg-gradient-to-r from-[#FFCDB2] to-[#FF9E80] rounded-full transition-all duration-500 shadow-xs" style="width: 28%;"></div>
+            </div>
+          </div>
+
+          <!-- 3. 방어 35 (Soft Pastel Amber / Warm Yellow) -->
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center justify-between text-xs font-bold">
+              <span class="flex items-center gap-1.5 text-[#5C4D44]">
+                <span class="w-2 h-2 rounded-full bg-[#FFB703]"></span>
+                방어 (DEF)
+              </span>
+              <span class="text-[#3B2F2F] font-extrabold">35<span class="text-[10px] text-[#A6978A] font-normal"> / 100</span></span>
+            </div>
+            <div class="w-full h-2.5 bg-[#FFFBEA] rounded-full overflow-hidden p-0.5 border border-[#F8EECE]">
+              <div class="h-full bg-gradient-to-r from-[#FFE599] to-[#FFC300] rounded-full transition-all duration-500 shadow-xs" style="width: 35%;"></div>
+            </div>
+          </div>
+
+          <!-- 4. 속도 51 (Soft Pastel Mint / Emerald) -->
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center justify-between text-xs font-bold">
+              <span class="flex items-center gap-1.5 text-[#5C4D44]">
+                <span class="w-2 h-2 rounded-full bg-[#52B788]"></span>
+                속도 (SPD)
+              </span>
+              <span class="text-[#3B2F2F] font-extrabold">51<span class="text-[10px] text-[#A6978A] font-normal"> / 100</span></span>
+            </div>
+            <div class="w-full h-2.5 bg-[#E8F8F0] rounded-full overflow-hidden p-0.5 border border-[#D1F2DF]">
+              <div class="h-full bg-gradient-to-r from-[#95D5B2] to-[#52B788] rounded-full transition-all duration-500 shadow-xs" style="width: 51%;"></div>
+            </div>
+          </div>
+
+          <!-- 5. 지능 33 (Soft Pastel Sky Blue / Cyan) -->
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center justify-between text-xs font-bold">
+              <span class="flex items-center gap-1.5 text-[#5C4D44]">
+                <span class="w-2 h-2 rounded-full bg-[#4EA8DE]"></span>
+                지능 (INT)
+              </span>
+              <span class="text-[#3B2F2F] font-extrabold">33<span class="text-[10px] text-[#A6978A] font-normal"> / 100</span></span>
+            </div>
+            <div class="w-full h-2.5 bg-[#EEF8FD] rounded-full overflow-hidden p-0.5 border border-[#D5EEFC]">
+              <div class="h-full bg-gradient-to-r from-[#90E0EF] to-[#4EA8DE] rounded-full transition-all duration-500 shadow-xs" style="width: 33%;"></div>
+            </div>
+          </div>
+
+          <!-- 6. 매력 60 (Soft Pastel Lavender / Lilac) -->
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center justify-between text-xs font-bold">
+              <span class="flex items-center gap-1.5 text-[#5C4D44]">
+                <span class="w-2 h-2 rounded-full bg-[#B392F0]"></span>
+                매력 (CHA)
+              </span>
+              <span class="text-[#3B2F2F] font-extrabold">60<span class="text-[10px] text-[#A6978A] font-normal"> / 100</span></span>
+            </div>
+            <div class="w-full h-2.5 bg-[#F6EEFD] rounded-full overflow-hidden p-0.5 border border-[#EBD6FC]">
+              <div class="h-full bg-gradient-to-r from-[#D8B4FE] to-[#A855F7] rounded-full transition-all duration-500 shadow-xs" style="width: 60%;"></div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- 3. Bottom Area: Dashed-outline empty placeholder slots for "먹이 주기" and "훈련", labeled "곧 만나요" -->
+      <section class="mt-auto pt-1 flex flex-col gap-2">
+        <div class="flex items-center justify-between px-1">
+          <span class="text-[11px] font-bold text-[#8C7B6D] flex items-center gap-1">
+            <span class="material-symbols-rounded text-sm text-[#D9822B]">lock</span>
+            돌봄 활동
+          </span>
+          <span class="text-[10px] font-semibold text-[#B39E8C]">업데이트 예정</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <!-- Placeholder 1: "먹이 주기" -->
+          <div class="relative bg-white/70 border-2 border-dashed border-[#DECA9F] rounded-2xl p-3 flex flex-col items-center justify-center text-center transition-all hover:bg-white/90">
+            <!-- "곧 만나요" pill badge at corner -->
+            <span class="absolute -top-2 right-2 px-2 py-0.5 bg-[#FFF0DB] border border-[#F0D5B0] text-[#B86828] text-[9px] font-extrabold rounded-full shadow-2xs">
+              곧 만나요
+            </span>
+
+            <div class="w-10 h-10 rounded-full bg-[#FFF5E5] flex items-center justify-center mb-1.5 text-[#D19B5E] text-lg shadow-inner">
+              🥣
+            </div>
+            <span class="text-xs font-extrabold text-[#614E41]">먹이 주기</span>
+            <span class="text-[10px] text-[#A08E7F] mt-0.5 font-medium">따뜻한 열매 이유식</span>
+          </div>
+
+          <!-- Placeholder 2: "훈련" -->
+          <div class="relative bg-white/70 border-2 border-dashed border-[#DECA9F] rounded-2xl p-3 flex flex-col items-center justify-center text-center transition-all hover:bg-white/90">
+            <!-- "곧 만나요" pill badge at corner -->
+            <span class="absolute -top-2 right-2 px-2 py-0.5 bg-[#FFF0DB] border border-[#F0D5B0] text-[#B86828] text-[9px] font-extrabold rounded-full shadow-2xs">
+              곧 만나요
+            </span>
+
+            <div class="w-10 h-10 rounded-full bg-[#FFF5E5] flex items-center justify-center mb-1.5 text-[#D19B5E] text-lg shadow-inner">
+              🎯
+            </div>
+            <span class="text-xs font-extrabold text-[#614E41]">훈련 하기</span>
+            <span class="text-[10px] text-[#A08E7F] mt-0.5 font-medium">바람 일으키기 놀이</span>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+</body>
+</html>

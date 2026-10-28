@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>펫과함께 - 닉네임 정하기</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-secondary-container": "#177051",
+            "primary-container": "#ff8a65",
+            "on-primary": "#ffffff",
+            "on-tertiary-container": "#4f3c00",
+            "on-secondary": "#ffffff",
+            "secondary-fixed-dim": "#85d7b1",
+            "surface-bright": "#fff8f7",
+            "surface": "#fff8f7",
+            "outline": "#89726b",
+            "tertiary-fixed-dim": "#e8c25f",
+            "surface-container": "#fee9e9",
+            "on-error-container": "#93000a",
+            "background": "#fff8f7",
+            "surface-container-low": "#fff0f0",
+            "on-primary-container": "#752305",
+            "inverse-primary": "#ffb59e",
+            "surface-container-highest": "#f2dedd",
+            "tertiary-fixed": "#ffdf92",
+            "surface-container-lowest": "#ffffff",
+            "on-secondary-fixed-variant": "#005138",
+            "error-container": "#ffdad6",
+            "on-background": "#231919",
+            "on-primary-fixed": "#3a0b00",
+            "on-secondary-fixed": "#002114",
+            "inverse-surface": "#392d2d",
+            "surface-tint": "#9f4122",
+            "primary": "#9f4122",
+            "on-tertiary-fixed-variant": "#594400",
+            "surface-dim": "#e9d5d5",
+            "secondary-fixed": "#a1f3cc",
+            "tertiary": "#765b00",
+            "primary-fixed": "#ffdbd0",
+            "secondary": "#0f6c4d",
+            "primary-fixed-dim": "#ffb59e",
+            "on-tertiary-fixed": "#241a00",
+            "on-error": "#ffffff",
+            "secondary-container": "#9ef1c9",
+            "surface-container-high": "#f8e4e3",
+            "tertiary-container": "#caa646",
+            "surface-variant": "#f2dedd",
+            "error": "#ba1a1a",
+            "on-surface-variant": "#56423c",
+            "inverse-on-surface": "#ffedec",
+            "outline-variant": "#ddc0b8",
+            "on-tertiary": "#ffffff",
+            "on-surface": "#231919",
+            "on-primary-fixed-variant": "#7f2a0d"
+          },
+          "borderRadius": {
+            "DEFAULT": "1rem",
+            "lg": "2rem",
+            "xl": "3rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-lg": "1.5rem",
+            "margin": "1.25rem",
+            "gutter": "1rem",
+            "space-sm": "0.75rem",
+            "space-xs": "0.375rem",
+            "space-xl": "2.25rem",
+            "space-md": "1rem"
+          },
+          "fontFamily": {
+            "headline-sm": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "display-lg-mobile": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "display-lg": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "label-lg": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "body-sm": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "label-sm": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "headline-lg": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "headline-md": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "label-md": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "body-md": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "body-lg": ["Plus Jakarta Sans", "Noto Sans KR"]
+          },
+          "fontSize": {
+            "headline-sm": ["18px", { "lineHeight": "26px", "fontWeight": "600" }],
+            "display-lg-mobile": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+            "display-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "700" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "fontWeight": "500" }],
+            "label-sm": ["10px", { "lineHeight": "14px", "fontWeight": "700" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "700" }],
+            "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "700" }],
+            "body-md": ["14px", { "lineHeight": "22px", "fontWeight": "500" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "500" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      background-color: #FFF4D6;
+      background-image: radial-gradient(#ecd8b0 1.2px, transparent 1.2px), radial-gradient(#fae6bf 1.2px, #FFF4D6 1.2px);
+      background-size: 24px 24px;
+      background-position: 0 0, 12px 12px;
+      font-family: 'Plus Jakarta Sans', 'Noto Sans KR', sans-serif;
+    }
+    .clay-surface-resting {
+      background: #FFFFFF;
+      border: 1.5px solid #F0DFB8;
+      box-shadow: 0 4px 12px rgba(186, 142, 75, 0.12);
+    }
+    .clay-button-primary {
+      background: #FF8A65;
+      box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.45), inset 0 -4px 0 #E56E49, 0 6px 16px rgba(255, 138, 101, 0.32);
+      transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .clay-button-primary:active {
+      transform: translateY(3px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 #E56E49, 0 2px 6px rgba(255, 138, 101, 0.25);
+    }
+    .clay-badge-mint {
+      background: #E8F7F0;
+      border: 1.5px solid #C4EBD8;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 2px 5px rgba(23, 112, 81, 0.08);
+    }
+    .speech-tail::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 36px;
+      width: 14px;
+      height: 14px;
+      background: #FFFFFF;
+      border-right: 1.5px solid #F0DFB8;
+      border-bottom: 1.5px solid #F0DFB8;
+      transform: rotate(45deg);
+      border-bottom-right-radius: 4px;
+    }
+    .clay-egg-shadow {
+      filter: drop-shadow(0 14px 16px rgba(186, 142, 75, 0.22));
+    }
+    .clay-tag {
+      background: #FFF8EC;
+      border: 1.5px solid #F0DFB8;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 2px 4px rgba(186, 142, 75, 0.08);
+      transition: all 0.15s ease;
+    }
+    .clay-tag:active {
+      transform: scale(0.95);
+      background: #FFEED1;
+    }
+    .clay-input-inner {
+      box-shadow: inset 0 2px 4px rgba(59, 47, 47, 0.06);
+    }
+    @keyframes gentle-bounce {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-5px) rotate(1deg); }
+    }
+    .animate-egg {
+      animation: gentle-bounce 3.2s ease-in-out infinite;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen flex items-center justify-center p-0 text-on-surface antialiased selection:bg-primary-container selection:text-on-primary">
+<!-- Mobile Viewport Canvas Container (Max 390px-480px Portrait Layout) -->
+<main class="w-full max-w-[390px] min-h-screen relative flex flex-col justify-between overflow-x-hidden bg-[#FFF8F0]/90 backdrop-blur-sm border-x border-[#F0DFB8]/40 shadow-2xl">
+<!-- Top Content Group -->
+<div class="w-full px-5 pt-4 pb-2 flex flex-col">
+<!-- Minimalist Onboarding Top Bar -->
+<header class="flex items-center justify-between w-full h-12 mb-3">
+<!-- Rounded Clay Back Button -->
+<button aria-label="뒤로가기" class="w-10 h-10 rounded-full flex items-center justify-center bg-white border-[1.5px] border-[#F0DFB8] text-[#3B2F2F] shadow-[0_2px_6px_rgba(186,142,75,0.12)] active:scale-90 transition-transform" type="button">
+<span class="material-symbols-outlined text-[20px]">arrow_back</span>
+</button>
+<!-- Step Indicator & Subtle Brand Chip -->
+<div class="flex items-center space-x-2">
+<span class="text-[13px] font-headline-sm text-[#3B2F2F]/70 font-semibold tracking-tight">펫과함께</span>
+<span class="w-1 h-1 rounded-full bg-[#E0CA9F]"></span>
+<div class="px-2.5 py-0.5 rounded-full clay-badge-mint">
+<span class="text-label-sm font-label-sm text-[#0F6C4D] tracking-wide">3/3 단계</span>
+</div>
+</div>
+<!-- Placeholder balance for symmetric alignment -->
+<div class="w-10 h-10"></div>
+</header>
+<!-- Warm Clay Egg Peeking & Speech Bubble Section -->
+<section class="flex flex-col items-center relative mt-1 mb-4">
+<!-- Floating Speech Bubble -->
+<div class="relative clay-surface-resting speech-tail rounded-2xl px-4 py-2.5 mb-3 max-w-[280px] self-center text-center z-10 transition-transform hover:-translate-y-0.5">
+<p class="font-headline-sm text-body-md text-[#3B2F2F] font-semibold leading-snug">
+            반가워요! 뭐라고 부르면 될까요? ✨
+          </p>
+</div>
+<!-- Adorable Clay Egg Character Illustration Container -->
+<div class="relative w-36 h-36 flex items-center justify-center animate-egg clay-egg-shadow">
+<!-- Background Ambient Glow -->
+<div class="absolute w-28 h-28 rounded-full bg-gradient-to-tr from-[#FFE0B2]/60 to-[#FFF9C4]/40 blur-lg pointer-events-none"></div>
+<!-- Egg SVG Mascot with warm clay gradients and tender face features -->
+<svg class="relative z-10" fill="none" height="136" viewbox="0 0 128 136" width="128" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<!-- Clay Egg Shell Gradient -->
+<lineargradient gradientunits="userSpaceOnUse" id="eggBody" x1="64" x2="64" y1="12" y2="132">
+<stop offset="0%" stop-color="#FFFFFF"></stop>
+<stop offset="65%" stop-color="#FFF2D6"></stop>
+<stop offset="100%" stop-color="#FCE1AE"></stop>
+</lineargradient>
+<!-- Egg Highlight Specular -->
+<lineargradient gradientunits="userSpaceOnUse" id="eggSpecular" x1="45" x2="65" y1="20" y2="60">
+<stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.8"></stop>
+<stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"></stop>
+</lineargradient>
+<!-- Clay Sprout Gradient -->
+<lineargradient gradientunits="userSpaceOnUse" id="sproutGrad" x1="64" x2="64" y1="0" y2="24">
+<stop offset="0%" stop-color="#82DCB3"></stop>
+<stop offset="100%" stop-color="#3FA67A"></stop>
+</lineargradient>
+</defs>
+<!-- Sprout Plant on Top -->
+<path d="M64 22 C64 10, 52 2, 44 8 C40 14, 52 20, 64 22 Z" fill="url(#sproutGrad)"></path>
+<path d="M64 22 C64 12, 76 4, 84 10 C88 16, 76 21, 64 22 Z" fill="url(#sproutGrad)"></path>
+<circle cx="64" cy="22" fill="#2E865F" r="3"></circle>
+<!-- Egg Main Clay Shell -->
+<path d="M64 14 C94 14, 114 48, 114 88 C114 116, 92 132, 64 132 C36 132, 14 116, 14 88 C14 48, 34 14, 64 14 Z" fill="url(#eggBody)" stroke="#F0DFB8" stroke-width="2.5"></path>
+<!-- Top Gloss Pill Specular -->
+<ellipse cx="48" cy="42" fill="url(#eggSpecular)" rx="16" ry="10" transform="rotate(-25 48 42)"></ellipse>
+<!-- Soft Clay Cheeks (Rosy Blush) -->
+<ellipse cx="36" cy="90" fill="#FF8A65" fill-opacity="0.32" rx="9" ry="5.5"></ellipse>
+<ellipse cx="92" cy="90" fill="#FF8A65" fill-opacity="0.32" rx="9" ry="5.5"></ellipse>
+<!-- Happy Closed Smiling Eyes -->
+<path d="M42 82 C44 76, 52 76, 54 82" stroke="#3B2F2F" stroke-linecap="round" stroke-width="3"></path>
+<path d="M74 82 C76 76, 84 76, 86 82" stroke="#3B2F2F" stroke-linecap="round" stroke-width="3"></path>
+<!-- Tiny Tender Clay Mouth -->
+<path d="M61 92 C62.5 96, 65.5 96, 67 92" stroke="#3B2F2F" stroke-linecap="round" stroke-width="2.6"></path>
+<!-- Clay Foot Base Shadow accents -->
+<ellipse cx="64" cy="130" fill="#DFC799" fill-opacity="0.4" rx="34" ry="5"></ellipse>
+</svg>
+<!-- Little Floating Sparkle Badges -->
+<div class="absolute -top-1 right-2 text-tertiary-container animate-pulse">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">arrow_back_ios_new</span>
+</div>
+<div class="absolute bottom-2 left-2 text-[#76C7A2]">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+</div>
+</section>
+<!-- Main Form Section Card -->
+<section class="clay-surface-resting rounded-lg p-5 flex flex-col space-y-4">
+<!-- Header & Instructions -->
+<div class="space-y-1">
+<h1 class="text-headline-md font-headline-md text-[#3B2F2F] tracking-tight">
+            닉네임을 정해 주세요
+          </h1>
+<p class="text-body-sm font-body-sm text-[#3B2F2F]/75 flex items-center gap-1">
+<span>보육실에서 불릴 다정한 이름을 지어주세요</span>
+<span>🌿</span>
+</p>
+</div>
+<!-- Pill-Shaped Clay Input Box -->
+<div class="space-y-1.5">
+<label class="sr-only" for="nickname-input">닉네임 입력</label>
+<div class="relative flex items-center">
+<!-- Leading Leaf/Edit Icon -->
+<span class="absolute left-4 text-[#A39184] flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-[20px]">edit_note</span>
+</span>
+<!-- Input Element -->
+<input autocomplete="off" class="w-full h-13 pl-11 pr-16 py-3.5 bg-white border-[1.8px] border-[#F0DFB8] rounded-full clay-input-inner text-[#3B2F2F] placeholder-[#A39184] text-body-md font-body-md font-semibold tracking-tight focus:outline-none focus:border-[#FF8A65] focus:ring-4 focus:ring-[#FF8A65]/15 transition-all" id="nickname-input" maxlength="10" placeholder="닉네임 (2~10자)" type="text"/>
+<!-- Trailing Character Counter Badge -->
+<div class="absolute right-3.5 px-2.5 py-1 rounded-full bg-[#FFF8EC] border border-[#F0DFB8] text-[11px] font-bold text-[#A39184]">
+<span class="text-[#FF8A65]" id="char-count">0</span>/10
+            </div>
+</div>
+<!-- Micro Helper Note -->
+<div class="flex items-center space-x-1.5 px-2 pt-0.5">
+<span class="material-symbols-outlined text-[15px] text-[#CAA646]">lightbulb</span>
+<span class="text-label-sm font-label-sm text-[#7D6B63]">
+              나중에 설정에서 언제든 바꿀 수 있어요
+            </span>
+</div>
+</div>
+<!-- Divider Line with Soft Warm Hue -->
+<div class="w-full h-[1px] bg-[#F4E6CB] my-1"></div>
+<!-- Name Suggestion Chips & Random Generator Area -->
+<div class="space-y-2">
+<div class="flex items-center justify-between">
+<span class="text-label-sm font-label-sm text-[#56423C] font-bold flex items-center gap-1">
+<span>🎲</span>
+<span>귀여운 이름 추천받기</span>
+</span>
+<button class="text-label-sm font-label-sm text-primary flex items-center gap-0.5 hover:underline active:scale-95 transition-transform" id="btn-refresh" type="button">
+<span class="material-symbols-outlined text-[14px]">refresh</span>
+<span>새로고침</span>
+</button>
+</div>
+<!-- Quick Clickable Recommendation Chips -->
+<div class="flex flex-wrap gap-2 pt-0.5" id="chip-container">
+<button class="suggestion-chip clay-tag rounded-full px-3.5 py-1.5 text-label-md font-label-md text-[#3B2F2F] font-bold flex items-center space-x-1" data-name="폭신한구름" type="button">
+<span class="text-[13px]">☁️</span>
+<span>폭신한구름</span>
+</button>
+<button class="suggestion-chip clay-tag rounded-full px-3.5 py-1.5 text-label-md font-label-md text-[#3B2F2F] font-bold flex items-center space-x-1" data-name="달콤한도토리" type="button">
+<span class="text-[13px]">🌰</span>
+<span>달콤한도토리</span>
+</button>
+<button class="suggestion-chip clay-tag rounded-full px-3.5 py-1.5 text-label-md font-label-md text-[#3B2F2F] font-bold flex items-center space-x-1" data-name="초록새싹" type="button">
+<span class="text-[13px]">🌱</span>
+<span>초록새싹</span>
+</button>
+<button class="suggestion-chip clay-tag rounded-full px-3.5 py-1.5 text-label-md font-label-md text-[#3B2F2F] font-bold flex items-center space-x-1" data-name="말랑젤리" type="button">
+<span class="text-[13px]">🐾</span>
+<span>말랑젤리</span>
+</button>
+</div>
+</div>
+</section>
+</div>
+<!-- Bottom Action Section (Sticky Clay CTA Button & iOS Indicator Safe Area) -->
+<footer class="w-full px-5 pt-3 pb-8 flex flex-col items-center">
+<!-- Full-Width Tactile Coral Clay Button -->
+<button class="w-full py-4 px-6 rounded-2xl clay-button-primary flex items-center justify-center space-x-2 text-white text-headline-sm font-headline-sm tracking-tight cursor-pointer select-none" id="submit-btn" type="button">
+<span>시작하기</span>
+<span class="text-base">🐾</span>
+</button>
+<!-- Subtext / Terms Notice Micro Hint -->
+<p class="mt-2.5 text-[11px] text-[#A39184] text-center font-medium">
+        입력하신 닉네임은 친구들에게도 함께 보여져요
+      </p>
+<!-- iPhone Home Indicator Spacer -->
+<div class="w-32 h-1 bg-[#3B2F2F]/15 rounded-full mt-3"></div>
+</footer>
+</main>
+<!-- Interactive Logic for Input, Chip Click, Character Counter & Generator -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const input = document.getElementById('nickname-input');
+      const counter = document.getElementById('char-count');
+      const chips = document.querySelectorAll('.suggestion-chip');
+      const refreshBtn = document.getElementById('btn-refresh');
+      const submitBtn = document.getElementById('submit-btn');
+
+      const namePool = [
+        { icon: '☁️', name: '폭신한구름' },
+        { icon: '🌰', name: '달콤한도토리' },
+        { icon: '🌱', name: '초록새싹' },
+        { icon: '🐾', name: '말랑젤리' },
+        { icon: '🍯', name: '달콤꿀단지' },
+        { icon: '🥐', name: '따뜻한소라빵' },
+        { icon: '🍓', name: '딸기마카롱' },
+        { icon: '🐥', name: '노랑병아리' }
+      ];
+
+      // Update character counter and button state
+      function handleInputChange() {
+        const val = input.value.trim();
+        counter.textContent = val.length;
+        if (val.length >= 2 && val.length <= 10) {
+          submitBtn.classList.remove('opacity-70');
+          submitBtn.style.filter = 'none';
+        } else {
+          submitBtn.classList.add('opacity-70');
+        }
+      }
+
+      input.addEventListener('input', handleInputChange);
+
+      // Handle suggestion chip selection
+      function attachChipListeners() {
+        document.querySelectorAll('.suggestion-chip').forEach(chip => {
+          chip.onclick = () => {
+            const chosen = chip.getAttribute('data-name');
+            input.value = chosen;
+            handleInputChange();
+            input.focus();
+            
+            // Visual bounce feedback on selected chip
+            chip.classList.add('scale-95', 'bg-[#FFE2D1]');
+            setTimeout(() => {
+              chip.classList.remove('scale-95', 'bg-[#FFE2D1]');
+            }, 180);
+          };
+        });
+      }
+
+      attachChipListeners();
+
+      // Refresh name suggestions
+      refreshBtn.addEventListener('click', () => {
+        const container = document.getElementById('chip-container');
+        // Shuffle pool
+        const shuffled = [...namePool].sort(() => 0.5 - Math.random()).slice(0, 4);
+        container.innerHTML = shuffled.map(item => `
+          <button type="button" class="suggestion-chip clay-tag rounded-full px-3.5 py-1.5 text-label-md font-label-md text-[#3B2F2F] font-bold flex items-center space-x-1" data-name="${item.name}">
+            <span class="text-[13px]">${item.icon}</span>
+            <span>${item.name}</span>
+          </button>
+        `).join('');
+        attachChipListeners();
+      });
+
+      // Submit feedback
+      submitBtn.addEventListener('click', () => {
+        const val = input.value.trim();
+        if (val.length < 2) {
+          input.focus();
+          input.classList.add('border-[#BA1A1A]', 'ring-2', 'ring-[#BA1A1A]/20');
+          setTimeout(() => {
+            input.classList.remove('border-[#BA1A1A]', 'ring-2', 'ring-[#BA1A1A]/20');
+          }, 800);
+        } else {
+          // Success press visual
+          submitBtn.innerText = '환영해요! 🌿';
+          setTimeout(() => {
+            submitBtn.innerHTML = '<span>시작하기</span><span class="text-base">🐾</span>';
+          }, 1200);
+        }
+      });
+
+      // Initialize
+      handleInputChange();
+    });
+  </script>
+</body></html>

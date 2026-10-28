@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=390, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>펫과함께 - 부화의 순간</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=Noto+Sans+KR:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <style>
+    body {
+      font-family: 'Noto Sans KR', 'Plus Jakarta Sans', sans-serif;
+      background-color: #FFF4D6;
+      color: #3B2F2F;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    .bg-dot-pattern {
+      background-image: radial-gradient(#E8D5B5 1.5px, transparent 1.5px);
+      background-size: 16px 16px;
+    }
+    @keyframes floatSoft {
+      0%, 100% { transform: translateY(0px) scale(1); }
+      50% { transform: translateY(-8px) scale(1.02); }
+    }
+    @keyframes pulseGlow {
+      0%, 100% { transform: scale(1); opacity: 0.7; }
+      50% { transform: scale(1.12); opacity: 0.95; }
+    }
+    @keyframes sparkleRotate {
+      0% { transform: rotate(0deg) scale(0.9); }
+      50% { transform: rotate(180deg) scale(1.15); }
+      100% { transform: rotate(360deg) scale(0.9); }
+    }
+    @keyframes shellLeft {
+      0%, 100% { transform: translate(-38px, -18px) rotate(-26deg); }
+      50% { transform: translate(-42px, -24px) rotate(-30deg); }
+    }
+    @keyframes shellRight {
+      0%, 100% { transform: translate(38px, -14px) rotate(24deg); }
+      50% { transform: translate(42px, -20px) rotate(28deg); }
+    }
+    .animate-float {
+      animation: floatSoft 3.6s ease-in-out infinite;
+    }
+    .animate-glow {
+      animation: pulseGlow 4s ease-in-out infinite;
+    }
+    .animate-spin-slow {
+      animation: sparkleRotate 12s linear infinite;
+    }
+    .shell-left {
+      animation: shellLeft 3.6s ease-in-out infinite;
+    }
+    .shell-right {
+      animation: shellRight 3.6s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen w-full flex items-center justify-center p-0 sm:p-4 bg-amber-50/40">
+  <!-- Mobile Container (390px portrait) -->
+  <div class="relative w-[390px] h-[844px] max-h-[844px] overflow-hidden bg-[#FFF4D6] bg-dot-pattern flex flex-col justify-between p-6 shadow-2xl rounded-[40px] border border-[#F4E3C1]">
+    
+    <!-- Top Bar: Simple Title & Close/Skip (No Currency, No Tabs) -->
+    <header class="relative z-20 flex items-center justify-between pt-2">
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/70 shadow-sm text-[#FF8A65]">
+          <span class="material-symbols-rounded text-lg">egg</span>
+        </span>
+        <span class="text-xs font-bold tracking-wider text-[#A08875] uppercase">Hatching Nursery</span>
+      </div>
+      <button class="w-8 h-8 rounded-full bg-white/60 hover:bg-white/90 active:scale-95 transition-all text-[#8F7460] flex items-center justify-center shadow-xs">
+        <span class="material-symbols-rounded text-xl">close</span>
+      </button>
+    </header>
+
+    <!-- Main Celebratory Stage -->
+    <main class="relative z-10 flex-1 flex flex-col items-center justify-center my-auto">
+      
+      <!-- Radial Warm Light Burst Background -->
+      <div class="absolute w-[360px] h-[360px] pointer-events-none flex items-center justify-center -top-6">
+        <!-- Golden Radial Burst -->
+        <div class="absolute w-80 h-80 rounded-full bg-gradient-to-r from-[#FFE5A3]/80 via-[#FFD382]/60 to-[#FFAE74]/40 blur-2xl animate-glow"></div>
+        <!-- Concentric Warm Light Rings -->
+        <div class="absolute w-72 h-72 rounded-full border-2 border-white/60 opacity-40"></div>
+        <div class="absolute w-84 h-84 rounded-full border border-[#FFD899]/50 opacity-30"></div>
+        <!-- Light Beams / Burst Rays SVG -->
+        <svg class="absolute w-[340px] h-[340px] animate-spin-slow opacity-40" viewBox="0 0 200 200" fill="none">
+          <circle cx="100" cy="100" r="95" stroke="#FFE7AB" stroke-width="0.75" stroke-dasharray="4 6"/>
+          <path d="M100 0 L100 200 M0 100 L200 100 M29 29 L171 171 M29 171 L171 29" stroke="#FFDCA8" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/>
+          <polygon points="100,10 102,90 180,100 102,110 100,190 98,110 20,100 98,90" fill="#FFF2C6" opacity="0.25"/>
+        </svg>
+      </div>
+
+      <!-- Confetti & Floating Magic Particles -->
+      <div class="absolute inset-0 pointer-events-none overflow-hidden">
+        <!-- Floating Stars and Dots -->
+        <svg class="w-full h-full" viewBox="0 0 340 380" fill="none">
+          <!-- Starbursts -->
+          <path d="M50 85L53 93L61 96L53 99L50 107L47 99L39 96L47 93Z" fill="#FFA726"/>
+          <path d="M290 90L292 97L300 99L292 101L290 108L288 101L280 99L288 97Z" fill="#FF8A65"/>
+          <path d="M70 240L72 245L78 247L72 249L70 255L68 249L62 247L68 245Z" fill="#FBC02D"/>
+          <path d="M285 230L287 236L294 238L287 240L285 247L283 240L276 238L283 236Z" fill="#4DB6AC"/>
+          
+          <!-- Confetti Ribbons / Dots -->
+          <circle cx="95" cy="50" r="4.5" fill="#FF8A65"/>
+          <circle cx="245" cy="55" r="4" fill="#81C784"/>
+          <circle cx="45" cy="170" r="3.5" fill="#FFB74D"/>
+          <circle cx="305" cy="165" r="4" fill="#4DB6AC"/>
+          <rect x="75" y="115" width="8" height="5" rx="2" transform="rotate(35 75 115)" fill="#FF8A65" opacity="0.8"/>
+          <rect x="260" y="125" width="9" height="5" rx="2" transform="rotate(-25 260 125)" fill="#64B5F6" opacity="0.8"/>
+          <rect x="105" y="270" width="7" height="4" rx="2" transform="rotate(18 105 270)" fill="#BA68C8" opacity="0.75"/>
+          <rect x="235" y="260" width="8" height="5" rx="2" transform="rotate(-40 235 260)" fill="#81C784" opacity="0.8"/>
+        </svg>
+      </div>
+
+      <!-- Character Stage: Broken Shells + Baby Sheep Monster -->
+      <div class="relative w-64 h-64 flex items-center justify-center animate-float">
+        
+        <!-- Left Broken Egg Shell Half (Flying apart) -->
+        <div class="absolute left-6 top-10 z-0 shell-left drop-shadow-md">
+          <svg width="68" height="78" viewBox="0 0 70 80" fill="none">
+            <path d="M55 75C28 75 10 55 10 32C10 18 20 5 35 2C42 0 49 8 52 14L40 26L55 35L42 48L60 58L48 68L55 75Z" fill="#FFFDF8" stroke="#3B2F2F" stroke-width="3.5" stroke-linejoin="round"/>
+            <circle cx="28" cy="38" r="3.5" fill="#E8D5B5"/>
+            <circle cx="36" cy="54" r="2.5" fill="#E8D5B5"/>
+          </svg>
+        </div>
+
+        <!-- Right Broken Egg Shell Half (Flying apart) -->
+        <div class="absolute right-6 top-12 z-0 shell-right drop-shadow-md">
+          <svg width="68" height="78" viewBox="0 0 70 80" fill="none">
+            <path d="M15 75C42 75 60 55 60 32C60 18 50 5 35 2C28 0 21 8 18 14L30 26L15 35L28 48L10 58L22 68L15 75Z" fill="#FFFDF8" stroke="#3B2F2F" stroke-width="3.5" stroke-linejoin="round"/>
+            <circle cx="42" cy="40" r="3.5" fill="#E8D5B5"/>
+            <circle cx="34" cy="56" r="2.5" fill="#E8D5B5"/>
+          </svg>
+        </div>
+
+        <!-- Central Baby Sheep Monster (Fluffy cloud-wool, pastel, chibi, big eyes, thick outline) -->
+        <div class="relative z-10 filter drop-shadow-[0_12px_22px_rgba(255,138,101,0.28)]">
+          <svg width="180" height="180" viewBox="0 0 160 160" fill="none">
+            <!-- Warm gentle halo beneath feet -->
+            <ellipse cx="80" cy="148" rx="46" ry="10" fill="#EBD6AF" opacity="0.6"/>
+            
+            <!-- Sheep Horns / Golden Swirls -->
+            <path d="M38 58C30 52 28 40 34 33C40 26 50 30 52 38" stroke="#F5B971" stroke-width="5" stroke-linecap="round" fill="none"/>
+            <path d="M122 58C130 52 132 40 126 33C120 26 110 30 108 38" stroke="#F5B971" stroke-width="5" stroke-linecap="round" fill="none"/>
+
+            <!-- Fluffy Cloud Body/Head Silhouette -->
+            <path d="M80 32C90 32 98 37 103 44C111 43 119 49 122 57C129 62 132 71 130 79C135 87 133 97 127 104C126 113 118 120 110 121C104 127 95 129 88 128C83 133 75 133 69 130C62 133 53 130 48 124C40 123 33 116 32 108C26 101 24 92 28 84C26 75 30 66 37 61C40 52 49 46 58 46C63 37 71 32 80 32Z" 
+                  fill="#FFFBF2" stroke="#3B2F2F" stroke-width="4.5" stroke-linejoin="round"/>
+            
+            <!-- Cloud Texture / Inner Curls -->
+            <path d="M50 74C46 72 44 67 47 63" stroke="#F3E5D0" stroke-width="3" stroke-linecap="round"/>
+            <path d="M110 74C114 72 116 67 113 63" stroke="#F3E5D0" stroke-width="3" stroke-linecap="round"/>
+            <path d="M80 44C86 42 92 46 92 50" stroke="#F3E5D0" stroke-width="3" stroke-linecap="round"/>
+
+            <!-- Face Soft Gradient Overlay -->
+            <circle cx="80" cy="88" r="34" fill="#FFFDF8"/>
+
+            <!-- Soft Rosy Pastel Cheeks -->
+            <ellipse cx="58" cy="94" rx="8" ry="5.5" fill="#FFAB91" opacity="0.6"/>
+            <ellipse cx="102" cy="94" rx="8" ry="5.5" fill="#FFAB91" opacity="0.6"/>
+
+            <!-- Large Sparkly Chibi Eyes -->
+            <!-- Left Eye -->
+            <g>
+              <ellipse cx="63" cy="85" rx="7.5" ry="9" fill="#3B2F2F"/>
+              <circle cx="61" cy="82" r="3" fill="#FFFFFF"/>
+              <circle cx="65.5" cy="88" r="1.5" fill="#FFFFFF"/>
+            </g>
+            <!-- Right Eye -->
+            <g>
+              <ellipse cx="97" cy="85" rx="7.5" ry="9" fill="#3B2F2F"/>
+              <circle cx="95" cy="82" r="3" fill="#FFFFFF"/>
+              <circle cx="99.5" cy="88" r="1.5" fill="#FFFFFF"/>
+            </g>
+
+            <!-- Cute Mouth & Snout -->
+            <path d="M76 92C78 94.5 82 94.5 84 92" stroke="#3B2F2F" stroke-width="2.8" stroke-linecap="round"/>
+            <circle cx="80" cy="89" r="1.5" fill="#FF8A65"/>
+
+            <!-- Sprout / Wind Ahoge on Head -->
+            <path d="M80 34C80 23 88 18 94 20C96 25 91 30 83 31" fill="#81C784" stroke="#3B2F2F" stroke-width="2.5" stroke-linejoin="round"/>
+            
+            <!-- Little Fluffy Paws -->
+            <ellipse cx="67" cy="116" rx="6" ry="5" fill="#FFFDF8" stroke="#3B2F2F" stroke-width="3.2"/>
+            <ellipse cx="93" cy="116" rx="6" ry="5" fill="#FFFDF8" stroke="#3B2F2F" stroke-width="3.2"/>
+          </svg>
+        </div>
+
+        <!-- Shimmering Star Sparkles Attached to Monster -->
+        <div class="absolute -top-1 -right-2 z-20">
+          <span class="inline-flex text-2xl text-amber-400 drop-shadow animate-ping" style="animation-duration: 2.8s;">✨</span>
+        </div>
+        <div class="absolute -bottom-2 -left-2 z-20">
+          <span class="inline-flex text-xl text-[#FF8A65] drop-shadow">🌸</span>
+        </div>
+      </div>
+
+      <!-- Celebratory Text & Identity Card -->
+      <div class="mt-4 flex flex-col items-center text-center space-y-3">
+        
+        <!-- Big Congratulations Text -->
+        <div>
+          <span class="text-xs font-bold text-[#FF8A65] tracking-widest uppercase mb-1 block">Hatched Successfully!</span>
+          <h1 class="text-3xl font-extrabold tracking-tight text-[#3B2F2F] leading-tight">
+            태어났어요! 🎉
+          </h1>
+          <p class="text-xs text-[#827164] mt-1 font-medium">따뜻한 보살핌 속에서 알을 깨고 나왔어요</p>
+        </div>
+
+        <!-- Species Name Pill with Wind Element Icon -->
+        <div class="flex items-center gap-2 pt-1">
+          <!-- Main Name Pill -->
+          <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/95 border border-[#F2DEB9] shadow-sm">
+            <span class="text-lg font-extrabold text-[#3B2F2F]">몽실</span>
+            <span class="text-xs text-[#A08875] font-semibold">|</span>
+            <!-- Wind Element Pill -->
+            <div class="flex items-center gap-1 bg-[#E0F2F1] text-[#00796B] px-2.5 py-0.5 rounded-full text-xs font-bold">
+              <span class="material-symbols-rounded text-sm">air</span>
+              <span>바람</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Golden Shimmering Badge: "✨ 빛나는 몬스터!" -->
+        <div class="relative group">
+          <div class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-[#FFF6D6] via-[#FFE299] to-[#FFD572] border border-[#F5C75D] shadow-[0_2px_12px_rgba(245,199,93,0.35)]">
+            <span class="text-sm">✨</span>
+            <span class="text-xs font-extrabold text-[#8D5800] tracking-wide">빛나는 몬스터!</span>
+            <span class="text-[10px] bg-[#8D5800]/10 text-[#8D5800] font-bold px-1.5 py-0.2 rounded-full">희귀 이형</span>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+    <!-- Bottom Action Button Area (NO bottom nav) -->
+    <footer class="relative z-20 pb-2 pt-4">
+      <div class="bg-white/80 backdrop-blur-sm p-4 rounded-3xl border border-[#F3E2C2] shadow-sm mb-3 text-center">
+        <p class="text-xs text-[#7A695C] font-medium leading-relaxed">
+          새로운 친구에게 어울리는 예쁜 이름을 지어주세요! 🌿
+        </p>
+      </div>
+
+      <!-- Coral Bottom Button -->
+      <button class="w-full h-14 bg-[#FF8A65] hover:bg-[#FF754D] active:scale-[0.98] transition-all text-white font-extrabold text-base rounded-2xl shadow-[0_6px_20px_rgba(255,138,101,0.38)] flex items-center justify-center gap-2">
+        <span class="material-symbols-rounded text-xl">edit_note</span>
+        <span>이름 지어 주기</span>
+      </button>
+
+      <!-- Safe Area Indicator -->
+      <div class="w-32 h-1 bg-[#E4D1B8] rounded-full mx-auto mt-4"></div>
+    </footer>
+
+  </div>
+</body>
+</html>

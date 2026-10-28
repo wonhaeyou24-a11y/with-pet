@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>펫과함께 - 몬스터 상세 (구름이)</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Noto+Sans+KR:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "on-error-container": "#93000a",
+            "surface-container-highest": "#f2dedd",
+            "secondary-fixed": "#a1f3cc",
+            "secondary": "#0f6c4d",
+            "primary": "#9f4122",
+            "on-secondary": "#ffffff",
+            "surface-bright": "#fff8f7",
+            "on-surface": "#231919",
+            "secondary-container": "#9ef1c9",
+            "background": "#fff8f7",
+            "on-tertiary-fixed": "#241a00",
+            "on-primary": "#ffffff",
+            "on-background": "#231919",
+            "tertiary-fixed-dim": "#e8c25f",
+            "on-tertiary-container": "#4f3c00",
+            "inverse-surface": "#392d2d",
+            "tertiary-container": "#caa646",
+            "surface-dim": "#e9d5d5",
+            "on-surface-variant": "#56423c",
+            "on-secondary-fixed-variant": "#005138",
+            "on-secondary-fixed": "#002114",
+            "error": "#ba1a1a",
+            "primary-fixed": "#ffdbd0",
+            "on-primary-fixed-variant": "#7f2a0d",
+            "surface-container-low": "#fff0f0",
+            "surface-container-high": "#f8e4e3",
+            "tertiary-fixed": "#ffdf92",
+            "surface-variant": "#f2dedd",
+            "outline": "#89726b",
+            "on-primary-fixed": "#3a0b00",
+            "on-primary-container": "#752305",
+            "on-tertiary": "#ffffff",
+            "on-secondary-container": "#177051",
+            "secondary-fixed-dim": "#85d7b1",
+            "error-container": "#ffdad6",
+            "outline-variant": "#ddc0b8",
+            "inverse-primary": "#ffb59e",
+            "tertiary": "#765b00",
+            "primary-container": "#ff8a65",
+            "surface-tint": "#9f4122",
+            "surface-container-lowest": "#ffffff",
+            "on-error": "#ffffff",
+            "surface": "#fff8f7",
+            "on-tertiary-fixed-variant": "#594400",
+            "inverse-on-surface": "#ffedec",
+            "primary-fixed-dim": "#ffb59e",
+            "surface-container": "#fee9e9"
+          },
+          borderRadius: {
+            "DEFAULT": "1rem",
+            "lg": "2rem",
+            "xl": "3rem",
+            "full": "9999px"
+          },
+          spacing: {
+            "space-xs": "0.375rem",
+            "space-sm": "0.75rem",
+            "space-md": "1rem",
+            "space-lg": "1.5rem",
+            "space-xl": "2.25rem",
+            "margin": "1.25rem",
+            "gutter": "1rem"
+          },
+          fontFamily: {
+            "display-lg-mobile": ["Plus Jakarta Sans", "Noto Sans KR", "sans-serif"],
+            "display-lg": ["Plus Jakarta Sans", "Noto Sans KR", "sans-serif"],
+            "headline-lg": ["Plus Jakarta Sans", "Noto Sans KR", "sans-serif"],
+            "headline-md": ["Plus Jakarta Sans", "Noto Sans KR", "sans-serif"],
+            "headline-sm": ["Plus Jakarta Sans", "Noto Sans KR", "sans-serif"],
+            "body-lg": ["Plus Jakarta Sans", "Noto Sans KR", "sans-serif"],
+            "body-md": ["Plus Jakarta Sans", "Noto Sans KR", "sans-serif"],
+            "body-sm": ["Plus Jakarta Sans", "Noto Sans KR", "sans-serif"],
+            "label-lg": ["Plus Jakarta Sans", "Noto Sans KR", "sans-serif"],
+            "label-md": ["Plus Jakarta Sans", "Noto Sans KR", "sans-serif"],
+            "label-sm": ["Plus Jakarta Sans", "Noto Sans KR", "sans-serif"]
+          },
+          fontSize: {
+            "display-lg-mobile": ["28px", { lineHeight: "36px", letterSpacing: "-0.02em", fontWeight: "800" }],
+            "display-lg": ["36px", { lineHeight: "44px", letterSpacing: "-0.02em", fontWeight: "800" }],
+            "headline-lg": ["24px", { lineHeight: "32px", letterSpacing: "-0.01em", fontWeight: "700" }],
+            "headline-md": ["20px", { lineHeight: "28px", fontWeight: "700" }],
+            "headline-sm": ["18px", { lineHeight: "26px", fontWeight: "600" }],
+            "body-lg": ["16px", { lineHeight: "24px", fontWeight: "500" }],
+            "body-md": ["14px", { lineHeight: "22px", fontWeight: "500" }],
+            "body-sm": ["12px", { lineHeight: "18px", fontWeight: "500" }],
+            "label-lg": ["14px", { lineHeight: "20px", letterSpacing: "0.01em", fontWeight: "700" }],
+            "label-md": ["12px", { lineHeight: "16px", fontWeight: "700" }],
+            "label-sm": ["10px", { lineHeight: "14px", fontWeight: "700" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    
+    .warm-polka-bg {
+      background-color: #FFF4D6;
+      background-image: radial-gradient(#F3E1B8 1.5px, transparent 1.5px);
+      background-size: 16px 16px;
+    }
+
+    .clay-card {
+      background: #FFFFFF;
+      border: 1.5px solid #F0DFB8;
+      box-shadow: 0 4px 16px rgba(186, 142, 75, 0.12);
+    }
+
+    .clay-btn-raised {
+      box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.5), inset 0 -3px 0 rgba(159, 65, 34, 0.2), 0 4px 10px rgba(186, 142, 75, 0.18);
+    }
+    .clay-btn-raised:active {
+      transform: translateY(2px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -1px 0 rgba(159, 65, 34, 0.2), 0 2px 4px rgba(186, 142, 75, 0.15);
+    }
+
+    .shimmer-badge {
+      background: linear-gradient(135deg, #FFF9E6 0%, #FFE9A8 50%, #FFF5D1 100%);
+      border: 1.5px solid #EAD189;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 2px 6px rgba(212, 160, 44, 0.22);
+    }
+
+    .gummy-bar-track {
+      background: #F5E8C9;
+      box-shadow: inset 0 1.5px 3px rgba(89, 62, 34, 0.08);
+    }
+    .gummy-bar-fill {
+      position: relative;
+      box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, 0.6), inset 0 -1px 1px rgba(0, 0, 0, 0.1);
+    }
+
+    @keyframes floaty {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-6px) rotate(1deg); }
+    }
+    .animate-float {
+      animation: floaty 4s ease-in-out infinite;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="warm-polka-bg text-on-surface antialiased min-h-screen flex justify-center selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Mobile Canvas: 390px Viewport Frame -->
+<main class="w-full max-w-[390px] min-h-screen pb-12 flex flex-col relative overflow-x-hidden">
+<!-- 1. Top App Bar -->
+<header class="sticky top-0 z-30 flex items-center justify-between px-space-md py-space-sm bg-[#FFF4D6]/90 backdrop-blur-md">
+<!-- Rounded Back Arrow Button -->
+<button aria-label="뒤로가기" class="w-10 h-10 rounded-full bg-surface-container-lowest border border-[#F0DFB8] flex items-center justify-center text-on-surface clay-btn-raised transition-all" type="button">
+<span class="material-symbols-outlined text-[20px] text-[#3B2F2F]">arrow_back</span>
+</button>
+<!-- Center Title -->
+<div class="flex items-center space-x-1.5 bg-[#FFFFFF]/80 border border-[#F0DFB8]/60 px-space-md py-1 rounded-full shadow-xs">
+<span class="text-[#3B2F2F] font-headline-md text-headline-md tracking-tight">구름이</span>
+<span class="material-symbols-outlined text-primary-container text-[18px]" style="font-variation-settings: 'FILL' 1;">cloud</span>
+<span class="material-symbols-outlined text-secondary text-[14px]" style="font-variation-settings: 'FILL' 1;">eco</span>
+</div>
+<!-- Right Options Button -->
+<button aria-label="메뉴 및 공유" class="w-10 h-10 rounded-full bg-surface-container-lowest border border-[#F0DFB8] flex items-center justify-center text-on-surface clay-btn-raised transition-all" type="button">
+<span class="material-symbols-outlined text-[20px] text-[#3B2F2F]">ios_share</span>
+</button>
+</header>
+<!-- Main Content Container with comfortable padding -->
+<div class="px-space-md flex flex-col space-y-space-md mt-1">
+<!-- 2. Monster Profile Card (Hero) -->
+<section class="clay-card rounded-xl p-space-md flex flex-col items-center relative overflow-hidden bg-gradient-to-b from-[#FFFFFF] via-[#FFFDF7] to-[#FFF8EA]">
+<!-- Background Soft Aura Glow -->
+<div class="absolute -top-12 -right-12 w-40 h-40 bg-[#FFE8B8]/40 rounded-full blur-2xl pointer-events-none"></div>
+<div class="absolute top-20 -left-10 w-32 h-32 bg-[#E1F4EC]/60 rounded-full blur-xl pointer-events-none"></div>
+<!-- Rarity Badge Top -->
+<div class="shimmer-badge px-space-sm py-1 rounded-full flex items-center space-x-1.5 mb-3 z-10">
+<span class="text-[#875F07] text-[13px] font-bold tracking-tight flex items-center gap-1 font-label-md text-label-md">
+<span class="material-symbols-outlined text-[#B27F09] text-[14px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+            빛나는 몬스터
+            <span class="text-[10px] bg-[#FFFFFF]/70 text-[#9F6E00] px-1.5 py-0.5 rounded-full font-bold ml-0.5">희귀 3성</span>
+</span>
+</div>
+<!-- Monster Portrait: Fluffy Cloud-Wool Baby Sheep Chibi ('몽실') -->
+<div class="relative w-48 h-48 my-1 flex items-center justify-center animate-float">
+<!-- Gentle Halo Pod Behind Monster -->
+<div class="absolute inset-2 bg-gradient-to-tr from-[#FFF2D6] to-[#E8F8F0] rounded-full border-2 border-[#F6E8C8] shadow-inner opacity-90"></div>
+<img alt="구름이 몬스터 원화" class="relative z-10 w-44 h-44 object-contain filter drop-shadow-[0_8px_16px_rgba(159,105,45,0.2)] select-none pointer-events-none" data-alt="A delightful, cozy claymation baby sheep monster named Mongsil floating gracefully inside a warm pet room. The creature has ultra-fluffy white cloud wool resembling pillowy whipped cream, tiny soft pastel mint horn buds, rosy blushing cheeks, joyful curved blinking eyes, and a single tiny green sprout resting atop its head. Sculpted in warm clay style with tactile rounded textures, rim lighting in pale amber, set against a pristine warm cream backdrop." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIo5yhr6Su3bfOuIqcfglZNkNcL9uOPaEMtVyDrrzlGE9mROk9SLoLsbE_5C-nl1zNrcdm-Rr7Lmn63MuO90uNamHIrMNN_MY1eaU7aaKdH8I6YjiuN9z1RoQIjCKYWmWiJbaH4q8o3DrclMdwl10AyHwZ8FJ1jAV-36ALKyjBhn9jKiN-SLrdi5IbSLPBFbZKeo9l4p-Kn6WHzyG-hvDL7aHD-iUMHyaN1VZ48mOI4GPQXnuVEEEL14U_w0YwFb_gyTphCm7kep4"/>
+<!-- Floating Cozy Sparkles & Heart Accents -->
+<div class="absolute top-2 right-4 bg-[#FFFFFF] p-1.5 rounded-full shadow-sm border border-[#F3E2BD] animate-bounce" style="animation-duration: 3s;">
+<span class="material-symbols-outlined text-primary-container text-[14px]" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+<div class="absolute bottom-4 left-3 bg-[#FFFFFF] px-2 py-0.5 rounded-full shadow-sm border border-[#F3E2BD] flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[#76C7A2] text-[12px]" style="font-variation-settings: 'FILL' 1;">air</span>
+<span class="text-[10px] font-bold text-[#2A7252]">포근포근</span>
+</div>
+</div>
+<!-- Name & Subtitle -->
+<div class="flex flex-col items-center mt-2 z-10 w-full">
+<div class="flex items-center space-x-2">
+<h1 class="font-display-lg-mobile text-display-lg-mobile text-[#3B2F2F]">구름이</h1>
+<span class="bg-[#FFF2DE] border border-[#FADBB0] text-[#9F4122] font-label-md text-label-md px-2.5 py-0.5 rounded-full">
+              Lv.1 몽실
+            </span>
+</div>
+<p class="font-body-sm text-body-sm text-[#7D6B63] mt-0.5">바람을 타고 둥실 떠다니는 순백의 양 몬스터</p>
+<!-- Cozy Friendship / Affection Meter -->
+<div class="w-full mt-3.5 bg-[#FFF9EE] border border-[#F3E1BD] rounded-lg p-2.5 flex items-center justify-between">
+<div class="flex items-center space-x-2">
+<div class="w-7 h-7 rounded-full bg-[#FFEAE3] border border-[#FFC7B5] flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-[#8D766E]">친밀도 (애정도)</span>
+<span class="font-headline-sm text-[13px] text-[#3B2F2F]">포근한 단짝 단계</span>
+</div>
+</div>
+<div class="flex flex-col items-end w-32">
+<div class="flex items-center space-x-1 mb-1">
+<span class="font-label-md text-label-md text-[#9F4122]">74%</span>
+<span class="font-body-sm text-[11px] text-[#A8948B]">(370/500)</span>
+</div>
+<!-- Thick Gummy Pill Track -->
+<div class="w-full h-2.5 gummy-bar-track rounded-full overflow-hidden p-[1px]">
+<div class="gummy-bar-fill h-full bg-gradient-to-r from-[#FFA285] to-[#FF7043] rounded-full" style="width: 74%;"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 3. Profile Info Card (Label / Value List Table) -->
+<section class="clay-card rounded-lg p-space-md bg-[#FFFFFF]">
+<div class="flex items-center justify-between mb-2.5 pb-2 border-b border-[#F6EBD1]">
+<div class="flex items-center space-x-1.5">
+<span class="material-symbols-outlined text-primary text-[18px]">badge</span>
+<h2 class="font-headline-md text-[17px] text-[#3B2F2F]">프로필 정보</h2>
+</div>
+<span class="font-label-sm text-label-sm bg-[#F5F2EB] text-[#7D6B63] px-2 py-0.5 rounded-full">도감 No.024</span>
+</div>
+<div class="divide-y divide-[#F8EFE0]">
+<!-- Row 1: 종족 -->
+<div class="py-2 flex items-center justify-between">
+<span class="font-body-md text-body-md text-[#857067]">종족</span>
+<span class="font-headline-sm text-body-lg text-[#3B2F2F] font-semibold">몽실 (Mongsil)</span>
+</div>
+<!-- Row 2: 속성 -->
+<div class="py-2 flex items-center justify-between">
+<span class="font-body-md text-body-md text-[#857067]">속성</span>
+<div class="flex items-center space-x-1.5 bg-[#E6F8F2] border border-[#BCECD8] px-2.5 py-0.5 rounded-full">
+<span class="material-symbols-outlined text-[#0F6C4D] text-[15px]" style="font-variation-settings: 'FILL' 1;">air</span>
+<span class="font-label-md text-label-md text-[#0A563C]">바람 (Wind)</span>
+</div>
+</div>
+<!-- Row 3: 특성 -->
+<div class="py-2 flex items-center justify-between">
+<span class="font-body-md text-body-md text-[#857067]">특성</span>
+<div class="flex items-center space-x-1">
+<span class="material-symbols-outlined text-[#CAA646] text-[16px]" style="font-variation-settings: 'FILL' 1;">arrow_back_ios_new</span>
+<span class="font-body-md text-body-md text-[#3B2F2F] font-semibold">포근한 털</span>
+<span class="text-[11px] text-[#A69389]">(물리 피해 -10%)</span>
+</div>
+</div>
+<!-- Row 4: 성격 -->
+<div class="py-2 flex items-center justify-between">
+<span class="font-body-md text-body-md text-[#857067]">성격</span>
+<span class="font-body-md text-body-md text-[#3B2F2F] font-semibold bg-[#FFF4E8] text-[#9F4122] px-2 py-0.5 rounded-md border border-[#FAD7BC]">
+              어리광쟁이 (Cuddly)
+            </span>
+</div>
+<!-- Row 5: 함께한 날 -->
+<div class="py-2 flex items-center justify-between">
+<span class="font-body-md text-body-md text-[#857067]">함께한 날</span>
+<div class="flex items-center space-x-1">
+<span class="material-symbols-outlined text-primary-container text-[16px]" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
+<span class="font-headline-sm text-body-md text-[#3B2F2F] font-bold text-primary">1일째</span>
+<span class="text-[11px] text-[#9C8980]">(2025.02.14 만남)</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 4. Stats Card (능력치) -->
+<section class="clay-card rounded-lg p-space-md bg-[#FFFFFF]">
+<div class="flex items-center justify-between mb-3 pb-2 border-b border-[#F6EBD1]">
+<div class="flex items-center space-x-1.5">
+<span class="material-symbols-outlined text-[#CAA646] text-[20px]" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<h2 class="font-headline-md text-[17px] text-[#3B2F2F]">능력치</h2>
+</div>
+<div class="flex items-center space-x-1 bg-[#FFF6E3] border border-[#F0D597] px-2 py-0.5 rounded-full">
+<span class="font-label-sm text-label-sm text-[#875F07]">종합 수치: 249 / 600</span>
+</div>
+</div>
+<!-- 6 Pastel Colored Progress Bars -->
+<div class="space-y-2.5">
+<!-- 체력 (HP) - Pastel Coral/Pink -->
+<div>
+<div class="flex justify-between items-center mb-1">
+<div class="flex items-center space-x-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-[#FF7A85]"></span>
+<span class="font-label-md text-label-md text-[#4A3932]">체력 (HP)</span>
+</div>
+<span class="font-label-sm text-label-sm text-[#665046]"><strong class="text-[#FF5264] text-[13px]">42</strong> / 100</span>
+</div>
+<div class="h-3 gummy-bar-track rounded-full p-[1px]">
+<div class="gummy-bar-fill h-full bg-gradient-to-r from-[#FFA2A9] to-[#FF6F7E] rounded-full" style="width: 42%;"></div>
+</div>
+</div>
+<!-- 공격 (ATK) - Pastel Peach/Orange -->
+<div>
+<div class="flex justify-between items-center mb-1">
+<div class="flex items-center space-x-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-[#FFA166]"></span>
+<span class="font-label-md text-label-md text-[#4A3932]">공격 (ATK)</span>
+</div>
+<span class="font-label-sm text-label-sm text-[#665046]"><strong class="text-[#F26F22] text-[13px]">28</strong> / 100</span>
+</div>
+<div class="h-3 gummy-bar-track rounded-full p-[1px]">
+<div class="gummy-bar-fill h-full bg-gradient-to-r from-[#FFBE94] to-[#FF8C4B] rounded-full" style="width: 28%;"></div>
+</div>
+</div>
+<!-- 방어 (DEF) - Pastel Warm Yellow/Amber -->
+<div>
+<div class="flex justify-between items-center mb-1">
+<div class="flex items-center space-x-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-[#F5BA31]"></span>
+<span class="font-label-md text-label-md text-[#4A3932]">방어 (DEF)</span>
+</div>
+<span class="font-label-sm text-label-sm text-[#665046]"><strong class="text-[#C99009] text-[13px]">35</strong> / 100</span>
+</div>
+<div class="h-3 gummy-bar-track rounded-full p-[1px]">
+<div class="gummy-bar-fill h-full bg-gradient-to-r from-[#FFDC7B] to-[#F5B422] rounded-full" style="width: 35%;"></div>
+</div>
+</div>
+<!-- 속도 (SPD) - Pastel Sage Green -->
+<div>
+<div class="flex justify-between items-center mb-1">
+<div class="flex items-center space-x-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-[#5FB88E]"></span>
+<span class="font-label-md text-label-md text-[#4A3932]">속도 (SPD)</span>
+</div>
+<span class="font-label-sm text-label-sm text-[#665046]"><strong class="text-[#208D5B] text-[13px]">51</strong> / 100</span>
+</div>
+<div class="h-3 gummy-bar-track rounded-full p-[1px]">
+<div class="gummy-bar-fill h-full bg-gradient-to-r from-[#8BE0B7] to-[#4DB684] rounded-full" style="width: 51%;"></div>
+</div>
+</div>
+<!-- 지능 (INT) - Pastel Sky Blue -->
+<div>
+<div class="flex justify-between items-center mb-1">
+<div class="flex items-center space-x-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-[#64B9F5]"></span>
+<span class="font-label-md text-label-md text-[#4A3932]">지능 (INT)</span>
+</div>
+<span class="font-label-sm text-label-sm text-[#665046]"><strong class="text-[#1E8AD8] text-[13px]">33</strong> / 100</span>
+</div>
+<div class="h-3 gummy-bar-track rounded-full p-[1px]">
+<div class="gummy-bar-fill h-full bg-gradient-to-r from-[#94D6FF] to-[#4EA9EB] rounded-full" style="width: 33%;"></div>
+</div>
+</div>
+<!-- 매력 (CHA) - Pastel Soft Lavender/Purple -->
+<div>
+<div class="flex justify-between items-center mb-1">
+<div class="flex items-center space-x-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-[#B28CF0]"></span>
+<span class="font-label-md text-label-md text-[#4A3932]">매력 (CHA)</span>
+</div>
+<span class="font-label-sm text-label-sm text-[#665046]"><strong class="text-[#844DE2] text-[13px]">60</strong> / 100</span>
+</div>
+<div class="h-3 gummy-bar-track rounded-full p-[1px]">
+<div class="gummy-bar-fill h-full bg-gradient-to-r from-[#CBB0FF] to-[#A273F0] rounded-full" style="width: 60%;"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- 5. Future Feature Placeholder Cards (Dashed Outline) -->
+<section class="flex flex-col space-y-2">
+<div class="flex items-center justify-between px-1">
+<span class="font-label-md text-label-md text-[#857067] flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px]">lock_clock</span>
+            확장 기능 (예정)
+          </span>
+<span class="font-label-sm text-label-sm text-[#A8948B]">Lv.10 개방</span>
+</div>
+<!-- 3 Dashed Cards Row -->
+<div class="grid grid-cols-3 gap-2">
+<!-- 카드 1: 진화 -->
+<div class="border-2 border-dashed border-[#E6D5B8] bg-[#FFFBF0]/70 rounded-lg p-2.5 flex flex-col items-center justify-center text-center">
+<div class="w-8 h-8 rounded-full bg-[#F5EAD4] flex items-center justify-center mb-1.5 text-[#A38D7A]">
+<span class="material-symbols-outlined text-[18px]">lock</span>
+</div>
+<h3 class="font-label-lg text-[13px] text-[#4A3932]">진화</h3>
+<p class="font-label-sm text-[10px] text-[#A69389] mt-0.5">준비 중이에요</p>
+</div>
+<!-- 카드 2: 장식 -->
+<div class="border-2 border-dashed border-[#E6D5B8] bg-[#FFFBF0]/70 rounded-lg p-2.5 flex flex-col items-center justify-center text-center">
+<div class="w-8 h-8 rounded-full bg-[#F5EAD4] flex items-center justify-center mb-1.5 text-[#A38D7A]">
+<span class="material-symbols-outlined text-[18px]">lock</span>
+</div>
+<h3 class="font-label-lg text-[13px] text-[#4A3932]">장식</h3>
+<p class="font-label-sm text-[10px] text-[#A69389] mt-0.5">준비 중이에요</p>
+</div>
+<!-- 카드 3: 추억 -->
+<div class="border-2 border-dashed border-[#E6D5B8] bg-[#FFFBF0]/70 rounded-lg p-2.5 flex flex-col items-center justify-center text-center">
+<div class="w-8 h-8 rounded-full bg-[#F5EAD4] flex items-center justify-center mb-1.5 text-[#A38D7A]">
+<span class="material-symbols-outlined text-[18px]">lock</span>
+</div>
+<h3 class="font-label-lg text-[13px] text-[#4A3932]">추억</h3>
+<p class="font-label-sm text-[10px] text-[#A69389] mt-0.5">준비 중이에요</p>
+</div>
+</div>
+</section>
+<!-- 6. Bottom UI Kit Strip (속성 & 희귀도 도감 프리뷰) -->
+<section class="clay-card rounded-lg p-space-md bg-[#FFFDF9] border border-[#EEDDB3] shadow-sm mb-4">
+<div class="flex items-center justify-between mb-2.5">
+<div class="flex items-center space-x-1.5">
+<span class="material-symbols-outlined text-primary text-[17px]">palette</span>
+<span class="font-headline-sm text-label-lg text-[#3B2F2F]">속성 &amp; 희귀도 도감 프리뷰</span>
+</div>
+<span class="text-[11px] font-bold text-[#8C766C] bg-[#F2E7D3] px-2 py-0.5 rounded-full">UI 키트</span>
+</div>
+<!-- 6 Round Element Icons -->
+<div class="mb-3">
+<span class="font-label-sm text-label-sm text-[#968278] block mb-1.5">속성 아이콘 (6종)</span>
+<div class="grid grid-cols-6 gap-1.5 bg-[#FAF3E3] p-2 rounded-xl border border-[#F2E5C7]">
+<!-- 불 (Fire - Warm Red) -->
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-[#FF574D] flex items-center justify-center text-white shadow-sm border border-[#FF8780]" title="불">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+</div>
+<span class="text-[10px] font-bold text-[#72322E] mt-1">불</span>
+</div>
+<!-- 물 (Water - Soft Blue) -->
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-[#4FA5F5] flex items-center justify-center text-white shadow-sm border border-[#7DBEFF]" title="물">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">water_drop</span>
+</div>
+<span class="text-[10px] font-bold text-[#2A527A] mt-1">물</span>
+</div>
+<!-- 풀 (Grass - Fresh Green) -->
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-[#4CB568] flex items-center justify-center text-white shadow-sm border border-[#7BD692]" title="풀">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">eco</span>
+</div>
+<span class="text-[10px] font-bold text-[#1C5C2F] mt-1">풀</span>
+</div>
+<!-- 전기 (Electric - Bright Yellow) -->
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-[#F5B418] flex items-center justify-center text-white shadow-sm border border-[#FFD066]" title="전기">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</div>
+<span class="text-[10px] font-bold text-[#7A5700] mt-1">전기</span>
+</div>
+<!-- 바람 (Wind - Mint Cyan) - Current monster's element highlight -->
+<div class="flex flex-col items-center relative">
+<div class="w-8 h-8 rounded-full bg-[#36C3A0] flex items-center justify-center text-white shadow-sm border-2 border-[#1E7D65] ring-2 ring-[#7CE5CB]" title="바람">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">air</span>
+</div>
+<span class="text-[10px] font-extrabold text-[#0D634C] mt-1">바람</span>
+</div>
+<!-- 땅 (Earth - Warm Ochre/Brown) -->
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-[#A87948] flex items-center justify-center text-white shadow-sm border border-[#CFA276]" title="땅">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">landscape</span>
+</div>
+<span class="text-[10px] font-bold text-[#573917] mt-1">땅</span>
+</div>
+</div>
+</div>
+<!-- 3 Egg Rarity Chips -->
+<div>
+<span class="font-label-sm text-label-sm text-[#968278] block mb-1.5">알 희귀도 칩 (3단계)</span>
+<div class="grid grid-cols-3 gap-2">
+<!-- 일반 (Common - Warm gray/cream) -->
+<div class="bg-[#F3EFE6] border border-[#DDD4C1] py-1.5 px-2 rounded-xl flex items-center justify-center space-x-1.5 shadow-2xs">
+<span class="material-symbols-outlined text-[#8C8074] text-[16px]" style="font-variation-settings: 'FILL' 1;">egg</span>
+<span class="font-label-md text-label-md text-[#594E44]">일반</span>
+</div>
+<!-- 희귀 (Rare - Golden Amber) -->
+<div class="bg-gradient-to-r from-[#FFF0CD] to-[#FFE29C] border border-[#E6BF63] py-1.5 px-2 rounded-xl flex items-center justify-center space-x-1.5 shadow-2xs">
+<span class="material-symbols-outlined text-[#B2820B] text-[16px]" style="font-variation-settings: 'FILL' 1;">egg</span>
+<span class="font-label-md text-label-md text-[#7D5A00] font-bold">희귀</span>
+</div>
+<!-- 전설 (Legendary - Violet/Pink Iridescent) -->
+<div class="bg-gradient-to-r from-[#F0E4FF] via-[#FFE3F5] to-[#E3EBFF] border border-[#D5B7FA] py-1.5 px-2 rounded-xl flex items-center justify-center space-x-1.5 shadow-2xs">
+<span class="material-symbols-outlined text-[#8944E6] text-[16px]" style="font-variation-settings: 'FILL' 1;">egg</span>
+<span class="font-label-md text-label-md text-[#661EC9] font-extrabold">전설</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+</body></html>

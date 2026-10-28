@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>펫과함께 - 로그인</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Plus Jakarta Sans & Noto Sans KR -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;family=Noto+Sans+KR:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-error": "#ffffff",
+            "outline": "#89726b",
+            "inverse-surface": "#392d2d",
+            "surface": "#fff8f7",
+            "secondary-container": "#9ef1c9",
+            "on-secondary-container": "#177051",
+            "tertiary-fixed-dim": "#e8c25f",
+            "on-tertiary": "#ffffff",
+            "outline-variant": "#ddc0b8",
+            "surface-container": "#fee9e9",
+            "error-container": "#ffdad6",
+            "surface-container-high": "#f8e4e3",
+            "on-surface-variant": "#56423c",
+            "tertiary-container": "#caa646",
+            "surface-bright": "#fff8f7",
+            "on-background": "#231919",
+            "secondary-fixed-dim": "#85d7b1",
+            "inverse-on-surface": "#ffedec",
+            "on-tertiary-container": "#4f3c00",
+            "on-primary-fixed": "#3a0b00",
+            "error": "#ba1a1a",
+            "tertiary": "#765b00",
+            "surface-container-highest": "#f2dedd",
+            "on-secondary": "#ffffff",
+            "on-surface": "#231919",
+            "surface-tint": "#9f4122",
+            "surface-container-lowest": "#ffffff",
+            "on-primary-container": "#752305",
+            "on-primary-fixed-variant": "#7f2a0d",
+            "background": "#fff8f7",
+            "tertiary-fixed": "#ffdf92",
+            "surface-variant": "#f2dedd",
+            "surface-dim": "#e9d5d5",
+            "primary-container": "#ff8a65",
+            "primary": "#9f4122",
+            "on-tertiary-fixed": "#241a00",
+            "surface-container-low": "#fff0f0",
+            "on-secondary-fixed": "#002114",
+            "inverse-primary": "#ffb59e",
+            "secondary": "#0f6c4d",
+            "on-error-container": "#93000a",
+            "on-primary": "#ffffff",
+            "on-tertiary-fixed-variant": "#594400",
+            "primary-fixed-dim": "#ffb59e",
+            "secondary-fixed": "#a1f3cc",
+            "on-secondary-fixed-variant": "#005138",
+            "primary-fixed": "#ffdbd0"
+          },
+          "borderRadius": {
+            "DEFAULT": "1rem",
+            "lg": "2rem",
+            "xl": "3rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-md": "1rem",
+            "space-xs": "0.375rem",
+            "gutter": "1rem",
+            "margin": "1.25rem",
+            "space-xl": "2.25rem",
+            "space-lg": "1.5rem",
+            "space-sm": "0.75rem"
+          },
+          "fontFamily": {
+            "label-md": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "display-lg": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "body-md": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "body-lg": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "headline-lg": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "headline-md": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "label-sm": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "label-lg": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "body-sm": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "display-lg-mobile": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "headline-sm": ["Plus Jakarta Sans", "Noto Sans KR"]
+          },
+          "fontSize": {
+            "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "700" }],
+            "display-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+            "body-md": ["14px", { "lineHeight": "22px", "fontWeight": "500" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "500" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "700" }],
+            "label-sm": ["10px", { "lineHeight": "14px", "fontWeight": "700" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "700" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "fontWeight": "500" }],
+            "display-lg-mobile": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+            "headline-sm": ["18px", { "lineHeight": "26px", "fontWeight": "600" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    /* Warm speckled canvas background */
+    body {
+      background-color: #FFF4D6;
+      background-image: radial-gradient(#ECDDB3 1.25px, transparent 1.25px);
+      background-size: 20px 20px;
+      font-family: 'Plus Jakarta Sans', 'Noto Sans KR', sans-serif;
+      color: #3B2F2F;
+    }
+
+    /* Clay Elevation Classes */
+    .clay-card {
+      background-color: #FFFFFF;
+      border: 1.5px solid #F0DFB8;
+      box-shadow: 0 8px 24px rgba(186, 142, 75, 0.12), inset 0 2px 0 rgba(255, 255, 255, 0.9);
+    }
+
+    .clay-input {
+      background-color: #FFFDF9;
+      border: 1.5px solid #F0DFB8;
+      box-shadow: inset 0 2px 4px rgba(59, 47, 47, 0.05);
+      transition: all 0.2s ease-out;
+    }
+    .clay-input:focus {
+      border-color: #FF8A65;
+      background-color: #FFFFFF;
+      box-shadow: inset 0 1px 3px rgba(255, 138, 101, 0.1), 0 0 0 3px rgba(255, 138, 101, 0.15);
+      outline: none;
+    }
+
+    .clay-btn-primary {
+      background-color: #FF8A65;
+      box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.45), inset 0 -4px 0 #E56E49, 0 6px 16px rgba(255, 138, 101, 0.28);
+      transition: all 0.15s ease-out;
+    }
+    .clay-btn-primary:active {
+      transform: translateY(3px);
+      box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 #E56E49, 0 2px 8px rgba(255, 138, 101, 0.2);
+    }
+
+    .clay-egg-shadow {
+      filter: drop-shadow(0 14px 18px rgba(186, 142, 75, 0.22));
+    }
+
+    /* Egg breathing subtle micro-animation */
+    @keyframes gentleFloat {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-4px) rotate(0.8deg); }
+    }
+    .egg-float {
+      animation: gentleFloat 4s ease-in-out infinite;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen flex items-center justify-center p-0 sm:py-6">
+<!-- Mobile Viewport Canvas Container (Max 390px-480px, strictly portrait centered) -->
+<main class="w-full max-w-[390px] min-h-screen flex flex-col justify-between px-space-lg py-8 relative overflow-hidden">
+<!-- Ambient Warm Corner Glows -->
+<div class="absolute -top-16 -left-16 w-48 h-48 rounded-full bg-tertiary-fixed opacity-40 blur-3xl pointer-events-none"></div>
+<div class="absolute top-1/3 -right-20 w-52 h-52 rounded-full bg-primary-fixed opacity-50 blur-3xl pointer-events-none"></div>
+<!-- 1. TOP HEADER / BRANDING AREA -->
+<header class="flex flex-col items-center text-center pt-2 pb-4 relative z-10">
+<!-- Egg Illustration & Warm Aura Container -->
+<div class="relative w-28 h-32 flex items-center justify-center mb-3">
+<!-- Soft Warm Aura Glow Behind Egg -->
+<div class="absolute inset-0 bg-[#FFE5A3] rounded-full filter blur-xl opacity-70 scale-95"></div>
+<div class="absolute w-24 h-24 bg-primary-fixed rounded-full filter blur-lg opacity-40 translate-y-2"></div>
+<!-- Handcrafted Warm Clay Egg Illustration -->
+<div class="relative w-24 h-28 egg-float clay-egg-shadow flex items-center justify-center">
+<svg class="w-full h-full overflow-visible" viewbox="0 0 100 120">
+<defs>
+<!-- Clay Egg Gradient -->
+<lineargradient id="eggGrad" x1="20%" x2="80%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#FFFDF2"></stop>
+<stop offset="55%" stop-color="#FFECC2"></stop>
+<stop offset="100%" stop-color="#F7D89B"></stop>
+</lineargradient>
+<!-- Inner Shadow for depth -->
+<filter height="120%" id="softInner" width="120%" x="-10%" y="-10%">
+<fedropshadow dx="0" dy="2" flood-color="#FFFFFF" flood-opacity="0.9" stddeviation="1.5"></fedropshadow>
+</filter>
+</defs>
+<!-- Egg Body -->
+<path d="M50,8 C26,8 10,42 10,76 C10,98 28,114 50,114 C72,114 90,98 90,76 C90,42 74,8 50,8 Z" fill="url(#eggGrad)" stroke="#EED7A2" stroke-width="2.5"></path>
+<!-- Cream Top Clay Highlight -->
+<path d="M42,16 C32,20 22,34 20,50" fill="none" opacity="0.85" stroke="#FFFFFF" stroke-linecap="round" stroke-width="3.5"></path>
+<!-- Cute Leaf Sprout on Top -->
+<g transform="translate(48, 8)">
+<!-- Tiny stem -->
+<path d="M0,0 Q-1,-8 -6,-12" fill="none" stroke="#5DAE87" stroke-linecap="round" stroke-width="2.5"></path>
+<path d="M0,0 Q2,-7 8,-10" fill="none" stroke="#5DAE87" stroke-linecap="round" stroke-width="2.5"></path>
+<!-- Leaves with clay mint fills -->
+<path d="M-6,-12 C-14,-14 -12,-5 -6,-12 Z" fill="#76C7A2" stroke="#489874" stroke-width="1.2"></path>
+<path d="M8,-10 C16,-12 14,-3 8,-10 Z" fill="#9EF1C9" stroke="#489874" stroke-width="1.2"></path>
+</g>
+<!-- Sleepy & Smiling Face -->
+<!-- Cheeks -->
+<ellipse cx="28" cy="74" fill="#FF8A65" opacity="0.45" rx="5" ry="3.5"></ellipse>
+<ellipse cx="72" cy="74" fill="#FF8A65" opacity="0.45" rx="5" ry="3.5"></ellipse>
+<!-- Eyes (Curved sleepy smiling lines) -->
+<path d="M30,65 Q37,60 42,65" fill="none" stroke="#3B2F2F" stroke-linecap="round" stroke-width="2.8"></path>
+<path d="M58,65 Q63,60 70,65" fill="none" stroke="#3B2F2F" stroke-linecap="round" stroke-width="2.8"></path>
+<!-- Tiny cute mouth -->
+<path d="M47,73 Q50,77 53,73" fill="none" stroke="#3B2F2F" stroke-linecap="round" stroke-width="2.2"></path>
+<!-- Little decorative speckles on shell -->
+<circle cx="28" cy="46" fill="#E2BD75" opacity="0.6" r="1.5"></circle>
+<circle cx="70" cy="50" fill="#E2BD75" opacity="0.6" r="1.5"></circle>
+<circle cx="64" cy="36" fill="#E2BD75" opacity="0.6" r="1.2"></circle>
+</svg>
+</div>
+</div>
+<!-- App Title with Paw Icon -->
+<div class="flex items-center justify-center gap-1.5 mb-1">
+<h1 class="text-display-lg-mobile font-display-lg-mobile text-[#3B2F2F] tracking-tight">
+          펫과함께
+        </h1>
+<span class="inline-flex items-center justify-center text-primary text-headline-sm" title="paw">🐾</span>
+</div>
+<!-- One-line Tagline -->
+<p class="text-body-md font-body-md text-[#6D5B52]">
+        알에서 태어난 친구와 함께해요
+      </p>
+</header>
+<!-- 2. MAIN LOGIN CARD -->
+<section class="clay-card rounded-3xl p-6 relative z-20 my-auto shadow-sm">
+<form class="space-y-4" onsubmit="event.preventDefault();">
+<!-- Input 1: 이메일 -->
+<div class="space-y-1.5">
+<label class="flex items-center gap-1.5 text-label-md font-label-md text-[#3B2F2F] pl-1" for="email">
+<span class="material-symbols-outlined text-primary text-base" data-icon="mail">mail</span>
+<span>이메일</span>
+</label>
+<div class="relative">
+<input class="clay-input w-full rounded-2xl px-4 py-3.5 text-body-md font-body-md text-[#3B2F2F] placeholder-[#A39184] transition" id="email" name="email" placeholder="you@example.com" type="email" value="cozy@sanctuary.kr"/>
+</div>
+</div>
+<!-- Input 2: 초대 코드 -->
+<div class="space-y-1.5">
+<div class="flex items-center justify-between pl-1">
+<label class="flex items-center gap-1.5 text-label-md font-label-md text-[#3B2F2F]" for="invite-code">
+<span class="material-symbols-outlined text-primary text-base" data-icon="confirmation_number">confirmation_number</span>
+<span>초대 코드</span>
+</label>
+<span class="text-label-sm font-label-sm text-[#7D6B62]">처음 한 번만 입력해요</span>
+</div>
+<div class="relative">
+<input class="clay-input w-full rounded-2xl px-4 py-3.5 text-body-md font-body-md text-[#3B2F2F] placeholder-[#A39184] border-[#E57373]" id="invite-code" name="invite-code" placeholder="EGG-7749" type="text" value="EGG-0000"/>
+<!-- Tiny Key/Ticket Indicator Icon inside input -->
+<div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-outline-variant flex items-center">
+<span class="material-symbols-outlined text-xl" data-icon="vpn_key">vpn_key</span>
+</div>
+</div>
+<!-- Gentle Soft Error Notification -->
+<div class="flex items-center gap-1.5 pl-1 pt-0.5 text-[#D85A5A]">
+<span class="w-1.5 h-1.5 rounded-full bg-[#D85A5A] inline-block animate-pulse"></span>
+<span class="text-body-sm font-body-sm text-[#D85A5A]">초대 코드를 확인해 주세요</span>
+</div>
+</div>
+<!-- Main CTA Pill Button -->
+<div class="pt-2">
+<button class="clay-btn-primary w-full py-4 px-6 rounded-full text-white font-label-lg text-label-lg flex items-center justify-center gap-2 cursor-pointer active:outline-none" type="submit">
+<span>인증 코드 받기</span>
+<span class="material-symbols-outlined text-lg" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</form>
+</section>
+<!-- 3. FOOTER / HELP TEXT -->
+<footer class="text-center pt-4 pb-2 relative z-10">
+<div class="flex items-center justify-center gap-3 text-body-sm font-body-sm text-[#7D6B62]">
+<button class="hover:text-primary transition-colors hover:underline underline-offset-4 decoration-[#DDC0B8]" type="button">
+          초대 코드가 없으신가요?
+        </button>
+<span class="text-[#D0BEA9]">•</span>
+<button class="hover:text-primary transition-colors hover:underline underline-offset-4 decoration-[#DDC0B8]" type="button">
+          도움말 / 문의하기
+        </button>
+</div>
+<p class="text-label-sm font-label-sm text-[#A8988D] mt-2">
+        따뜻한 마음으로 돌보는 나만의 작은 쉼터
+      </p>
+</footer>
+</main>
+</body></html>

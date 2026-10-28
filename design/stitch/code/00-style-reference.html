@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>펫과함께 - 포근한 보육실</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Plus Jakarta Sans & Noto Sans KR -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;family=Noto+Sans+KR:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "primary-container": "#ff8a65",
+            "on-primary-fixed": "#3a0b00",
+            "on-secondary-container": "#177051",
+            "background": "#fff8f7",
+            "surface-container-highest": "#f2dedd",
+            "surface-container-lowest": "#ffffff",
+            "on-error": "#ffffff",
+            "on-error-container": "#93000a",
+            "on-secondary-fixed": "#002114",
+            "secondary-fixed": "#a1f3cc",
+            "tertiary-fixed-dim": "#e8c25f",
+            "on-tertiary-fixed-variant": "#594400",
+            "inverse-primary": "#ffb59e",
+            "outline-variant": "#ddc0b8",
+            "secondary": "#0f6c4d",
+            "primary": "#9f4122",
+            "inverse-on-surface": "#ffedec",
+            "on-primary": "#ffffff",
+            "primary-fixed": "#ffdbd0",
+            "surface-container-high": "#f8e4e3",
+            "on-primary-fixed-variant": "#7f2a0d",
+            "on-secondary": "#ffffff",
+            "on-primary-container": "#752305",
+            "tertiary-container": "#caa646",
+            "error": "#ba1a1a",
+            "primary-fixed-dim": "#ffb59e",
+            "surface-container-low": "#fff0f0",
+            "surface-container": "#fee9e9",
+            "on-tertiary-container": "#4f3c00",
+            "inverse-surface": "#392d2d",
+            "surface-tint": "#9f4122",
+            "secondary-container": "#9ef1c9",
+            "surface": "#fff8f7",
+            "on-background": "#231919",
+            "surface-bright": "#fff8f7",
+            "on-tertiary": "#ffffff",
+            "error-container": "#ffdad6",
+            "on-surface-variant": "#56423c",
+            "on-secondary-fixed-variant": "#005138",
+            "surface-variant": "#f2dedd",
+            "tertiary": "#765b00",
+            "surface-dim": "#e9d5d5",
+            "on-tertiary-fixed": "#241a00",
+            "secondary-fixed-dim": "#85d7b1",
+            "outline": "#89726b",
+            "on-surface": "#231919",
+            "tertiary-fixed": "#ffdf92"
+          },
+          "borderRadius": {
+            "DEFAULT": "1rem",
+            "lg": "2rem",
+            "xl": "3rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "gutter": "1rem",
+            "space-md": "1rem",
+            "space-lg": "1.5rem",
+            "space-xs": "0.375rem",
+            "space-sm": "0.75rem",
+            "margin": "1.25rem",
+            "space-xl": "2.25rem"
+          },
+          "fontFamily": {
+            "headline-md": ["Noto Sans KR", "Plus Jakarta Sans", "sans-serif"],
+            "label-md": ["Noto Sans KR", "Plus Jakarta Sans", "sans-serif"],
+            "headline-lg": ["Noto Sans KR", "Plus Jakarta Sans", "sans-serif"],
+            "body-sm": ["Noto Sans KR", "Plus Jakarta Sans", "sans-serif"],
+            "body-lg": ["Noto Sans KR", "Plus Jakarta Sans", "sans-serif"],
+            "label-sm": ["Noto Sans KR", "Plus Jakarta Sans", "sans-serif"],
+            "display-lg-mobile": ["Noto Sans KR", "Plus Jakarta Sans", "sans-serif"],
+            "label-lg": ["Noto Sans KR", "Plus Jakarta Sans", "sans-serif"],
+            "body-md": ["Noto Sans KR", "Plus Jakarta Sans", "sans-serif"],
+            "display-lg": ["Noto Sans KR", "Plus Jakarta Sans", "sans-serif"],
+            "headline-sm": ["Noto Sans KR", "Plus Jakarta Sans", "sans-serif"]
+          },
+          "fontSize": {
+            "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "700"}],
+            "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "700"}],
+            "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+            "body-sm": ["12px", {"lineHeight": "18px", "fontWeight": "500"}],
+            "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "500"}],
+            "label-sm": ["10px", {"lineHeight": "14px", "fontWeight": "700"}],
+            "display-lg-mobile": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+            "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "700"}],
+            "body-md": ["14px", {"lineHeight": "22px", "fontWeight": "500"}],
+            "display-lg": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+            "headline-sm": ["18px", {"lineHeight": "26px", "fontWeight": "600"}]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    body {
+      background-color: #FFF4D6;
+      color: #3B2F2F;
+      font-family: 'Noto Sans KR', 'Plus Jakarta Sans', sans-serif;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    
+    /* Cozy Claymorphism Card Styles */
+    .clay-card {
+      background: #FFFFFF;
+      border: 1.5px solid #F0DFB8;
+      box-shadow: 0 4px 16px rgba(186, 142, 75, 0.12);
+    }
+
+    /* Clay 3D Push Button Styles */
+    .clay-btn-coral {
+      background-color: #FF8A65;
+      color: #FFFFFF;
+      box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.4), inset 0 -4px 0 #E56E49, 0 6px 16px rgba(255, 138, 101, 0.28);
+      transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .clay-btn-coral:active {
+      transform: translateY(3px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 #E56E49, 0 2px 6px rgba(255, 138, 101, 0.2);
+    }
+
+    .clay-btn-mint {
+      background-color: #76C7A2;
+      color: #FFFFFF;
+      box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.4), inset 0 -4px 0 #4EA37D, 0 6px 16px rgba(118, 199, 162, 0.25);
+      transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .clay-btn-mint:active {
+      transform: translateY(3px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 #4EA37D, 0 2px 6px rgba(118, 199, 162, 0.2);
+    }
+
+    /* Gentle Floating & Breathing Keyframes */
+    @keyframes gentleBreath {
+      0%, 100% { transform: scale(1) translateY(0); }
+      50% { transform: scale(1.025) translateY(-6px); }
+    }
+    @keyframes floatZzz {
+      0% { opacity: 0; transform: translate(0, 0) scale(0.7); }
+      40% { opacity: 0.9; }
+      80% { opacity: 0.8; transform: translate(14px, -24px) scale(1.1); }
+      100% { opacity: 0; transform: translate(22px, -36px) scale(1.2); }
+    }
+    @keyframes shimmerHalo {
+      0%, 100% { opacity: 0.45; transform: scale(0.96); }
+      50% { opacity: 0.75; transform: scale(1.04); }
+    }
+    @keyframes softTwinkle {
+      0%, 100% { opacity: 0.2; transform: scale(0.8) rotate(0deg); }
+      50% { opacity: 1; transform: scale(1.2) rotate(15deg); }
+    }
+
+    .animate-breath {
+      animation: gentleBreath 3.6s ease-in-out infinite;
+    }
+    .animate-halo {
+      animation: shimmerHalo 4s ease-in-out infinite;
+    }
+    .animate-twinkle {
+      animation: softTwinkle 2.4s ease-in-out infinite;
+    }
+    .sleep-z-1 {
+      animation: floatZzz 3.2s ease-out infinite;
+    }
+    .sleep-z-2 {
+      animation: floatZzz 3.2s ease-out 1.2s infinite;
+    }
+    .sleep-z-3 {
+      animation: floatZzz 3.2s ease-out 2.2s infinite;
+    }
+
+    /* Subtle Polka Wallpaper Texture */
+    .bg-cozy-pattern {
+      background-color: #FFF4D6;
+      background-image: radial-gradient(#F5E4BE 1.5px, transparent 1.5px);
+      background-size: 24px 24px;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-cozy-pattern min-h-screen flex justify-center text-on-surface antialiased overflow-x-hidden">
+<!-- Mobile Container Frame (Max 390px-480px) -->
+<div class="w-full max-w-[420px] min-h-screen flex flex-col relative pb-28 pt-1">
+<!-- 1. Shared Component: TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-40 flex justify-between items-center px-margin py-space-sm max-w-[420px] mx-auto bg-surface-container-lowest/90 backdrop-blur-md border-b border-outline-variant/30 shadow-sm" style="left: 50%; transform: translateX(-50%);">
+<!-- Player Profile Snippet -->
+<div class="flex items-center gap-2">
+<div class="relative w-10 h-10 rounded-full p-0.5 bg-gradient-to-tr from-primary-container to-secondary-fixed shadow-sm">
+<div class="w-full h-full rounded-full bg-surface-container-lowest flex items-center justify-center overflow-hidden border border-[#F0DFB8]">
+<span class="material-symbols-outlined text-secondary text-2xl" style="font-variation-settings: 'FILL' 1;">nature_people</span>
+</div>
+<span class="absolute -bottom-1 -right-1 bg-secondary text-on-secondary font-label-sm text-label-sm px-1 rounded-full shadow-xs">Lv.3</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-primary font-bold leading-tight">초록집사</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-0.5">
+<span class="material-symbols-outlined text-xs text-secondary" style="font-variation-settings: 'FILL' 1;">spa</span>
+            새싹 정원사
+          </span>
+</div>
+</div>
+<!-- App Brand Title -->
+<div class="flex items-center gap-1">
+<span class="font-headline-md text-headline-md font-bold text-primary tracking-tight">펫과함께</span>
+<span class="material-symbols-outlined text-primary-container text-lg" style="font-variation-settings: 'FILL' 1;">pets</span>
+</div>
+<!-- Trailing Status Icon -->
+<div class="flex items-center">
+<button class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-primary hover:bg-surface-container-high transition-transform active:scale-95 shadow-xs" title="초록 잎새 에너지">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">energy_savings_leaf</span>
+</button>
+</div>
+</header>
+<!-- Top Space Spacer for Fixed Header -->
+<div class="h-16"></div>
+<!-- Currency & Resource Hub (Acorns & Warmth Sunshine) -->
+<section class="px-margin pt-2 pb-1 flex items-center justify-between gap-2.5">
+<!-- 도토리 (Acorns) -->
+<div class="flex-1 clay-card rounded-full px-3 py-1.5 flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<div class="w-6 h-6 rounded-full bg-[#FFEAD0] flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">nutrition</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant">도토리</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="font-headline-sm text-headline-sm font-bold text-primary">1,240</span>
+<button class="w-4 h-4 rounded-full bg-surface-container flex items-center justify-center text-primary text-xs font-bold leading-none active:scale-90">+</button>
+</div>
+</div>
+<!-- 햇살조각 (Sunshine Warm Energy) -->
+<div class="flex-1 clay-card rounded-full px-3 py-1.5 flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<div class="w-6 h-6 rounded-full bg-[#FFF3C4] flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">light_mode</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant">햇살조각</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="font-headline-sm text-headline-sm font-bold text-tertiary">45<span class="font-label-sm text-label-sm text-on-surface-variant/70 font-normal">/50</span></span>
+<button class="w-4 h-4 rounded-full bg-tertiary-fixed flex items-center justify-center text-on-tertiary-container text-xs font-bold leading-none active:scale-90">+</button>
+</div>
+</div>
+</section>
+<!-- 2. Central Incubation Nursery Stage -->
+<main class="px-margin pt-2 flex flex-col items-center">
+<div class="w-full relative rounded-3xl p-5 overflow-hidden flex flex-col items-center justify-center" style="background: radial-gradient(circle at 50% 40%, #FFFDF5 0%, #FFF2D1 100%); border: 1.5px solid #F0DFB8; box-shadow: 0 6px 20px rgba(186, 142, 75, 0.15);">
+<!-- Cozy Nursery Ambient Decors (Floral sprigs & fluttering light) -->
+<div class="absolute top-3 left-4 flex items-center gap-1 bg-surface-container-lowest/80 px-2.5 py-1 rounded-full border border-[#F0DFB8] backdrop-blur-xs">
+<span class="material-symbols-outlined text-xs text-secondary" style="font-variation-settings: 'FILL' 1;">yard</span>
+<span class="font-label-sm text-label-sm text-secondary font-bold">1호 인큐베이터</span>
+</div>
+<div class="absolute top-3 right-4 flex items-center gap-1">
+<div class="w-2 h-2 rounded-full bg-secondary-fixed animate-ping"></div>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-medium">실내온도 24.5°C</span>
+</div>
+<!-- Floating Sleepy 'Zzz' & Soft Sparkles -->
+<div class="absolute top-16 right-16 pointer-events-none select-none">
+<span class="sleep-z-1 absolute -top-2 left-0 font-bold text-primary-container text-sm">z</span>
+<span class="sleep-z-2 absolute -top-6 left-3 font-bold text-primary-container text-base">Z</span>
+<span class="sleep-z-3 absolute -top-10 left-7 font-bold text-primary text-lg">Z</span>
+</div>
+<div class="absolute top-20 left-12 animate-twinkle pointer-events-none">
+<span class="material-symbols-outlined text-tertiary-fixed-dim text-lg" style="font-variation-settings: 'FILL' 1;">arrow_back_ios_new</span>
+</div>
+<div class="absolute bottom-24 right-10 animate-twinkle pointer-events-none" style="animation-delay: 1.2s;">
+<span class="material-symbols-outlined text-primary-fixed-dim text-base" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<!-- Glowing Warmth Halo Behind Nest -->
+<div class="w-48 h-48 rounded-full bg-gradient-to-t from-[#FFDAB9]/70 to-[#FFF0C2]/50 absolute top-12 blur-xl animate-halo pointer-events-none"></div>
+<!-- Egg Creature Visual & Nest Assembly -->
+<div class="relative w-56 h-60 flex flex-col items-center justify-end my-1">
+<!-- Cute Sleepy Egg Creature -->
+<div class="relative z-10 animate-breath cursor-pointer" onclick="handleEggTap(event)">
+<!-- The Egg Shell Canvas -->
+<div class="w-36 h-44 rounded-[50%_50%_46%_46%_/_60%_60%_40%_40%] relative overflow-hidden flex flex-col items-center justify-center" style="background: radial-gradient(circle at 35% 28%, #FFFDF8 0%, #FFE8CC 60%, #FFD6B3 100%); box-shadow: inset 0 -8px 12px rgba(186, 107, 72, 0.25), inset 0 4px 10px rgba(255, 255, 255, 0.9), 0 8px 16px rgba(145, 96, 52, 0.18); border: 2px solid #F8DFC0;">
+<!-- Egg Soft Pastel Speckles & Cozy Heart Motif -->
+<div class="absolute top-6 left-6 w-3 h-3 rounded-full bg-[#FFAA85]/40"></div>
+<div class="absolute top-10 right-7 w-2.5 h-2.5 rounded-full bg-[#FFAA85]/35"></div>
+<div class="absolute top-16 left-10 w-2 h-2 rounded-full bg-[#FFB088]/40"></div>
+<div class="absolute bottom-10 right-9 w-3.5 h-3.5 rounded-full bg-[#FFAA85]/30"></div>
+<!-- Peach Heart Motif on Egg -->
+<div class="w-10 h-10 rounded-full bg-white/70 flex items-center justify-center shadow-inner mb-1 border border-white/80">
+<span class="material-symbols-outlined text-primary-container text-2xl" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+<!-- Closed Sleeping Eyes & Cheeks -->
+<div class="flex items-center gap-5 mt-1">
+<div class="w-3 h-1.5 border-b-2 border-[#8C5E4A] rounded-full"></div>
+<div class="w-3 h-1.5 border-b-2 border-[#8C5E4A] rounded-full"></div>
+</div>
+<!-- Blushing cheeks -->
+<div class="flex items-center gap-9 -mt-0.5">
+<div class="w-3.5 h-2 rounded-full bg-[#FF8A65]/40 blur-[0.5px]"></div>
+<div class="w-3.5 h-2 rounded-full bg-[#FF8A65]/40 blur-[0.5px]"></div>
+</div>
+<!-- Soft Egg Gloss Highlight Ribbon -->
+<div class="absolute top-3 left-4 w-7 h-16 rounded-full bg-white/50 -rotate-12 blur-[1.5px] pointer-events-none"></div>
+</div>
+<!-- Tiny Sprout on Egg Tip -->
+<div class="absolute -top-3.5 left-1/2 -translate-x-1/2 flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary text-2xl -rotate-12 drop-shadow-sm" style="font-variation-settings: 'FILL' 1;">nest_eco_leaf</span>
+</div>
+</div>
+<!-- Cozy Straw & Fluffy Fabric Cushion Nest -->
+<div class="relative w-52 h-16 -mt-7 z-0 flex items-center justify-center">
+<!-- Nest Base Floor Shadow -->
+<div class="absolute -bottom-1 w-44 h-7 rounded-full bg-[#CFAC76]/35 blur-sm"></div>
+<!-- Fluffy Cotton Pillow Rim -->
+<div class="w-full h-14 rounded-full border-2 border-[#E8D2A7] flex items-center justify-between px-3 shadow-md" style="background: linear-gradient(180deg, #FFF9EA 0%, #F5E5C4 100%);">
+<!-- Nest Twigs and Flower Ornaments -->
+<div class="flex items-center gap-1 text-[#78A359]">
+<span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">eco</span>
+<span class="w-2.5 h-2.5 rounded-full bg-[#FFB5B5] inline-block shadow-xs border border-white"></span>
+</div>
+<div class="flex items-center gap-1.5 text-[#DE9B52]">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">spa</span>
+<span class="w-2.5 h-2.5 rounded-full bg-[#FFF08F] inline-block shadow-xs border border-white"></span>
+<span class="material-symbols-outlined text-sm text-[#78A359]" style="font-variation-settings: 'FILL' 1;">eco</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Egg Name & Status Badges -->
+<div class="mt-2 flex flex-col items-center gap-1.5">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-md text-headline-md text-[#3B2F2F] font-extrabold tracking-tight">포근한 바람의 알</span>
+<span class="w-5 h-5 rounded-full bg-primary-fixed flex items-center justify-center text-primary text-xs" title="1세대 희귀종">
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">verified</span>
+</span>
+</div>
+<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF2DE] border border-[#F0DFB8]">
+<span class="w-2 h-2 rounded-full bg-[#FF8A65] animate-pulse"></span>
+<span class="font-label-sm text-label-sm text-[#594400] font-bold">따뜻하게 잠자는 중</span>
+<span class="text-xs text-[#89726B] font-normal">• 애정 가득</span>
+</div>
+</div>
+</div>
+</main>
+<!-- 3. Countdown Timer Card & Progress -->
+<section class="px-margin mt-3">
+<div class="clay-card rounded-2xl p-4">
+<!-- Timer Header -->
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-[#FFF0F0] flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">hourglass_top</span>
+</div>
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">부화 예정 시간</span>
+<div class="flex items-baseline gap-1.5">
+<span class="font-headline-lg-mobile text-headline-lg-mobile font-extrabold text-[#3B2F2F] tracking-tight" id="countdownDisplay">부화까지 02:14:30</span>
+</div>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-secondary bg-secondary-container/40 px-2 py-0.5 rounded-full border border-secondary/20">
+            순조로움
+          </span>
+</div>
+<!-- Warmth Gauge (따스함 지수 게이지) -->
+<div class="mt-3 bg-[#F5E8C9] p-2 rounded-xl border border-[#E9D9B2]/60">
+<div class="flex items-center justify-between mb-1.5">
+<span class="font-label-md text-label-md text-[#56423C] flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-[#FF8A65]" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+              따스함 지수
+            </span>
+<span class="font-label-md text-label-md text-primary font-extrabold">
+              72 <span class="text-on-surface-variant/70 font-medium">/ 100</span>
+</span>
+</div>
+<!-- Glossy Gummy Gauge Track & Fill -->
+<div class="w-full h-4 bg-white/70 rounded-full p-0.5 relative overflow-hidden shadow-inner">
+<div class="h-full rounded-full transition-all duration-500 relative" style="width: 72%; background: linear-gradient(90deg, #FFA07A 0%, #FF8A65 100%);">
+<!-- Candy Gloss Top Highlight -->
+<div class="w-full h-1/2 bg-white/35 rounded-t-full"></div>
+</div>
+</div>
+<div class="flex justify-between items-center mt-1.5 px-0.5">
+<span class="font-label-sm text-label-sm text-[#89726B]">최소 조건 60 달성됨</span>
+<span class="font-label-sm text-label-sm text-primary font-bold">+12% 보너스 외형 확률</span>
+</div>
+</div>
+<!-- Care Stamina Indicator -->
+<div class="mt-2.5 pt-2 border-t border-[#F0DFB8]/60 flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm text-primary-container" style="font-variation-settings: 'FILL' 1;">favorite</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">오늘의 돌봄 횟수</span>
+</div>
+<div class="flex items-center gap-1">
+<div class="flex gap-1">
+<span class="w-2.5 h-2.5 rounded-full bg-primary-container inline-block"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-primary-container inline-block"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-primary-container inline-block"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-primary-container inline-block"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-[#E8D9C5] inline-block"></span>
+</div>
+<span class="font-label-sm text-label-sm text-primary font-bold ml-1">4/5 남음</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 4. Core Tactical Action Buttons -->
+<section class="px-margin mt-3 mb-2">
+<div class="grid grid-cols-2 gap-3">
+<!-- Button: 쓰다듬기 (Pet) -->
+<button class="clay-btn-coral py-3 px-3 rounded-2xl flex flex-col items-center justify-center text-center group cursor-pointer" onclick="triggerPetReaction('pet')">
+<div class="flex items-center gap-1.5 mb-0.5">
+<span class="material-symbols-outlined text-2xl group-active:scale-125 transition-transform" style="font-variation-settings: 'FILL' 1;">pets</span>
+<span class="font-headline-sm text-headline-sm font-bold text-white tracking-tight">쓰다듬기</span>
+</div>
+<span class="font-label-sm text-label-sm text-white/90 bg-black/10 px-2 py-0.5 rounded-full">기분 좋아져요 (+5)</span>
+</button>
+<!-- Button: 따뜻하게 하기 (Warm up) -->
+<button class="clay-btn-mint py-3 px-3 rounded-2xl flex flex-col items-center justify-center text-center group cursor-pointer" onclick="triggerPetReaction('warm')">
+<div class="flex items-center gap-1.5 mb-0.5">
+<span class="material-symbols-outlined text-2xl group-active:scale-125 transition-transform" style="font-variation-settings: 'FILL' 1;">wb_sunny</span>
+<span class="font-headline-sm text-headline-sm font-bold text-white tracking-tight">따뜻하게 하기</span>
+</div>
+<span class="font-label-sm text-label-sm text-white/90 bg-black/10 px-2 py-0.5 rounded-full">부화 단축 (-10분)</span>
+</button>
+</div>
+<!-- Quick Tips Pill -->
+<div class="mt-2.5 py-1.5 px-3 rounded-xl bg-surface-container-lowest/80 border border-[#F0DFB8] flex items-center justify-between text-on-surface-variant">
+<div class="flex items-center gap-1.5 overflow-hidden">
+<span class="material-symbols-outlined text-primary text-base" style="font-variation-settings: 'FILL' 1;">tips_and_updates</span>
+<span class="font-body-sm text-body-sm truncate text-[#56423C]">따스함이 80 이상이면 신비로운 깃털이 돋아나요!</span>
+</div>
+<span class="material-symbols-outlined text-sm text-[#89726B]">chevron_right</span>
+</div>
+</section>
+<!-- Floating Feedback Toast / Particle Emitter Container -->
+<div class="fixed top-24 left-1/2 -translate-x-1/2 opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center gap-1.5 bg-[#3B2F2F]/90 text-white font-label-md text-label-md px-4 py-2 rounded-full shadow-lg backdrop-blur-xs" id="toastFeedback">
+<span class="material-symbols-outlined text-primary-container text-base" style="font-variation-settings: 'FILL' 1;">favorite</span>
+<span id="toastText">알이 온기를 느끼며 살짝 흔들렸습니다!</span>
+</div>
+<!-- 5. Shared Component: BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-gutter py-space-xs pb-6 max-w-[420px] mx-auto backdrop-blur-md bg-surface-container-lowest/95 shadow-[0_-4px_16px_rgba(159,65,34,0.08)] rounded-t-lg border-t border-outline-variant/40" style="left: 50%; transform: translateX(-50%);">
+<!-- Destination 1: 보육실 (Active) -->
+<a aria-current="page" class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-3 py-1.5 transition-transform active:scale-95" href="#nursery">
+<span class="material-symbols-outlined text-2xl" data-icon="nest_cam_indoor" style="font-variation-settings: 'FILL' 1;">nest_cam_indoor</span>
+<span class="font-label-sm text-label-sm mt-0.5 font-bold">보육실</span>
+</a>
+<!-- Destination 2: 도감 -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-2 py-1.5 transition-colors hover:bg-surface-container hover:text-on-surface active:scale-90 transition-transform duration-150" href="#pokedex">
+<span class="material-symbols-outlined text-2xl" data-icon="pets">pets</span>
+<span class="font-label-sm text-label-sm mt-0.5">도감</span>
+</a>
+<!-- Destination 3: 산책 -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-2 py-1.5 transition-colors hover:bg-surface-container hover:text-on-surface active:scale-90 transition-transform duration-150" href="#walk">
+<span class="material-symbols-outlined text-2xl" data-icon="park">park</span>
+<span class="font-label-sm text-label-sm mt-0.5">산책</span>
+</a>
+<!-- Destination 4: 가방 -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-2 py-1.5 transition-colors hover:bg-surface-container hover:text-on-surface active:scale-90 transition-transform duration-150" href="#inventory">
+<span class="material-symbols-outlined text-2xl" data-icon="backpack">backpack</span>
+<span class="font-label-sm text-label-sm mt-0.5">가방</span>
+</a>
+<!-- Destination 5: 설정 -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-2 py-1.5 transition-colors hover:bg-surface-container hover:text-on-surface active:scale-90 transition-transform duration-150" href="#settings">
+<span class="material-symbols-outlined text-2xl" data-icon="settings">settings</span>
+<span class="font-label-sm text-label-sm mt-0.5">설정</span>
+</a>
+</nav>
+</div>
+<!-- Inline Lightweight Micro-Interactions Script -->
+<script>
+    // Live countdown timer simulation
+    let secondsLeft = 2 * 3600 + 14 * 60 + 30; // 02:14:30
+    const countdownEl = document.getElementById('countdownDisplay');
+
+    function updateTimer() {
+      if (secondsLeft > 0) {
+        secondsLeft--;
+        const hours = String(Math.floor(secondsLeft / 3600)).padStart(2, '0');
+        const minutes = String(Math.floor((secondsLeft % 3600) / 60)).padStart(2, '0');
+        const seconds = String(secondsLeft % 60).padStart(2, '0');
+        countdownEl.textContent = `부화까지 ${hours}:${minutes}:${seconds}`;
+      }
+    }
+    setInterval(updateTimer, 1000);
+
+    // Toast notification for actions
+    let toastTimeout;
+    function showToast(message) {
+      const toast = document.getElementById('toastFeedback');
+      const text = document.getElementById('toastText');
+      text.textContent = message;
+      toast.classList.remove('opacity-0', '-translate-y-2');
+      toast.classList.add('opacity-100', 'translate-y-0');
+
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', '-translate-y-2');
+      }, 2200);
+    }
+
+    // Direct Egg Tap interaction
+    function handleEggTap(e) {
+      // Spawn floating heart particle at tap location
+      const heart = document.createElement('div');
+      heart.innerHTML = '❤️';
+      heart.style.position = 'fixed';
+      heart.style.left = (e.clientX - 10) + 'px';
+      heart.style.top = (e.clientY - 20) + 'px';
+      heart.style.pointerEvents = 'none';
+      heart.style.fontSize = '20px';
+      heart.style.zIndex = '999';
+      heart.style.transition = 'all 0.8s ease-out';
+      document.body.appendChild(heart);
+
+      requestAnimationFrame(() => {
+        heart.style.transform = 'translateY(-40px) scale(1.3)';
+        heart.style.opacity = '0';
+      });
+
+      setTimeout(() => heart.remove(), 850);
+      showToast('알이 간지러운 듯 기분 좋게 갸웃거립니다 (+1)');
+    }
+
+    // Core buttons trigger
+    function triggerPetReaction(type) {
+      if (type === 'pet') {
+        showToast('부드럽게 쓰다듬어 주었습니다! 친밀도 +5 💖');
+      } else if (type === 'warm') {
+        // Accelerate timer slightly
+        secondsLeft = Math.max(0, secondsLeft - 600);
+        updateTimer();
+        showToast('따스한 담요를 덮어주었습니다! 부화 10분 단축 ☀️');
+      }
+    }
+  </script>
+</body></html>

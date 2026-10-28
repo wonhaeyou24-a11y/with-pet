@@ -1,0 +1,70 @@
+/* 숨쉬기(계속) + 가끔 통통 튀기 */
+.mon-breathe,
+.mon-bounce {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+.mon-breathe {
+  animation: mon-breathe 3.4s ease-in-out infinite;
+}
+
+.mon-bounce {
+  animation: mon-bounce 4.2s ease-in-out infinite;
+}
+
+@keyframes mon-breathe {
+  0%,
+  100% {
+    transform: scale(1, 1);
+  }
+  50% {
+    transform: scale(1.012, 1.028);
+  }
+}
+
+@keyframes mon-bounce {
+  0%,
+  58%,
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+  64% {
+    transform: translateY(0) scale(1.05, 0.93);
+  }
+  74% {
+    transform: translateY(-12px) scale(0.97, 1.05);
+  }
+  84% {
+    transform: translateY(0) scale(1.04, 0.95);
+  }
+  90% {
+    transform: translateY(-3px) scale(1, 1);
+  }
+}
+
+.mon-shiny {
+  filter: saturate(1.1) drop-shadow(0 0 8px rgba(255, 224, 120, 0.9));
+}
+
+.mon-twinkle {
+  animation: mon-twinkle 2.2s ease-in-out infinite;
+}
+
+@keyframes mon-twinkle {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mon-breathe,
+  .mon-bounce,
+  .mon-twinkle {
+    animation: none;
+  }
+}
