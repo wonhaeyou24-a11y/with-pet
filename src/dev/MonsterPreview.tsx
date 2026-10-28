@@ -1,31 +1,47 @@
 // 개발용 확인 페이지 (주소 끝에 #/dev/monsters). 운영 빌드에는 들어가지 않는다.
 import { useState, type ReactNode } from 'react'
+import refBeongaekkori from '../../design/characters/species-번개꼬리.png'
+import refByeolbineul from '../../design/characters/species-별비늘.png'
+import refGangcheoldeung from '../../design/characters/species-강철등.png'
+import refHeugyeom from '../../design/characters/species-흑염.png'
+import refKongkong from '../../design/characters/species-콩콩.png'
 import refMongsil from '../../design/characters/species-몽실.png'
 import MonsterView from '../monsters/MonsterView'
 import { SPECIES } from '../monsters/registry'
 import type { BodyType, Expression, MonsterLook } from '../monsters/types'
 
-const BASE: MonsterLook = {
-  species: 'mongsil',
-  palette: 0,
-  bodyType: 'normal',
-  scale: 1,
-  ears: 0,
-  tail: 0,
-  top: 0,
-  expression: 'round',
-  patternSeed: 7,
-  shiny: false,
+const REFS: Record<string, string> = {
+  mongsil: refMongsil,
+  kongkong: refKongkong,
+  beongaekkori: refBeongaekkori,
+  gangcheoldeung: refGangcheoldeung,
+  heugyeom: refHeugyeom,
+  byeolbineul: refByeolbineul,
 }
 
 const BODY_TYPES: BodyType[] = ['chubby', 'normal', 'slim']
 const EXPRESSIONS: Expression[] = ['round', 'sleepy', 'sharp']
 
-function randomLook(): MonsterLook {
-  const def = SPECIES[BASE.species]
+function baseLook(species: string): MonsterLook {
+  return {
+    species,
+    palette: 0,
+    bodyType: 'normal',
+    scale: 1,
+    ears: 0,
+    tail: 0,
+    top: 0,
+    expression: 'round',
+    patternSeed: 7,
+    shiny: false,
+  }
+}
+
+function randomLook(species: string): MonsterLook {
+  const def = SPECIES[species]
   const pick = (n: number) => Math.floor(Math.random() * n)
   return {
-    species: def.id,
+    species,
     palette: pick(def.paletteCount),
     bodyType: BODY_TYPES[pick(3)],
     scale: 0.9 + Math.random() * 0.2,
@@ -57,16 +73,34 @@ function Cell({ look, label }: { look: MonsterLook; label: string }) {
 }
 
 export default function MonsterPreview() {
-  const [rolled, setRolled] = useState(() => Array.from({ length: 12 }, randomLook))
-  const def = SPECIES[BASE.species]
+  const ids = Object.keys(SPECIES)
+  const [species, setSpecies] = useState(() => {
+    const hash = location.hash.split('/')[3]
+    return hash && SPECIES[hash] ? hash : ids[0]
+  })
+  const [rolled, setRolled] = useState(() => Array.from({ length: 12 }, () => randomLook(species)))
+  const def = SPECIES[species]
+  const BASE = baseLook(species)
   const range = (n: number) => Array.from({ length: n }, (_, i) => i)
+
+  function choose(id: string) {
+    setSpecies(id)
+    setRolled(Array.from({ length: 12 }, () => randomLook(id)))
+  }
 
   return (
     <div style={{ width: '100%', maxWidth: 960, padding: 20, boxSizing: 'border-box' }}>
-      <h2 style={{ marginTop: 0 }}>몽실 확인 페이지 (개발용)</h2>
+      <h2 style={{ marginTop: 0 }}>{def.name} 확인 페이지 (개발용)</h2>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+        {ids.map((id) => (
+          <button key={id} onClick={() => choose(id)} style={{ opacity: id === species ? 1 : 0.5 }}>
+            {SPECIES[id].name}
+          </button>
+        ))}
+      </div>
 
       <Row title="시안(왼쪽)과 직접 그린 SVG(오른쪽)">
-        <img src={refMongsil} width={260} height={260} alt="몽실 시안" style={{ borderRadius: 16 }} />
+        <img src={REFS[species]} width={260} height={260} alt={`${def.name} 시안`} style={{ borderRadius: 16 }} />
         <MonsterView look={BASE} size={260} />
       </Row>
 
@@ -104,7 +138,7 @@ export default function MonsterPreview() {
       </Row>
       <Row title="고유 무늬 (시드 1~8)">
         {range(8).map((i) => (
-          <Cell key={i} look={{ ...BASE, patternSeed: i + 1, palette: i % 6 }} label={`시드 ${i + 1}`} />
+          <Cell key={i} look={{ ...BASE, patternSeed: i + 1, palette: i % def.paletteCount }} label={`시드 ${i + 1}`} />
         ))}
       </Row>
       <Row title="빛나는 몬스터">
@@ -116,7 +150,7 @@ export default function MonsterPreview() {
           <Cell key={i} look={look} label={`#${i + 1}`} />
         ))}
       </Row>
-      <button onClick={() => setRolled(Array.from({ length: 12 }, randomLook))}>다시 뽑기</button>
+      <button onClick={() => setRolled(Array.from({ length: 12 }, () => randomLook(species)))}>다시 뽑기</button>
     </div>
   )
 }
