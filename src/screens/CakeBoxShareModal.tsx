@@ -253,3 +253,4 @@ export default function CakeBoxShareModal({ monster, ownerNickname, onClose }: P
     </div>
   )
 }
+

@@ -408,93 +408,206 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                 <MonsterView look={look} size={138} title={info?.name} />
               </div>
             </div>
-          ) : towerSession ? (
-            /* 2. 타워 탐험 진행 중일 때: 실시간 몬스터 조우 & 공방 배틀 액션 */
+          ) : towerSession || activeTab === 'tower' ? (
+            /* 2. 타워 탐험 진행 중 (또는 타워 탭): 우측 전진 횡스크롤 러닝 & 몬스터 격퇴 액션 */
             <div
               style={{
                 width: '100%',
                 height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-around',
-                padding: '0 12px',
                 position: 'relative',
+                overflow: 'hidden',
+                background: 'linear-gradient(180deg, #2D1B4E 0%, #4A2882 60%, #311B92 100%)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'flex-end',
               }}
             >
+              {/* 상단 층수 & 진행 상태 뱃지 */}
               <div
                 style={{
                   position: 'absolute',
                   top: 6,
-                  left: 10,
+                  left: 8,
                   zIndex: 10,
-                  padding: '3px 9px',
-                  borderRadius: 999,
-                  background: '#7C4DFF',
-                  color: '#FFFFFF',
-                  fontSize: 11,
-                  fontWeight: 900,
-                  boxShadow: '0 3px 8px rgba(124,77,255,0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
                 }}
               >
-                🏰 {towerSession.currentFloor}층 실시간 탐사 배틀 중
-              </div>
-
-              {/* 내 몬스터 돌진 모션 */}
-              <div
-                style={{
-                  transform:
-                    liveActionPhase % 2 === 0 ? 'translateX(10px) rotate(4deg)' : 'translateX(0px)',
-                  transition: 'transform 0.22s ease',
-                  textAlign: 'center',
-                }}
-              >
-                <MonsterView look={look} size={110} title={info?.name} />
-                <div style={{ fontSize: 10, fontWeight: 800, color: '#3E2723' }}>내 디저트</div>
-              </div>
-
-              {/* 공방 이펙트 */}
-              <div
-                style={{
-                  fontSize: 18,
-                  fontWeight: 900,
-                  color: '#D81B60',
-                  animation: 'pulse 0.5s infinite alternate',
-                }}
-              >
-                {liveActionPhase % 2 === 0 ? '💥 CRUNCH!' : '⚔️ 돌파전'}
-              </div>
-
-              {/* 타워 수호 몬스터 */}
-              <div
-                style={{
-                  transform:
-                    liveActionPhase % 2 === 0 ? 'translateX(-8px) scale(0.95)' : 'translateX(0px)',
-                  transition: 'transform 0.22s ease',
-                  textAlign: 'center',
-                }}
-              >
-                <div
+                <span
                   style={{
-                    width: 75,
-                    height: 75,
-                    borderRadius: '50%',
-                    background: 'radial-gradient(circle, #7E57C2 0%, #4527A0 100%)',
-                    display: 'grid',
-                    placeItems: 'center',
-                    fontSize: 34,
-                    boxShadow: '0 4px 12px rgba(69,39,160,0.3)',
+                    padding: '3px 9px',
+                    borderRadius: 999,
+                    background: 'linear-gradient(90deg, #7C4DFF, #651FFF)',
+                    color: '#FFFFFF',
+                    fontSize: 11,
+                    fontWeight: 900,
+                    boxShadow: '0 2px 8px rgba(124,77,255,0.4)',
                   }}
                 >
-                  {towerSession.currentFloor % 3 === 0
-                    ? '🐲'
-                    : towerSession.currentFloor % 2 === 0
-                      ? '🍫'
-                      : '🍬'}
+                  🏰 {towerSession ? `${towerSession.currentFloor}층 탐험 러닝 중` : `${towerFloor}층 탐사 대기`}
+                </span>
+                <span
+                  style={{
+                    padding: '3px 8px',
+                    borderRadius: 999,
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    backdropFilter: 'blur(4px)',
+                    color: '#FFD54F',
+                    fontSize: 10,
+                    fontWeight: 800,
+                  }}
+                >
+                  🏃 우측 진격 중
+                </span>
+              </div>
+
+              {/* 뒷배경: 움직이는 별빛 & 디저트 성벽 실루엣 */}
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  backgroundImage: 'radial-gradient(circle at 20% 30%, rgba(255,255,255,0.2) 1px, transparent 1px), radial-gradient(circle at 75% 20%, rgba(255,255,255,0.15) 1.5px, transparent 1.5px), radial-gradient(circle at 50% 60%, rgba(255,215,0,0.15) 1.5px, transparent 1.5px)',
+                  backgroundSize: '120px 80px',
+                }}
+              />
+
+              {/* 중앙 액션 필드: 횡스크롤 캐릭터 전진 & 몬스터 격퇴 */}
+              <div
+                style={{
+                  position: 'relative',
+                  width: '100%',
+                  height: 105,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '0 18px',
+                  zIndex: 2,
+                }}
+              >
+                {/* 1. 내 캐릭터: 우측으로 달리며 도약 공격하는 모션 */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: liveActionPhase % 4 === 2 ? '42%' : liveActionPhase % 4 === 1 ? '24%' : '14%',
+                    bottom: liveActionPhase % 2 === 1 ? 16 : 8,
+                    transform: liveActionPhase % 4 === 2
+                      ? 'scale(1.1) rotate(6deg)'
+                      : liveActionPhase % 2 === 1
+                        ? 'translateY(-6px) rotate(-2deg)'
+                        : 'translateY(0) rotate(1deg)',
+                    transition: 'left 0.25s ease-out, transform 0.2s ease, bottom 0.2s ease',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                  }}
+                >
+                  <MonsterView look={look} size={92} title={info?.name} />
+                  <span
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 900,
+                      color: '#FFF9C4',
+                      background: 'rgba(0,0,0,0.4)',
+                      padding: '1px 6px',
+                      borderRadius: 8,
+                      marginTop: -4,
+                    }}
+                  >
+                    {liveActionPhase % 4 === 2 ? '⚡ 돌진 공격!' : '🏃 전진 러닝'}
+                  </span>
                 </div>
-                <div style={{ fontSize: 10, fontWeight: 800, color: '#512DA8', marginTop: 2 }}>
-                  {towerSession.currentFloor}층 수호 몬스터
+
+                {/* 2. 타격 이펙트 & 데미지 팝업 */}
+                {liveActionPhase % 4 === 2 && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      left: '52%',
+                      top: 15,
+                      zIndex: 8,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      animation: 'pulse 0.25s infinite alternate',
+                    }}
+                  >
+                    <span style={{ fontSize: 24 }}>💥</span>
+                    <span
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 900,
+                        color: '#FF1744',
+                        textShadow: '0 1px 4px #FFFFFF, 0 0 8px #FF80AB',
+                      }}
+                    >
+                      CRUNCH! -{(battlePower * 1.5).toFixed(0)}
+                    </span>
+                  </div>
+                )}
+
+                {/* 3. 등장 및 격퇴되는 적 몬스터 */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    right: liveActionPhase % 4 === 3 ? '-40px' : liveActionPhase % 4 === 2 ? '18%' : '12%',
+                    bottom: liveActionPhase % 4 === 3 ? 35 : 10,
+                    opacity: liveActionPhase % 4 === 3 ? 0 : 1,
+                    transform: liveActionPhase % 4 === 3
+                      ? 'rotate(180deg) scale(0.6)'
+                      : liveActionPhase % 4 === 2
+                        ? 'translateX(14px) scale(0.9)'
+                        : 'translateX(0)',
+                    transition: 'all 0.28s cubic-bezier(0.2, 0.9, 0.3, 1)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 58,
+                      height: 58,
+                      borderRadius: '50%',
+                      background: currentFloorInfo.isBoss
+                        ? 'radial-gradient(circle, #FF5252 0%, #B71C1C 100%)'
+                        : 'radial-gradient(circle, #AB47BC 0%, #4A148C 100%)',
+                      display: 'grid',
+                      placeItems: 'center',
+                      fontSize: 28,
+                      boxShadow: '0 3px 10px rgba(0,0,0,0.3)',
+                      border: '2px solid rgba(255,255,255,0.4)',
+                    }}
+                  >
+                    {currentFloorInfo.isBoss ? '👹' : towerFloor % 3 === 0 ? '🐲' : towerFloor % 2 === 0 ? '🍫' : '🍬'}
+                  </div>
+                  <span
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 800,
+                      color: '#E1BEE7',
+                      background: 'rgba(0,0,0,0.4)',
+                      padding: '1px 5px',
+                      borderRadius: 8,
+                      marginTop: 2,
+                    }}
+                  >
+                    {currentFloorInfo.enemy}
+                  </span>
                 </div>
               </div>
+
+              {/* 하단 패럴랙스 타일 바닥 (오른쪽에서 왼쪽으로 이동하는 느낌의 줄무늬 코블스톤) */}
+              <div
+                style={{
+                  height: 18,
+                  width: '100%',
+                  background: 'repeating-linear-gradient(90deg, #3E2723 0px, #3E2723 18px, #4E342E 18px, #4E342E 36px)',
+                  borderTop: '2px solid #8D6E63',
+                  boxShadow: 'inset 0 3px 6px rgba(0,0,0,0.4)',
+                  zIndex: 3,
+                }}
+              />
             </div>
           ) : (
             /* 3. 대기 상태 기본 뷰 */
@@ -827,31 +940,177 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
               </div>
 
               {towerSession ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, textAlign: 'center', padding: '6px 0' }}>
-                  <div style={{ fontSize: 14, fontWeight: 900, color: '#7C4DFF' }}>
-                    🏰 {towerSession.currentFloor}층 탐험 중! (목표: {towerSession.targetFloor}층)
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '4px 0' }}>
+                  {/* 상단 진행 상태 헤더 */}
+                  <div className="row between">
+                    <span style={{ fontSize: 13, fontWeight: 900, color: '#7C4DFF' }}>
+                      🗺️ 가로 탐험 지도 ({towerSession.currentFloor}F / {towerSession.targetFloor}F)
+                    </span>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: '#00897B', background: '#E0F2F1', padding: '2px 8px', borderRadius: 10 }}>
+                      ⚡ 펫 자율 전진 중
+                    </span>
                   </div>
-                  <div style={{ fontSize: 12, color: '#5E35B1', fontWeight: 700 }}>
-                    {exploreLog}
+
+                  {/* 🗺️ 사용자가 요청한 가로 층 진행 지도 (Horizontal Exploration Map) */}
+                  {(() => {
+                    const rawPct = ((towerSession.currentFloor - towerSession.startFloor) / (towerSession.targetFloor - towerSession.startFloor || 1)) * 100
+                    const progressPct = Math.min(94, Math.max(6, Math.round(rawPct)))
+                    return (
+                      <div
+                        style={{
+                          position: 'relative',
+                          height: 64,
+                          background: 'linear-gradient(180deg, #F3E8FF 0%, #E9D5FF 100%)',
+                          borderRadius: 14,
+                          border: '1.5px solid #C084FC',
+                          padding: '0 12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          boxShadow: 'inset 0 2px 6px rgba(124,77,255,0.1)',
+                          margin: '6px 0',
+                        }}
+                      >
+                        {/* 1. 기본 연결 레일 선 */}
+                        <div
+                          style={{
+                            position: 'absolute',
+                            left: 16,
+                            right: 16,
+                            height: 6,
+                            background: '#D8B4FE',
+                            borderRadius: 999,
+                            zIndex: 1,
+                          }}
+                        />
+
+                        {/* 2. 전진 완료된 황금빛 이동 궤적 */}
+                        <div
+                          style={{
+                            position: 'absolute',
+                            left: 16,
+                            width: `${progressPct}%`,
+                            height: 6,
+                            background: 'linear-gradient(90deg, #F59E0B 0%, #8B5CF6 100%)',
+                            borderRadius: 999,
+                            zIndex: 2,
+                            boxShadow: '0 0 8px rgba(139,92,246,0.6)',
+                            transition: 'width 0.4s ease',
+                          }}
+                        />
+
+                        {/* 3. 지도 상의 주요 체크포인트 마커들 */}
+                        <div
+                          style={{
+                            position: 'relative',
+                            width: '100%',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            zIndex: 3,
+                          }}
+                        >
+                          {/* 출발지 */}
+                          <div style={{ textAlign: 'center', transform: 'translateY(-2px)' }}>
+                            <div style={{ fontSize: 13 }}>🚩</div>
+                            <div style={{ fontSize: 9, fontWeight: 800, color: '#6B21A8' }}>{towerSession.startFloor}F</div>
+                          </div>
+                          {/* 1차 젤리존 */}
+                          <div style={{ textAlign: 'center', transform: 'translateY(-2px)' }}>
+                            <div style={{ fontSize: 12 }}>🍬</div>
+                            <div style={{ fontSize: 8, fontWeight: 700, color: '#7E22CE' }}>젤리존</div>
+                          </div>
+                          {/* 2차 보물상자 */}
+                          <div style={{ textAlign: 'center', transform: 'translateY(-2px)' }}>
+                            <div style={{ fontSize: 12 }}>🎁</div>
+                            <div style={{ fontSize: 8, fontWeight: 700, color: '#7E22CE' }}>보물방</div>
+                          </div>
+                          {/* 3차 수호자 보스 */}
+                          <div style={{ textAlign: 'center', transform: 'translateY(-2px)' }}>
+                            <div style={{ fontSize: 12 }}>👹</div>
+                            <div style={{ fontSize: 8, fontWeight: 700, color: '#7E22CE' }}>수호자</div>
+                          </div>
+                          {/* 도착지 */}
+                          <div style={{ textAlign: 'center', transform: 'translateY(-2px)' }}>
+                            <div style={{ fontSize: 13 }}>🏁</div>
+                            <div style={{ fontSize: 9, fontWeight: 900, color: '#581C87' }}>{towerSession.targetFloor}F</div>
+                          </div>
+                        </div>
+
+                        {/* 4. 레일 위를 달리는 내 캐릭터 미니 아바타 핀 */}
+                        <div
+                          style={{
+                            position: 'absolute',
+                            left: `${progressPct}%`,
+                            top: 4,
+                            transform: 'translateX(-50%)',
+                            zIndex: 10,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            transition: 'left 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28)',
+                          }}
+                        >
+                          {/* 말풍선 */}
+                          <span
+                            style={{
+                              fontSize: 8,
+                              fontWeight: 900,
+                              color: '#FFFFFF',
+                              background: '#7C4DFF',
+                              padding: '1px 5px',
+                              borderRadius: 6,
+                              whiteSpace: 'nowrap',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                            }}
+                          >
+                            🏃 {progressPct}% 전진
+                          </span>
+                          {/* 캐릭터 핀 헤드 */}
+                          <div
+                            style={{
+                              width: 22,
+                              height: 22,
+                              borderRadius: '50%',
+                              background: '#FFFDF9',
+                              border: '2px solid #7C4DFF',
+                              display: 'grid',
+                              placeItems: 'center',
+                              fontSize: 11,
+                              boxShadow: '0 2px 6px rgba(124,77,255,0.4)',
+                              marginTop: 1,
+                            }}
+                          >
+                            🧁
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })()}
+
+                  {/* 최근 탐사 로그 */}
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: '#5E35B1',
+                      fontWeight: 700,
+                      background: 'rgba(255,255,255,0.7)',
+                      padding: '4px 8px',
+                      borderRadius: 10,
+                      border: '1px solid #E9D5FF',
+                      textAlign: 'center',
+                    }}
+                  >
+                    📜 {exploreLog}
                   </div>
-                  <div style={{ fontSize: 11, color: '#795548' }}>
-                    📱 앱을 닫고 다른 일을 해도 펫이 스스로 몬스터를 격퇴하며 올라갑니다.
+
+                  <div style={{ fontSize: 10, color: '#795548', textAlign: 'center' }}>
+                    📱 앱을 닫고 다른 일을 해도 펫이 스스로 몬스터를 격퇴하며 지도를 전진합니다.
                   </div>
-                  <div style={{ height: 10, borderRadius: 999, background: '#E0D4FC', overflow: 'hidden' }}>
-                    <div
-                      style={{
-                        width: `${Math.min(100, Math.round(((towerSession.currentFloor - towerSession.startFloor) / (towerSession.targetFloor - towerSession.startFloor || 1)) * 100))}%`,
-                        height: '100%',
-                        background: 'linear-gradient(90deg, #7C4DFF, #B388FF)',
-                        transition: 'width 0.4s ease',
-                      }}
-                    />
-                  </div>
+
                   <button
                     className="btn"
                     onClick={finishExplore}
                     style={{
-                      marginTop: 4,
+                      marginTop: 2,
                       padding: '8px',
                       fontSize: 13,
                       background: 'linear-gradient(180deg, #7C4DFF 0%, #651FFF 100%)',

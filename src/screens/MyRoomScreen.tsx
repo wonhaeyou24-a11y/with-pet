@@ -290,50 +290,133 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
           flexShrink: 0,
         }}
       >
-        {/* 상단 벽면 (창문 & 액자 & 장식) */}
+        {/* 상단 벽면 (감성 레이스 창문 & 파티세리 벽면 선반 & 네온 레터링) */}
         <div style={{ flex: 1, position: 'relative', padding: 8 }}>
-          {/* 감성 창문 */}
+          {/* 1. 감성 레이스 창문 */}
           <div
             style={{
               position: 'absolute',
-              top: 10,
-              left: 12,
-              width: 44,
-              height: 38,
-              borderRadius: '8px 8px 0 0',
-              border: '2px solid #FFFFFF',
-              background: 'linear-gradient(180deg, #BAE6FD 0%, #E0F2FE 100%)',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+              top: 8,
+              left: 10,
+              width: 52,
+              height: 46,
+              borderRadius: '12px 12px 2px 2px',
+              border: '2.5px solid #FFFFFF',
+              background: 'linear-gradient(180deg, #BAE6FD 0%, #E0F2FE 70%, #FFFDF9 100%)',
+              boxShadow: '0 3px 8px rgba(0,0,0,0.12)',
               overflow: 'hidden',
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <span style={{ fontSize: 16 }}>🌤️</span>
+            {/* 레이스 커튼 테두리 */}
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 8,
+                background: 'repeating-linear-gradient(90deg, #FFFFFF 0px, #FFFFFF 6px, #FCE7F3 6px, #FCE7F3 12px)',
+                opacity: 0.9,
+              }}
+            />
+            <span style={{ fontSize: 18, marginTop: 4 }}>🌤️</span>
           </div>
 
-          {/* 벽면 미니 액자 */}
+          {/* 2. 네온사인 레터링 */}
           <div
             style={{
               position: 'absolute',
               top: 10,
-              right: 14,
-              padding: '3px 6px',
-              background: '#FFFFFF',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              padding: '2px 10px',
+              borderRadius: 12,
+              background: 'rgba(255, 255, 255, 0.85)',
               border: '1.5px solid #FBCFE8',
-              borderRadius: 6,
-              boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 3,
+              boxShadow: '0 2px 8px rgba(244,114,182,0.25)',
+              fontSize: 10,
+              fontWeight: 900,
+              color: '#BE185D',
+              whiteSpace: 'nowrap',
             }}
           >
-            <span style={{ fontSize: 12 }}>🖼️</span>
-            <span style={{ fontSize: 9, fontWeight: 800, color: '#9D174D' }}>우정 사진</span>
+            💖 Sweet Patisserie Home
           </div>
 
-          {/* 중앙 3D 펫 모델 (자유 포즈 & 콩콩 모션) */}
+          {/* 3. 벽면 디저트 선반 & 미니 액자 */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 8,
+              right: 10,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-end',
+              gap: 4,
+            }}
+          >
+            {/* 우정 사진 액자 */}
+            <div
+              style={{
+                padding: '2px 6px',
+                background: '#FFFFFF',
+                border: '1.5px solid #FBCFE8',
+                borderRadius: 6,
+                boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 3,
+              }}
+            >
+              <span style={{ fontSize: 11 }}>🖼️</span>
+              <span style={{ fontSize: 9, fontWeight: 800, color: '#9D174D' }}>우정 사진</span>
+            </div>
+            {/* 미니 디저트 선반 */}
+            <div
+              style={{
+                padding: '1px 5px',
+                background: '#EFEBE9',
+                borderBottom: '2px solid #8D6E63',
+                borderRadius: 3,
+                fontSize: 10,
+                display: 'flex',
+                gap: 2,
+              }}
+            >
+              <span>🍯</span>
+              <span>🍪</span>
+            </div>
+          </div>
+
+          {/* 4. 바닥 보송보송 하트 러그 (3D 펫 발밑) */}
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 4,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: 140,
+              height: 48,
+              borderRadius: '50%',
+              background: 'radial-gradient(ellipse, #FCE7F3 0%, #FBCFE8 65%, transparent 70%)',
+              border: '1.5px dashed #F472B6',
+              zIndex: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#EC4899',
+              fontSize: 11,
+              opacity: 0.85,
+            }}
+          >
+            🌸
+          </div>
+
+          {/* 5. 중앙 3D 펫 모델 (자유 포즈 & 콩콩 모션) */}
           <div
             style={{
               position: 'absolute',

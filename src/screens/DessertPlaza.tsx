@@ -318,7 +318,7 @@ export default function DessertPlaza({
           </button>
         </div>
 
-        {/* 광장 캔버스 월드 */}
+        {/* 광장 캔버스 월드: 픽셀 파티세리 빌리지 (돌바닥, 빵집 건물, 롤리팝 나무, 퐁듀 분수대) */}
         <div
           style={{
             position: 'absolute',
@@ -333,54 +333,227 @@ export default function DessertPlaza({
             transition: dragRef.current.active ? 'none' : 'transform 0.22s ease-out',
           }}
         >
-          {/* 광장 바닥 아트 (디저트 타일 & 분수대) */}
+          {/* 1. 광장 바닥 아트: 코블스톤 픽셀 돌바닥 & 베이지 보도블록 */}
           <div
             style={{
               position: 'absolute',
               inset: 0,
-              borderRadius: 40,
-              border: '4px dashed #E0CFB5',
-              background: 'repeating-linear-gradient(45deg, #FFFDF8, #FFFDF8 20px, #FDF7EC 20px, #FDF7EC 40px)',
-              boxShadow: 'inset 0 0 40px rgba(141,110,99,0.15)',
+              borderRadius: 36,
+              border: '6px solid #D7CCC8',
+              backgroundColor: '#F5EBE1',
+              backgroundImage: `
+                radial-gradient(#D7CCC8 12%, transparent 12%),
+                repeating-linear-gradient(0deg, transparent, transparent 38px, rgba(141,110,99,0.12) 38px, rgba(141,110,99,0.12) 40px),
+                repeating-linear-gradient(90deg, transparent, transparent 38px, rgba(141,110,99,0.12) 38px, rgba(141,110,99,0.12) 40px)
+              `,
+              backgroundSize: '40px 40px',
+              boxShadow: 'inset 0 0 50px rgba(109,76,65,0.2), 0 8px 30px rgba(0,0,0,0.1)',
             }}
           />
 
-          {/* 중앙 달콤 퐁듀 분수대 */}
+          {/* 중앙 광장 원형 대리석 테두리 바닥 */}
           <div
             style={{
               position: 'absolute',
-              left: CENTER_X - 60,
-              top: CENTER_Y - 60,
-              width: 120,
-              height: 120,
+              left: CENTER_X - 140,
+              top: CENTER_Y - 140,
+              width: 280,
+              height: 280,
               borderRadius: '50%',
-              background: 'radial-gradient(circle, #FF80AB 0%, #FF4081 70%, #F50057 100%)',
-              border: '4px solid #FFFFFF',
-              boxShadow: '0 8px 24px rgba(255,64,129,0.3)',
-              display: 'grid',
-              placeItems: 'center',
+              background: 'radial-gradient(circle, #FFFDF9 0%, #F5EBE1 70%, #E6D7C8 100%)',
+              border: '4px dashed #BCAAA4',
+              boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.06)',
+            }}
+          />
+
+          {/* 2. 픽셀 마을 건물들 (북서: 빵집, 북동: 카페, 남서: 부티크, 남동: 아레나, 북: 성탑) */}
+          {/* 북쪽 (12시): 🏰 그랜드 파티세리 성탑 */}
+          <div
+            style={{
+              position: 'absolute',
+              left: CENTER_X - 70,
+              top: 24,
+              width: 140,
+              height: 80,
+              borderRadius: 14,
+              background: 'linear-gradient(180deg, #CE93D8 0%, #BA68C8 100%)',
+              border: '3px solid #7B1FA2',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 6px 14px rgba(0,0,0,0.15)',
               color: '#FFFFFF',
-              fontSize: 32,
               zIndex: 2,
             }}
           >
-            ⛲
-            <span
-              style={{
-                position: 'absolute',
-                bottom: 6,
-                fontSize: 10,
-                fontWeight: 900,
-                background: 'rgba(0,0,0,0.4)',
-                padding: '1px 6px',
-                borderRadius: 999,
-              }}
-            >
-              디저트 분수
+            <span style={{ fontSize: 26 }}>🏰</span>
+            <span style={{ fontSize: 10, fontWeight: 900, background: 'rgba(0,0,0,0.3)', padding: '2px 8px', borderRadius: 8, marginTop: 2 }}>
+              디저트 궁전
             </span>
           </div>
 
-          {/* 지인들의 캐릭터 노드 배치 */}
+          {/* 10시 방향: 🥐 크루아상 베이커리 하우스 */}
+          <div
+            style={{
+              position: 'absolute',
+              left: 48,
+              top: 50,
+              width: 130,
+              height: 90,
+              borderRadius: 12,
+              background: 'linear-gradient(180deg, #FFE082 0%, #FFB74D 100%)',
+              border: '3px solid #E65100',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 6px 12px rgba(0,0,0,0.12)',
+              zIndex: 2,
+            }}
+          >
+            <span style={{ fontSize: 28 }}>🥐</span>
+            <span style={{ fontSize: 10, fontWeight: 900, color: '#3E2723', background: '#FFF8E1', padding: '1px 6px', borderRadius: 6 }}>
+              버터 빵집
+            </span>
+          </div>
+
+          {/* 2시 방향: ☕ 롤리팝 카페 & 야외 테라스 */}
+          <div
+            style={{
+              position: 'absolute',
+              right: 48,
+              top: 50,
+              width: 130,
+              height: 90,
+              borderRadius: 12,
+              background: 'linear-gradient(180deg, #FFAB91 0%, #FF8A65 100%)',
+              border: '3px solid #D84315',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 6px 12px rgba(0,0,0,0.12)',
+              zIndex: 2,
+            }}
+          >
+            <span style={{ fontSize: 28 }}>☕</span>
+            <span style={{ fontSize: 10, fontWeight: 900, color: '#3E2723', background: '#FBE9E7', padding: '1px 6px', borderRadius: 6 }}>
+              롤리팝 카페
+            </span>
+          </div>
+
+          {/* 8시 방향: 🎪 마카롱 부티크 공방 */}
+          <div
+            style={{
+              position: 'absolute',
+              left: 48,
+              bottom: 60,
+              width: 125,
+              height: 85,
+              borderRadius: 12,
+              background: 'linear-gradient(180deg, #F8BBD0 0%, #F48FB1 100%)',
+              border: '3px solid #C2185B',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 6px 12px rgba(0,0,0,0.12)',
+              zIndex: 2,
+            }}
+          >
+            <span style={{ fontSize: 28 }}>🎪</span>
+            <span style={{ fontSize: 10, fontWeight: 900, color: '#880E4F', background: '#FCE4EC', padding: '1px 6px', borderRadius: 6 }}>
+              부티크 샵
+            </span>
+          </div>
+
+          {/* 4시 방향: ⚔️ 배틀 아레나 콜로세움 */}
+          <div
+            style={{
+              position: 'absolute',
+              right: 48,
+              bottom: 60,
+              width: 125,
+              height: 85,
+              borderRadius: 12,
+              background: 'linear-gradient(180deg, #B0BEC5 0%, #90A4AE 100%)',
+              border: '3px solid #37474F',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 6px 12px rgba(0,0,0,0.12)',
+              zIndex: 2,
+            }}
+          >
+            <span style={{ fontSize: 28 }}>⚔️</span>
+            <span style={{ fontSize: 10, fontWeight: 900, color: '#263238', background: '#ECEFF1', padding: '1px 6px', borderRadius: 6 }}>
+              배틀 아레나
+            </span>
+          </div>
+
+          {/* 3. 롤리팝 가로수 & 마카롱 꽃밭 조경 */}
+          {[
+            { x: 195, y: 160, icon: '🍭' },
+            { x: CANVAS_W - 200, y: 160, icon: '🍭' },
+            { x: 190, y: CANVAS_H - 180, icon: '🌸' },
+            { x: CANVAS_W - 200, y: CANVAS_H - 180, icon: '🌸' },
+            { x: CENTER_X - 170, y: CENTER_Y + 10, icon: '🌳' },
+            { x: CENTER_X + 170, y: CENTER_Y + 10, icon: '🌳' },
+          ].map((deco, di) => (
+            <div
+              key={di}
+              style={{
+                position: 'absolute',
+                left: deco.x,
+                top: deco.y,
+                fontSize: 26,
+                filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.15))',
+                zIndex: 2,
+                pointerEvents: 'none',
+              }}
+            >
+              {deco.icon}
+            </div>
+          ))}
+
+          {/* 4. 중앙 대리석 퐁듀 분수대 (3단 디테일 & 초콜릿 파동) */}
+          <div
+            style={{
+              position: 'absolute',
+              left: CENTER_X - 65,
+              top: CENTER_Y - 65,
+              width: 130,
+              height: 130,
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, #FF4081 0%, #E91E63 60%, #880E4F 100%)',
+              border: '5px solid #FFFFFF',
+              boxShadow: '0 8px 26px rgba(233,30,99,0.35)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#FFFFFF',
+              zIndex: 3,
+            }}
+          >
+            <span style={{ fontSize: 36, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}>⛲</span>
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 900,
+                background: 'rgba(0,0,0,0.4)',
+                padding: '2px 8px',
+                borderRadius: 999,
+                marginTop: 2,
+              }}
+            >
+              초코 퐁듀 분수
+            </span>
+          </div>
+
+          {/* 5. 지인들의 캐릭터 노드 배치 (초경량 2.5D 모드로 렉 제로 60fps 실크 패닝 보장!) */}
           {entries.slice(0, PLAZA_COORDS.length).map((friend, idx) => {
             const coord = PLAZA_COORDS[idx]
             const isSelected = idx === selectedIdx
@@ -402,9 +575,9 @@ export default function DessertPlaza({
                   flexDirection: 'column',
                   alignItems: 'center',
                   cursor: 'pointer',
-                  zIndex: isSelected ? 10 : 3,
-                  transform: isSelected ? 'scale(1.18)' : 'scale(1)',
-                  transition: 'transform 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28)',
+                  zIndex: isSelected ? 15 : 4,
+                  transform: isSelected ? 'scale(1.15)' : 'scale(1)',
+                  transition: 'transform 0.18s ease-out',
                 }}
               >
                 {/* 머리 위 순위 & 승률 배지 */}
@@ -425,27 +598,33 @@ export default function DessertPlaza({
                     fontWeight: 900,
                     boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
                     whiteSpace: 'nowrap',
-                    marginBottom: 2,
+                    marginBottom: 3,
                   }}
                 >
                   {coord.rank === 1 ? '👑 1위' : `${coord.rank}위`} · 승률 {coord.winRate}%
                 </div>
 
-                {/* 3D 캐릭터 아바타 */}
+                {/* 초경량 2.5D 캐릭터 아바타 (prefer2D 적용하여 WebGL 병목 100% 제거) */}
                 <div
                   style={{
-                    width: 90,
-                    height: 90,
+                    width: 86,
+                    height: 86,
                     borderRadius: '50%',
-                    background: isSelected ? 'rgba(255, 235, 59, 0.25)' : 'transparent',
-                    border: isSelected ? '2px solid #FFD600' : 'none',
+                    background: isSelected ? 'rgba(255, 235, 59, 0.35)' : 'rgba(255,255,255,0.4)',
+                    border: isSelected ? '3px solid #FFD600' : '2px solid rgba(255,255,255,0.8)',
+                    boxShadow: isSelected ? '0 0 16px rgba(255,214,0,0.6)' : '0 3px 10px rgba(0,0,0,0.1)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     position: 'relative',
                   }}
                 >
-                  <MonsterView look={fLook} size={84} title={friend.monster.name ?? undefined} />
+                  <MonsterView
+                    look={fLook}
+                    size={78}
+                    prefer2D={true}
+                    title={friend.monster.name ?? undefined}
+                  />
                 </div>
 
                 {/* 캐릭터 이름 & 주인 닉네임 */}
@@ -454,12 +633,12 @@ export default function DessertPlaza({
                     fontSize: 11,
                     fontWeight: 800,
                     color: '#3E2723',
-                    background: 'rgba(255,255,255,0.92)',
+                    background: 'rgba(255,255,255,0.95)',
                     padding: '2px 8px',
                     borderRadius: 999,
-                    marginTop: 2,
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                    maxWidth: 100,
+                    marginTop: 3,
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+                    maxWidth: 105,
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
@@ -505,7 +684,7 @@ export default function DessertPlaza({
                 flexShrink: 0,
               }}
             >
-              <MonsterView look={selLook} size={44} title={selectedFriend.monster.name ?? undefined} />
+              <MonsterView look={selLook} size={44} prefer2D={true} title={selectedFriend.monster.name ?? undefined} />
             </span>
             <div style={{ minWidth: 0, flex: 1 }}>
               <div className="row" style={{ gap: 4 }}>

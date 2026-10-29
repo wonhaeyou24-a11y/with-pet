@@ -89,11 +89,12 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
       setOwnedItems(new Set(getOwnedBoutiqueItems()))
       showToast(`🎉 ${item.name}을(를) 구매했습니다!`)
 
-      // 바로 펫에게 착용 및 저장
+      // 바로 펫에게 착용 및 기존 커스텀과 안전 병합 저장
       if (item.slot) {
         const nextDeco = { ...previewDeco, [item.slot]: item.id }
         setPreviewDeco(nextDeco)
-        saveMallangCustom(monster.id, { decorations: nextDeco })
+        const currentCustom = loadMallangCustom(monster.id) ?? {}
+        saveMallangCustom(monster.id, { ...currentCustom, decorations: nextDeco })
       }
     } else {
       showToast(res.message)
@@ -122,9 +123,27 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
       [item.slot]: isEquipped ? null : item.id,
     }
     setPreviewDeco(nextDeco)
-    saveMallangCustom(monster.id, { decorations: nextDeco })
+    const currentCustom = loadMallangCustom(monster.id) ?? {}
+    saveMallangCustom(monster.id, { ...currentCustom, decorations: nextDeco })
     playDessertAsmr(item.soundKind)
-    showToast(isEquipped ? '장착을 해제했습니다.' : `✨ ${item.name}을(를) 착용했습니다!`)
+    showToast(isEquipped ? `✨ ${item.name} 장착을 해제했습니다.` : `✨ ${item.name}을(를) 착용했습니다!`)
+  }
+
+  // 전체 장착 해제 (기본 모습으로 리셋)
+  const handleClearAllDecorations = () => {
+    const emptyDeco: MonsterDecorations = {
+      head: null,
+      face: null,
+      neck: null,
+      back: null,
+      hand: null,
+      effect: null,
+    }
+    setPreviewDeco(emptyDeco)
+    const currentCustom = loadMallangCustom(monster.id) ?? {}
+    saveMallangCustom(monster.id, { ...currentCustom, decorations: emptyDeco })
+    playDessertAsmr('mochi-squish')
+    showToast('✨ 모든 장신구를 벗었습니다.')
   }
 
   return (
@@ -276,7 +295,29 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
             <div style={{ width: '100%', height: '100%' }}>
               <Monster3DView look={previewLook} size={150} fluid interactive />
             </div>
-            {/* 360도 회전 힌트 뱃지 */}
+            {/* 전체 해제 버튼 & 360도 회전 힌트 뱃지 */}
+            <button
+              onClick={handleClearAllDecorations}
+              style={{
+                position: 'absolute',
+                bottom: 6,
+                left: 8,
+                background: 'rgba(255,255,255,0.92)',
+                border: '1px solid #FBCFE8',
+                borderRadius: 12,
+                padding: '3px 8px',
+                fontSize: 10,
+                color: '#64748B',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 3,
+                boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+              }}
+            >
+              🧹 모두 벗기
+            </button>
             <div
               style={{
                 position: 'absolute',
