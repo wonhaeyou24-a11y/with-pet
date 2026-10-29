@@ -753,7 +753,125 @@ function build3DCharacterMesh(
   }
 
   add3DDecorations(bodyGroup, root, look)
+  add3DEvolutionVisuals(bodyGroup, root, look)
   return { root, bodyGroup, innerLiquid }
+}
+
+// M4: 디저트 몬스터 3단계 진화 외형 & 4대 분기별 3D 비주얼 생성
+function add3DEvolutionVisuals(
+  bodyGroup: THREE.Group,
+  rootGroup: THREE.Group,
+  look: MonsterLook & { mallang?: MallangCustom },
+) {
+  const stage = look.evoStage ?? 1
+  const branch = look.evoBranch || 'sweet-melty'
+  if (stage < 2) return
+
+  // 진화 단계별 3D 체형 스케일업
+  const scaleMult = stage === 3 ? 1.28 : 1.14
+  bodyGroup.scale.multiplyScalar(scaleMult)
+
+  // 진화 분기별 고유 테마 색상
+  const branchColor =
+    branch === 'sweet-melty'
+      ? '#FF4081'
+      : branch === 'crispy-crunch'
+        ? '#FF9800'
+        : branch === 'royal-chef'
+          ? '#7C4DFF'
+          : '#00B0FF'
+
+  // 1. 발밑 진화 마법진 / 아우라 링 (Stage 2 & 3 공통)
+  const auraRing = new THREE.Mesh(
+    new THREE.RingGeometry(1.25, 1.48, 36),
+    new THREE.MeshBasicMaterial({
+      color: branchColor,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: stage === 3 ? 0.85 : 0.55,
+    }),
+  )
+  auraRing.rotation.x = -Math.PI / 2
+  auraRing.position.y = -0.85
+  rootGroup.add(auraRing)
+
+  // 2. 2단계 파티세리 외형
+  if (stage === 2) {
+    if (branch === 'crispy-crunch') {
+      // 황금 카다이프 링 머리 장식
+      const crunchTorus = new THREE.Mesh(
+        new THREE.TorusGeometry(0.55, 0.12, 16, 32),
+        new THREE.MeshStandardMaterial({ color: '#FFA726', roughness: 0.85, metalness: 0.2 }),
+      )
+      crunchTorus.rotation.x = Math.PI / 2
+      crunchTorus.position.y = 1.08
+      bodyGroup.add(crunchTorus)
+    } else if (branch === 'royal-chef') {
+      // 미니 파티세리 셰프 햇
+      const chefHat = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.32, 0.28, 0.42, 20),
+        new THREE.MeshPhysicalMaterial({ color: '#FFFFFF', roughness: 0.3, clearcoat: 0.4 }),
+      )
+      chefHat.position.y = 1.15
+      bodyGroup.add(chefHat)
+    } else {
+      // 달콤/레인보우: 핑크 글레이즈 리본
+      const ribbon = new THREE.Mesh(
+        new THREE.TorusGeometry(0.42, 0.08, 12, 24),
+        new THREE.MeshPhysicalMaterial({ color: branchColor, roughness: 0.15, clearcoat: 1.0 }),
+      )
+      ribbon.rotation.x = Math.PI / 2.3
+      ribbon.position.y = 1.1
+      bodyGroup.add(ribbon)
+    }
+  }
+
+  // 3. 3단계 로얄 마스터 외형 (웅장한 3D 황금 크라운 + 5대 보석 첨탑 + 공전 궤도)
+  if (stage === 3) {
+    const crownGroup = new THREE.Group()
+    crownGroup.position.set(0, 1.25, 0)
+
+    // 왕관 밑단 골드 링
+    const crownBase = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.52, 0.48, 0.16, 24),
+      new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.85, roughness: 0.15, clearcoat: 1.0 }),
+    )
+    crownGroup.add(crownBase)
+
+    // 왕관 5개 뾰족 첨탑 & 보석
+    for (let i = 0; i < 5; i++) {
+      const angle = (i * (Math.PI * 2)) / 5
+      const spike = new THREE.Mesh(
+        new THREE.ConeGeometry(0.12, 0.35, 12),
+        new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.9, roughness: 0.1 }),
+      )
+      spike.position.set(Math.cos(angle) * 0.46, 0.22, Math.sin(angle) * 0.46)
+      crownGroup.add(spike)
+
+      // 첨탑 꼭대기 루비/사파이어 보석
+      const gem = new THREE.Mesh(
+        new THREE.OctahedronGeometry(0.08, 0),
+        new THREE.MeshPhysicalMaterial({
+          color: i % 2 === 0 ? branchColor : '#FF1744',
+          metalness: 0.3,
+          roughness: 0.05,
+          transmission: 0.8,
+        }),
+      )
+      gem.position.set(Math.cos(angle) * 0.46, 0.42, Math.sin(angle) * 0.46)
+      crownGroup.add(gem)
+    }
+    bodyGroup.add(crownGroup)
+
+    // 회전하는 3D 오로라 궤도 링
+    const halo = new THREE.Mesh(
+      new THREE.TorusGeometry(1.05, 0.05, 16, 48),
+      new THREE.MeshBasicMaterial({ color: branchColor, transparent: true, opacity: 0.7 }),
+    )
+    halo.rotation.x = Math.PI / 2.6
+    halo.position.y = 0.5
+    bodyGroup.add(halo)
+  }
 }
 
 // 7칸 꾸미기 장신구 & 만능 날개 3D 메쉬 생성 및 부착

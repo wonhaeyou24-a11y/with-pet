@@ -48,6 +48,11 @@ export interface MonsterRow {
   mood?: number
   fatigue?: number
   cleanliness?: number
+  sweetness?: number
+  hygiene?: number
+  evo_stage?: number
+  evo_branch?: string
+  title?: string
   last_calc_at?: string
   personality_active: number
   personality_bond: number
@@ -71,6 +76,8 @@ export function monsterLook(m: MonsterRow): MonsterLook {
     decorations: saved?.decorations ?? m.parts.decorations,
     medals: saved?.medals ?? m.parts.medals,
     mallang: mergedMallang,
+    evoStage: m.evo_stage,
+    evoBranch: m.evo_branch,
   }
 }
 

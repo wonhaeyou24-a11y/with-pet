@@ -3,8 +3,10 @@ import { useEffect, useState, type ReactNode } from 'react'
 import type { EggRow, MonsterRow } from '../lib/api'
 import AsmrBattleArena from '../screens/AsmrBattleArena'
 import CarePantry from '../screens/CarePantry'
+import DessertPokedexScreen from '../screens/DessertPokedex'
 import DessertPlaza from '../screens/DessertPlaza'
 import EggHome from '../screens/EggHome'
+import EvolutionRevealScreen from '../screens/EvolutionReveal'
 import HatchReveal from '../screens/HatchReveal'
 import Login from '../screens/Login'
 import MonsterDetail from '../screens/MonsterDetail'
@@ -143,6 +145,14 @@ const SCREENS: Record<string, () => ReactNode> = {
       onBack={noop}
     />
   ),
+  '각성 진화(M4)': () => (
+    <EvolutionRevealScreen
+      monster={{ ...shiny, name: '두바이쫀득', level: 8, sp: 4 }}
+      onUpdateMonster={noop}
+      onBack={noop}
+    />
+  ),
+  '디저트 도감(M4)': () => <DessertPokedexScreen onBack={noop} />,
   '몬스터 상세': () => <MonsterDetail monster={{ ...shiny, name: '두바이쫀득' }} onBack={noop} />,
 }
 

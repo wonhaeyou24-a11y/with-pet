@@ -69,7 +69,7 @@ export const SKILL_BRANCHES: SkillBranchMeta[] = [
 export interface SkillNodeDef {
   id: string
   branch: SkillBranchId
-  tier: 1
+  tier: 1 | 2 | 3
   name: string
   kind: 'active' | 'passive'
   power: number // 액티브 기본 위력 (패시브는 0)
@@ -78,7 +78,8 @@ export interface SkillNodeDef {
   asmr: DessertSoundKind
   onomatopoeia: string
   effectText: string
-  kindTag: 'attack' | 'shield' | 'heal' | 'debuff' | 'dice' | 'mirror' | 'weather' | 'passive'
+  kindTag: 'attack' | 'shield' | 'heal' | 'debuff' | 'dice' | 'mirror' | 'weather' | 'passive' | 'ultimate'
+  requires?: string[] // 선행 스킬 ID
 }
 
 export const SKILL_NODES_T1: SkillNodeDef[] = [
@@ -359,6 +360,200 @@ export const SKILL_NODES_T1: SkillNodeDef[] = [
     effectText: '패시브: 자기 속성 스킬 위력 +12% 상시 증가',
     kindTag: 'passive',
   },
+]
+
+// 2단계 진화(Lv.8) 해금: Tier 2 심화 스킬 (가지별 1종씩 = 6종)
+export const SKILL_NODES_T2: SkillNodeDef[] = [
+  {
+    id: 't2-kataifi-cyclone',
+    branch: 'assault',
+    tier: 2,
+    name: '골든 카다이프 싸이클론',
+    kind: 'active',
+    power: 75,
+    spCost: 2,
+    icon: '🌪️',
+    asmr: 'kataifi-crunch',
+    onomatopoeia: '와자작-콰광! 크런치 폭풍 🌪️✨',
+    effectText: '위력 75 광역 회전 타격 + 상대 방어력 20% 분쇄',
+    kindTag: 'attack',
+    requires: ['kataifi-strike'],
+  },
+  {
+    id: 't2-crystal-fortress',
+    branch: 'fortress',
+    tier: 2,
+    name: '크리스탈 글레이즈 성벽',
+    kind: 'active',
+    power: 0,
+    spCost: 2,
+    icon: '🏰',
+    asmr: 'sugar-crack',
+    onomatopoeia: '쨍그랑- 단단한 다이아 코팅! 🏰💎',
+    effectText: '2턴간 최대 체력의 35% 슈가 보호막 생성 + 피해 20% 반사',
+    kindTag: 'shield',
+    requires: ['sugar-shield'],
+  },
+  {
+    id: 't2-parfait-blessing',
+    branch: 'bond',
+    tier: 2,
+    name: '로얄 파르페 축복',
+    kind: 'active',
+    power: 0,
+    spCost: 2,
+    icon: '🍨',
+    asmr: 'syrup-drizzle',
+    onomatopoeia: '달콤한 크림 퐁퐁~ 치유의 기적! 🍨💖',
+    effectText: '체력 40% 즉시 회복 + 모든 상태이상 정화',
+    kindTag: 'heal',
+    requires: ['sweet-gaze'],
+  },
+  {
+    id: 't2-lava-fondue',
+    branch: 'mystic',
+    tier: 2,
+    name: '다크 가나슈 용암늪',
+    kind: 'active',
+    power: 58,
+    spCost: 2,
+    icon: '🌋',
+    asmr: 'choco-melt',
+    onomatopoeia: '부글부글~ 끈적한 가나슈 지옥! 🌋🍫',
+    effectText: '위력 58 공격 + 상대 3턴간 속도 50% 둔화 및 턴당 독 데미지',
+    kindTag: 'debuff',
+    requires: ['ganache-mist'],
+  },
+  {
+    id: 't2-roulette-frenzy',
+    branch: 'quirky',
+    tier: 2,
+    name: '트릭스터 마카롱 잭팟',
+    kind: 'active',
+    power: 0,
+    spCost: 2,
+    icon: '🎰',
+    asmr: 'sugar-crack',
+    onomatopoeia: '또르륵 잭팟-! 777 대폭발! 🎰✨',
+    effectText: '주사위를 굴려 1~3: 위력 80 공격 / 4~5: 턴 스킵 / 6: 즉시 필살기 충전',
+    kindTag: 'dice',
+    requires: ['macaron-dice'],
+  },
+  {
+    id: 't2-celestial-plate',
+    branch: 'elemental',
+    tier: 2,
+    name: '성운의 미식 플레이팅',
+    kind: 'active',
+    power: 70,
+    spCost: 2,
+    icon: '🌌',
+    asmr: 'syrup-drizzle',
+    onomatopoeia: '반짝반짝~ 별빛 시럽 은하수! 🌌✨',
+    effectText: '위력 70 무지개 원소 공격 + 아군 전 스탯 +15% 버프 3턴 지속',
+    kindTag: 'attack',
+    requires: ['element-drizzle'],
+  },
+]
+
+// 3단계 최종 로얄 진화(Lv.15) 해금: Tier 3 궁극기 (가지별 1종씩 = 6종)
+export const SKILL_NODES_T3: SkillNodeDef[] = [
+  {
+    id: 't3-ultimate-crunch',
+    branch: 'assault',
+    tier: 3,
+    name: '👑 [궁극기] 천상계 두바이 크런치 대폭발',
+    kind: 'active',
+    power: 130,
+    spCost: 3,
+    icon: '💥',
+    asmr: 'kataifi-crunch',
+    onomatopoeia: '콰콰콰쾅-! 궁극의 카다이프 초신성 폭발! 💥👑',
+    effectText: '위력 130 절대 크리티컬 강타 (상대 실드 100% 무시)',
+    kindTag: 'ultimate',
+    requires: ['t2-kataifi-cyclone'],
+  },
+  {
+    id: 't3-ultimate-aegis',
+    branch: 'fortress',
+    tier: 3,
+    name: '👑 [궁극기] 불멸의 탕후루 다이아몬드 돔',
+    kind: 'active',
+    power: 0,
+    spCost: 3,
+    icon: '💎',
+    asmr: 'sugar-crack',
+    onomatopoeia: '키이잉- 절대무적 크리스탈 결계! 💎👑',
+    effectText: '1턴간 모든 피해 100% 면역 + 다음 턴 반격 공격력 2배 증폭',
+    kindTag: 'ultimate',
+    requires: ['t2-crystal-fortress'],
+  },
+  {
+    id: 't3-ultimate-sweetness',
+    branch: 'bond',
+    tier: 3,
+    name: '👑 [궁극기] 파티세리 여신의 달콤한 부활가',
+    kind: 'active',
+    power: 0,
+    spCost: 3,
+    icon: '💖',
+    asmr: 'mochi-squish',
+    onomatopoeia: '사르르~ 사랑과 온기로 가득 찬 부활의 빛! 💖👑',
+    effectText: '체력 100% 완전 회복 + 기절 면역 버프 부여',
+    kindTag: 'ultimate',
+    requires: ['t2-parfait-blessing'],
+  },
+  {
+    id: 't3-ultimate-smore',
+    branch: 'mystic',
+    tier: 3,
+    name: '👑 [궁극기] 무한 마시멜로 퐁듀 블랙홀',
+    kind: 'active',
+    power: 110,
+    spCost: 3,
+    icon: '🕳️',
+    asmr: 'smore-sizzle',
+    onomatopoeia: '쭈우욱- 사르르 빠져드는 달콤한 심연! 🕳️🍫',
+    effectText: '위력 110 광역 흡혈 공격 + 가한 데미지의 50%만큼 체력 흡수',
+    kindTag: 'ultimate',
+    requires: ['t2-lava-fondue'],
+  },
+  {
+    id: 't3-ultimate-chameleon',
+    branch: 'quirky',
+    tier: 3,
+    name: '👑 [궁극기] 신의 디저트 카멜레온 일루전',
+    kind: 'active',
+    power: 120,
+    spCost: 3,
+    icon: '🦎',
+    asmr: 'wax-pop',
+    onomatopoeia: '슉- 360도 환영 분신 미러 스트라이크! 🦎👑',
+    effectText: '위력 120 무작위 3연속 타격 + 상대의 모든 이로운 버프 강탈',
+    kindTag: 'ultimate',
+    requires: ['t2-roulette-frenzy'],
+  },
+  {
+    id: 't3-ultimate-genesis',
+    branch: 'elemental',
+    tier: 3,
+    name: '👑 [궁극기] 그랜드 오븐 테루아 천지창조',
+    kind: 'active',
+    power: 125,
+    spCost: 3,
+    icon: '🌈',
+    asmr: 'syrup-drizzle',
+    onomatopoeia: '화아아악-! 전설의 7색 오로라 오븐 폭발! 🌈👑',
+    effectText: '위력 125 7원소 융합 강타 + 전장 전체를 아군 극유리 테루아로 변경',
+    kindTag: 'ultimate',
+    requires: ['t2-celestial-plate'],
+  },
+]
+
+export const ALL_SKILL_NODES: SkillNodeDef[] = [
+  ...SKILL_NODES_T1,
+  ...SKILL_NODES_T2,
+  ...SKILL_NODES_T3,
 ]
 
 export const DEFAULT_UNLOCKED_SKILLS = ['kataifi-strike', 'sugar-shield', 'sweet-gaze', 'element-drizzle']

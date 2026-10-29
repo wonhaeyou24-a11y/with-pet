@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ELEMENT_INFO, SPECIES_INFO } from '../config/species'
 import { monsterLook, type MonsterRow } from '../lib/api'
+import { checkEvolutionEligibility } from '../lib/evolutionEngine'
 import {
   checkPetAutonomousSuggestion,
   dismissPetSuggestion,
@@ -25,6 +26,8 @@ type Props = {
   onOpenTrain?: () => void
   onOpenSkills?: () => void
   onOpenPlaza?: () => void
+  onOpenEvolution?: () => void
+  onOpenDex?: () => void
   onResetTestEgg?: () => void
   onLogout?: () => void
 }
@@ -38,6 +41,8 @@ export default function MonsterHome({
   onOpenTrain,
   onOpenSkills,
   onOpenPlaza,
+  onOpenEvolution,
+  onOpenDex,
   onResetTestEgg,
   onLogout,
 }: Props) {
@@ -59,6 +64,9 @@ export default function MonsterHome({
 
   // 펫의 능동적 자율 제안 상태
   const [suggestion, setSuggestion] = useState<PetAutonomousSuggestion | null>(null)
+
+  // 진화 가능 여부 및 추천 분기 산출
+  const evoEligibility = useMemo(() => checkEvolutionEligibility(monster), [monster])
 
   const hunger = monster.hunger ?? 80
   const mood = monster.mood ?? 80
@@ -210,7 +218,34 @@ export default function MonsterHome({
           onClick={handleTouchMonster}
           title="터치하면 오감 식감 ASMR 소리·진동·파편이 터져요!"
         >
-          {/* 백그라운드 훈련 / 타워 탐험 진행 뱃지 */}
+          {/* 진화 가능 강조 뱃지 */}
+          {evoEligibility.canEvolve && (
+            <div
+              onClick={(e) => {
+                e.stopPropagation()
+                onOpenEvolution?.()
+              }}
+              style={{
+                position: 'absolute',
+                top: 4,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 12,
+                padding: '4px 12px',
+                borderRadius: 999,
+                background: 'linear-gradient(90deg, #FFD700, #FF6F00)',
+                color: '#3E2723',
+                fontSize: 12,
+                fontWeight: 900,
+                boxShadow: '0 4px 12px rgba(255,215,0,0.5)',
+                cursor: 'pointer',
+                animation: 'bounce 1.5s infinite ease-in-out',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              ✨ {evoEligibility.targetStage}단계 각성 진화 가능!
+            </div>
+          )}
           {trainSess && (
             <div
               onClick={(e) => {
@@ -363,6 +398,54 @@ export default function MonsterHome({
           </button>
         </div>
         <StatBars stats={monster.stats} compact />
+      </div>
+
+      {/* 4-1. M4 진화의 전당 & 디저트 도감 서브 네비게이션 */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, flexShrink: 0 }}>
+        <button
+          onClick={onOpenEvolution}
+          style={{
+            padding: '7px 8px',
+            borderRadius: 12,
+            border: evoEligibility.canEvolve ? '1.5px solid #FFD700' : '1px solid #E0D3C5',
+            background: evoEligibility.canEvolve
+              ? 'linear-gradient(90deg, #FFF8E1 0%, #FFE082 100%)'
+              : '#FFF8F2',
+            color: evoEligibility.canEvolve ? '#E65100' : '#4E342E',
+            fontSize: 12,
+            fontWeight: 900,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 4,
+          }}
+        >
+          <span>✨ {evoEligibility.canEvolve ? '진화 가능!' : '진화의 전당'}</span>
+          <span style={{ fontSize: 10, color: evoEligibility.canEvolve ? '#D84315' : '#8D6E63' }}>
+            ({monster.evo_stage ?? 1}단계)
+          </span>
+        </button>
+
+        <button
+          onClick={onOpenDex}
+          style={{
+            padding: '7px 8px',
+            borderRadius: 12,
+            border: '1px solid #E0D3C5',
+            background: '#FFF8F2',
+            color: '#4E342E',
+            fontSize: 12,
+            fontWeight: 800,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 4,
+          }}
+        >
+          <span>📖 디저트 도감</span>
+        </button>
       </div>
 
       {/* 5. 하단 4대 네비게이션 버튼 (2×2 그리드) */}

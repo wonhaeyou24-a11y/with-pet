@@ -4,11 +4,11 @@
 
 import { useMemo, useRef, useState, type PointerEvent, type WheelEvent } from 'react'
 import {
+  ALL_SKILL_NODES,
   BATTLE_STANCES,
   DEFAULT_EQUIPPED_SKILLS,
   DEFAULT_UNLOCKED_SKILLS,
   SKILL_BRANCHES,
-  SKILL_NODES_T1,
   type BattleStanceId,
   type SkillBranchId,
   type SkillNodeDef,
@@ -45,11 +45,11 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
   const [equipped, setEquipped] = useState<string[]>(() => monster.equipped_skills ?? DEFAULT_EQUIPPED_SKILLS)
   const [stance, setStance] = useState<BattleStanceId>(() => monster.battle_stance ?? 'balanced')
   const [sp, setSp] = useState<number>(() => Math.max(monster.sp ?? 3, 3))
-  const [selectedId, setSelectedId] = useState<string>(SKILL_NODES_T1[0].id)
+  const [selectedId, setSelectedId] = useState<string>(ALL_SKILL_NODES[0].id)
   const [toast, setToast] = useState<string | null>(null)
 
   // 방사형 캔버스 줌(확대/축소) & 패닝(이동) 상태
-  const [zoom, setZoom] = useState<number>(0.82)
+  const [zoom, setZoom] = useState<number>(0.75)
   const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
   const dragRef = useRef<{
     active: boolean
@@ -66,24 +66,53 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
 
   const speciesInfo = SPECIES_INFO[monster.species]
 
-  // 6개 가지를 60도 간격(360도 방사형)으로 배치하고, 각 가지의 노드들을 안쪽 링 -> 바깥쪽 링으로 연결
+  // 6개 가지를 60도 간격(360도 방사형)으로 배치하고, 각 가지의 노드들을 1단계(내부링) -> 2단계(중간링) -> 3단계(외부링)로 연결
   const radialNodes = useMemo<PositionedNode[]>(() => {
     const list: PositionedNode[] = []
+    const nodeCoordMap = new Map<string, { x: number; y: number }>()
+
     SKILL_BRANCHES.forEach((b, bIdx) => {
       const baseAngleDeg = bIdx * 60 - 90 // 위쪽(-90도)부터 시계방향 6방향
       const baseAngleRad = (baseAngleDeg * Math.PI) / 180
-      const branchSkills = SKILL_NODES_T1.filter((s) => s.branch === b.id)
+      const branchSkills = ALL_SKILL_NODES.filter((s) => s.branch === b.id)
 
-      let prevX = CENTER + Math.cos(baseAngleRad) * 64
-      let prevY = CENTER + Math.sin(baseAngleRad) * 64
+      const coreX = CENTER + Math.cos(baseAngleRad) * 58
+      const coreY = CENTER + Math.sin(baseAngleRad) * 58
 
       branchSkills.forEach((node, sIdx) => {
-        // 단계별 반지름(145 -> 250 -> 355 -> 430) + 살짝 지그재그 각도 편차로 입체 별자리 느낌 부여
-        const radius = 148 + sIdx * 98
-        const angleOffsetDeg = sIdx === 0 ? 0 : sIdx % 2 === 1 ? -10 : 10
+        // 티어별 거리: T1(130~195) -> T2(285) -> T3(385)
+        let radius = 135
+        let angleOffsetDeg = 0
+        if (node.tier === 1) {
+          radius = 125 + sIdx * 55
+          angleOffsetDeg = sIdx === 0 ? 0 : sIdx % 2 === 1 ? -12 : 12
+        } else if (node.tier === 2) {
+          radius = 285
+          angleOffsetDeg = 0
+        } else if (node.tier === 3) {
+          radius = 385
+          angleOffsetDeg = 0
+        }
+
         const rad = ((baseAngleDeg + angleOffsetDeg) * Math.PI) / 180
         const x = Math.round(CENTER + Math.cos(rad) * radius)
         const y = Math.round(CENTER + Math.sin(rad) * radius)
+
+        nodeCoordMap.set(node.id, { x, y })
+
+        // 선행 스킬이 있으면 선행 스킬 위치에서 선 연결, 없으면 코어 또는 이전 노드 연결
+        let parentX = coreX
+        let parentY = coreY
+        if (node.requires && node.requires.length > 0) {
+          const reqCoord = nodeCoordMap.get(node.requires[0])
+          if (reqCoord) {
+            parentX = reqCoord.x
+            parentY = reqCoord.y
+          }
+        } else if (sIdx > 0 && list.length > 0) {
+          parentX = list[list.length - 1].x
+          parentY = list[list.length - 1].y
+        }
 
         list.push({
           node,
@@ -91,13 +120,11 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
           stepIdx: sIdx,
           x,
           y,
-          parentX: prevX,
-          parentY: prevY,
+          parentX,
+          parentY,
           color: b.color,
           branchName: b.name,
         })
-        prevX = x
-        prevY = y
       })
     })
     return list
@@ -156,6 +183,19 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
 
   function handleUnlock(node: SkillNodeDef) {
     if (unlocked.includes(node.id)) return
+    const curLevel = monster.level ?? 1
+    if (node.tier === 2 && curLevel < 8) {
+      showToast('🔒 Tier 2 스킬은 Lv.8 (2단계 진화) 이상부터 배울 수 있어요!')
+      return
+    }
+    if (node.tier === 3 && curLevel < 15) {
+      showToast('👑 궁극기 스킬은 Lv.15 (3단계 로얄 진화) 이상부터 배울 수 있어요!')
+      return
+    }
+    if (node.requires && node.requires.some((reqId) => !unlocked.includes(reqId))) {
+      showToast('🔒 선행 식감 스킬을 먼저 습득해야 배울 수 있어요!')
+      return
+    }
     if (sp < node.spCost) {
       showToast('SP가 부족해요! 훈련이나 레벨업으로 SP를 모아 보세요.')
       return
@@ -316,7 +356,7 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
           <div className="row" style={{ gap: 4 }}>
             {[0, 1, 2, 3].map((slotIdx) => {
               const skId = equipped[slotIdx]
-              const sk = SKILL_NODES_T1.find((s) => s.id === skId)
+              const sk = ALL_SKILL_NODES.find((s) => s.id === skId)
               return (
                 <button
                   key={slotIdx}
@@ -611,7 +651,7 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
               {monster.name ?? speciesInfo?.name ?? '디저트'}
             </strong>
             <span style={{ fontSize: 12, fontWeight: 800, color: '#D85A3A' }}>
-              해금 {unlocked.length}/{SKILL_NODES_T1.length}
+              해금 {unlocked.length}/{ALL_SKILL_NODES.length}
             </span>
           </div>
 
@@ -733,6 +773,18 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
                 <strong style={{ fontSize: 15, color: '#3B2F2F' }}>{selNode.name}</strong>
                 <span className="chip" style={{ fontSize: 12, padding: '2px 7px' }}>
                   {selectedPositioned.branchName}
+                </span>
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 900,
+                    padding: '2px 6px',
+                    borderRadius: 6,
+                    background: selNode.tier === 3 ? '#FFD700' : selNode.tier === 2 ? '#BA68C8' : '#81C784',
+                    color: selNode.tier === 3 ? '#3E2723' : '#FFFFFF',
+                  }}
+                >
+                  {selNode.tier === 3 ? '👑 궁극기' : selNode.tier === 2 ? '⚡ Tier 2' : 'Tier 1'}
                 </span>
               </div>
               <div style={{ fontSize: 12, color: '#D85A3A', fontWeight: 700 }}>

@@ -6,8 +6,10 @@ import { getSpeciesSoundKind, playDessertAsmr } from '../lib/sound'
 import { supabase, type Player } from '../lib/supabase'
 import AsmrBattleArena from './AsmrBattleArena'
 import CarePantry from './CarePantry'
+import DessertPokedexScreen from './DessertPokedex'
 import DessertPlaza from './DessertPlaza'
 import EggHome, { type CareFx } from './EggHome'
+import EvolutionRevealScreen from './EvolutionReveal'
 import HatchReveal from './HatchReveal'
 import MonsterDetail from './MonsterDetail'
 import MonsterHome from './MonsterHome'
@@ -24,7 +26,7 @@ const EGG_LINES = {
 }
 
 type Limits = { pet: number; warm: number }
-type MonsterSubView = 'home' | 'detail' | 'care' | 'train' | 'skills' | 'plaza' | 'battle'
+type MonsterSubView = 'home' | 'detail' | 'care' | 'train' | 'skills' | 'plaza' | 'battle' | 'evolution' | 'pokedex'
 
 // 서버에서 받은 알·몬스터 상태에 따라 보여 줄 화면을 고른다 (알 → 부화 → 이름 짓기 → 몬스터 홈 / 돌보기 / 훈련 / 공방)
 export default function Game({ player }: { player: Player }) {
@@ -256,6 +258,20 @@ export default function Game({ player }: { player: Player }) {
         />
       )
     }
+    if (subView === 'evolution') {
+      return (
+        <EvolutionRevealScreen
+          monster={monster}
+          onUpdateMonster={(nextMonster) => {
+            setMonsters((list) => list.map((m) => (m.id === nextMonster.id ? nextMonster : m)))
+          }}
+          onBack={() => setSubView('home')}
+        />
+      )
+    }
+    if (subView === 'pokedex') {
+      return <DessertPokedexScreen onBack={() => setSubView('home')} />
+    }
     return (
       <MonsterHome
         nickname={player.nickname}
@@ -266,6 +282,8 @@ export default function Game({ player }: { player: Player }) {
         onOpenTrain={() => setSubView('train')}
         onOpenSkills={() => setSubView('skills')}
         onOpenPlaza={() => setSubView('plaza')}
+        onOpenEvolution={() => setSubView('evolution')}
+        onOpenDex={() => setSubView('pokedex')}
         onResetTestEgg={() => {
           const newEgg = issueNewTestEgg('common')
           setMonsters([])

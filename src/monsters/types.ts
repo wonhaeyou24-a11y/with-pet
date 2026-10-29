@@ -43,6 +43,8 @@ export interface MonsterLook {
   decorations?: MonsterDecorations
   medals?: MonsterMedals
   mallang?: MallangCustom
+  evoStage?: number
+  evoBranch?: string
 }
 
 export interface ArtProps {
