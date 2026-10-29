@@ -749,10 +749,224 @@ function build3DCharacterMesh(
     topBerry.position.set(0, 1.04, 0.05)
     bodyGroup.add(topBerry)
 
-    addCute3DFace(0.95, 0.14, '#FF5C8A')
+    addCute3DFace(0.92, 0.15, '#FF8A9E')
   }
 
+  add3DDecorations(bodyGroup, root, look)
   return { root, bodyGroup, innerLiquid }
+}
+
+// 7칸 꾸미기 장신구 & 만능 날개 3D 메쉬 생성 및 부착
+function add3DDecorations(
+  bodyGroup: THREE.Group,
+  rootGroup: THREE.Group,
+  look: MonsterLook & { mallang?: MallangCustom },
+) {
+  const deco = look.decorations ?? look.mallang?.decorations
+  const wingKind = look.mallang?.wingKind
+
+  // 1. 머리 장식 (head)
+  if (deco?.head === 'wizard-hat') {
+    const hatGroup = new THREE.Group()
+    hatGroup.position.set(0, 0.98, 0)
+    // 챙
+    const brim = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.82, 0.82, 0.05, 24),
+      new THREE.MeshPhysicalMaterial({ color: '#4A148C', roughness: 0.35, clearcoat: 0.5 }),
+    )
+    hatGroup.add(brim)
+    // 고깔
+    const cone = new THREE.Mesh(
+      new THREE.ConeGeometry(0.52, 1.05, 24),
+      new THREE.MeshPhysicalMaterial({ color: '#5E35B1', roughness: 0.3, clearcoat: 0.6 }),
+    )
+    cone.position.y = 0.52
+    cone.rotation.z = -0.08
+    hatGroup.add(cone)
+    // 꼭대기 황금별
+    const star = new THREE.Mesh(
+      new THREE.OctahedronGeometry(0.12, 0),
+      new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.8, roughness: 0.2 }),
+    )
+    star.position.set(-0.06, 1.06, 0)
+    hatGroup.add(star)
+    bodyGroup.add(hatGroup)
+  } else if (deco?.head === 'star-crown') {
+    const crown = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.48, 0.38, 0.32, 5, 1, true),
+      new THREE.MeshPhysicalMaterial({ color: '#FFC107', metalness: 0.85, roughness: 0.2, clearcoat: 1.0 }),
+    )
+    crown.position.set(0, 1.02, 0)
+    bodyGroup.add(crown)
+  } else if (deco?.head === 'cream-cherry') {
+    const cherryGroup = new THREE.Group()
+    cherryGroup.position.set(0, 0.98, 0)
+    const cream = new THREE.Mesh(
+      new THREE.TorusGeometry(0.24, 0.1, 14, 24),
+      new THREE.MeshPhysicalMaterial({ color: '#FFFDF9', roughness: 0.3, clearcoat: 0.8 }),
+    )
+    cream.rotation.x = Math.PI / 2
+    cherryGroup.add(cream)
+    const cherry = new THREE.Mesh(
+      new THREE.SphereGeometry(0.22, 20, 18),
+      new THREE.MeshPhysicalMaterial({ color: '#D50000', roughness: 0.1, clearcoat: 1.0 }),
+    )
+    cherry.position.y = 0.22
+    cherryGroup.add(cherry)
+    bodyGroup.add(cherryGroup)
+  } else if (deco?.head === 'birthday-candle') {
+    const candleGroup = new THREE.Group()
+    candleGroup.position.set(0, 0.96, 0)
+    const candle = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.08, 0.08, 0.55, 16),
+      new THREE.MeshPhysicalMaterial({ color: '#FF4081', roughness: 0.3 }),
+    )
+    candle.position.y = 0.28
+    candleGroup.add(candle)
+    const flame = new THREE.Mesh(
+      new THREE.SphereGeometry(0.12, 14, 12),
+      new THREE.MeshBasicMaterial({ color: '#FFEB3B' }),
+    )
+    flame.scale.set(0.8, 1.4, 0.8)
+    flame.position.y = 0.62
+    candleGroup.add(flame)
+    bodyGroup.add(candleGroup)
+  } else if (deco?.head === 'berry-beret') {
+    const beret = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.68, 0.45, 0.22, 24),
+      new THREE.MeshPhysicalMaterial({ color: '#E91E63', roughness: 0.4 }),
+    )
+    beret.position.set(0.08, 0.96, 0)
+    beret.rotation.z = -0.15
+    bodyGroup.add(beret)
+  }
+
+  // 2. 얼굴 장식 (face)
+  if (deco?.face === 'alchemy-glasses') {
+    const glassesGroup = new THREE.Group()
+    glassesGroup.position.set(0, 0.18, 0.96)
+    const glassFrameMat = new THREE.MeshPhysicalMaterial({ color: '#D4AF37', metalness: 0.9, roughness: 0.2 })
+    const lensMat = new THREE.MeshPhysicalMaterial({ color: '#E0F7FA', transmission: 0.75, opacity: 0.8, transparent: true, roughness: 0.05 })
+    ;[-0.34, 0.34].forEach((gx) => {
+      const rim = new THREE.Mesh(new THREE.TorusGeometry(0.19, 0.024, 12, 24), glassFrameMat)
+      rim.position.x = gx
+      glassesGroup.add(rim)
+      const lens = new THREE.Mesh(new THREE.CircleGeometry(0.18, 20), lensMat)
+      lens.position.x = gx
+      glassesGroup.add(lens)
+    })
+    const bridge = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.24, 8), glassFrameMat)
+    bridge.rotation.z = Math.PI / 2
+    bridge.position.y = 0.02
+    glassesGroup.add(bridge)
+    bodyGroup.add(glassesGroup)
+  } else if (deco?.face === 'sleep-mask') {
+    const mask = new THREE.Mesh(
+      new THREE.BoxGeometry(0.85, 0.24, 0.08),
+      new THREE.MeshPhysicalMaterial({ color: '#81D4FA', roughness: 0.4 }),
+    )
+    mask.position.set(0, 0.32, 0.95)
+    bodyGroup.add(mask)
+  }
+
+  // 3. 목 장식 (neck)
+  if (deco?.neck === 'rune-scarf') {
+    const scarf = new THREE.Mesh(
+      new THREE.TorusGeometry(0.78, 0.16, 16, 32),
+      new THREE.MeshPhysicalMaterial({ color: '#C2185B', roughness: 0.45 }),
+    )
+    scarf.rotation.x = Math.PI / 2
+    scarf.position.set(0, -0.32, 0.05)
+    bodyGroup.add(scarf)
+    const tail = new THREE.Mesh(
+      new THREE.BoxGeometry(0.24, 0.6, 0.08),
+      new THREE.MeshPhysicalMaterial({ color: '#AD1457', roughness: 0.45 }),
+    )
+    tail.position.set(0.35, -0.6, 0.75)
+    tail.rotation.z = -0.2
+    bodyGroup.add(tail)
+  } else if (deco?.neck === 'bell-ribbon' || deco?.neck === 'pretzel-ribbon') {
+    const ribbon = new THREE.Mesh(
+      new THREE.TorusGeometry(0.74, 0.1, 14, 28),
+      new THREE.MeshPhysicalMaterial({ color: '#E53935', roughness: 0.3 }),
+    )
+    ribbon.rotation.x = Math.PI / 2
+    ribbon.position.set(0, -0.32, 0.05)
+    bodyGroup.add(ribbon)
+    const bell = new THREE.Mesh(
+      new THREE.SphereGeometry(0.12, 16, 14),
+      new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.9, roughness: 0.15 }),
+    )
+    bell.position.set(0, -0.42, 0.78)
+    bodyGroup.add(bell)
+  }
+
+  // 4. 등 장식 & 만능 날개 (back / wingKind)
+  const activeWing = deco?.back === 'meteor-wings' ? 'angel' : wingKind
+  if (activeWing && activeWing !== 'none') {
+    const wingMat = new THREE.MeshPhysicalMaterial({
+      color: activeWing.includes('devil') ? '#311B92' : activeWing.includes('crystal') ? '#4DD0E1' : '#FFFFFF',
+      roughness: 0.15,
+      transmission: 0.55,
+      thickness: 0.8,
+      clearcoat: 0.8,
+    })
+    ;[-1, 1].forEach((side) => {
+      const wing = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.48, 0.06), wingMat)
+      wing.position.set(side * 0.95, 0.25, -0.45)
+      wing.rotation.y = side * 0.35
+      wing.rotation.z = side * 0.25
+      bodyGroup.add(wing)
+    })
+  } else if (deco?.back === 'explorer-pack') {
+    const pack = new THREE.Mesh(
+      new THREE.BoxGeometry(0.65, 0.72, 0.35),
+      new THREE.MeshPhysicalMaterial({ color: '#795548', roughness: 0.6 }),
+    )
+    pack.position.set(0, 0.05, -0.92)
+    bodyGroup.add(pack)
+  }
+
+  // 5. 손 장식 (hand)
+  if (deco?.hand === 'lantern-staff' || deco?.hand === 'star-wand' || deco?.hand === 'lollipop-wand') {
+    const handGroup = new THREE.Group()
+    handGroup.position.set(0.95, -0.1, 0.65)
+    // 지팡이 자루
+    const shaft = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.035, 0.035, 1.25, 12),
+      new THREE.MeshPhysicalMaterial({ color: '#5D4037', roughness: 0.4 }),
+    )
+    shaft.position.y = 0.2
+    handGroup.add(shaft)
+    // 꼭대기 헤드 (등불/별/사탕)
+    if (deco.hand === 'lantern-staff') {
+      const lantern = new THREE.Mesh(
+        new THREE.OctahedronGeometry(0.18, 0),
+        new THREE.MeshPhysicalMaterial({ color: '#FFD54F', roughness: 0.1, clearcoat: 1.0, emissive: '#FFA000', emissiveIntensity: 0.35 }),
+      )
+      lantern.position.y = 0.85
+      handGroup.add(lantern)
+    } else {
+      const starHead = new THREE.Mesh(
+        new THREE.OctahedronGeometry(0.16, 0),
+        new THREE.MeshPhysicalMaterial({ color: '#FFEB3B', metalness: 0.85, roughness: 0.2 }),
+      )
+      starHead.position.y = 0.82
+      handGroup.add(starHead)
+    }
+    bodyGroup.add(handGroup)
+  }
+
+  // 6. 이펙트 장식 (effect)
+  if (deco?.effect === 'constellation-aura') {
+    const aura = new THREE.Mesh(
+      new THREE.TorusGeometry(1.55, 0.03, 12, 48),
+      new THREE.MeshBasicMaterial({ color: '#FBC02D', transparent: true, opacity: 0.6 }),
+    )
+    aura.rotation.x = Math.PI / 2.3
+    aura.position.y = 0.1
+    rootGroup.add(aura)
+  }
 }
 
 // 브라우저의 동시 WebGL 컨텍스트 한도(최대 16개) 초과로 인한 컨텍스트 소실을 완벽 차단하기 위한 안전 카운터

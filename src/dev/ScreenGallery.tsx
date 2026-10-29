@@ -1,5 +1,5 @@
 // 개발용 화면 갤러리 (주소 끝에 #/dev/screens). 가짜 데이터로 모든 화면을 확인한다. 운영 빌드에는 들어가지 않는다.
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import type { EggRow, MonsterRow } from '../lib/api'
 import AsmrBattleArena from '../screens/AsmrBattleArena'
 import CarePantry from '../screens/CarePantry'
@@ -148,6 +148,15 @@ const SCREENS: Record<string, () => ReactNode> = {
 
 export default function ScreenGallery() {
   const [name, setName] = useState(() => decodeURIComponent(location.hash.split('/')[3] ?? '') || '알(대기)')
+
+  useEffect(() => {
+    const onHash = () => {
+      const next = decodeURIComponent(location.hash.split('/')[3] ?? '')
+      if (next && SCREENS[next]) setName(next)
+    }
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [])
   return (
     <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
       <select

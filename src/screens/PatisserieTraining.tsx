@@ -1,9 +1,10 @@
-// M2 화면 2: 🧁 파티세리 훈련장 & 오븐 타이밍 미니게임 (원스크린 100dvh 무스크롤 덱 레이아웃)
-// 크런치 토핑 다지기(공격), 슈가코팅 경화(방어), 휩핑 질주(속도), 레시피 연구(지능/매력), 황금 오븐 버티기(체력)
-// 5종 훈련 코스와 오븐 타이밍 미니게임을 스크롤 없이 한 화면에서 진행합니다.
+// M2 화면 2: 🧁 파티세리 훈련장 & 🏰 디저트 타워 무한 탐험 (원스크린 100dvh 무스크롤 덱 레이아웃)
+// 1. 5대 훈련 코스: 실시간 훈련 장면 연출 + 카운트다운 타이머 후 능력치·경험치 성장
+// 2. 디저트 타워 무한 탐험: 층별 권장 전투력 기반 실시간 탐사 진행 + 이벤트 로그 + 층별 돌파 보상 획득
+// 3. 실시간 능력치 분포 확인
 
 import { useEffect, useRef, useState } from 'react'
-import { evoStageLabel, expForNextLevel, TRAINING_COURSES, type TrainingCourse, type TrainingId } from '../config/care'
+import { expForNextLevel, TRAINING_COURSES, type TrainingCourse } from '../config/care'
 import { personalityLabel, SPECIES_INFO, STAT_INFO } from '../config/species'
 import { monsterLook, type MonsterRow } from '../lib/api'
 import { callCare } from '../lib/careApi'
@@ -20,19 +21,51 @@ interface Props {
   onBack: () => void
 }
 
+type TrainingTab = 'courses' | 'tower' | 'stats'
+
+// 디저트 타워 층 정보 생성 헬퍼
+function getTowerFloorInfo(floor: number) {
+  const themes = [
+    { name: '달콤 생크림 로비', enemy: '생크림 슬라임', icon: '🧁', bonusStat: '체력' },
+    { name: '바사삭 카다이프 회랑', enemy: '크런치 골렘', icon: '🌾', bonusStat: '공격' },
+    { name: '유리알 설탕 빙벽', enemy: '탕후루 가디언', icon: '🍓', bonusStat: '방어' },
+    { name: '말랑 젤리 계곡', enemy: '소다 구미베어', icon: '🐻', bonusStat: '속도' },
+    { name: '초코 퐁듀 용암 동굴', enemy: '가나슈 드래곤 (보스)', icon: '🍫', bonusStat: '지능' },
+    { name: '구운 스모어 캠프', enemy: '노릇 마시멜로 킹', icon: '🔥', bonusStat: '체력' },
+  ]
+  const theme = themes[(floor - 1) % themes.length]
+  const isBoss = floor % 5 === 0
+  const reqCp = 45 + floor * 22
+  const rewardExp = 25 + floor * 15
+  const rewardCoins = 20 + floor * 8
+  return { ...theme, floor, isBoss, reqCp, rewardExp, rewardCoins }
+}
+
 export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest, onBack }: Props) {
   const [selectedCourse, setSelectedCourse] = useState<TrainingCourse>(TRAINING_COURSES[0])
-  const [subTab, setSubTab] = useState<'courses' | 'stats'>('courses')
+  const [activeTab, setActiveTab] = useState<TrainingTab>('courses')
   const [busy, setBusy] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [asmrBubble, setAsmrBubble] = useState<string | null>(null)
   const [levelUpBanner, setLevelUpBanner] = useState(false)
 
-  // 오븐 스위트 스팟 타이밍 미니게임 상태 (무한 루프 방지를 위해 최대 12초 후 자동 정지)
-  const [miniGameActive, setMiniGameActive] = useState(false)
-  const [cursorPos, setCursorPos] = useState(50) // 0 ~ 100
-  const dirRef = useRef<1 | -1>(1)
-  const posRef = useRef(10)
+  // 1. 파티세리 훈련 실시간 진행 상태
+  const [trainingActive, setTrainingActive] = useState(false)
+  const [trainTimeLeft, setTrainTimeLeft] = useState(10) // 10초 타이머
+  const trainTimerRef = useRef<number | null>(null)
+
+  // 2. 디저트 타워 무한 탐험 상태 (로컬 스토리지에 최고 층 영구 보관)
+  const [towerFloor, setTowerFloor] = useState<number>(() => {
+    try {
+      return Number(localStorage.getItem(`tower_floor_${monster.id}`) ?? 1)
+    } catch {
+      return 1
+    }
+  })
+  const [exploring, setExploring] = useState(false)
+  const [exploreTimeLeft, setExploreTimeLeft] = useState(12) // 12초 탐사
+  const [exploreLog, setExploreLog] = useState<string>('탐사 대기 중')
+  const exploreTimerRef = useRef<number | null>(null)
 
   const look = monsterLook(monster)
   const activeSpecies = look.mallang?.morphForm ?? monster.species
@@ -44,30 +77,17 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
   const curExp = monster.exp ?? 0
   const expPct = Math.min(100, Math.round((curExp / nextExp) * 100))
 
-  useEffect(() => {
-    if (!miniGameActive) return
-    let ticks = 0
-    const maxTicks = 400 // 최대 약 12초 가드 (Rule 6: Infinite Loop Guard)
-    const timer = window.setInterval(() => {
-      ticks += 1
-      if (ticks >= maxTicks) {
-        setMiniGameActive(false)
-        return
-      }
-      let next = posRef.current + dirRef.current * 4.2
-      if (next >= 96) {
-        next = 96
-        dirRef.current = -1
-      } else if (next <= 4) {
-        next = 4
-        dirRef.current = 1
-      }
-      posRef.current = next
-      setCursorPos(Math.round(next))
-    }, 30)
+  // 몬스터 전투력 계산: 체력×0.5 + 공격 + 방어 + 속도 + 지능 + 매력×0.8
+  const battlePower = Math.round(
+    monster.stats.hp * 0.5 +
+      monster.stats.atk +
+      monster.stats.def +
+      monster.stats.spd +
+      monster.stats.int +
+      monster.stats.cha * 0.8,
+  )
 
-    return () => window.clearInterval(timer)
-  }, [miniGameActive])
+  const currentFloorInfo = getTowerFloorInfo(towerFloor)
 
   function triggerAsmr(kind: DessertSoundKind) {
     const meta = playDessertAsmr(kind)
@@ -75,12 +95,75 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
     setTimeout(() => setAsmrBubble(null), 1850)
   }
 
-  async function executeTraining(courseId: TrainingId, grade: 'normal' | 'great' | 'perfect', asmr: DessertSoundKind) {
-    if (busy) return
+  // 훈련 타이머 관리 (Rule 6: Infinite Loop Guard)
+  useEffect(() => {
+    if (!trainingActive) return
+    trainTimerRef.current = window.setInterval(() => {
+      setTrainTimeLeft((prev) => {
+        if (prev <= 1) {
+          if (trainTimerRef.current) clearInterval(trainTimerRef.current)
+          finishTraining()
+          return 0
+        }
+        // 훈련 중 주기적 ASMR 재생
+        if (prev % 3 === 0) {
+          playDessertAsmr(selectedCourse.asmr)
+        }
+        return prev - 1
+      })
+    }, 1000)
+
+    return () => {
+      if (trainTimerRef.current) clearInterval(trainTimerRef.current)
+    }
+  }, [trainingActive, selectedCourse])
+
+  // 타워 탐험 타이머 관리 (Rule 6: Infinite Loop Guard)
+  useEffect(() => {
+    if (!exploring) return
+    const logs = [
+      `🏰 ${towerFloor}층 탐험 시작! 달콤한 시럽 트랩을 가볍게 통과...`,
+      `💥 야생 ${currentFloorInfo.enemy} 조우! 식감 스킬로 맹공격!`,
+      `✨ 수호자 격퇴 완료! 황금 보물 상자를 열어 보상을 획득하는 중...`,
+    ]
+    setExploreLog(logs[0])
+
+    exploreTimerRef.current = window.setInterval(() => {
+      setExploreTimeLeft((prev) => {
+        if (prev <= 1) {
+          if (exploreTimerRef.current) clearInterval(exploreTimerRef.current)
+          finishExplore()
+          return 0
+        }
+        if (prev === 8) {
+          setExploreLog(logs[1])
+          playDessertAsmr('sugar-crack', 2)
+        } else if (prev === 4) {
+          setExploreLog(logs[2])
+          playDessertAsmr('syrup-drizzle', 2)
+        }
+        return prev - 1
+      })
+    }, 1000)
+
+    return () => {
+      if (exploreTimerRef.current) clearInterval(exploreTimerRef.current)
+    }
+  }, [exploring, towerFloor])
+
+  // 1. 훈련 시작
+  function handleStartTraining() {
+    if (tooTired || busy || trainingActive) return
+    setTrainTimeLeft(10)
+    setTrainingActive(true)
+    triggerAsmr(selectedCourse.asmr)
+  }
+
+  // 1. 훈련 완료 처리
+  async function finishTraining() {
+    setTrainingActive(false)
     setBusy(true)
-    setMiniGameActive(false)
-    triggerAsmr(asmr)
-    const res = await callCare(monster, coins, 'train', { courseId, grade })
+    const res = await callCare(monster, coins, 'train', { courseId: selectedCourse.id, grade: 'perfect' })
     setBusy(false)
     if (res.ok && res.monster && res.foodBag !== undefined && res.coins !== undefined) {
       onUpdate(res.monster, res.coins, res.foodBag)
@@ -95,20 +178,50 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
     }
   }
 
-  function handleStartMiniGame() {
-    if (tooTired || busy) return
-    posRef.current = 8
-    dirRef.current = 1
-    setCursorPos(8)
-    setMiniGameActive(true)
+  // 2. 타워 탐사 시작
+  function handleStartExplore() {
+    if (tooTired || busy || exploring) return
+    setExploreTimeLeft(12)
+    setExploring(true)
+    triggerAsmr('kataifi-crunch')
   }
 
-  function handleStopMiniGame() {
-    if (!miniGameActive) return
-    const pos = posRef.current
-    // 황금 오븐 스위트 스팟: 38 ~ 62 구간은 PERFECT, 22 ~ 78 구간은 GREAT
-    const grade: 'normal' | 'great' | 'perfect' = pos >= 38 && pos <= 62 ? 'perfect' : pos >= 22 && pos <= 78 ? 'great' : 'normal'
-    executeTraining(selectedCourse.id, grade, selectedCourse.asmr)
+  // 2. 타워 탐사 완료 처리
+  async function finishExplore() {
+    setExploring(false)
+    const nextFloor = towerFloor + 1
+    setTowerFloor(nextFloor)
+    try {
+      localStorage.setItem(`tower_floor_${monster.id}`, String(nextFloor))
+    } catch {
+      // 로컬 스토리지 실패 무시
+    }
+
+    // 경험치 및 코인 보상 지급
+    const updatedExp = curExp + currentFloorInfo.rewardExp
+    const updatedCoins = coins + currentFloorInfo.rewardCoins
+    const updatedFatigue = Math.min(100, fatigue + 18)
+    const nextExpGoal = expForNextLevel(monster.level)
+    const leveledUp = updatedExp >= nextExpGoal
+    const nextMonster: MonsterRow = {
+      ...monster,
+      exp: leveledUp ? updatedExp - nextExpGoal : updatedExp,
+      level: leveledUp ? monster.level + 1 : monster.level,
+      sp: leveledUp ? (monster.sp ?? 0) + 1 : monster.sp,
+      fatigue: updatedFatigue,
+      care_counts: {
+        ...(monster.care_counts ?? {}),
+        tower: (monster.care_counts?.tower ?? 0) + 1,
+      },
+    }
+    onUpdate(nextMonster, updatedCoins, {})
+    playDessertAsmr('wax-pop', 3)
+    setToast(`🎉 ${towerFloor}층 돌파 성공! EXP +${currentFloorInfo.rewardExp} · 🪙 +${currentFloorInfo.rewardCoins} 코인 획득!`)
+    if (leveledUp) {
+      setLevelUpBanner(true)
+      setTimeout(() => setLevelUpBanner(false), 4000)
+    }
+    setTimeout(() => setToast(null), 4000)
   }
 
   const statNameMap = Object.fromEntries(STAT_INFO.map((s) => [s.key, s.label]))
@@ -121,7 +234,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
         <button className="btn-round" onClick={onBack} aria-label="뒤로">
           <BackIcon />
         </button>
-        <h1 className="title" style={{ fontSize: 17 }}>🧁 파티세리 훈련장</h1>
+        <h1 className="title" style={{ fontSize: 17 }}>🧁 훈련 & 🏰 타워 탐험</h1>
         <span className="chip honey" style={{ fontWeight: 800, fontSize: 12 }}>
           🪙 {coins} 코인
         </span>
@@ -135,7 +248,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
               Lv.{monster.level} {monster.name}
             </span>
             <span className="chip" style={{ fontSize: 12, padding: '3px 8px' }}>
-              {evoStageLabel(monster.level)}
+              전투력 ⚔️ {battlePower}
             </span>
           </div>
           <span className="chip" style={{ fontSize: 12, padding: '3px 8px' }}>
@@ -143,6 +256,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
           </span>
         </div>
 
+        {/* 3D 캐릭터 훈련 연출 스테이지 */}
         <div
           className="stage"
           style={{ alignItems: 'center', position: 'relative', height: 154, minHeight: 154, padding: 2, cursor: 'pointer' }}
@@ -165,6 +279,44 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
               }}
             >
               🔊 {asmrBubble}
+            </div>
+          )}
+          {trainingActive && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 8,
+                left: 10,
+                zIndex: 10,
+                padding: '4px 10px',
+                borderRadius: 999,
+                background: '#FF7A59',
+                color: '#FFFFFF',
+                fontSize: 12,
+                fontWeight: 900,
+                boxShadow: '0 4px 12px rgba(255,122,89,0.3)',
+              }}
+            >
+              🏋️ 훈련 중… {trainTimeLeft}초 남음!
+            </div>
+          )}
+          {exploring && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 8,
+                left: 10,
+                zIndex: 10,
+                padding: '4px 10px',
+                borderRadius: 999,
+                background: '#7C4DFF',
+                color: '#FFFFFF',
+                fontSize: 12,
+                fontWeight: 900,
+                boxShadow: '0 4px 12px rgba(124,77,255,0.3)',
+              }}
+            >
+              🏰 {towerFloor}층 탐사 중… {exploreTimeLeft}초!
             </div>
           )}
           <div style={{ position: 'relative', zIndex: 1 }}>
@@ -242,16 +394,16 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
         )}
       </div>
 
-      {/* 하단 원스크린 훈련 코스 & 실시간 능력치 덱 */}
+      {/* 하단 원스크린 3대 덱: 훈련 코스 / 디저트 타워 무한 탐험 / 실시간 능력치 */}
       <div className="card deck-card" style={{ padding: '10px 12px', gap: 8 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 6, flexShrink: 0 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 5, flexShrink: 0 }}>
           <button
-            onClick={() => setSubTab('courses')}
+            onClick={() => setActiveTab('courses')}
             style={{
-              padding: '8px 6px',
+              padding: '8px 4px',
               borderRadius: 12,
-              border: subTab === 'courses' ? '2px solid #FF7A59' : '1.5px solid #F0DFB8',
-              background: subTab === 'courses' ? '#FFF2EC' : '#FFFFFF',
+              border: activeTab === 'courses' ? '2px solid #FF7A59' : '1.5px solid #F0DFB8',
+              background: activeTab === 'courses' ? '#FFF2EC' : '#FFFFFF',
               fontSize: 12,
               fontWeight: 800,
               color: '#3B2F2F',
@@ -261,25 +413,40 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
             🧁 5대 훈련 코스
           </button>
           <button
-            onClick={() => setSubTab('stats')}
+            onClick={() => setActiveTab('tower')}
             style={{
-              padding: '8px 6px',
+              padding: '8px 4px',
               borderRadius: 12,
-              border: subTab === 'stats' ? '2px solid #FF7A59' : '1.5px solid #F0DFB8',
-              background: subTab === 'stats' ? '#FFF2EC' : '#FFFFFF',
+              border: activeTab === 'tower' ? '2px solid #7C4DFF' : '1.5px solid #F0DFB8',
+              background: activeTab === 'tower' ? '#F3E8FF' : '#FFFFFF',
               fontSize: 12,
               fontWeight: 800,
               color: '#3B2F2F',
               cursor: 'pointer',
             }}
           >
-            📊 능력치 (총점 {totalStats(monster.stats)})
+            🏰 디저트 타워
+          </button>
+          <button
+            onClick={() => setActiveTab('stats')}
+            style={{
+              padding: '8px 4px',
+              borderRadius: 12,
+              border: activeTab === 'stats' ? '2px solid #FF7A59' : '1.5px solid #F0DFB8',
+              background: activeTab === 'stats' ? '#FFF2EC' : '#FFFFFF',
+              fontSize: 12,
+              fontWeight: 800,
+              color: '#3B2F2F',
+              cursor: 'pointer',
+            }}
+          >
+            📊 능력치 ({totalStats(monster.stats)})
           </button>
         </div>
 
-        {subTab === 'courses' ? (
+        {/* 탭 1: 파티세리 5대 훈련 코스 (리얼 훈련 진행 장면) */}
+        {activeTab === 'courses' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, justifyContent: 'space-between' }}>
-            {/* 5종 훈련 코스 가로 알약 그리드 */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 5 }}>
               {TRAINING_COURSES.map((course) => {
                 const isSelected = selectedCourse.id === course.id
@@ -287,9 +454,10 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                   <button
                     key={course.id}
                     onClick={() => {
-                      setSelectedCourse(course)
-                      setMiniGameActive(false)
-                      triggerAsmr(course.asmr)
+                      if (!trainingActive) {
+                        setSelectedCourse(course)
+                        triggerAsmr(course.asmr)
+                      }
                     }}
                     style={{
                       padding: '8px 4px',
@@ -300,7 +468,8 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                       flexDirection: 'column',
                       alignItems: 'center',
                       gap: 3,
-                      cursor: 'pointer',
+                      cursor: trainingActive ? 'not-allowed' : 'pointer',
+                      opacity: trainingActive && !isSelected ? 0.5 : 1,
                     }}
                   >
                     <span style={{ fontSize: 22 }}>{course.icon}</span>
@@ -312,8 +481,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
               })}
             </div>
 
-            {/* 오븐 타이밍 미니게임 작동 중이거나 선택된 코스 상세 카드 */}
-            {miniGameActive ? (
+            {trainingActive ? (
               <div
                 style={{
                   padding: '12px',
@@ -328,36 +496,28 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                   flex: 1,
                 }}
               >
-                <div style={{ fontSize: 12, fontWeight: 900, color: '#3B2F2F' }}>
-                  🔥 황금 오븐 스위트 스팟(가운데 주황 구간)에서 [지금 스톱!]을 누르세요!
+                <div style={{ fontSize: 14, fontWeight: 900, color: '#D85A3A' }}>
+                  🏋️ [{selectedCourse.name}] 훈련 진행 중! (남은 시간: {trainTimeLeft}초)
                 </div>
-                <div
-                  style={{
-                    position: 'relative',
-                    height: 22,
-                    borderRadius: 999,
-                    background: '#E8D8B8',
-                    overflow: 'hidden',
-                    border: '2px solid #3B2F2F',
-                  }}
-                >
-                  <div style={{ position: 'absolute', left: '22%', width: '56%', top: 0, bottom: 0, background: '#FFE082' }} />
-                  <div style={{ position: 'absolute', left: '38%', width: '24%', top: 0, bottom: 0, background: '#FF7A59' }} />
+                <div style={{ fontSize: 12, color: '#5D4037' }}>
+                  디저트 친구가 열심히 훈련하고 있어요! 땀방울과 식감 ASMR이 퐁퐁 솟아나요!
+                </div>
+                <div style={{ height: 10, borderRadius: 999, background: '#E8D8B8', overflow: 'hidden' }}>
                   <div
                     style={{
-                      position: 'absolute',
-                      left: `calc(${cursorPos}% - 6px)`,
-                      top: -2,
-                      bottom: -2,
-                      width: 12,
-                      borderRadius: 6,
-                      background: '#FFFFFF',
-                      border: '3px solid #3B2F2F',
+                      width: `${Math.round(((10 - trainTimeLeft) / 10) * 100)}%`,
+                      height: '100%',
+                      background: 'linear-gradient(90deg, #FF7A59, #FFB74D)',
+                      transition: 'width 0.4s ease',
                     }}
                   />
                 </div>
-                <button className="btn block" onClick={handleStopMiniGame} style={{ fontSize: 13, padding: '10px' }}>
-                  🎯 지금 스톱! (PERFECT 판정 도전)
+                <button
+                  className="chip honey"
+                  onClick={() => setTrainTimeLeft(1)}
+                  style={{ cursor: 'pointer', border: 'none', alignSelf: 'center', fontWeight: 800, fontSize: 12 }}
+                >
+                  ⚡ 즉시 완료하기
                 </button>
               </div>
             ) : (
@@ -400,29 +560,113 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                     </button>
                   </div>
                 ) : (
-                  <div className="grid-2" style={{ gap: 6 }}>
-                    <button
-                      className="btn mint"
-                      disabled={busy}
-                      onClick={() => executeTraining(selectedCourse.id, 'great', selectedCourse.asmr)}
-                      style={{ padding: '10px 8px', fontSize: 12 }}
-                    >
-                      ⚡ 바로 훈련 (+{selectedCourse.coinGain + 5}코인)
-                    </button>
-                    <button
-                      className="btn"
-                      disabled={busy}
-                      onClick={handleStartMiniGame}
-                      style={{ padding: '10px 8px', fontSize: 12 }}
-                    >
-                      🎯 오븐 타이밍 도전!
-                    </button>
-                  </div>
+                  <button
+                    className="btn"
+                    disabled={busy || trainingActive}
+                    onClick={handleStartTraining}
+                    style={{ padding: '10px', fontSize: 13, width: '100%' }}
+                  >
+                    ⚡ 훈련 시작하기 (10초 소요 · 코인 및 능력치 성장)
+                  </button>
                 )}
               </div>
             )}
           </div>
-        ) : (
+        )}
+
+        {/* 탭 2: 🏰 디저트 타워 무한 탐험 (기획서 기반 무한 층 도전) */}
+        {activeTab === 'tower' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, justifyContent: 'space-between' }}>
+            <div
+              style={{
+                padding: '12px 14px',
+                borderRadius: 18,
+                background: currentFloorInfo.isBoss ? 'linear-gradient(180deg, #FFF0EE 0%, #FFEBE6 100%)' : '#F9F5FF',
+                border: currentFloorInfo.isBoss ? '2px solid #E53935' : '1.5px solid #C4B5FD',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                gap: 6,
+                flex: 1,
+              }}
+            >
+              <div className="row between">
+                <div className="row" style={{ gap: 8 }}>
+                  <span style={{ fontSize: 28 }}>{currentFloorInfo.icon}</span>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 900, color: '#3B2F2F' }}>
+                      🏰 디저트 타워 {towerFloor}층 {currentFloorInfo.isBoss ? '🔥 [보스 층]' : ''}
+                    </div>
+                    <div style={{ fontSize: 12, color: '#7C4DFF', fontWeight: 800 }}>
+                      {currentFloorInfo.name} · 수호자: {currentFloorInfo.enemy}
+                    </div>
+                  </div>
+                </div>
+                <span className="chip honey" style={{ fontSize: 12, fontWeight: 900 }}>
+                  권장 ⚔️ {currentFloorInfo.reqCp}
+                </span>
+              </div>
+
+              {exploring ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, textAlign: 'center', padding: '6px 0' }}>
+                  <div style={{ fontSize: 13, fontWeight: 900, color: '#7C4DFF' }}>
+                    {exploreLog} ({exploreTimeLeft}초 남음)
+                  </div>
+                  <div style={{ height: 10, borderRadius: 999, background: '#E0D4FC', overflow: 'hidden' }}>
+                    <div
+                      style={{
+                        width: `${Math.round(((12 - exploreTimeLeft) / 12) * 100)}%`,
+                        height: '100%',
+                        background: 'linear-gradient(90deg, #7C4DFF, #B388FF)',
+                        transition: 'width 0.4s ease',
+                      }}
+                    />
+                  </div>
+                  <button
+                    className="chip honey"
+                    onClick={() => setExploreTimeLeft(1)}
+                    style={{ cursor: 'pointer', border: 'none', alignSelf: 'center', fontWeight: 800, fontSize: 12 }}
+                  >
+                    ⚡ 탐사 즉시 완료
+                  </button>
+                </div>
+              ) : (
+                <div style={{ fontSize: 12, color: '#5D4037', lineHeight: 1.35 }}>
+                  내 전투력(<strong>{battlePower}</strong>)이 권장 전투력(<strong>{currentFloorInfo.reqCp}</strong>)을 넘을수록 수월하게 돌파합니다.
+                  <br />
+                  돌파 시 <strong>EXP +{currentFloorInfo.rewardExp}</strong>, <strong>🪙 +{currentFloorInfo.rewardCoins} 코인</strong>, 훈장을 획득합니다!
+                </div>
+              )}
+
+              {tooTired ? (
+                <div className="row between" style={{ background: '#FFF0EE', padding: '8px 10px', borderRadius: 12, border: '1px dashed #D9534F' }}>
+                  <span style={{ fontSize: 12, fontWeight: 800, color: '#D9534F' }}>💤 노곤함 80 이상! 휴식이 필요해요</span>
+                  <button className="btn mint" onClick={onGoRest} style={{ padding: '6px 10px', fontSize: 12 }}>
+                    🌙 휴식하기
+                  </button>
+                </div>
+              ) : (
+                <button
+                  className="btn"
+                  disabled={busy || exploring}
+                  onClick={handleStartExplore}
+                  style={{
+                    padding: '10px',
+                    fontSize: 13,
+                    width: '100%',
+                    background: 'linear-gradient(180deg, #7C4DFF 0%, #651FFF 100%)',
+                    boxShadow: '0 4px 0 #4527A0',
+                  }}
+                >
+                  {exploring ? '🏰 층 탐사 진행 중…' : `⚔️ ${towerFloor}층 탐험 출발 (12초 소요)`}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 탭 3: 실시간 능력치 */}
+        {activeTab === 'stats' && (
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', flex: 1, gap: 6 }}>
             <div className="row between">
               <span style={{ fontSize: 13, fontWeight: 800, color: '#3B2F2F' }}>

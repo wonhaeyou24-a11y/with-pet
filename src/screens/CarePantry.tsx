@@ -273,54 +273,75 @@ export default function CarePantry({ monster, coins, foodBag, onUpdate, onBack }
           </button>
         </div>
 
-        {/* 탭 1: 내 토핑 가방 (10종 2×5 한눈에 보기) */}
+        {/* 탭 1: 내 토핑 가방 (크고 시원한 한 줄 카드 + 부드러운 내부 스크롤) */}
         {tab === 'bag' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 6, flex: 1, alignContent: 'space-between' }}>
+          <div className="deck-scroll">
             {DESSERT_FOODS.map((food) => {
               const count = foodBag[food.id] ?? 0
               const isFav = monster.discovered_fav && monster.fav_food === food.id
               return (
-                <button
+                <div
                   key={food.id}
-                  disabled={busy}
-                  onClick={() => (count > 0 ? handleFeed(food.id, food.asmr) : setTab('shop'))}
                   style={{
-                    padding: '6px 8px',
-                    borderRadius: 12,
+                    padding: '10px 12px',
+                    borderRadius: 16,
                     border: isFav ? '2px solid #FF7A59' : '1.5px solid #F0DFB8',
                     background: count > 0 ? '#FFFFFF' : '#FAF6EE',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: 6,
-                    opacity: count > 0 ? 1 : 0.72,
-                    cursor: 'pointer',
-                    textAlign: 'left',
+                    gap: 10,
+                    opacity: count > 0 ? 1 : 0.75,
                   }}
                 >
-                  <span style={{ fontSize: 20, flexShrink: 0 }}>{food.icon}</span>
+                  <span style={{ fontSize: 30, flexShrink: 0 }}>{food.icon}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: '#3B2F2F', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {food.name}
+                    <div className="row wrap" style={{ gap: 6, alignItems: 'center' }}>
+                      <span style={{ fontSize: 14, fontWeight: 900, color: '#3B2F2F' }}>{food.name}</span>
+                      <span
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 800,
+                          padding: '2px 7px',
+                          borderRadius: 999,
+                          background: count > 0 ? '#FFF2EC' : '#EFE9DC',
+                          color: count > 0 ? '#D85A3A' : '#7A6A60',
+                        }}
+                      >
+                        보유 {count}개
+                      </span>
+                      {isFav && (
+                        <span className="chip coral" style={{ fontSize: 12, padding: '2px 7px' }}>
+                          💖 최애 토핑!
+                        </span>
+                      )}
                     </div>
-                    <div style={{ fontSize: 12, color: '#177051', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                      +{food.hunger}당 · ×{count}
+                    <div style={{ fontSize: 12, color: '#177051', fontWeight: 800, marginTop: 2 }}>
+                      당충전 +{food.hunger} · 달콤함 +{food.mood} ({food.tag})
+                    </div>
+                    <div style={{ fontSize: 12, color: '#7A6A60', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {food.desc}
                     </div>
                   </div>
-                  <span
-                    style={{
-                      padding: '4px 7px',
-                      borderRadius: 8,
-                      background: count > 0 ? '#FF7A59' : '#6ED6B2',
-                      color: count > 0 ? '#FFFFFF' : '#133A2B',
-                      fontSize: 12,
-                      fontWeight: 800,
-                      flexShrink: 0,
-                    }}
-                  >
-                    {count > 0 ? '먹이기' : '상점'}
-                  </span>
-                </button>
+                  {count > 0 ? (
+                    <button
+                      className="btn"
+                      disabled={busy}
+                      onClick={() => handleFeed(food.id, food.asmr)}
+                      style={{ padding: '8px 14px', fontSize: 12, flexShrink: 0 }}
+                    >
+                      🥄 먹이기
+                    </button>
+                  ) : (
+                    <button
+                      className="btn mint"
+                      disabled={busy}
+                      onClick={() => setTab('shop')}
+                      style={{ padding: '8px 12px', fontSize: 12, flexShrink: 0 }}
+                    >
+                      상점
+                    </button>
+                  )}
+                </div>
               )
             })}
           </div>
@@ -328,34 +349,33 @@ export default function CarePantry({ monster, coins, foodBag, onUpdate, onBack }
 
         {/* 탭 2: 돌보기 3종 (놀아주기 / 윤기내기 / 휴식) */}
         {tab === 'care' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 7, flex: 1, justifyContent: 'space-between' }}>
+          <div className="deck-scroll">
             {CARE_ACTIONS.map((act) => (
               <div
                 key={act.id}
                 style={{
-                  padding: '10px 12px',
+                  padding: '12px 14px',
                   borderRadius: 16,
                   border: '1.5px solid #F0DFB8',
                   background: '#FFFFFF',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 10,
-                  flex: 1,
+                  gap: 12,
                 }}
               >
-                <span style={{ fontSize: 28 }}>{act.icon}</span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: '#3B2F2F' }}>{act.name}</div>
-                  <div style={{ fontSize: 12, color: '#D85A3A', fontWeight: 800, marginTop: 1 }}>
+                <span style={{ fontSize: 32, flexShrink: 0 }}>{act.icon}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 900, color: '#3B2F2F' }}>{act.name}</div>
+                  <div style={{ fontSize: 12, color: '#D85A3A', fontWeight: 800, marginTop: 2 }}>
                     {act.effectLabel} · +{act.coinReward} 코인
                   </div>
-                  <div style={{ fontSize: 12, color: '#7A6A60', marginTop: 1 }}>{act.desc}</div>
+                  <div style={{ fontSize: 12, color: '#7A6A60', marginTop: 2 }}>{act.desc}</div>
                 </div>
                 <button
                   className="btn"
                   disabled={busy}
                   onClick={() => handleCareAction(act.id, act.asmr)}
-                  style={{ padding: '8px 12px', fontSize: 12, flexShrink: 0 }}
+                  style={{ padding: '9px 14px', fontSize: 12, flexShrink: 0 }}
                 >
                   실행
                 </button>
@@ -364,54 +384,49 @@ export default function CarePantry({ monster, coins, foodBag, onUpdate, onBack }
           </div>
         )}
 
-        {/* 탭 3: 베이커리 토핑 상점 (10종 2×5 그리드) */}
+        {/* 탭 3: 베이커리 토핑 상점 (크고 시원한 한 줄 카드 + 부드러운 내부 스크롤) */}
         {tab === 'shop' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 6, flex: 1, alignContent: 'space-between' }}>
+          <div className="deck-scroll">
             {DESSERT_FOODS.map((food) => {
               const count = foodBag[food.id] ?? 0
               const canAfford = coins >= food.price
               return (
-                <button
+                <div
                   key={food.id}
-                  disabled={busy || !canAfford}
-                  onClick={() => handleBuyFood(food.id, food.asmr)}
                   style={{
-                    padding: '6px 8px',
-                    borderRadius: 12,
+                    padding: '10px 12px',
+                    borderRadius: 16,
                     border: '1.5px solid #F0DFB8',
                     background: '#FFFFFF',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: 6,
-                    opacity: canAfford ? 1 : 0.55,
-                    cursor: canAfford ? 'pointer' : 'not-allowed',
-                    textAlign: 'left',
+                    gap: 10,
                   }}
                 >
-                  <span style={{ fontSize: 20, flexShrink: 0 }}>{food.icon}</span>
+                  <span style={{ fontSize: 30, flexShrink: 0 }}>{food.icon}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: '#3B2F2F', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {food.name}
+                    <div className="row wrap" style={{ gap: 6, alignItems: 'center' }}>
+                      <span style={{ fontSize: 14, fontWeight: 900, color: '#3B2F2F' }}>{food.name}</span>
+                      <span className="chip" style={{ fontSize: 12, padding: '2px 7px' }}>
+                        가방 {count}개
+                      </span>
                     </div>
-                    <div style={{ fontSize: 12, color: '#7A6A60', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                      보유 ×{count}
+                    <div style={{ fontSize: 12, color: '#177051', fontWeight: 800, marginTop: 2 }}>
+                      당충전 +{food.hunger} · 달콤함 +{food.mood} ({food.tag})
+                    </div>
+                    <div style={{ fontSize: 12, color: '#7A6A60', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {food.desc}
                     </div>
                   </div>
-                  <span
-                    style={{
-                      padding: '4px 7px',
-                      borderRadius: 8,
-                      background: canAfford ? '#FFE3A0' : '#EFE9DC',
-                      color: '#3B2F2F',
-                      fontSize: 12,
-                      fontWeight: 800,
-                      flexShrink: 0,
-                    }}
+                  <button
+                    className="btn"
+                    disabled={busy || !canAfford}
+                    onClick={() => handleBuyFood(food.id, food.asmr)}
+                    style={{ padding: '8px 12px', fontSize: 12, flexShrink: 0 }}
                   >
-                    🪙{food.price}
-                  </span>
-                </button>
+                    🪙 {food.price} 구매
+                  </button>
+                </div>
               )
             })}
           </div>
