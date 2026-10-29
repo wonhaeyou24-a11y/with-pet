@@ -4,7 +4,8 @@ import type { Rarity } from '../lib/api'
 const INK = '#4A3330'
 const EGG_D = 'M 100 24 C 144 24 172 84 172 140 C 172 190 140 218 100 218 C 60 218 28 190 28 140 C 28 84 56 24 100 24 Z'
 
-type Mood = 'sleep' | 'happy' | 'ready' | 'plain'
+// sleep: 쿨쿨 / happy: 쓰다듬을 때의 방긋 / cozy: 따뜻할 때의 사르르 / ready: 부화 직전 / plain: 얼굴 없음
+type Mood = 'sleep' | 'happy' | 'cozy' | 'ready' | 'plain'
 
 function Shell({ rarity, clip }: { rarity: Rarity; clip: string }) {
   if (rarity === 'common') {
@@ -56,11 +57,13 @@ function Shell({ rarity, clip }: { rarity: Rarity; clip: string }) {
   )
 }
 
-export function EggArt({ rarity = 'common', mood = 'sleep', size = 200 }: { rarity?: Rarity; mood?: Mood; size?: number }) {
+export function EggArt({ rarity = 'common', mood = 'sleep', size = 200, fluid = false }: { rarity?: Rarity; mood?: Mood; size?: number; fluid?: boolean }) {
   const uid = useId().replace(/:/g, '')
   const clip = `${uid}-egg`
+  // fluid: 화면 높이에 맞춰 크기가 줄어든다 (한 화면에 들어오게)
+  const sizing = fluid ? {} : { width: size, height: (size * 240) / 200 }
   return (
-    <svg width={size} height={(size * 240) / 200} viewBox="0 0 200 240" role="img" aria-label={`${rarity} egg`} style={{ overflow: 'visible' }}>
+    <svg viewBox="0 0 200 240" role="img" aria-label={`${rarity} egg`} style={{ overflow: 'visible', ...sizing }}>
       <defs>
         <clipPath id={clip}>
           <path d={EGG_D} />
@@ -79,13 +82,13 @@ export function EggArt({ rarity = 'common', mood = 'sleep', size = 200 }: { rari
 
       {mood !== 'plain' && (
         <g>
-          <ellipse cx="62" cy="150" rx="11" ry="7" fill="#FF9C9C" opacity="0.8" />
-          <ellipse cx="138" cy="150" rx="11" ry="7" fill="#FF9C9C" opacity="0.8" />
-          {mood === 'sleep' ? (
+          <ellipse cx="62" cy="150" rx="11" ry="7" fill="#FF9C9C" opacity={mood === 'sleep' ? 0.8 : 1} />
+          <ellipse cx="138" cy="150" rx="11" ry="7" fill="#FF9C9C" opacity={mood === 'sleep' ? 0.8 : 1} />
+          {mood === 'sleep' || mood === 'cozy' ? (
             <g fill="none" stroke={INK} strokeWidth="3.4" strokeLinecap="round">
               <path d="M 70 138 Q 80 146 90 138" />
               <path d="M 110 138 Q 120 146 130 138" />
-              <path d="M 94 152 Q 100 158 106 152" strokeWidth="3" />
+              <path d={mood === 'cozy' ? 'M 90 152 Q 100 164 110 152' : 'M 94 152 Q 100 158 106 152'} strokeWidth="3" />
             </g>
           ) : (
             <g fill="none" stroke={INK} strokeWidth="3.4" strokeLinecap="round">

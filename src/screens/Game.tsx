@@ -1,13 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { callEgg, serverNow, type EggRow, type MonsterRow } from '../lib/api'
 import { supabase, type Player } from '../lib/supabase'
-import EggHome from './EggHome'
+import EggHome, { type CareFx } from './EggHome'
 import HatchReveal from './HatchReveal'
 import MonsterDetail from './MonsterDetail'
 import MonsterHome from './MonsterHome'
 import Naming from './Naming'
 
 const HATCH_ANIMATION_MS = 1600
+
+// 돌봄을 받은 알이 하는 말
+const EGG_LINES = {
+  pet: ['음냐… 기분 좋아~', '쓰담쓰담 좋아요!', '콩닥콩닥~ 두근두근', '헤헤, 간지러워요'],
+  warm: ['따끈따끈~ 포근해요', '몸이 사르르 녹아요', '히히, 따뜻해~', '햇살 냄새가 나요'],
+}
 
 type Limits = { pet: number; warm: number }
 
@@ -20,11 +26,13 @@ export default function Game({ player }: { player: Player }) {
   const [loadError, setLoadError] = useState('')
   const [busy, setBusy] = useState(false)
   const [toast, setToast] = useState('')
-  const [burst, setBurst] = useState(0)
+  const [fx, setFx] = useState<CareFx | null>(null)
+  const [bubble, setBubble] = useState('')
   const [tick, setTick] = useState(0)
   const [hatching, setHatching] = useState<{ rarity: EggRow['rarity']; monster: MonsterRow | null } | null>(null)
   const [detail, setDetail] = useState(false)
   const toastTimer = useRef<number | undefined>(undefined)
+  const fxTimer = useRef<number | undefined>(undefined)
 
   const sync = useCallback(async () => {
     const res = await callEgg('sync')
@@ -60,12 +68,22 @@ export default function Game({ player }: { player: Player }) {
   async function care(action: 'pet' | 'warm') {
     if (!egg || busy) return
     setBusy(true)
+    const before = Date.parse(egg.hatch_at)
     const res = await callEgg(action, { eggId: egg.id })
     setBusy(false)
     if (res.egg) setEgg(res.egg)
-    if (res.ok) {
-      setBurst((n) => n + 1)
-      say(action === 'pet' ? '알이 기분 좋은 듯 꿈틀했어요' : '알이 따뜻해서 편안해 보여요')
+    if (res.ok && res.egg) {
+      // 줄어든 부화 시간은 서버가 돌려준 값에서 계산한다 (수치를 화면에 따로 두지 않는다)
+      const minutes = Math.round((before - Date.parse(res.egg.hatch_at)) / 60_000)
+      const lines = EGG_LINES[action]
+      navigator.vibrate?.(action === 'pet' ? [15, 50, 15] : 35)
+      setFx((cur) => ({ kind: action, key: (cur?.key ?? 0) + 1, minutes }))
+      setBubble(lines[Math.floor(Math.random() * lines.length)])
+      window.clearTimeout(fxTimer.current)
+      fxTimer.current = window.setTimeout(() => {
+        setFx(null)
+        setBubble('')
+      }, 2500)
     } else if (res.message) {
       say(res.message)
     }
@@ -139,7 +157,8 @@ export default function Game({ player }: { player: Player }) {
         usedWarm={sameDay ? egg.warms_today : 0}
         busy={busy}
         toast={toast}
-        burst={burst}
+        bubble={bubble}
+        fx={fx}
         onPet={() => care('pet')}
         onWarm={() => care('warm')}
         onHatch={hatch}

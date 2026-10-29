@@ -14,10 +14,12 @@ type Props = {
   size?: number
   animate?: boolean
   title?: string
+  // 화면 높이에 맞춰 크기가 줄어든다 (한 화면에 들어오는 홈용)
+  fluid?: boolean
 }
 
 // 개체마다 다른 외형(look)을 받아 레이어 SVG 몬스터를 그린다
-export default function MonsterView({ look, size = 240, animate = true, title }: Props) {
+export default function MonsterView({ look, size = 240, animate = true, title, fluid = false }: Props) {
   const uid = useId().replace(/:/g, '')
   const def = SPECIES[look.species]
   if (!def) return null
@@ -30,8 +32,7 @@ export default function MonsterView({ look, size = 240, animate = true, title }:
   return (
     <svg
       viewBox="0 0 240 260"
-      width={size}
-      height={(size * 260) / 240}
+      {...(fluid ? {} : { width: size, height: (size * 260) / 240 })}
       role="img"
       aria-label={title ?? def.name}
       style={{ overflow: 'visible' }}

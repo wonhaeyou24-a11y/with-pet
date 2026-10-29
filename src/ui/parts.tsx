@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { STAT_BAR_MAX, STAT_INFO } from '../config/species'
 import type { Stats } from '../lib/api'
-import { PawIcon } from './Icons'
+import { LockIcon, PawIcon } from './Icons'
 
 export function TopBar({ nickname, onLogout }: { nickname: string; onLogout?: () => void }) {
   const [open, setOpen] = useState(false)
@@ -24,9 +24,9 @@ export function TopBar({ nickname, onLogout }: { nickname: string; onLogout?: ()
   )
 }
 
-export function StatBars({ stats }: { stats: Stats }) {
+export function StatBars({ stats, compact = false }: { stats: Stats; compact?: boolean }) {
   return (
-    <div className="stack" style={{ gap: 14 }}>
+    <div className={compact ? 'stats-grid' : 'stack'} style={compact ? undefined : { gap: 14 }}>
       {STAT_INFO.map(({ key, label, color }) => {
         const v = stats[key]
         return (
@@ -62,6 +62,7 @@ export function Nest({ children, width = 250, lift = 34, front = true }: { child
       style={{
         width,
         height: 56,
+        flexShrink: 0,
         borderRadius: 28,
         background: 'linear-gradient(180deg, #fff3d6, #f7e4b4)',
         border: '2px solid var(--border)',
@@ -80,7 +81,16 @@ export function Nest({ children, width = 250, lift = 34, front = true }: { child
   )
 }
 
-export function LockedCard({ icon, title, desc }: { icon: ReactNode; title: string; desc: string }) {
+export function LockedCard({ icon, title, desc, compact = false }: { icon: ReactNode; title: string; desc?: string; compact?: boolean }) {
+  if (compact) {
+    return (
+      <div className="locked-card compact">
+        {icon}
+        <strong>{title}</strong>
+        <LockIcon size={16} color="var(--placeholder)" />
+      </div>
+    )
+  }
   return (
     <div className="locked-card">
       <span className="chip coral" style={{ fontSize: 11, padding: '2px 8px' }}>
@@ -88,7 +98,7 @@ export function LockedCard({ icon, title, desc }: { icon: ReactNode; title: stri
       </span>
       {icon}
       <strong>{title}</strong>
-      <span className="small">{desc}</span>
+      {desc && <span className="small">{desc}</span>}
     </div>
   )
 }
