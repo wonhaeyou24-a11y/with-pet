@@ -3,6 +3,7 @@
 // 치명타(CRITICAL) 등 다양한 리얼 액션을 주고받으며, 관전 중 실시간 터치 응원 손맛을 즐깁니다.
 
 import { useEffect, useMemo, useState } from 'react'
+import { addRibbonCoins } from '../config/boutique'
 import { ELEMENT_INFO, SPECIES_INFO } from '../config/species'
 import { monsterLook, type MonsterRow } from '../lib/api'
 import { simulateAsmrBattle } from '../lib/battleEngine'
@@ -81,7 +82,9 @@ export default function AsmrBattleArena({
       setStepIdx(nextStep)
       if (nextStep >= sim.turns.length && !rewarded) {
         setRewarded(true)
-        onRewardClaimed?.(sim.winner === 'challenger' ? 30 : 15)
+        const isWin = sim.winner === 'challenger'
+        onRewardClaimed?.(isWin ? 30 : 15)
+        addRibbonCoins(isWin ? 30 : 10, '친선 대전 보상')
       }
     }, turnInterval * 0.75)
 
@@ -130,7 +133,9 @@ export default function AsmrBattleArena({
     setPlaying(false)
     if (!rewarded) {
       setRewarded(true)
-      onRewardClaimed?.(sim.winner === 'challenger' ? 30 : 15)
+      const isWin = sim.winner === 'challenger'
+      onRewardClaimed?.(isWin ? 30 : 15)
+      addRibbonCoins(isWin ? 30 : 10, '친선 대전 보상')
     }
   }
 
@@ -579,8 +584,21 @@ export default function AsmrBattleArena({
             </h2>
             <div style={{ fontSize: 13, color: '#6D4C41', lineHeight: 1.4 }}>
               {sim.winner === 'challenger'
-                ? `[${defender.name ?? '상대'}]와의 친선전에서 승리하여 🪙 30 코인을 획득했습니다!`
-                : `[${defender.name ?? '상대'}]와의 명승부 끝에 🪙 15 코인을 획득했습니다!`}
+                ? `[${defender.name ?? '상대'}]와의 친선전에서 승리하여 🪙 30 코인과 🎀 30 리본 코인을 획득했습니다!`
+                : `[${defender.name ?? '상대'}]와의 명승부 끝에 🪙 15 코인과 🎀 10 리본 코인을 획득했습니다!`}
+            </div>
+            <div
+              style={{
+                fontSize: 11,
+                color: '#BE185D',
+                fontWeight: 800,
+                background: '#FDF2F8',
+                padding: '6px 10px',
+                borderRadius: 10,
+                border: '1px solid #FBCFE8',
+              }}
+            >
+              🎀 슈가 리본 코인으로 부티크 상점에서 유니크 장신구와 마이룸 가구를 구입하세요!
             </div>
 
             <button

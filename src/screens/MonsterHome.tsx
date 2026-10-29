@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { getRibbonCoins } from '../config/boutique'
 import { ELEMENT_INFO, SPECIES_INFO } from '../config/species'
 import { monsterLook, type MonsterRow } from '../lib/api'
 import { checkEvolutionEligibility } from '../lib/evolutionEngine'
@@ -28,6 +29,8 @@ type Props = {
   onOpenPlaza?: () => void
   onOpenEvolution?: () => void
   onOpenDex?: () => void
+  onOpenMyRoom?: () => void
+  onOpenBoutique?: () => void
   onResetTestEgg?: () => void
   onLogout?: () => void
 }
@@ -43,6 +46,8 @@ export default function MonsterHome({
   onOpenPlaza,
   onOpenEvolution,
   onOpenDex,
+  onOpenMyRoom,
+  onOpenBoutique,
   onResetTestEgg,
   onLogout,
 }: Props) {
@@ -142,6 +147,22 @@ export default function MonsterHome({
             )}
             <span className="chip honey" style={{ fontSize: 12, fontWeight: 800, padding: '2px 7px' }}>
               🪙 {coins} 코인
+            </span>
+            <span
+              onClick={onOpenBoutique}
+              className="chip"
+              style={{
+                fontSize: 12,
+                fontWeight: 800,
+                padding: '2px 7px',
+                background: '#FDF2F8',
+                border: '1px solid #F472B6',
+                color: '#BE185D',
+                cursor: 'pointer',
+              }}
+              title="부티크 상점 가기"
+            >
+              🎀 {getRibbonCoins()}
             </span>
           </div>
           <div className="row" style={{ gap: 4 }}>
@@ -406,7 +427,54 @@ export default function MonsterHome({
         <StatBars stats={monster.stats} compact />
       </div>
 
-      {/* 4-1. M4 진화의 전당 & 디저트 도감 서브 네비게이션 */}
+      {/* 4-1. 싸이월드 감성 마이룸 & 부티크 상점 서브 네비게이션 */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, flexShrink: 0 }}>
+        <button
+          onClick={onOpenMyRoom}
+          style={{
+            padding: '7px 8px',
+            borderRadius: 12,
+            border: '1.5px solid #F472B6',
+            background: 'linear-gradient(90deg, #FDF2F8 0%, #FCE7F3 100%)',
+            color: '#BE185D',
+            fontSize: 12,
+            fontWeight: 900,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 4,
+            boxShadow: '0 2px 6px rgba(244,114,182,0.15)',
+          }}
+        >
+          <span>🏰 나만의 미니룸</span>
+          <span style={{ fontSize: 10, color: '#DB2777' }}>방명록</span>
+        </button>
+
+        <button
+          onClick={onOpenBoutique}
+          style={{
+            padding: '7px 8px',
+            borderRadius: 12,
+            border: '1.5px solid #F472B6',
+            background: 'linear-gradient(90deg, #FFF1F2 0%, #FFE4E6 100%)',
+            color: '#9D174D',
+            fontSize: 12,
+            fontWeight: 900,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 4,
+            boxShadow: '0 2px 6px rgba(244,114,182,0.15)',
+          }}
+        >
+          <span>🛍️ 부티크 상점</span>
+          <span style={{ fontSize: 10, color: '#E11D48' }}>피팅룸</span>
+        </button>
+      </div>
+
+      {/* 4-2. M4 진화의 전당 & 디저트 도감 서브 네비게이션 */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, flexShrink: 0 }}>
         <button
           onClick={onOpenEvolution}

@@ -3,6 +3,7 @@
 // 3×3 그리드 토핑 가방과 베이커리 상점을 스크롤 없이 한 화면에서 조작합니다.
 
 import { useRef, useState } from 'react'
+import { addRibbonCoins } from '../config/boutique'
 import { CARE_ACTIONS, CARE_STATUS_INFO, DESSERT_FOODS, expForNextLevel } from '../config/care'
 import { personalityLabel, SPECIES_INFO } from '../config/species'
 import { monsterLook, type MonsterRow } from '../lib/api'
@@ -90,8 +91,9 @@ export default function CarePantry({ monster, coins, foodBag, onUpdate, onBack }
         setBusy(false)
         if (res.ok && res.monster && res.foodBag !== undefined && res.coins !== undefined) {
           onUpdate(res.monster, res.coins, res.foodBag)
+          addRibbonCoins(15, '꿀잠 낮잠 보너스')
         }
-        showMessage('🌙 꿀잠 낮잠 완료! 노곤함이 깨끗이 풀리고 쫀득 탄력이 돌아왔어요! ✨', res.leveledUp)
+        showMessage('🌙 꿀잠 낮잠 완료! 노곤함이 풀리고 쫀득 탄력이 돌아왔어요! (🎀 +15 리본 코인)', res.leveledUp)
       }, 1500)
       return
     }
@@ -101,8 +103,9 @@ export default function CarePantry({ monster, coins, foodBag, onUpdate, onBack }
     setBusy(false)
     if (res.ok && res.monster && res.foodBag !== undefined && res.coins !== undefined) {
       onUpdate(res.monster, res.coins, res.foodBag)
+      addRibbonCoins(5, '돌보기 교감')
     }
-    if (res.message) showMessage(res.message, res.leveledUp)
+    if (res.message) showMessage(`${res.message} (🎀 +5 리본)`, res.leveledUp)
   }
 
   async function handleBuyFood(foodId: string, asmr: DessertSoundKind) {

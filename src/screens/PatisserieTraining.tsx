@@ -4,6 +4,7 @@
 // 3. 실시간 능력치 분포 확인
 
 import { useEffect, useRef, useState } from 'react'
+import { addRibbonCoins } from '../config/boutique'
 import { expForNextLevel, TRAINING_COURSES, type TrainingCourse } from '../config/care'
 import { personalityLabel, SPECIES_INFO, STAT_INFO } from '../config/species'
 import { monsterLook, type MonsterRow } from '../lib/api'
@@ -189,13 +190,14 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
 
     if (res.ok && res.monster && res.foodBag !== undefined && res.coins !== undefined) {
       onUpdate(res.monster, res.coins, res.foodBag)
+      addRibbonCoins(15, '파티세리 훈련 완료')
     }
     if (res.leveledUp) {
       setLevelUpBanner(true)
       setTimeout(() => setLevelUpBanner(false), 4000)
     }
     if (res.message) {
-      setToast(`🎉 훈련 완료! ${res.message}`)
+      setToast(`🎉 훈련 완료! ${res.message} (🎀 +15 리본 코인)`)
       setTimeout(() => setToast(null), 3500)
     }
     playDessertAsmr('sugar-crack', 3)
@@ -254,9 +256,11 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
       },
     }
 
+    const ribbonEarned = floorsCleared * 20
+    addRibbonCoins(ribbonEarned, '타워 탐험 돌파 보상')
     onUpdate(nextMonster, updatedCoins, {})
     playDessertAsmr('wax-pop', 3)
-    setToast(`🏰 ${floorsCleared}개 층 돌파 복귀 완료! EXP +${totalExpGain} · 🪙 +${totalCoinsGain} 코인 획득!`)
+    setToast(`🏰 ${floorsCleared}개 층 돌파 복귀 완료! EXP +${totalExpGain} · 🪙 +${totalCoinsGain} 코인 · 🎀 +${ribbonEarned} 리본 획득!`)
     setTimeout(() => setToast(null), 4000)
     if (leveledUp) {
       setLevelUpBanner(true)

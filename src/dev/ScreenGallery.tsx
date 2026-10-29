@@ -2,6 +2,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import type { EggRow, MonsterRow } from '../lib/api'
 import AsmrBattleArena from '../screens/AsmrBattleArena'
+import BoutiqueShop from '../screens/BoutiqueShop'
 import CarePantry from '../screens/CarePantry'
 import DessertPokedexScreen from '../screens/DessertPokedex'
 import DessertPlaza from '../screens/DessertPlaza'
@@ -11,6 +12,7 @@ import HatchReveal from '../screens/HatchReveal'
 import Login from '../screens/Login'
 import MonsterDetail from '../screens/MonsterDetail'
 import MonsterHome from '../screens/MonsterHome'
+import MyRoomScreen from '../screens/MyRoomScreen'
 import Naming from '../screens/Naming'
 import Nickname from '../screens/Nickname'
 import PatisserieTraining from '../screens/PatisserieTraining'
@@ -154,6 +156,20 @@ const SCREENS: Record<string, () => ReactNode> = {
   ),
   '디저트 도감(M4)': () => <DessertPokedexScreen onBack={noop} />,
   '몬스터 상세': () => <MonsterDetail monster={{ ...shiny, name: '두바이쫀득' }} onBack={noop} />,
+  '파티세리 부티크': () => (
+    <BoutiqueShop
+      monster={{ ...shiny, name: '두바이쫀득' }}
+      onBack={noop}
+      onOpenMyRoom={noop}
+    />
+  ),
+  '나만의 미니룸': () => (
+    <MyRoomScreen
+      monster={{ ...shiny, name: '두바이쫀득' }}
+      onBack={noop}
+      onOpenBoutique={noop}
+    />
+  ),
 }
 
 export default function ScreenGallery() {

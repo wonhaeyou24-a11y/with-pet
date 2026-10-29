@@ -4,6 +4,7 @@
 // 머리 위 순위·승률 배지를 확인하고 터치 시 친선 대전 및 한입 투표를 진행합니다.
 
 import { useEffect, useRef, useState, type PointerEvent, type WheelEvent } from 'react'
+import { addRibbonCoins } from '../config/boutique'
 import { ELEMENT_INFO } from '../config/species'
 import { monsterLook, type MonsterRow } from '../lib/api'
 import { PLAZA_SHOWCASE_FRIENDS, type PlazaFriendEntry } from '../lib/battleEngine'
@@ -543,21 +544,40 @@ export default function DessertPlaza({
           </button>
         </div>
 
-        {/* 액션 버튼 바: 친선 대전 신청 */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 6, marginTop: 4 }}>
+        {/* 액션 버튼 바: 친선 대전 신청 & 미니룸 방문 */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginTop: 4 }}>
           <button
             className="btn"
             onClick={() => onChallenge(selectedFriend)}
             style={{
-              padding: '10px',
-              fontSize: 13,
+              padding: '9px 6px',
+              fontSize: 12,
               fontWeight: 900,
               background: 'linear-gradient(90deg, #FF7A59 0%, #FF9800 100%)',
               color: '#FFFFFF',
               boxShadow: '0 4px 10px rgba(255,122,89,0.3)',
             }}
           >
-            ⚔️ [친선 대전 신청] ASMR 턴제 배틀 시작
+            ⚔️ 친선 대전 신청
+          </button>
+          <button
+            className="btn"
+            onClick={() => {
+              playDessertAsmr('mochi-squish')
+              addRibbonCoins(10, '친구 미니룸 방문 응원')
+              setToast(`🏰 ${selectedFriend.ownerNickname}님의 미니룸에 방명록 응원을 남겼습니다! (🎀 +10 리본)`)
+              setTimeout(() => setToast(null), 3000)
+            }}
+            style={{
+              padding: '9px 6px',
+              fontSize: 12,
+              fontWeight: 900,
+              background: 'linear-gradient(90deg, #EC4899 0%, #DB2777 100%)',
+              color: '#FFFFFF',
+              boxShadow: '0 4px 10px rgba(236,72,153,0.3)',
+            }}
+          >
+            🏰 미니룸 방문·응원
           </button>
         </div>
       </div>

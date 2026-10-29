@@ -3,6 +3,7 @@
 // 단 한 화면에서 스크롤 없이 탭 전환만으로 조작합니다.
 
 import { useRef, useState } from 'react'
+import { getOwnedBoutiqueItems, getRibbonCoins } from '../config/boutique'
 import { defaultDessertBase, SPECIES_INFO } from '../config/species'
 import { monsterLook, serverNow, type MonsterRow } from '../lib/api'
 import {
@@ -53,7 +54,15 @@ function daysTogether(hatchedAt: string) {
   return Math.max(1, Math.floor((serverNow() - Date.parse(hatchedAt)) / 86_400_000) + 1)
 }
 
-export default function MonsterDetail({ monster, onBack }: { monster: MonsterRow; onBack: () => void }) {
+export default function MonsterDetail({
+  monster,
+  onBack,
+  onOpenBoutique,
+}: {
+  monster: MonsterRow
+  onBack: () => void
+  onOpenBoutique?: () => void
+}) {
   const savedCustom = loadMallangCustom(monster.id)
 
   const [studioTab, setStudioTab] = useState<StudioTab>('dessert')
@@ -190,6 +199,15 @@ export default function MonsterDetail({ monster, onBack }: { monster: MonsterRow
   }
 
   function toggleDeco(slot: DecoSlot, id: string) {
+    const owned = getOwnedBoutiqueItems()
+    if (!owned.has(id)) {
+      setSaveToast('🛍️ 부티크 상점에서 구매할 수 있는 장신구입니다!')
+      setTimeout(() => {
+        setSaveToast(null)
+        if (onOpenBoutique) onOpenBoutique()
+      }, 1000)
+      return
+    }
     const nextDeco = { ...deco, [slot]: deco[slot] === id ? null : id }
     setDeco(nextDeco)
     saveMallangCustom(monster.id, {
@@ -549,6 +567,46 @@ export default function MonsterDetail({ monster, onBack }: { monster: MonsterRow
         {/* 탭 4: 만능 날개·장신구 7칸·프로필 요약 */}
         {studioTab === 'parts' && (
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 6, flex: 1 }}>
+            {/* 부티크 상점 바로가기 배너 */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '4px 8px',
+                borderRadius: 10,
+                background: 'linear-gradient(90deg, #FDF2F8 0%, #FCE7F3 100%)',
+                border: '1px solid #F472B6',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ fontSize: 13 }}>🛍️</span>
+                <span style={{ fontSize: 11, fontWeight: 900, color: '#9D174D' }}>
+                  더 특별한 장신구를 원하시나요?
+                </span>
+                <span style={{ fontSize: 10, color: '#BE185D', fontWeight: 800 }}>
+                  (보유: 🎀 {getRibbonCoins()})
+                </span>
+              </div>
+              {onOpenBoutique && (
+                <button
+                  onClick={onOpenBoutique}
+                  style={{
+                    padding: '3px 8px',
+                    borderRadius: 8,
+                    border: 'none',
+                    background: '#EC4899',
+                    color: '#FFFFFF',
+                    fontWeight: 900,
+                    fontSize: 10,
+                    cursor: 'pointer',
+                  }}
+                >
+                  부티크 상점 가기
+                </button>
+              )}
+            </div>
+
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 4 }}>
               {WING_CATALOG.map((w) => {
                 const selected = wingKind === w.id
@@ -604,6 +662,7 @@ export default function MonsterDetail({ monster, onBack }: { monster: MonsterRow
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 5 }}>
               {slotItems.map((item) => {
                 const isEquipped = deco[item.slot] === item.id
+                const isOwned = getOwnedBoutiqueItems().has(item.id)
                 return (
                   <button
                     key={item.id}
@@ -612,18 +671,25 @@ export default function MonsterDetail({ monster, onBack }: { monster: MonsterRow
                       padding: '6px 8px',
                       borderRadius: 12,
                       border: isEquipped ? '2px solid #FF8A65' : '1px solid #F0DFB8',
-                      background: isEquipped ? '#FFF3EE' : '#FFFFFF',
+                      background: isEquipped ? '#FFF3EE' : isOwned ? '#FFFFFF' : '#FFF9F9',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 6,
+                      justifyContent: 'space-between',
                       cursor: 'pointer',
                     }}
                   >
-                    <span style={{ fontSize: 18 }}>{item.icon}</span>
-                    <div style={{ textAlign: 'left' }}>
-                      <div style={{ fontSize: 12, fontWeight: 800 }}>{item.name}</div>
-                      <div style={{ fontSize: 12, color: '#FF8A65', fontWeight: 700 }}>+{item.charm} 매력</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+                      <span style={{ fontSize: 18, flexShrink: 0 }}>{item.icon}</span>
+                      <div style={{ textAlign: 'left', minWidth: 0 }}>
+                        <div style={{ fontSize: 11, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {item.name}
+                        </div>
+                        <div style={{ fontSize: 10, color: '#FF8A65', fontWeight: 700 }}>+{item.charm} 매력</div>
+                      </div>
                     </div>
+                    <span style={{ fontSize: 9, fontWeight: 800, color: isEquipped ? '#E11D48' : isOwned ? '#10B981' : '#F59E0B', flexShrink: 0 }}>
+                      {isEquipped ? '착용' : isOwned ? '보유' : '🔒상점'}
+                    </span>
                   </button>
                 )
               })}

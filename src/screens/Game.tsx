@@ -5,6 +5,7 @@ import { callCare } from '../lib/careApi'
 import { getSpeciesSoundKind, playDessertAsmr } from '../lib/sound'
 import { supabase, type Player } from '../lib/supabase'
 import AsmrBattleArena from './AsmrBattleArena'
+import BoutiqueShop from './BoutiqueShop'
 import CarePantry from './CarePantry'
 import DessertPokedexScreen from './DessertPokedex'
 import DessertPlaza from './DessertPlaza'
@@ -13,6 +14,7 @@ import EvolutionRevealScreen from './EvolutionReveal'
 import HatchReveal from './HatchReveal'
 import MonsterDetail from './MonsterDetail'
 import MonsterHome from './MonsterHome'
+import MyRoomScreen from './MyRoomScreen'
 import Naming from './Naming'
 import PatisserieTraining from './PatisserieTraining'
 import SkillTreeScreen from './SkillTreeScreen'
@@ -26,7 +28,7 @@ const EGG_LINES = {
 }
 
 type Limits = { pet: number; warm: number }
-type MonsterSubView = 'home' | 'detail' | 'care' | 'train' | 'skills' | 'plaza' | 'battle' | 'evolution' | 'pokedex'
+type MonsterSubView = 'home' | 'detail' | 'care' | 'train' | 'skills' | 'plaza' | 'battle' | 'evolution' | 'pokedex' | 'boutique' | 'myroom'
 
 // 서버에서 받은 알·몬스터 상태에 따라 보여 줄 화면을 고른다 (알 → 부화 → 이름 짓기 → 몬스터 홈 / 돌보기 / 훈련 / 공방)
 export default function Game({ player }: { player: Player }) {
@@ -196,7 +198,31 @@ export default function Game({ player }: { player: Player }) {
     }
 
     if (subView === 'detail') {
-      return <MonsterDetail monster={monster} onBack={() => setSubView('home')} />
+      return (
+        <MonsterDetail
+          monster={monster}
+          onBack={() => setSubView('home')}
+          onOpenBoutique={() => setSubView('boutique')}
+        />
+      )
+    }
+    if (subView === 'boutique') {
+      return (
+        <BoutiqueShop
+          monster={monster}
+          onBack={() => setSubView('home')}
+          onOpenMyRoom={() => setSubView('myroom')}
+        />
+      )
+    }
+    if (subView === 'myroom') {
+      return (
+        <MyRoomScreen
+          monster={monster}
+          onBack={() => setSubView('home')}
+          onOpenBoutique={() => setSubView('boutique')}
+        />
+      )
     }
     if (subView === 'care') {
       return (
@@ -284,6 +310,8 @@ export default function Game({ player }: { player: Player }) {
         onOpenPlaza={() => setSubView('plaza')}
         onOpenEvolution={() => setSubView('evolution')}
         onOpenDex={() => setSubView('pokedex')}
+        onOpenMyRoom={() => setSubView('myroom')}
+        onOpenBoutique={() => setSubView('boutique')}
         onResetTestEgg={() => {
           const newEgg = issueNewTestEgg('common')
           setMonsters([])

@@ -1,0 +1,663 @@
+// 🏰 싸이월드 감성 파티세리 마이룸(쇼룸): 나만의 공간 꾸미기 & 가구 상호작용 & 방명록
+// 100dvh 모바일 무스크롤 덱, Zero-Crash 무결성, 100% 한글 주석
+
+import { useState } from 'react'
+import {
+  addGuestBookEntry,
+  addRibbonCoins,
+  getOwnedBoutiqueItems,
+  getRibbonCoins,
+  loadGuestBook,
+  loadRoomCustom,
+  ROOM_FURNITURE_CATALOG,
+  ROOM_THEMES,
+  saveRoomCustom,
+  type GuestBookEntry,
+  type RoomCustom,
+  type RoomFurnitureDef,
+  type RoomThemeDef,
+} from '../config/boutique'
+import { monsterLook, type MonsterRow } from '../lib/api'
+import { playDessertAsmr } from '../lib/sound'
+import Monster3DView from '../monsters/Monster3DView'
+import { BackIcon } from '../ui/Icons'
+
+interface Props {
+  monster: MonsterRow
+  onBack: () => void
+  onOpenBoutique: () => void
+}
+
+export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props) {
+  const [room, setRoom] = useState<RoomCustom>(() => loadRoomCustom())
+  const [guestBook, setGuestBook] = useState<GuestBookEntry[]>(() => loadGuestBook())
+  const [ribbonCoins, setCoinsState] = useState<number>(() => getRibbonCoins())
+  const [isEditing, setIsEditing] = useState<boolean>(false)
+  const [ownedItems] = useState<Set<string>>(() => getOwnedBoutiqueItems())
+  const [toast, setToast] = useState<string | null>(null)
+  const [newComment, setNewComment] = useState<string>('')
+  const [petActionState, setPetActionState] = useState<string>('방 안을 총총 거닐며 디저트 향기를 맡고 있어요 🌸')
+  const [bouncePet, setBouncePet] = useState<boolean>(false)
+
+  const currentTheme: RoomThemeDef = ROOM_THEMES.find((t) => t.id === room.themeId) ?? ROOM_THEMES[0]
+  const look = monsterLook(monster)
+
+  const showToast = (msg: string) => {
+    setToast(msg)
+    window.setTimeout(() => setToast(null), 3000)
+  }
+
+  // 테마 변경
+  const handleSelectTheme = (theme: RoomThemeDef) => {
+    if (!ownedItems.has(theme.id) && theme.price > 0) {
+      showToast('아직 구매하지 않은 테마입니다. 부티크에서 구매해보세요!')
+      return
+    }
+    const nextRoom = { ...room, themeId: theme.id }
+    setRoom(nextRoom)
+    saveRoomCustom(nextRoom)
+    playDessertAsmr('mochi-squish')
+    showToast(`✨ ${theme.name}으로 벽지와 바닥을 바꿨습니다!`)
+  }
+
+  // 가구 배치 토글
+  const handleToggleFurniture = (furn: RoomFurnitureDef) => {
+    if (!ownedItems.has(furn.id)) {
+      showToast('아직 구매하지 않은 가구입니다. 부티크에서 구매해보세요!')
+      return
+    }
+    const isPlaced = room.placedFurniture.includes(furn.id)
+    const nextList = isPlaced
+      ? room.placedFurniture.filter((id) => id !== furn.id)
+      : [...room.placedFurniture, furn.id]
+
+    const nextRoom = { ...room, placedFurniture: nextList }
+    setRoom(nextRoom)
+    saveRoomCustom(nextRoom)
+    playDessertAsmr(furn.soundKind)
+    showToast(isPlaced ? `${furn.name}을(를) 보관함에 넣었습니다.` : `🛋️ ${furn.name}을(를) 방에 배치했습니다!`)
+  }
+
+  // 가구 터치 시 상호작용 액션
+  const handleInteractFurniture = (furn: RoomFurnitureDef) => {
+    playDessertAsmr(furn.soundKind)
+    setBouncePet(true)
+    window.setTimeout(() => setBouncePet(false), 800)
+
+    if (furn.id === 'trampoline-jelly') {
+      setPetActionState(`🎪 젤리 트램펄린에서 뽀용뽀용 신나게 점프하고 있어요! (+기분 최고 ✨)`)
+    } else if (furn.id === 'sofa-macaron') {
+      setPetActionState(`🛋️ 마카롱 푹신 소파에 기대어 쿨쿨 낮잠을 자고 있어요 💤`)
+    } else if (furn.id === 'fountain-choco') {
+      setPetActionState(`⛲ 초코 분수대에서 따뜻한 가나슈를 콕 찍어 먹고 있어요 🍫`)
+    } else if (furn.id === 'table-pretzel') {
+      setPetActionState(`🪑 프레첼 테이블에서 향긋한 딸기 홍차를 마시고 있어요 ☕`)
+    } else {
+      setPetActionState(`💡 ${furn.name}을(를) 호기심 가득한 눈으로 톡톡 건드려봅니다!`)
+    }
+  }
+
+  // 좋아요(응원 하트) 누르기
+  const handleLikeRoom = () => {
+    playDessertAsmr('sugar-crack')
+    const nextRoom = { ...room, likes: room.likes + 1 }
+    setRoom(nextRoom)
+    saveRoomCustom(nextRoom)
+    const earned = addRibbonCoins(5, '룸 좋아요')
+    setCoinsState(earned)
+    showToast('❤️ 룸에 사랑의 하트를 보냈습니다! (+5 🎀 리본 코인)')
+  }
+
+  // 방명록 등록
+  const handleAddComment = () => {
+    if (!newComment.trim()) return
+    playDessertAsmr('cookie-crisp')
+    const updated = addGuestBookEntry('나의 절친 파티시에', newComment)
+    setGuestBook(updated)
+    setNewComment('')
+    const earned = addRibbonCoins(10, '방명록 작성')
+    setCoinsState(earned)
+    showToast('📝 방명록을 남겼습니다! (+10 🎀 리본 코인 획득)')
+  }
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100dvh',
+        maxHeight: '100dvh',
+        background: '#FFF5F7',
+        color: '#4A2E2B',
+        overflow: 'hidden',
+        userSelect: 'none',
+        position: 'relative',
+      }}
+    >
+      {/* 1. 상단 미니홈피 헤더바 */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '6px 12px',
+          background: '#FFFFFF',
+          borderBottom: '1px solid #FCE7F3',
+          boxShadow: '0 2px 8px rgba(244,114,182,0.08)',
+          flexShrink: 0,
+          zIndex: 10,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button
+            onClick={onBack}
+            style={{
+              background: '#FFF0F5',
+              border: '1px solid #FBCFE8',
+              borderRadius: 10,
+              padding: '6px 8px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <BackIcon size={16} />
+          </button>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <span style={{ fontSize: 13, fontWeight: 900, color: '#9D174D' }}>
+                🏰 {monster.name}의 미니룸
+              </span>
+              <span style={{ fontSize: 10, color: '#10B981', fontWeight: 800 }}>● ON</span>
+            </div>
+            <div style={{ fontSize: 10, color: '#BE185D', fontWeight: 600 }}>
+              TODAY <b style={{ color: '#E11D48' }}>{room.todayVisitors}</b> | TOTAL {room.totalVisitors}
+            </div>
+          </div>
+        </div>
+
+        {/* BGM 및 부티크 바로가기 버튼 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button
+            onClick={onOpenBoutique}
+            style={{
+              padding: '5px 9px',
+              borderRadius: 10,
+              border: 'none',
+              background: 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)',
+              color: '#FFFFFF',
+              fontWeight: 900,
+              fontSize: 11,
+              cursor: 'pointer',
+              boxShadow: '0 2px 6px rgba(219,39,119,0.25)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 3,
+            }}
+          >
+            <span>🛍️ 부티크</span>
+          </button>
+
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              padding: '4px 8px',
+              borderRadius: 16,
+              background: '#FDF2F8',
+              border: '1px solid #F472B6',
+            }}
+          >
+            <span style={{ fontSize: 13 }}>🎀</span>
+            <span style={{ fontSize: 12, fontWeight: 900, color: '#BE185D' }}>{ribbonCoins}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. 감성 BGM 티커 & 편집 토글 바 */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '4px 12px',
+          background: '#FFF0F5',
+          borderBottom: '1px solid #FBCFE8',
+          fontSize: 11,
+          flexShrink: 0,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#831843', fontWeight: 700 }}>
+          <span>🎵 BGM:</span>
+          <span style={{ color: '#BE185D' }}>달콤 파티세리의 오후 햇살 왈츠.mp3</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button
+            onClick={() => setIsEditing(!isEditing)}
+            style={{
+              padding: '3px 8px',
+              borderRadius: 8,
+              border: '1px solid #F472B6',
+              background: isEditing ? '#F472B6' : '#FFFFFF',
+              color: isEditing ? '#FFFFFF' : '#BE185D',
+              fontWeight: 800,
+              fontSize: 10,
+              cursor: 'pointer',
+            }}
+          >
+            {isEditing ? '완료' : '🎨 룸 꾸미기'}
+          </button>
+          <button
+            onClick={handleLikeRoom}
+            style={{
+              padding: '3px 8px',
+              borderRadius: 8,
+              border: '1px solid #FDA4AF',
+              background: '#FFF1F2',
+              color: '#E11D48',
+              fontWeight: 800,
+              fontSize: 10,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+            }}
+          >
+            <span>❤️</span>
+            <span>{room.likes}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 3. 싸이월드 감성 룸 캔버스 스테이지 */}
+      <div
+        style={{
+          height: 185,
+          minHeight: 185,
+          maxHeight: 185,
+          position: 'relative',
+          margin: '4px 12px',
+          borderRadius: 16,
+          background: currentTheme.wallBg,
+          border: '2px solid #FBCFE8',
+          boxShadow: 'inset 0 4px 12px rgba(0,0,0,0.06), 0 4px 14px rgba(244,114,182,0.15)',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          flexShrink: 0,
+        }}
+      >
+        {/* 상단 벽면 (창문 & 액자 & 장식) */}
+        <div style={{ flex: 1, position: 'relative', padding: 8 }}>
+          {/* 감성 창문 */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 10,
+              left: 12,
+              width: 44,
+              height: 38,
+              borderRadius: '8px 8px 0 0',
+              border: '2px solid #FFFFFF',
+              background: 'linear-gradient(180deg, #BAE6FD 0%, #E0F2FE 100%)',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+              overflow: 'hidden',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <span style={{ fontSize: 16 }}>🌤️</span>
+          </div>
+
+          {/* 벽면 미니 액자 */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 10,
+              right: 14,
+              padding: '3px 6px',
+              background: '#FFFFFF',
+              border: '1.5px solid #FBCFE8',
+              borderRadius: 6,
+              boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 3,
+            }}
+          >
+            <span style={{ fontSize: 12 }}>🖼️</span>
+            <span style={{ fontSize: 9, fontWeight: 800, color: '#9D174D' }}>우정 사진</span>
+          </div>
+
+          {/* 중앙 3D 펫 모델 (자유 포즈 & 콩콩 모션) */}
+          <div
+            style={{
+              position: 'absolute',
+              bottom: -4,
+              left: '50%',
+              transform: `translateX(-50%) ${bouncePet ? 'translateY(-14px) scale(1.08)' : 'translateY(0)'}`,
+              transition: 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              width: 130,
+              height: 130,
+              zIndex: 3,
+            }}
+          >
+            <Monster3DView look={look} size={130} fluid interactive />
+          </div>
+        </div>
+
+        {/* 하단 바닥 레이어 (배치된 가구들) */}
+        <div
+          style={{
+            height: 65,
+            background: currentTheme.floorBg,
+            borderTop: '2px solid rgba(0,0,0,0.12)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-around',
+            padding: '0 10px',
+            position: 'relative',
+            zIndex: 4,
+          }}
+        >
+          {room.placedFurniture.map((furnId) => {
+            const furn = ROOM_FURNITURE_CATALOG.find((f) => f.id === furnId)
+            if (!furn) return null
+            return (
+              <button
+                key={furn.id}
+                onClick={() => handleInteractFurniture(furn)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  transform: 'translateY(-8px)',
+                  padding: 2,
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 28,
+                    filter: 'drop-shadow(0 3px 5px rgba(0,0,0,0.25))',
+                    transition: 'transform 0.15s ease',
+                  }}
+                >
+                  {furn.icon}
+                </span>
+                <span
+                  style={{
+                    fontSize: 8,
+                    fontWeight: 900,
+                    background: '#FFFFFF',
+                    padding: '1px 4px',
+                    borderRadius: 4,
+                    color: '#4E342E',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                    marginTop: -2,
+                  }}
+                >
+                  {furn.actionLabel}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* 4. 펫의 실시간 행동 대사 카드 */}
+      <div
+        style={{
+          margin: '0 12px 4px',
+          padding: '6px 10px',
+          borderRadius: 12,
+          background: '#FFFFFF',
+          border: '1px solid #FCE7F3',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          boxShadow: '0 1px 4px rgba(244,114,182,0.08)',
+          flexShrink: 0,
+        }}
+      >
+        <span style={{ fontSize: 16 }}>💬</span>
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 800,
+            color: '#831843',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {petActionState}
+        </span>
+      </div>
+
+      {/* 5. 룸 꾸미기 편집 패널 or 방명록 (탭 형태) */}
+      <div
+        style={{
+          flex: 1,
+          margin: '0 12px 8px',
+          borderRadius: 14,
+          background: '#FFFFFF',
+          border: '1.5px solid #FBCFE8',
+          boxShadow: '0 2px 8px rgba(244,114,182,0.1)',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        }}
+      >
+        {isEditing ? (
+          /* 5-A. 룸 꾸미기 편집 모드 */
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              <span style={{ fontSize: 12, fontWeight: 900, color: '#9D174D' }}>
+                🎨 벽지 테마 & 가구 배치 변경
+              </span>
+              <button
+                onClick={onOpenBoutique}
+                style={{
+                  padding: '3px 8px',
+                  borderRadius: 6,
+                  border: 'none',
+                  background: '#FDF2F8',
+                  color: '#BE185D',
+                  fontSize: 10,
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                }}
+              >
+                + 새 가구 쇼핑하러 가기
+              </button>
+            </div>
+
+            {/* 벽지 테마 선택 */}
+            <div style={{ display: 'flex', gap: 6, marginBottom: 8, overflowX: 'auto', paddingBottom: 4 }}>
+              {ROOM_THEMES.map((theme) => {
+                const isSelected = room.themeId === theme.id
+                const isOwned = ownedItems.has(theme.id) || theme.price === 0
+                return (
+                  <button
+                    key={theme.id}
+                    onClick={() => handleSelectTheme(theme)}
+                    style={{
+                      padding: '4px 8px',
+                      borderRadius: 8,
+                      border: isSelected ? '2px solid #EC4899' : '1px solid #E5E7EB',
+                      background: isSelected ? '#FDF2F8' : '#F9FAFB',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <span>{theme.icon}</span>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: '#4E342E' }}>{theme.name}</span>
+                    {!isOwned && <span style={{ fontSize: 9, color: '#E11D48' }}>🔒</span>}
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* 가구 배치 토글 */}
+            <div style={{ flex: 1, overflowY: 'auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+              {ROOM_FURNITURE_CATALOG.map((furn) => {
+                const isPlaced = room.placedFurniture.includes(furn.id)
+                const isOwned = ownedItems.has(furn.id) || furn.price === 0
+                return (
+                  <div
+                    key={furn.id}
+                    onClick={() => handleToggleFurniture(furn)}
+                    style={{
+                      padding: '6px 8px',
+                      borderRadius: 10,
+                      border: isPlaced ? '2px solid #10B981' : '1px solid #E5E7EB',
+                      background: isPlaced ? '#ECFDF5' : '#FFFFFF',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <span style={{ fontSize: 20 }}>{furn.icon}</span>
+                      <div>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: '#4E342E' }}>{furn.name}</div>
+                        <div style={{ fontSize: 9, color: '#6B7280' }}>매력 +{furn.charm}</div>
+                      </div>
+                    </div>
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 900,
+                        color: isPlaced ? '#059669' : isOwned ? '#6B7280' : '#E11D48',
+                      }}
+                    >
+                      {isPlaced ? '배치됨' : isOwned ? '보관중' : '미보유'}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        ) : (
+          /* 5-B. 싸이월드 감성 방명록(일촌평/방문 한마디) */
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+              <span style={{ fontSize: 12, fontWeight: 900, color: '#9D174D' }}>
+                📖 방명록 (지인들의 방문 한마디)
+              </span>
+              <span style={{ fontSize: 10, color: '#6B7280' }}>총 {guestBook.length}개</span>
+            </div>
+
+            {/* 방명록 입력창 */}
+            <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+              <input
+                type="text"
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="친구에게 따뜻한 한마디를 남겨보세요! (+10 🎀)"
+                style={{
+                  flex: 1,
+                  padding: '6px 10px',
+                  borderRadius: 8,
+                  border: '1px solid #FBCFE8',
+                  fontSize: 11,
+                  outline: 'none',
+                  background: '#FFF5F7',
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleAddComment()
+                }}
+              />
+              <button
+                onClick={handleAddComment}
+                style={{
+                  padding: '6px 10px',
+                  borderRadius: 8,
+                  border: 'none',
+                  background: '#EC4899',
+                  color: '#FFFFFF',
+                  fontSize: 11,
+                  fontWeight: 900,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                남기기
+              </button>
+            </div>
+
+            {/* 방명록 목록 (스크롤) */}
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {guestBook.map((entry) => (
+                <div
+                  key={entry.id}
+                  style={{
+                    padding: '6px 8px',
+                    borderRadius: 8,
+                    background: '#FDF2F8',
+                    border: '1px solid #FCE7F3',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  <span style={{ fontSize: 14 }}>{entry.icon}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <span style={{ fontSize: 11, fontWeight: 900, color: '#9D174D' }}>{entry.author}</span>
+                      <span style={{ fontSize: 9, color: '#9CA3AF' }}>{entry.createdAt}</span>
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 10,
+                        color: '#4E342E',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {entry.message}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 토스트 알림 */}
+      {toast && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 20,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(30, 41, 59, 0.95)',
+            color: '#FFFFFF',
+            padding: '7px 14px',
+            borderRadius: 20,
+            fontSize: 12,
+            fontWeight: 800,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+            zIndex: 100,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {toast}
+        </div>
+      )}
+    </div>
+  )
+}
