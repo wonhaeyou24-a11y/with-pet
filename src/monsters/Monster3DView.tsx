@@ -1336,14 +1336,13 @@ export default function Monster3DView({
         innerLiquid.rotation.x = Math.cos(t * 2.9) * 0.1
       }
 
-      // 4) 드래그 3D 회전 및 부드러운 원위치 복귀
+      // 4) 360도 자유 드래그 3D 회전 (수평 회전 각도 보존 & 수직 미세 댐핑)
       if (!st.isDragging) {
-        st.targetRotY *= 0.92
         st.targetRotX *= 0.92
       }
       st.rotY += (st.targetRotY - st.rotY) * Math.min(1, dt * 12)
       st.rotX += (st.targetRotX - st.rotX) * Math.min(1, dt * 12)
-      stageGroup.rotation.y = st.rotY + Math.sin(t * 0.9) * 0.08
+      stageGroup.rotation.y = st.rotY + Math.sin(t * 0.9) * 0.05
       stageGroup.rotation.x = st.rotX
 
       // 5) 3D 파편 파티클 업데이트
@@ -1393,6 +1392,11 @@ export default function Monster3DView({
     <div
       ref={containerRef}
       onPointerDown={(e) => {
+        try {
+          e.currentTarget.setPointerCapture(e.pointerId)
+        } catch {
+          // ignore
+        }
         const profile = getPhysicsProfile(activeSpecies)
         const st = physRef.current
         st.isDragging = true
@@ -1410,13 +1414,24 @@ export default function Monster3DView({
         const dy = e.clientY - st.lastY
         st.lastX = e.clientX
         st.lastY = e.clientY
-        st.targetRotY = Math.max(-1.1, Math.min(1.1, st.targetRotY + dx * 0.012))
-        st.targetRotX = Math.max(-0.45, Math.min(0.45, st.targetRotX + dy * 0.008))
+        // 360도 무한 자유 회전 (좌우 제한 없이 부드럽게 360° 확인 가능)
+        st.targetRotY += dx * 0.016
+        st.targetRotX = Math.max(-0.6, Math.min(0.6, st.targetRotX + dy * 0.008))
       }}
-      onPointerUp={() => {
+      onPointerUp={(e) => {
+        try {
+          e.currentTarget.releasePointerCapture(e.pointerId)
+        } catch {
+          // ignore
+        }
         physRef.current.isDragging = false
       }}
-      onPointerCancel={() => {
+      onPointerCancel={(e) => {
+        try {
+          e.currentTarget.releasePointerCapture(e.pointerId)
+        } catch {
+          // ignore
+        }
         physRef.current.isDragging = false
       }}
       style={{

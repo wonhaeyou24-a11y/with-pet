@@ -29,7 +29,7 @@ const CANVAS_H = 720
 const CENTER_X = CANVAS_W / 2
 const CENTER_Y = CANVAS_H / 2
 
-// 광장 내 캐릭터 스폰 좌표 (분수대 주변, 테라스, 잔디밭 등)
+// 광장 내 캐릭터 초기 스폰 좌표
 const PLAZA_COORDS = [
   { x: CENTER_X - 120, y: CENTER_Y - 70, rank: 1, winRate: 88, zone: '초코 분수대 앞' },
   { x: CENTER_X + 130, y: CENTER_Y - 60, rank: 2, winRate: 81, zone: '바닐라 테라스' },
@@ -37,6 +37,39 @@ const PLAZA_COORDS = [
   { x: CENTER_X + 150, y: CENTER_Y + 120, rank: 4, winRate: 69, zone: '크런치 가든' },
   { x: CENTER_X, y: CENTER_Y + 170, rank: 5, winRate: 62, zone: '광장 벤치' },
 ]
+
+// 🐾 광장 내 자연스러운 산책 구역 핫스팟 목록 (돌바닥 길, 분수대 주변, 테라스, 쉼터 등)
+const PLAZA_WAYPOINTS = [
+  { x: CENTER_X - 120, y: CENTER_Y - 70 },
+  { x: CENTER_X + 130, y: CENTER_Y - 70 },
+  { x: CENTER_X - 60, y: CENTER_Y - 130 },
+  { x: CENTER_X + 60, y: CENTER_Y - 130 },
+  { x: CENTER_X, y: CENTER_Y + 130 },
+  { x: 230, y: 190 }, // 버터 빵집 골목
+  { x: 630, y: 190 }, // 롤리팝 카페 앞
+  { x: 230, y: 490 }, // 부티크 샵 보도
+  { x: 630, y: 490 }, // 아레나 콜로세움 앞
+  { x: CENTER_X - 170, y: CENTER_Y + 30 }, // 서쪽 가로수길
+  { x: CENTER_X + 170, y: CENTER_Y + 30 }, // 동쪽 가로수길
+  { x: CENTER_X, y: CENTER_Y + 190 }, // 남쪽 휴식 벤치
+]
+
+const PET_CHATTERS = [
+  '초코 분수 달콤해~ ⛲',
+  '오늘 날씨 최고! 🌸',
+  '누구 친선전 할래? ⚔️',
+  '방금 구운 빵 냄새 🥐',
+  '산책하니까 신나! 🐾',
+  '내 방에 놀러와 💕',
+]
+
+interface PetActorState {
+  x: number
+  y: number
+  isWalking: boolean
+  facingLeft: boolean
+  speech: string | null
+}
 
 export default function DessertPlaza({
   myMonster,
@@ -49,6 +82,72 @@ export default function DessertPlaza({
   const [selectedIdx, setSelectedIdx] = useState<number>(0)
   const [likedIds, setLikedIds] = useState<Record<string, boolean>>({})
   const [toast, setToast] = useState<string | null>(null)
+
+  // 🐾 지인 캐릭터들의 자연스러운 광장 자율 산책 상태
+  const [actors, setActors] = useState<PetActorState[]>(() =>
+    PLAZA_COORDS.map((c) => ({
+      x: c.x,
+      y: c.y,
+      isWalking: false,
+      facingLeft: false,
+      speech: null,
+    })),
+  )
+
+  // 3.8초마다 캐릭터들이 자연스럽게 광장 핫스팟으로 산책
+  useEffect(() => {
+    const wanderTimer = window.setInterval(() => {
+      setActors((prev) => {
+        const next = [...prev]
+        const walkerIdx = Math.floor(Math.random() * next.length)
+        if (walkerIdx === selectedIdx) return prev
+
+        const targetWp = PLAZA_WAYPOINTS[Math.floor(Math.random() * PLAZA_WAYPOINTS.length)]
+        const curr = next[walkerIdx]
+        const facingLeft = targetWp.x < curr.x
+        const speech = Math.random() < 0.4 ? PET_CHATTERS[Math.floor(Math.random() * PET_CHATTERS.length)] : null
+
+        next[walkerIdx] = {
+          ...curr,
+          x: targetWp.x + (Math.random() * 30 - 15),
+          y: targetWp.y + (Math.random() * 30 - 15),
+          isWalking: true,
+          facingLeft,
+          speech,
+        }
+
+        setTimeout(() => {
+          setActors((latest) => {
+            if (!latest[walkerIdx]) return latest
+            const lNext = [...latest]
+            lNext[walkerIdx] = {
+              ...lNext[walkerIdx],
+              isWalking: false,
+            }
+            return lNext
+          })
+        }, 2800)
+
+        if (speech) {
+          setTimeout(() => {
+            setActors((latest) => {
+              if (!latest[walkerIdx]) return latest
+              const lNext = [...latest]
+              lNext[walkerIdx] = {
+                ...lNext[walkerIdx],
+                speech: null,
+              }
+              return lNext
+            })
+          }, 3200)
+        }
+
+        return next
+      })
+    }, 3800)
+
+    return () => clearInterval(wanderTimer)
+  }, [selectedIdx])
 
   // 2.5D 광장 줌 & 패닝 상태
   const [zoom, setZoom] = useState<number>(0.85)
@@ -553,9 +652,10 @@ export default function DessertPlaza({
             </span>
           </div>
 
-          {/* 5. 지인들의 캐릭터 노드 배치 (초경량 2.5D 모드로 렉 제로 60fps 실크 패닝 보장!) */}
+          {/* 5. 지인들의 캐릭터 노드 배치 (자연스러운 광장 산책 & 초경량 60fps 렌더링) */}
           {entries.slice(0, PLAZA_COORDS.length).map((friend, idx) => {
             const coord = PLAZA_COORDS[idx]
+            const actor = actors[idx] ?? { x: coord.x, y: coord.y, isWalking: false, facingLeft: false, speech: null }
             const isSelected = idx === selectedIdx
             const fLook = monsterLook(friend.monster)
 
@@ -568,8 +668,8 @@ export default function DessertPlaza({
                 }}
                 style={{
                   position: 'absolute',
-                  left: coord.x - 55,
-                  top: coord.y - 65,
+                  left: actor.x - 55,
+                  top: actor.y - 65,
                   width: 110,
                   display: 'flex',
                   flexDirection: 'column',
@@ -577,9 +677,33 @@ export default function DessertPlaza({
                   cursor: 'pointer',
                   zIndex: isSelected ? 15 : 4,
                   transform: isSelected ? 'scale(1.15)' : 'scale(1)',
-                  transition: 'transform 0.18s ease-out',
+                  transition: 'left 2.8s ease-in-out, top 2.8s ease-in-out, transform 0.2s ease-out',
                 }}
               >
+                {/* 💬 자율 산책 귀여운 말풍선 */}
+                {actor.speech && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: -26,
+                      background: '#FFFFFF',
+                      border: '1.5px solid #FF80AB',
+                      borderRadius: 10,
+                      padding: '2px 8px',
+                      fontSize: 10,
+                      fontWeight: 800,
+                      color: '#C2185B',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                      whiteSpace: 'nowrap',
+                      pointerEvents: 'none',
+                      animation: 'bounce 0.6s ease',
+                      zIndex: 20,
+                    }}
+                  >
+                    {actor.speech}
+                  </div>
+                )}
+
                 {/* 머리 위 순위 & 승률 배지 */}
                 <div
                   style={{
@@ -604,7 +728,7 @@ export default function DessertPlaza({
                   {coord.rank === 1 ? '👑 1위' : `${coord.rank}위`} · 승률 {coord.winRate}%
                 </div>
 
-                {/* 초경량 2.5D 캐릭터 아바타 (prefer2D 적용하여 WebGL 병목 100% 제거) */}
+                {/* 초경량 2.5D 캐릭터 아바타 (산책 시 뜀박질 바운스 & 좌우 반전) */}
                 <div
                   style={{
                     width: 86,
@@ -617,6 +741,8 @@ export default function DessertPlaza({
                     alignItems: 'center',
                     justifyContent: 'center',
                     position: 'relative',
+                    transform: `${actor.facingLeft ? 'scaleX(-1)' : 'scaleX(1)'} ${actor.isWalking ? 'translateY(-4px)' : 'translateY(0)'}`,
+                    transition: 'transform 0.25s ease',
                   }}
                 >
                   <MonsterView

@@ -269,15 +269,15 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
         </button>
       </div>
 
-      {/* 3. 중앙 3D 실시간 피팅룸 스테이지 */}
+      {/* 3. 중앙 3D 실시간 피팅룸 스테이지 (충분한 높이 확보로 펫 & 장신구 잘림 완전 방지) */}
       <div
         style={{
-          height: 155,
-          minHeight: 155,
-          maxHeight: 155,
+          height: 245,
+          minHeight: 235,
+          maxHeight: 260,
           position: 'relative',
           margin: '4px 12px',
-          borderRadius: 16,
+          borderRadius: 18,
           background: tab === 'fashion'
             ? 'radial-gradient(circle, #FFF1F2 0%, #FFE4E6 100%)'
             : selectedTheme.wallBg,
@@ -293,7 +293,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
         {tab === 'fashion' ? (
           <>
             <div style={{ width: '100%', height: '100%' }}>
-              <Monster3DView look={previewLook} size={150} fluid interactive />
+              <Monster3DView look={previewLook} size={210} fluid interactive />
             </div>
             {/* 전체 해제 버튼 & 360도 회전 힌트 뱃지 */}
             <button

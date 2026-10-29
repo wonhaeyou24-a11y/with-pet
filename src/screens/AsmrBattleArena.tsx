@@ -289,7 +289,7 @@ export default function AsmrBattleArena({
                   {currentTurn.bannerText}
                 </div>
               )}
-              <MonsterView look={cLook} size={130} title={challenger.name ?? cInfo?.name} />
+              <MonsterView look={cLook} size={105} title={challenger.name ?? cInfo?.name} />
             </div>
           </div>
 
@@ -355,7 +355,7 @@ export default function AsmrBattleArena({
                   {currentTurn.bannerText}
                 </div>
               )}
-              <MonsterView look={dLook} size={130} title={defender.name ?? dInfo?.name} />
+              <MonsterView look={dLook} size={105} title={defender.name ?? dInfo?.name} />
             </div>
           </div>
         </div>
@@ -469,11 +469,11 @@ export default function AsmrBattleArena({
         </div>
       </div>
 
-      {/* 하단 턴별 상세 식감 로그 덱 (최근 3턴 표시) */}
-      <div className="card deck-card" style={{ padding: '8px 12px', gap: 5, flexShrink: 0, maxHeight: 150 }}>
+      {/* 하단 턴별 상세 식감 로그 덱 (컴팩트 높이로 모바일 화면 잘림 100% 방지) */}
+      <div className="card deck-card" style={{ padding: '6px 10px', gap: 3, flexShrink: 0, maxHeight: 98 }}>
         <div className="row between" style={{ flexShrink: 0 }}>
-          <h2 className="title" style={{ fontSize: 14 }}>
-            📜 실시간 배틀 액션 로그 ({Math.max(1, stepIdx)}/{sim.turns.length}턴)
+          <h2 className="title" style={{ fontSize: 13 }}>
+            📜 배틀 액션 로그 ({Math.max(1, stepIdx)}/{sim.turns.length}턴)
           </h2>
           <div className="row" style={{ gap: 4 }}>
             <button
@@ -486,7 +486,7 @@ export default function AsmrBattleArena({
                 const t = sim.turns[prev - 1]
                 if (t) playDessertAsmr(t.asmr, t.hitCount ?? 1)
               }}
-              style={{ cursor: 'pointer', border: 'none', fontSize: 11, padding: '2px 6px' }}
+              style={{ cursor: 'pointer', border: 'none', fontSize: 10, padding: '1px 6px' }}
             >
               ◀ 이전
             </button>
@@ -500,14 +500,14 @@ export default function AsmrBattleArena({
                 const t = sim.turns[next - 1]
                 if (t) playDessertAsmr(t.asmr, t.hitCount ?? 1)
               }}
-              style={{ cursor: 'pointer', border: 'none', fontSize: 11, padding: '2px 6px' }}
+              style={{ cursor: 'pointer', border: 'none', fontSize: 10, padding: '1px 6px' }}
             >
               다음 ▶
             </button>
           </div>
         </div>
 
-        <div className="deck-scroll" style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
+        <div className="deck-scroll" style={{ display: 'flex', flexDirection: 'column', gap: 3, flex: 1, overflowY: 'auto' }}>
           {visibleLogs.map((t) => {
             const isLatest = t.turn === stepIdx
             return (
@@ -515,26 +515,26 @@ export default function AsmrBattleArena({
                 key={t.turn}
                 onClick={() => playDessertAsmr(t.asmr, t.hitCount ?? 1)}
                 style={{
-                  padding: '5px 8px',
-                  borderRadius: 10,
-                  border: isLatest ? '2px solid #FF8A65' : '1px solid #F0DFB8',
+                  padding: '4px 6px',
+                  borderRadius: 8,
+                  border: isLatest ? '1.5px solid #FF8A65' : '1px solid #F0DFB8',
                   background: isLatest ? '#FFF4EE' : '#FFFFFF',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  gap: 6,
+                  gap: 4,
                   cursor: 'pointer',
                 }}
               >
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 11, fontWeight: 800, color: '#3B2F2F', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: '#3B2F2F', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     [턴 {t.turn}] {t.narrative}
                   </div>
-                  <div style={{ fontSize: 11, color: '#D85A3A', fontWeight: 700 }}>
+                  <div style={{ fontSize: 9, color: '#D85A3A', fontWeight: 700 }}>
                     🔊 {t.onomatopoeia} {t.bannerText ? `· ${t.bannerText}` : ''}
                   </div>
                 </div>
-                <span className="chip" style={{ fontSize: 11, flexShrink: 0, padding: '1px 5px' }}>
+                <span className="chip" style={{ fontSize: 9, flexShrink: 0, padding: '1px 4px' }}>
                   🎧 ASMR
                 </span>
               </div>
@@ -543,7 +543,7 @@ export default function AsmrBattleArena({
         </div>
       </div>
 
-      {/* 대전 종료 결과 팝업 & 광장 복귀 모달 */}
+      {/* 대전 종료 결과 팝업 & 광장 복귀 모달 (모바일 화면 내 100% 노출 보장) */}
       {isFinished && (
         <div
           style={{
@@ -555,7 +555,7 @@ export default function AsmrBattleArena({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: 20,
+            padding: 14,
             animation: 'fadeIn 0.25s ease',
           }}
         >
@@ -563,23 +563,25 @@ export default function AsmrBattleArena({
             style={{
               width: '100%',
               maxWidth: 320,
+              maxHeight: '86dvh',
+              overflowY: 'auto',
               background: '#FFFDF9',
               borderRadius: 20,
               border: '2px solid #FFD54F',
-              padding: '20px 18px',
+              padding: '16px 14px',
               textAlign: 'center',
               display: 'flex',
               flexDirection: 'column',
-              gap: 12,
+              gap: 10,
               boxShadow: '0 12px 32px rgba(0,0,0,0.3)',
             }}
           >
-            <div style={{ fontSize: 44 }}>
+            <div style={{ fontSize: 38 }}>
               {sim.winner === 'challenger' ? '🎉🏆🎉' : '💔🍪💦'}
             </div>
             <h2
               style={{
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: 900,
                 margin: 0,
                 color: sim.winner === 'challenger' ? '#E65100' : '#4E342E',
@@ -587,7 +589,7 @@ export default function AsmrBattleArena({
             >
               {sim.winner === 'challenger' ? '달콤한 승리 달성!' : '아쉬운 패배!'}
             </h2>
-            <div style={{ fontSize: 13, color: '#6D4C41', lineHeight: 1.4 }}>
+            <div style={{ fontSize: 12, color: '#6D4C41', lineHeight: 1.35 }}>
               {sim.winner === 'challenger'
                 ? `[${defender.name ?? '상대'}]와의 친선전에서 승리하여 🪙 30 코인과 🎀 30 리본 코인을 획득했습니다!`
                 : `[${defender.name ?? '상대'}]와의 명승부 끝에 🪙 15 코인과 🎀 10 리본 코인을 획득했습니다!`}
@@ -598,7 +600,7 @@ export default function AsmrBattleArena({
                 color: '#BE185D',
                 fontWeight: 800,
                 background: '#FDF2F8',
-                padding: '6px 10px',
+                padding: '6px 8px',
                 borderRadius: 10,
                 border: '1px solid #FBCFE8',
               }}
@@ -609,16 +611,17 @@ export default function AsmrBattleArena({
             <button
               onClick={onBack}
               style={{
-                padding: '13px',
+                padding: '11px',
                 borderRadius: 14,
                 border: 'none',
                 background: 'linear-gradient(90deg, #FF7A59 0%, #FF9800 100%)',
                 color: '#FFFFFF',
-                fontSize: 15,
+                fontSize: 14,
                 fontWeight: 900,
                 cursor: 'pointer',
                 boxShadow: '0 4px 12px rgba(255,122,89,0.35)',
-                marginTop: 4,
+                marginTop: 2,
+                flexShrink: 0,
               }}
             >
               🏆 대전 종료 &amp; 광장으로 복귀
