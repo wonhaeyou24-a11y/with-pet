@@ -1,0 +1,62 @@
+/* 색·글꼴·모양 규칙 (design/DESIGN.md). 디자인을 바꿀 때는 이 파일만 고치면 된다. */
+:root {
+  --bg: #fff4d6;
+  --bg-soft: #fff8e7;
+  --card: #ffffff;
+  --border: #f0dfb8;
+  --track: #f5e8c9;
+  --text: #3b2f2f;
+  --text-sub: #7a6a60;
+  --placeholder: #a39184;
+  --primary: #ff8a65;
+  --primary-rim: #e56e49;
+  --mint: #76c7a2;
+  --mint-rim: #4fa67f;
+  --honey: #fad36e;
+  --error: #d9534f;
+
+  --stat-hp: #f47c7c;
+  --stat-atk: #ff9f7a;
+  --stat-def: #f5b82e;
+  --stat-spd: #4fb888;
+  --stat-int: #4fa3e0;
+  --stat-cha: #b07cf0;
+
+  --el-fire: #f25c54;
+  --el-water: #4fa3e0;
+  --el-grass: #4caf6a;
+  --el-electric: #f5b82e;
+  --el-wind: #3fbfa8;
+  --el-earth: #a0785a;
+
+  --radius-card: 32px;
+  --radius-small: 20px;
+  --radius-pill: 9999px;
+
+  --shadow-card: 0 4px 12px rgba(186, 142, 75, 0.12);
+  --shadow-popup: 0 12px 32px rgba(89, 62, 34, 0.18);
+
+  font-family: 'Pretendard', 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
+  line-height: 1.55;
+  color: var(--text);
+  background: var(--bg);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background-color: var(--bg);
+  background-image: radial-gradient(rgba(186, 142, 75, 0.16) 1.4px, transparent 1.6px), linear-gradient(180deg, var(--bg-soft), var(--bg));
+  background-size: 24px 24px, 100% 100%;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+#root {
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+}

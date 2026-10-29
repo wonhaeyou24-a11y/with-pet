@@ -1,7 +1,7 @@
 import type { Session } from '@supabase/supabase-js'
 import { useEffect, useState } from 'react'
 import { supabase, type Player } from './lib/supabase'
-import Home from './screens/Home'
+import Game from './screens/Game'
 import Login from './screens/Login'
 import Nickname from './screens/Nickname'
 
@@ -33,5 +33,5 @@ export default function App() {
   if (!session) return <Login />
   if (player === undefined) return null
   if (player === null) return <Nickname userId={session.user.id} onDone={setPlayer} />
-  return <Home player={player} />
+  return <Game player={player} />
 }

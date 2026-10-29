@@ -6,6 +6,12 @@ export const NICKNAME = {
   maxLength: 10,
 } as const
 
+// 몬스터 이름: 한글·영문·숫자만. DB의 제약(monsters.name)과 같은 규칙이어야 한다.
+export const MONSTER_NAME = {
+  maxLength: 10,
+  pattern: /^[가-힣A-Za-z0-9]{1,10}$/,
+} as const
+
 export const AUTH = {
   otpLength: 6,
   inviteCodeLength: 8,
