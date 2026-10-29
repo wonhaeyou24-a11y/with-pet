@@ -1,6 +1,15 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ELEMENT_INFO, SPECIES_INFO } from '../config/species'
 import { monsterLook, type MonsterRow } from '../lib/api'
+import {
+  checkPetAutonomousSuggestion,
+  dismissPetSuggestion,
+  getActiveTowerSession,
+  getActiveTrainingSession,
+  type PetAutonomousSuggestion,
+  type TowerExpeditionSession,
+  type TrainingSession,
+} from '../lib/idleActivity'
 import { getSpeciesSoundKind, playDessertAsmr } from '../lib/sound'
 import MonsterView from '../monsters/MonsterView'
 import { ChevronIcon, ElementIcon, SparkleIcon } from '../ui/Icons'
@@ -40,11 +49,53 @@ export default function MonsterHome({
   const [combo, setCombo] = useState<number>(1)
   const lastTouchRef = useRef<number>(0)
 
+  // 백그라운드 현실 시간 훈련 & 타워 세션 상태
+  const [trainSess, setTrainSess] = useState<TrainingSession | null>(() => getActiveTrainingSession(monster.id))
+  const [towerSess, setTowerSess] = useState<TowerExpeditionSession | null>(() => getActiveTowerSession(monster.id))
+  const [trainLeftSec, setTrainLeftSec] = useState<number>(() => {
+    const s = getActiveTrainingSession(monster.id)
+    return s ? Math.max(0, Math.ceil((s.finishAt - Date.now()) / 1000)) : 0
+  })
+
+  // 펫의 능동적 자율 제안 상태
+  const [suggestion, setSuggestion] = useState<PetAutonomousSuggestion | null>(null)
+
   const hunger = monster.hunger ?? 80
   const mood = monster.mood ?? 80
   const fatigue = monster.fatigue ?? 0
   const cleanliness = monster.cleanliness ?? 100
   const soundKind = getSpeciesSoundKind(activeSpecies, look.mallang?.dessertBase)
+
+  // 백그라운드 타이머 및 펫 자율 제안 폴링 (3초 간격)
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      const ts = getActiveTrainingSession(monster.id)
+      setTrainSess(ts)
+      if (ts) {
+        setTrainLeftSec(Math.max(0, Math.ceil((ts.finishAt - Date.now()) / 1000)))
+      }
+
+      const tw = getActiveTowerSession(monster.id)
+      setTowerSess(tw)
+
+      // 훈련이나 탐험이 없을 때 펫이 자율적으로 의견 제안
+      const sug = checkPetAutonomousSuggestion(
+        monster.id,
+        monster.name ?? '디저트',
+        monster.stats,
+        hunger,
+        fatigue,
+        Number(localStorage.getItem(`tower_floor_${monster.id}`) ?? 1),
+        Boolean(ts),
+        Boolean(tw),
+      )
+      if (sug && !suggestion) {
+        setSuggestion(sug)
+      }
+    }, 2000)
+
+    return () => window.clearInterval(timer)
+  }, [monster, hunger, fatigue, suggestion])
 
   function handleTouchMonster() {
     const now = Date.now()
@@ -55,6 +106,18 @@ export default function MonsterHome({
     setAsmrBubble(meta.onomatopoeia)
     setBurstKey((k) => k + 1)
     setTimeout(() => setAsmrBubble(null), 1650)
+  }
+
+  function handleAcceptSuggestion() {
+    if (!suggestion) return
+    const type = suggestion.type
+    dismissPetSuggestion(monster.id)
+    setSuggestion(null)
+    if (type === 'train' || type === 'explore') {
+      onOpenTrain?.()
+    } else if (type === 'feed' || type === 'rest') {
+      onOpenCare?.()
+    }
   }
 
   return (
@@ -147,6 +210,78 @@ export default function MonsterHome({
           onClick={handleTouchMonster}
           title="터치하면 오감 식감 ASMR 소리·진동·파편이 터져요!"
         >
+          {/* 백그라운드 훈련 / 타워 탐험 진행 뱃지 */}
+          {trainSess && (
+            <div
+              onClick={(e) => {
+                e.stopPropagation()
+                onOpenTrain?.()
+              }}
+              style={{
+                position: 'absolute',
+                top: 4,
+                left: 6,
+                zIndex: 10,
+                padding: '4px 9px',
+                borderRadius: 999,
+                background: trainLeftSec > 0 ? '#FF7A59' : '#4CAF50',
+                color: '#FFFFFF',
+                fontSize: 11,
+                fontWeight: 900,
+                boxShadow: '0 3px 8px rgba(255,122,89,0.3)',
+              }}
+            >
+              {trainLeftSec > 0
+                ? `🏋️ [훈련] ${Math.floor(trainLeftSec / 60)}:${String(trainLeftSec % 60).padStart(2, '0')}`
+                : '🎉 훈련 완료!'}
+            </div>
+          )}
+          {towerSess && (
+            <div
+              onClick={(e) => {
+                e.stopPropagation()
+                onOpenTrain?.()
+              }}
+              style={{
+                position: 'absolute',
+                top: 4,
+                right: 6,
+                zIndex: 10,
+                padding: '4px 9px',
+                borderRadius: 999,
+                background: '#7C4DFF',
+                color: '#FFFFFF',
+                fontSize: 11,
+                fontWeight: 900,
+                boxShadow: '0 3px 8px rgba(124,77,255,0.3)',
+              }}
+            >
+              🏰 타워 {towerSess.currentFloor}층 등반 중
+            </div>
+          )}
+
+          {/* 펫의 자율 생각 말풍선 */}
+          {!asmrBubble && suggestion && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 6,
+                zIndex: 9,
+                padding: '5px 12px',
+                borderRadius: 999,
+                background: 'rgba(255, 253, 245, 0.95)',
+                border: '1.5px solid #FFB74D',
+                color: '#4E342E',
+                fontSize: 12,
+                fontWeight: 800,
+                boxShadow: '0 4px 12px rgba(78,52,46,0.15)',
+                animation: 'bounce 2s infinite ease-in-out',
+              }}
+            >
+              💭 {suggestion.balloon}
+            </div>
+          )}
+
           <SensoryBurst kind={soundKind} triggerKey={burstKey} bubble={asmrBubble} combo={combo} />
           <div
             key={`home-react-${burstKey}`}
@@ -171,6 +306,51 @@ export default function MonsterHome({
           </div>
         </div>
       </div>
+
+      {/* 3-1. 펫의 능동적 자율 제안 소통 카드 */}
+      {suggestion && (
+        <div
+          style={{
+            padding: '8px 12px',
+            borderRadius: 14,
+            background: 'linear-gradient(90deg, #FFF8E1 0%, #FFECB3 100%)',
+            border: '1.5px solid #FFC107',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 8,
+            flexShrink: 0,
+            boxShadow: '0 3px 8px rgba(255,193,7,0.2)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+            <span style={{ fontSize: 18 }}>💡</span>
+            <span style={{ fontSize: 12, fontWeight: 800, color: '#4E342E', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {suggestion.message}
+            </span>
+          </div>
+          <div className="row" style={{ gap: 4, flexShrink: 0 }}>
+            <button
+              className="chip honey"
+              onClick={handleAcceptSuggestion}
+              style={{ cursor: 'pointer', border: 'none', fontWeight: 900, fontSize: 11, padding: '3px 8px' }}
+            >
+              {suggestion.actionLabel}
+            </button>
+            <button
+              className="chip"
+              onClick={() => {
+                dismissPetSuggestion(monster.id)
+                setSuggestion(null)
+              }}
+              style={{ cursor: 'pointer', border: 'none', fontSize: 11, padding: '3px 6px' }}
+              title="나중에 하기"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 4. 능력치 요약 카드 */}
       <div className="card tight" style={{ flexShrink: 0, padding: '8px 12px', gap: 4 }}>

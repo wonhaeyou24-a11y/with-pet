@@ -15,11 +15,17 @@ export interface BattleTurnLog {
   skillIcon: string
   asmr: DessertSoundKind
   onomatopoeia: string
+  actionType: 'attack' | 'skill' | 'dodge' | 'block' | 'critical' | 'heal'
+  motion: 'rush' | 'jump' | 'shield' | 'shake' | 'bounce'
+  targetReaction: 'hit' | 'dodge' | 'block' | 'none'
   damage: number
   heal: number
   shield: number
   isCrit: boolean
   isAdvantage: boolean
+  isDodge?: boolean
+  isBlock?: boolean
+  bannerText?: string
   diceValue?: number
   hitCount?: number
   challengerHp: number
@@ -140,6 +146,12 @@ export function simulateAsmrBattle(
       let shield = 0
       let isCrit = false
       let isAdvantage = false
+      let isDodge = false
+      let isBlock = false
+      let actionType: BattleTurnLog['actionType'] = 'attack'
+      let motion: BattleTurnLog['motion'] = 'rush'
+      let targetReaction: BattleTurnLog['targetReaction'] = 'hit'
+      let bannerText: string | undefined
       let diceValue: number | undefined
       let hitCount: number | undefined
       let narrative = ''
@@ -148,6 +160,10 @@ export function simulateAsmrBattle(
         heal = Math.round((isChallenger ? cMaxHp : dMaxHp) * 0.18)
         if (isChallenger) cHp = Math.min(cMaxHp, cHp + heal)
         else dHp = Math.min(dMaxHp, dHp + heal)
+        actionType = 'heal'
+        motion = 'bounce'
+        targetReaction = 'none'
+        bannerText = '💖 달콤 체력 회복!'
         narrative = `💖 [${atkName}]의 [${skill.name}]! 달콤한 교감으로 체력을 +${heal} 회복했어요!`
       } else if (skill.kindTag === 'shield') {
         shield = Math.round((isChallenger ? cMaxHp : dMaxHp) * 0.16)
@@ -158,6 +174,10 @@ export function simulateAsmrBattle(
           dShield += shield
           dDefBuff = 2
         }
+        actionType = 'block'
+        motion = 'shield'
+        targetReaction = 'none'
+        bannerText = '💎 슈가코팅 쉴드!'
         if (skill.power > 0) {
           damage = Math.max(8, Math.round(skill.power * 0.7))
           if (isChallenger) dHp = Math.max(0, dHp - damage)
@@ -165,46 +185,91 @@ export function simulateAsmrBattle(
         }
         narrative = `💎 [${atkName}]의 [${skill.name}]! 빠작거리는 설탕 보호막(+${shield})을 둘렀어요!`
       } else {
-        // 공격 / 주사위 / 미러 / 디버프 / 날씨 공격
-        let basePower = skill.power || 40
-        if (skill.id === 'cookie-flurry') {
-          hitCount = 2 + Math.floor(rng() * 3) // 2~4회
-          basePower = skill.power * hitCount
-        } else if (skill.kindTag === 'dice') {
-          diceValue = 1 + Math.floor(rng() * 6)
-          basePower = 22 * diceValue
-        }
+        // 상대방 속도와 방어력에 따른 다이내믹 액션 판정
+        const defSpd = defMon.stats.spd ?? 25
+        const atkSpd = atkMon.stats.spd ?? 25
+        const dodgeProb = Math.min(0.22, Math.max(0.08, (defSpd - atkSpd) * 0.008 + 0.12))
+        const guardProb = 0.16
 
-        const atkStat = (atkMon.stats.atk ?? 28) + (atkMon.stats.int ?? 28) * 0.35
-        const defStat = (defMon.stats.def ?? 28) * (1 + ((isChallenger ? dDefBuff : cDefBuff) > 0 ? 0.35 : 0))
-        const elMult = elementMultiplier(atkMon.element, defMon.element)
-        isAdvantage = elMult > 1.05
-        isCrit = rng() < 0.18
+        const rollAction = rng()
+        if (rollAction < dodgeProb && t > 1) {
+          // 💨 1. 점프 회피 발동!
+          isDodge = true
+          damage = 0
+          actionType = 'dodge'
+          motion = 'rush'
+          targetReaction = 'dodge'
+          bannerText = '💨 점프 회피 (MISS)!'
+          narrative = `💨 [${defName}]의 날렵한 점프 회피! [${atkName}]의 공격을 가볍게 피했어요!`
+        } else if (rollAction < dodgeProb + guardProb) {
+          // 🛡️ 2. 슈가 가드 블록 발동!
+          isBlock = true
+          let basePower = skill.power || 35
+          const atkStat = (atkMon.stats.atk ?? 28) + (atkMon.stats.int ?? 28) * 0.35
+          const defStat = (defMon.stats.def ?? 28) * 1.5
+          damage = Math.max(5, Math.round(((basePower * (atkStat / Math.max(15, defStat))) * 0.4 + 4) * (0.85 + rng() * 0.2)))
+          
+          if (isChallenger) dHp = Math.max(0, dHp - damage)
+          else cHp = Math.max(0, cHp - damage)
 
-        const rawDmg = ((basePower * (atkStat / Math.max(15, defStat))) * 0.68 + 8) * elMult * (isCrit ? 1.45 : 1.0)
-        damage = Math.max(9, Math.round(rawDmg * (0.92 + rng() * 0.16)))
-
-        // 상대 보호막 차감 후 체력 차감
-        if (isChallenger) {
-          const absorbed = Math.min(dShield, damage)
-          dShield -= absorbed
-          dHp = Math.max(0, dHp - (damage - absorbed))
+          actionType = 'block'
+          motion = 'rush'
+          targetReaction = 'block'
+          bannerText = '🛡️ 슈가 가드 (BLOCK)!'
+          narrative = `🛡️ [${defName}]의 단단한 슈가 가드! 공격을 막아 피해를 ${damage}로 줄였어요!`
         } else {
-          const absorbed = Math.min(cShield, damage)
-          cShield -= absorbed
-          cHp = Math.max(0, cHp - (damage - absorbed))
-        }
+          // 💥 3. 일반 타격 또는 치명타
+          let basePower = skill.power || 40
+          if (skill.id === 'cookie-flurry') {
+            hitCount = 2 + Math.floor(rng() * 3) // 2~4회
+            basePower = skill.power * hitCount
+          } else if (skill.kindTag === 'dice') {
+            diceValue = 1 + Math.floor(rng() * 6)
+            basePower = 22 * diceValue
+          }
 
-        const extraTag = hitCount
-          ? ` (${hitCount}연속 바삭 타격!)`
-          : diceValue
-            ? ` (주사위 🎲${diceValue}!)`
-            : isCrit
-              ? ' (치명적 크런치!!)'
-              : isAdvantage
-                ? ' (속성 상성 우위!)'
-                : ''
-        narrative = `${skill.icon} [${atkName}]의 [${skill.name}]!${extraTag} [${defName}]에게 ${damage} 피해!`
+          const atkStat = (atkMon.stats.atk ?? 28) + (atkMon.stats.int ?? 28) * 0.35
+          const defStat = (defMon.stats.def ?? 28) * (1 + ((isChallenger ? dDefBuff : cDefBuff) > 0 ? 0.35 : 0))
+          const elMult = elementMultiplier(atkMon.element, defMon.element)
+          isAdvantage = elMult > 1.05
+          isCrit = rng() < 0.2
+
+          const rawDmg = ((basePower * (atkStat / Math.max(15, defStat))) * 0.68 + 8) * elMult * (isCrit ? 1.5 : 1.0)
+          damage = Math.max(9, Math.round(rawDmg * (0.92 + rng() * 0.16)))
+
+          if (isChallenger) {
+            const absorbed = Math.min(dShield, damage)
+            dShield -= absorbed
+            dHp = Math.max(0, dHp - (damage - absorbed))
+          } else {
+            const absorbed = Math.min(cShield, damage)
+            cShield -= absorbed
+            cHp = Math.max(0, cHp - (damage - absorbed))
+          }
+
+          if (isCrit) {
+            actionType = 'critical'
+            motion = 'jump'
+            targetReaction = 'hit'
+            bannerText = '💥 치명타 (CRITICAL)!'
+          } else {
+            actionType = 'attack'
+            motion = 'rush'
+            targetReaction = 'hit'
+            bannerText = isAdvantage ? '⚡ 속성 상성 우위!' : undefined
+          }
+
+          const extraTag = hitCount
+            ? ` (${hitCount}연속 바삭 타격!)`
+            : diceValue
+              ? ` (주사위 🎲${diceValue}!)`
+              : isCrit
+                ? ' (치명타 바사삭!!)'
+                : isAdvantage
+                  ? ' (속성 상성 우위!)'
+                  : ''
+          narrative = `${skill.icon} [${atkName}]의 [${skill.name}]!${extraTag} [${defName}]에게 ${damage} 피해!`
+        }
       }
 
       if (cDefBuff > 0 && !isChallenger) cDefBuff -= 1
@@ -218,11 +283,17 @@ export function simulateAsmrBattle(
         skillIcon: skill.icon,
         asmr: asmrSound,
         onomatopoeia: skill.onomatopoeia,
+        actionType,
+        motion,
+        targetReaction,
         damage,
         heal,
         shield,
         isCrit,
         isAdvantage,
+        isDodge,
+        isBlock,
+        bannerText,
         diceValue,
         hitCount,
         challengerHp: cHp,
