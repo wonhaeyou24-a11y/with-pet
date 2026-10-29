@@ -16,6 +16,7 @@ type Props = {
   onOpenTrain?: () => void
   onOpenSkills?: () => void
   onOpenPlaza?: () => void
+  onResetTestEgg?: () => void
   onLogout?: () => void
 }
 
@@ -28,6 +29,7 @@ export default function MonsterHome({
   onOpenTrain,
   onOpenSkills,
   onOpenPlaza,
+  onResetTestEgg,
   onLogout,
 }: Props) {
   const look = monsterLook(monster)
@@ -76,6 +78,16 @@ export default function MonsterHome({
           >
             🎧 식감 ASMR 듣기
           </button>
+          {onResetTestEgg && (
+            <button
+              className="chip"
+              onClick={onResetTestEgg}
+              style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 11, background: '#EBF8FF', color: '#1976D2' }}
+              title="테스트용 새 1분 디저트 알을 다시 받습니다"
+            >
+              🥚 1분 알 다시뽑기
+            </button>
+          )}
         </div>
 
         {/* 4대 디저트 컨디션 미니 바 */}

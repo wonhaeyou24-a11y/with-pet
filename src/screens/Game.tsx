@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { callEgg, serverNow, type EggRow, type MonsterRow } from '../lib/api'
+import { callEgg, issueNewTestEgg, saveLocalMonsters, serverNow, type EggRow, type MonsterRow } from '../lib/api'
 import { PLAZA_SHOWCASE_FRIENDS, type PlazaFriendEntry } from '../lib/battleEngine'
 import { callCare } from '../lib/careApi'
 import { getSpeciesSoundKind, playDessertAsmr } from '../lib/sound'
@@ -124,6 +124,7 @@ export default function Game({ player }: { player: Player }) {
     setBusy(false)
     if (res.ok && res.monster) {
       playDessertAsmr(getSpeciesSoundKind(res.monster.species))
+      setMonsters([res.monster])
       setHatching({ rarity: egg.rarity, monster: res.monster })
       setEgg(null)
     } else {
@@ -134,9 +135,27 @@ export default function Game({ player }: { player: Player }) {
   }
 
   async function nameMonster(monster: MonsterRow, name: string): Promise<string | null> {
-    const { data, error } = await supabase.from('monsters').update({ name }).eq('id', monster.id).select('*').single()
-    if (error || !data) return '이름을 저장하지 못했어요. 다시 시도해 주세요.'
-    setMonsters((list) => list.map((m) => (m.id === data.id ? (data as MonsterRow) : m)))
+    const namedMonster: MonsterRow = { ...monster, name }
+    try {
+      const { data, error } = await supabase.from('monsters').update({ name }).eq('id', monster.id).select('*').single()
+      if (!error && data) {
+        const synced = data as MonsterRow
+        setMonsters((list) => {
+          const next = list.map((m) => (m.id === synced.id ? synced : m))
+          saveLocalMonsters(next)
+          return next
+        })
+        setHatching(null)
+        return null
+      }
+    } catch {
+      // 로컬 테스트 몬스터인 경우 아래 로컬 저장으로 안전 처리
+    }
+    setMonsters((list) => {
+      const next = list.map((m) => (m.id === monster.id ? namedMonster : m))
+      saveLocalMonsters(next)
+      return next
+    })
     setHatching(null)
     return null
   }
@@ -165,7 +184,11 @@ export default function Game({ player }: { player: Player }) {
 
   if (monster) {
     const handleCareUpdate = (nextMonster: MonsterRow, nextCoins: number, nextBag: Record<string, number>) => {
-      setMonsters((list) => list.map((m) => (m.id === nextMonster.id ? nextMonster : m)))
+      setMonsters((list) => {
+        const next = list.map((m) => (m.id === nextMonster.id ? nextMonster : m))
+        saveLocalMonsters(next)
+        return next
+      })
       setCoins(nextCoins)
       setFoodBag(nextBag)
     }
@@ -243,6 +266,12 @@ export default function Game({ player }: { player: Player }) {
         onOpenTrain={() => setSubView('train')}
         onOpenSkills={() => setSubView('skills')}
         onOpenPlaza={() => setSubView('plaza')}
+        onResetTestEgg={() => {
+          const newEgg = issueNewTestEgg('common')
+          setMonsters([])
+          setEgg(newEgg)
+          setSubView('home')
+        }}
         onLogout={logout}
       />
     )
