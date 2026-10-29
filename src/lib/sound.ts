@@ -1,5 +1,7 @@
-// 디저트 캐릭터 질감별 ASMR 힐링 사운드 엔진 (Web Audio API 기반 실시간 절차적 물리 질감 합성)
-// 외부 오디오 CDN 없이 100% 로컬에서 안전하게 동작하며, 모든 오디오 호출은 Zero-Crash(try-catch) 정책을 준수합니다.
+// 디저트 캐릭터 질감별 리얼 폴라(Foley) ASMR 사운드 & 아이폰 햅틱 브릿지 엔진
+// 기계적인 전자음(단순 사인파/삼각파 멜로디)을 100% 배제하고,
+// 실제 마이크로 녹음한 듯한 다층 입자 파쇄음(Granular Fracture), 점탄성 공기포 마찰음(Viscoelastic Suction),
+// 과즙 기포 캐비테이션(Cavitation Bubble), 아이폰 Taptic 스위치 & 초저역(45Hz) 스피커 진동 펄스를 합성합니다.
 
 export type DessertSoundKind =
   | 'kataifi-crunch' // 💚 두바이 쫀득쿠키: 바사삭! 카다이프 면발 & 피스타치오 크런치
@@ -9,13 +11,13 @@ export type DessertSoundKind =
   | 'mochi-squish' // 🍡 찹쌀떡 모찌 / 말랑 카멜레온: 쫀득~ 말랑말랑 반죽이 눌렸다 떼어지는 힐링음
   | 'pudding-jiggle' // 🍮 말랑 푸딩 / 쫀득 젤리: 탱글탱글~ 뽀용! 출렁이는 탄성 진동음
   | 'choco-melt' // 🍫 달콤 퐁듀 초코: 사르르~ 꾸덕하고 따뜻한 가나슈·시럽 기포 소리
-  | 'syrup-drizzle' // 🍒 시럽 & 스프링클 토핑: 쪼르륵~ 반짝반짝 토핑이 쏟아지는 소리
-  | 'smore-sizzle' // 🔥 구운 스모어 마시멜로: 치익~ 노릇하게 구워진 마시멜로 폭신 사운드
+  | 'syrup-drizzle' // 🍒 시럽 & 스프링클 토핑: 쪼르륵~ 반짝반짝 토핑 구슬이 쏟아지는 소리
+  | 'smore-sizzle' // 🔥 구운 스모어 마시멜로: 치익~ 노릇하게 구워진 마시멜로 껍질 바스락 & 폭신 사운드
 
 export interface SoundMeta {
   kind: DessertSoundKind
   label: string
-  onomatopoeia: string // 화면에 떠오르는 시각적 ASMR 의성어 말풍선
+  onomatopoeia: string
   desc: string
   icon: string
 }
@@ -25,63 +27,63 @@ export const DESSERT_SOUND_CATALOG: Record<DessertSoundKind, SoundMeta> = {
     kind: 'kataifi-crunch',
     label: '카다이프 바사삭 크런치',
     onomatopoeia: '바사삭-! 자작자작 💚✨',
-    desc: '두바이 초코 속 볶은 카다이프 면발이 바삭하게 부서지는 고밀도 크런치 ASMR',
+    desc: '두바이 초코 속 볶은 카다이프 면발 수백 가닥이 겹겹이 바삭하게 부서지는 리얼 크런치 ASMR',
     icon: '💚',
   },
   'wax-pop': {
     kind: 'wax-pop',
     label: '왁싱볼 톡! 파삭 과즙팡',
     onomatopoeia: '톡! 파삭~ 쭈욱 츄릅! 🫧💦',
-    desc: '얇고 바삭한 파스텔 왁스 껍질이 톡! 깨지며 진한 과일 시럽이 쭈욱 터져 나오는 인기 ASMR',
+    desc: '얇은 밀랍 왁스 캡슐이 톡! 파삭 깨지며 진한 과일 시럽이 쭈욱 뿜어져 나오는 인기 ASMR',
     icon: '🫧',
   },
   'cookie-crisp': {
     kind: 'cookie-crisp',
     label: '오독오독 버터쿠키',
     onomatopoeia: '오독-! 바삭바삭 🍪',
-    desc: '잘 구워진 두툼한 초코칩 쿠키가 경쾌하게 부서지는 고소한 크런치 사운드',
+    desc: '잘 구워진 두툼한 초코칩 버터 쿠키가 묵직하고 고소하게 부서지는 크런치 사운드',
     icon: '🍪',
   },
   'sugar-crack': {
     kind: 'sugar-crack',
     label: '유리알 설탕코팅 빠작',
     onomatopoeia: '빠작-! 톡톡 🍓💎',
-    desc: '탕후루의 얇고 투명한 설탕 시럽 유리막이 맑고 경쾌하게 깨지는 힐링 사운드',
+    desc: '탕후루의 얇고 투명한 설탕 유리막이 빠작! 하고 깨지며 과즙이 배어 나오는 소리',
     icon: '🍓',
   },
   'mochi-squish': {
     kind: 'mochi-squish',
     label: '쫀득 말랑 찹쌀떡',
     onomatopoeia: '쫀득~ 말랑말랑 🍡🤍',
-    desc: '전분 가루가 묻은 폭신한 찹쌀떡 모찌를 손끝으로 꾹 누를 때 나는 포근한 소리',
+    desc: '고운 전분 가루가 묻은 찹쌀떡 모찌가 폭신하게 눌렸다가 쫀득하게 달라붙어 떨어지는 소리',
     icon: '🍡',
   },
   'pudding-jiggle': {
     kind: 'pudding-jiggle',
     label: '탱글탱글 푸딩·젤리',
     onomatopoeia: '탱글~ 출렁출렁 🍮🐻',
-    desc: '접시를 흔들 때 커스터드 푸딩과 구미 젤리가 탄성 있게 출렁거리는 귀여운 소리',
+    desc: '촉촉한 시럽이 발린 커스터드 푸딩과 젤리가 탱글탱글 탄성 있게 출렁이는 소리',
     icon: '🍮',
   },
   'choco-melt': {
     kind: 'choco-melt',
     label: '사르르 퐁듀 초코',
     onomatopoeia: '사르르~ 꾸덕꾸덕 🍫✨',
-    desc: '따뜻하게 녹은 가나슈 초콜릿 퐁듀가 부드럽게 흐르며 기포가 맺히는 달콤한 소리',
+    desc: '따뜻하고 진한 가나슈 초콜릿 퐁듀가 꾸덕하게 섞이며 작은 기포가 톡톡 터지는 소리',
     icon: '🍫',
   },
   'syrup-drizzle': {
     kind: 'syrup-drizzle',
     label: '달콤 시럽 & 스프링클',
-    onomatopoeia: '샤르르~ 톡톡톡 🌈🍒',
-    desc: '케이크 위에 시럽을 뿌리고 알록달록 스프링클 구슬이 구르는 청량한 소리',
+    onomatopoeia: '샤르르~ 토독토독 🌈🍒',
+    desc: '케이크 위에 진한 시럽이 흐르고 설탕 스프링클 구슬들이 토독토독 쏟아지는 소리',
     icon: '🌈',
   },
   'smore-sizzle': {
     kind: 'smore-sizzle',
     label: '노릇 폭신 스모어',
-    onomatopoeia: '치익~ 폭신폭신 🔥🐾',
-    desc: '모닥불에 노릇하게 구워진 마시멜로 껍질이 바스락거리고 속이 늘어나는 소리',
+    onomatopoeia: '바스락~ 폭신 사르르 🔥🐾',
+    desc: '모닥불에 노릇하게 구워진 마시멜로 겉껍질이 바스락 갈라지며 속살이 폭신하게 늘어나는 소리',
     icon: '🔥',
   },
 }
@@ -89,6 +91,7 @@ export const DESSERT_SOUND_CATALOG: Record<DessertSoundKind, SoundMeta> = {
 const MUTE_STORAGE_KEY = 'withpet_asmr_muted_v1'
 
 let sharedCtx: AudioContext | null = null
+let iosHapticLabel: HTMLLabelElement | null = null
 
 function getAudioContext(): AudioContext | null {
   try {
@@ -102,6 +105,34 @@ function getAudioContext(): AudioContext | null {
       void sharedCtx.resume().catch(() => {})
     }
     return sharedCtx
+  } catch {
+    return null
+  }
+}
+
+// 아이폰(iOS 17.4+ / iOS 18 Safari) 전용 네이티브 Taptic Engine 스위치 햅틱 브릿지 생성
+function ensureIosHapticBridge(): HTMLLabelElement | null {
+  try {
+    if (typeof document === 'undefined') return null
+    if (iosHapticLabel && document.body.contains(iosHapticLabel)) return iosHapticLabel
+
+    const label = document.createElement('label')
+    label.setAttribute('aria-hidden', 'true')
+    label.style.position = 'fixed'
+    label.style.left = '-9999px'
+    label.style.top = '-9999px'
+    label.style.width = '1px'
+    label.style.height = '1px'
+    label.style.opacity = '0'
+    label.style.pointerEvents = 'none'
+
+    const input = document.createElement('input')
+    input.type = 'checkbox'
+    input.setAttribute('switch', '')
+    label.appendChild(input)
+    document.body.appendChild(label)
+    iosHapticLabel = label
+    return label
   } catch {
     return null
   }
@@ -140,7 +171,6 @@ export function getSpeciesSoundKind(speciesId: string, dessertBase?: string): De
 
 export type SensoryCategory = 'crispy' | 'chewy' | 'jiggly' | 'melty'
 
-// 식감 사운드 종류별 시각·촉각 카테고리 분류 (파티클 & 젤리 변형 연동용)
 export function getSensoryCategory(kind: DessertSoundKind): SensoryCategory {
   if (kind === 'kataifi-crunch' || kind === 'wax-pop' || kind === 'cookie-crisp' || kind === 'sugar-crack') return 'crispy'
   if (kind === 'pudding-jiggle') return 'jiggly'
@@ -148,60 +178,191 @@ export function getSensoryCategory(kind: DessertSoundKind): SensoryCategory {
   return 'chewy'
 }
 
-// 손끝으로 느끼는 식감별 맞춤형 햅틱 진동 패턴 (모바일 지원 기기 연동)
 const HAPTIC_PATTERNS: Record<DessertSoundKind, number | number[]> = {
-  'kataifi-crunch': [12, 16, 10, 14, 14, 18, 10], // 자작자작 바사삭 다중 크런치 진동
-  'wax-pop': [24, 18, 10, 45], // 톡! 파삭 깨진 뒤 쭈욱 과즙이 퍼지는 2단 하이브리드 진동
-  'cookie-crisp': [22, 24, 16, 20], // 오독오독 묵직한 쿠키 진동
-  'sugar-crack': [28, 30, 12], // 빠작! 유리알 설탕 스냅 진동
-  'mochi-squish': [18, 45, 14], // 쫀~득! 눌렸다 떨어지는 탄성 진동
-  'pudding-jiggle': [10, 22, 10, 22, 10], // 탱~글~탱~글 물결 진동
-  'choco-melt': [35], // 사르르 부드러운 온기 진동
-  'syrup-drizzle': [8, 14, 8, 14, 8], // 톡톡톡 스프링클 진동
-  'smore-sizzle': [14, 20, 28], // 바삭~ 폭신 스모어 진동
+  'kataifi-crunch': [14, 18, 12, 16, 16, 20, 12],
+  'wax-pop': [26, 18, 12, 48],
+  'cookie-crisp': [24, 24, 18, 22],
+  'sugar-crack': [30, 28, 14],
+  'mochi-squish': [20, 48, 16],
+  'pudding-jiggle': [12, 24, 12, 24, 12],
+  'choco-melt': [38],
+  'syrup-drizzle': [10, 14, 10, 14, 10],
+  'smore-sizzle': [16, 22, 30],
 }
 
-function triggerSensoryHaptic(kind: DessertSoundKind) {
+// 안드로이드 navigator.vibrate + 아이폰 Taptic Engine 스위치 브릿지 동시 실행
+export function triggerSensoryHaptic(kind: DessertSoundKind) {
   try {
     if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
-      navigator.vibrate(HAPTIC_PATTERNS[kind] ?? 15)
+      navigator.vibrate(HAPTIC_PATTERNS[kind] ?? 18)
+    }
+    const label = ensureIosHapticBridge()
+    if (label) {
+      label.click()
     }
   } catch {
     // 진동 미지원 환경 안전 무시
   }
 }
 
-// 짧은 노이즈 버스트 생성 헬퍼 (바삭/크런치/설탕 깨짐 질감 표현용)
-function triggerNoiseGrain(
+// 아이폰 스피커 인클로저를 손끝에서 실제로 울리게 만드는 초저역(44~58Hz) 촉각 공명 펄스
+function triggerSubBassTactilePulse(ctx: AudioContext, startTime: number, strength = 0.28, duration = 0.065) {
+  const osc = ctx.createOscillator()
+  const gain = ctx.createGain()
+  osc.type = 'sine'
+  osc.frequency.setValueAtTime(58, startTime)
+  osc.frequency.exponentialRampToValueAtTime(36, startTime + duration)
+  gain.gain.setValueAtTime(0.001, startTime)
+  gain.gain.linearRampToValueAtTime(strength, startTime + 0.008)
+  gain.gain.exponentialRampToValueAtTime(0.0008, startTime + duration)
+  osc.connect(gain)
+  gain.connect(ctx.destination)
+  osc.start(startTime)
+  osc.stop(startTime + duration + 0.005)
+}
+
+// 1. 실제 바삭/크런치 파쇄 입자 합성기 (순수 파형 멜로디 없이 수백 개의 비대칭 미세 균열 임펄스와 공명 필터로 실제 베어무는 소리 생성)
+function playFractureCluster(
   ctx: AudioContext,
   startTime: number,
   duration: number,
-  filterFreq: number,
-  q: number,
-  gainPeak: number,
-  filterType: BiquadFilterType = 'bandpass',
+  opts: {
+    density: number // 초당 미세 파쇄 입자 수
+    formantLow: number // 주 공명 주파수 (쿠키/카다이프 바디감)
+    formantHigh: number // 고역 크랙 주파수 (설탕/왁스 파삭거림)
+    qLow: number
+    qHigh: number
+    gain: number
+     woodyThump?: number // 첫 입 베어물 때의 치아/껍질 저항감
+  },
 ) {
-  const sampleCount = Math.max(1, Math.floor(ctx.sampleRate * duration))
-  const buffer = ctx.createBuffer(1, sampleCount, ctx.sampleRate)
-  const data = buffer.getChannelData(0)
-  for (let i = 0; i < sampleCount; i++) {
-    // 미세한 크랙 질감을 위해 지수 감쇠 엔벨로프와 랜덤 스파이크 결합
-    const env = Math.pow(1 - i / sampleCount, 1.8)
-    data[i] = (Math.random() * 2 - 1) * env
+  const sr = ctx.sampleRate
+  const len = Math.max(1, Math.floor(sr * duration))
+  const buf = ctx.createBuffer(1, len, sr)
+  const data = buf.getChannelData(0)
+
+  // 브라운/핑크 노이즈 기반의 다공성 크럼블 질감 + 비규칙 스파이크 임펄스
+  let last = 0
+  const expectedSpikes = Math.max(4, Math.floor(duration * opts.density))
+  for (let s = 0; s < expectedSpikes; s++) {
+    const pos = Math.floor(Math.pow(Math.random(), 0.85) * (len - 64))
+    const amp = (0.35 + Math.random() * 0.65) * (Math.random() < 0.5 ? 1 : -1)
+    const decayLen = Math.min(len - pos, Math.floor(sr * (0.0008 + Math.random() * 0.0032)))
+    const ringFreq = opts.formantLow + Math.random() * (opts.formantHigh - opts.formantLow)
+    const omega = (2 * Math.PI * ringFreq) / sr
+    for (let j = 0; j < decayLen; j++) {
+      const env = Math.exp((-j / decayLen) * 5.2)
+      // 비대칭 감쇠 진동 + 미세 노이즈 결합 (기계음 방지)
+      const grain = Math.sin(j * omega) * 0.55 + (Math.random() * 2 - 1) * 0.45
+      data[pos + j] += amp * env * grain
+    }
+  }
+
+  // 미세한 바스락 결(Texture Bed) 추가 및 소프트 클리핑
+  for (let i = 0; i < len; i++) {
+    const white = Math.random() * 2 - 1
+    last = (last + 0.06 * white) / 1.06
+    const macroEnv = Math.sin((Math.PI * i) / len)
+    const sample = data[i] + last * 0.18 * macroEnv
+    data[i] = Math.tanh(sample * 1.6)
   }
 
   const src = ctx.createBufferSource()
-  src.buffer = buffer
+  src.buffer = buf
+
+  const fLow = ctx.createBiquadFilter()
+  fLow.type = 'bandpass'
+  fLow.frequency.setValueAtTime(opts.formantLow, startTime)
+  fLow.Q.setValueAtTime(opts.qLow, startTime)
+
+  const fHigh = ctx.createBiquadFilter()
+  fHigh.type = 'peaking'
+  fHigh.frequency.setValueAtTime(opts.formantHigh, startTime)
+  fHigh.Q.setValueAtTime(opts.qHigh, startTime)
+  fHigh.gain.setValueAtTime(8, startTime)
+
+  const outGain = ctx.createGain()
+  outGain.gain.setValueAtTime(opts.gain, startTime)
+
+  src.connect(fLow)
+  fLow.connect(fHigh)
+  fHigh.connect(outGain)
+  outGain.connect(ctx.destination)
+
+  src.start(startTime)
+  src.stop(startTime + duration)
+
+  if (opts.woodyThump) {
+    triggerSubBassTactilePulse(ctx, startTime, opts.woodyThump, 0.055)
+  }
+}
+
+// 2. 실제 점탄성(Viscoelastic) 반죽·젤리·과즙·기포 폴라(Foley) 합성기
+// (기계적인 오실레이터 멜로디 대신, 젖은 공명 필터 노이즈와 미세 공기방울 캐비테이션 임펄스로 실제 찹쌀떡·푸딩·과즙 소리를 재현)
+function playWetSquishFoley(
+  ctx: AudioContext,
+  startTime: number,
+  duration: number,
+  opts: {
+    baseCutoff: number
+    peakCutoff: number
+    resonanceQ: number
+    bubbleCount: number
+    wobbleHz?: number
+    gain: number
+  },
+) {
+  const sr = ctx.sampleRate
+  const len = Math.max(1, Math.floor(sr * duration))
+  const buf = ctx.createBuffer(1, len, sr)
+  const data = buf.getChannelData(0)
+
+  // 부드러운 벨벳 핑크 노이즈(전분/시럽 마찰음) + 점성 기포 팝(Cavitation Micro-Pops)
+  let b0 = 0
+  let b1 = 0
+  let b2 = 0
+  for (let i = 0; i < len; i++) {
+    const w = Math.random() * 2 - 1
+    b0 = 0.997 * b0 + w * 0.029
+    b1 = 0.985 * b1 + w * 0.032
+    b2 = 0.94 * b2 + w * 0.048
+    const pink = b0 + b1 + b2
+    const tNorm = i / len
+    const env = Math.sin(Math.PI * tNorm) * Math.pow(1 - tNorm, 0.5)
+    const wobble = opts.wobbleHz ? 0.65 + 0.35 * Math.sin((2 * Math.PI * opts.wobbleHz * i) / sr) : 1
+    data[i] = pink * env * wobble * 0.35
+  }
+
+  // 쫀득하게 늘어나거나 과즙이 터질 때 나는 실제 미세 점액 방울 팝(Micro-Suction Pops)
+  for (let b = 0; b < opts.bubbleCount; b++) {
+    const pos = Math.floor((0.12 + 0.78 * (b / Math.max(1, opts.bubbleCount)) + (Math.random() - 0.5) * 0.08) * (len - 256))
+    const SafePos = Math.max(0, Math.min(len - 256, pos))
+    const popDur = Math.floor(sr * (0.004 + Math.random() * 0.008))
+    const fStart = opts.baseCutoff * (0.9 + Math.random() * 0.5)
+    const fEnd = opts.peakCutoff * (0.85 + Math.random() * 0.4)
+    let phase = 0
+    for (let j = 0; j < popDur && SafePos + j < len; j++) {
+      const pNorm = j / popDur
+      // 실제 물방울(Minnaert resonance) 공식: 주파수가 급격히 상승하며 짧게 끊김
+      const instFreq = fStart + (fEnd - fStart) * Math.pow(pNorm, 1.7)
+      phase += (2 * Math.PI * instFreq) / sr
+      const popEnv = Math.sin(Math.PI * pNorm) * Math.exp(-pNorm * 2.4)
+      data[SafePos + j] += Math.sin(phase) * popEnv * 0.65
+    }
+  }
+
+  const src = ctx.createBufferSource()
+  src.buffer = buf
 
   const filter = ctx.createBiquadFilter()
-  filter.type = filterType
-  filter.frequency.setValueAtTime(filterFreq, startTime)
-  filter.Q.setValueAtTime(q, startTime)
+  filter.type = 'lowpass'
+  filter.frequency.setValueAtTime(opts.baseCutoff, startTime)
+  filter.frequency.exponentialRampToValueAtTime(opts.peakCutoff, startTime + duration * 0.42)
+  filter.frequency.exponentialRampToValueAtTime(Math.max(180, opts.baseCutoff * 0.8), startTime + duration)
+  filter.Q.setValueAtTime(opts.resonanceQ, startTime)
 
   const gain = ctx.createGain()
-  gain.gain.setValueAtTime(0.001, startTime)
-  gain.gain.linearRampToValueAtTime(gainPeak, startTime + duration * 0.12)
-  gain.gain.exponentialRampToValueAtTime(0.0008, startTime + duration)
+  gain.gain.setValueAtTime(opts.gain, startTime)
 
   src.connect(filter)
   filter.connect(gain)
@@ -211,7 +372,7 @@ function triggerNoiseGrain(
   src.stop(startTime + duration)
 }
 
-// 디저트 질감별 실제 ASMR 사운드 + 손맛 햅틱 진동 + 콤보 배음 재생 (Zero-Crash 보장)
+// 디저트 질감별 리얼 폴라(Foley) ASMR 사운드 + 손맛 햅틱 브릿지 재생 (Zero-Crash 보장)
 export function playDessertAsmr(kind: DessertSoundKind, comboStep = 0): SoundMeta {
   const meta = DESSERT_SOUND_CATALOG[kind] ?? DESSERT_SOUND_CATALOG['mochi-squish']
   try {
@@ -220,240 +381,193 @@ export function playDessertAsmr(kind: DessertSoundKind, comboStep = 0): SoundMet
     const ctx = getAudioContext()
     if (!ctx) return meta
     const now = ctx.currentTime
-    const pitchBoost = 1 + Math.min(10, Math.max(0, comboStep)) * 0.035
+    // 콤보가 쌓일수록 포먼트가 살짝 더 선명해지되 기계적인 반음계 멜로디는 절대 재생하지 않음
+    const crispBoost = 1 + Math.min(8, Math.max(0, comboStep)) * 0.025
 
     if (kind === 'kataifi-crunch') {
-      // 💚 두바이 쫀득쿠키: 겉의 묵직한 초코 크랙 + 수십 개의 잘게 볶은 카다이프 면발이 연속으로 바사삭 부서지는 소리
-      triggerNoiseGrain(ctx, now, 0.045, 920, 2.2, 0.28, 'bandpass')
-      const offsets = [0.018, 0.036, 0.052, 0.074, 0.095, 0.118, 0.145, 0.172, 0.205, 0.235]
-      offsets.forEach((off, idx) => {
-        const freq = 1800 + ((idx * 430) % 2200)
-        triggerNoiseGrain(ctx, now + off, 0.028, freq, 3.8, 0.22 - idx * 0.012, 'bandpass')
+      // 💚 두바이 쫀득쿠키:
+      // 1) 첫 입에 두툼한 초코 코팅이 묵직하게 갈라지는 소리
+      playFractureCluster(ctx, now, 0.065, {
+        density: 260,
+        formantLow: 620,
+        formantHigh: 1950 * crispBoost,
+        qLow: 1.4,
+        qHigh: 2.8,
+        gain: 0.42,
+        woodyThump: 0.34,
       })
-      // 속의 쫀득한 피스타치오 크림 저음 울림
-      const osc = ctx.createOscillator()
-      const g = ctx.createGain()
-      osc.type = 'triangle'
-      osc.frequency.setValueAtTime(190, now + 0.04)
-      osc.frequency.exponentialRampToValueAtTime(115, now + 0.24)
-      g.gain.setValueAtTime(0.09, now + 0.04)
-      g.gain.exponentialRampToValueAtTime(0.001, now + 0.25)
-      osc.connect(g)
-      g.connect(ctx.destination)
-      osc.start(now + 0.04)
-      osc.stop(now + 0.26)
+      // 2) 속 안의 볶은 카다이프 면발 수백 가닥이 3연속 파도로 바사삭-! 자작자작 부서지는 고밀도 그라뉼러 크런치
+      const waves = [
+        { t: 0.045, d: 0.095, density: 540, low: 1180, high: 3600 * crispBoost, g: 0.46 },
+        { t: 0.135, d: 0.088, density: 480, low: 1320, high: 3950 * crispBoost, g: 0.38 },
+        { t: 0.215, d: 0.08, density: 360, low: 1050, high: 3200 * crispBoost, g: 0.28 },
+      ]
+      waves.forEach((w) =>
+        playFractureCluster(ctx, now + w.t, w.d, {
+          density: w.density,
+          formantLow: w.low,
+          formantHigh: w.high,
+          qLow: 1.8,
+          qHigh: 3.4,
+          gain: w.g,
+        }),
+      )
+      // 3) 피스타치오 스프레드의 꾸덕한 크림 여운
+      playWetSquishFoley(ctx, now + 0.08, 0.22, {
+        baseCutoff: 340,
+        peakCutoff: 780,
+        resonanceQ: 3.2,
+        bubbleCount: 4,
+        gain: 0.22,
+      })
     } else if (kind === 'wax-pop') {
-      // 🫧 톡톡 왁싱볼(히트캔디): 1단계 얇은 밀랍 왁스 껍질이 '톡! 파삭~' 깨지는 속 빈 크랙음 + 2단계 진한 과즙 시럽이 '쭈욱~ 츄릅💦' 터져 나오는 사운드
-      // 1단계: 속 빈 왁스 캡슐이 톡! 하고 깨지는 중역 공명 팝 + 파삭거리는 왁스 크럼블 3연타
-      const popOsc = ctx.createOscillator()
-      const popGain = ctx.createGain()
-      popOsc.type = 'triangle'
-      popOsc.frequency.setValueAtTime(520 * pitchBoost, now)
-      popOsc.frequency.exponentialRampToValueAtTime(1180 * pitchBoost, now + 0.032)
-      popGain.gain.setValueAtTime(0.24, now)
-      popGain.gain.exponentialRampToValueAtTime(0.001, now + 0.045)
-      popOsc.connect(popGain)
-      popGain.connect(ctx.destination)
-      popOsc.start(now)
-      popOsc.stop(now + 0.05)
-
-      const waxSnaps = [
-        { t: 0.008, f: 2150, d: 0.026, g: 0.25 },
-        { t: 0.034, f: 2680, d: 0.022, g: 0.21 },
-        { t: 0.062, f: 1850, d: 0.028, g: 0.18 },
-      ]
-      waxSnaps.forEach((s) => triggerNoiseGrain(ctx, now + s.t, s.d, s.f, 4.2, s.g, 'bandpass'))
-
-      // 2단계: 깨진 틈으로 꾸덕하고 달콤한 과일 시럽이 '쭈욱~ 츄릅💦' 뿜어져 나오는 액체 공명 필터 스윕 & 방울 팝
-      const syrupOsc = ctx.createOscillator()
-      const syrupFilter = ctx.createBiquadFilter()
-      const syrupGain = ctx.createGain()
-      syrupOsc.type = 'sine'
-      syrupOsc.frequency.setValueAtTime(280 * pitchBoost, now + 0.075)
-      syrupOsc.frequency.exponentialRampToValueAtTime(690 * pitchBoost, now + 0.19)
-      syrupOsc.frequency.exponentialRampToValueAtTime(340 * pitchBoost, now + 0.33)
-
-      syrupFilter.type = 'bandpass'
-      syrupFilter.frequency.setValueAtTime(900, now + 0.075)
-      syrupFilter.Q.setValueAtTime(3.5, now + 0.075)
-
-      syrupGain.gain.setValueAtTime(0.001, now + 0.075)
-      syrupGain.gain.linearRampToValueAtTime(0.19, now + 0.11)
-      syrupGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35)
-
-      syrupOsc.connect(syrupFilter)
-      syrupFilter.connect(syrupGain)
-      syrupGain.connect(ctx.destination)
-      syrupOsc.start(now + 0.075)
-      syrupOsc.stop(now + 0.36)
-
-      // 과즙 방울 톡톡 2연타
-      ;[0.18, 0.26].forEach((dropT, idx) => {
-        const drop = ctx.createOscillator()
-        const dg = ctx.createGain()
-        drop.type = 'sine'
-        drop.frequency.setValueAtTime((620 + idx * 190) * pitchBoost, now + dropT)
-        drop.frequency.exponentialRampToValueAtTime((1120 + idx * 240) * pitchBoost, now + dropT + 0.055)
-        dg.gain.setValueAtTime(0.11, now + dropT)
-        dg.gain.exponentialRampToValueAtTime(0.001, now + dropT + 0.065)
-        drop.connect(dg)
-        dg.connect(ctx.destination)
-        drop.start(now + dropT)
-        drop.stop(now + dropT + 0.07)
+      // 🫧 톡톡 과즙 왁싱볼(히트캔디):
+      // 1단계 (0~75ms): 속이 빈 얇은 밀랍 왁스 캡슐이 치아에 눌려 '톡! 파삭~' 경쾌하게 깨지는 공동(Cavity) 크랙음
+      playFractureCluster(ctx, now, 0.072, {
+        density: 340,
+        formantLow: 880,
+        formantHigh: 2850 * crispBoost,
+        qLow: 2.6,
+        qHigh: 4.0,
+        gain: 0.46,
+        woodyThump: 0.32,
       })
+      // 2단계 (65~370ms): 깨진 왁스 틈으로 진한 과일 시럽이 '쭈욱~ 츄릅💦' 뿜어져 나오는 리얼 액체 스퀴즈 & 과즙 방울 사운드
+      playWetSquishFoley(ctx, now + 0.062, 0.31, {
+        baseCutoff: 420,
+        peakCutoff: 1480 * crispBoost,
+        resonanceQ: 4.8,
+        bubbleCount: 9,
+        wobbleHz: 14,
+        gain: 0.44,
+      })
+      triggerSubBassTactilePulse(ctx, now + 0.085, 0.25, 0.08)
     } else if (kind === 'cookie-crisp') {
-      // 🍪 오독오독 초코칩 쿠키: 낮고 고소한 버터 쿠키 스냅 4연타
-      const snaps = [
-        { t: 0, f: 780, d: 0.055, g: 0.28 },
-        { t: 0.055, f: 1120, d: 0.048, g: 0.24 },
-        { t: 0.115, f: 940, d: 0.05, g: 0.22 },
-        { t: 0.18, f: 1350, d: 0.04, g: 0.16 },
+      // 🍪 오독오독 버터쿠키: 두툼하고 고소한 다공성 버터 쇼트브레드가 오독! 바삭! 세 번에 걸쳐 부서지는 소리
+      const bites = [
+        { t: 0, d: 0.075, low: 540, high: 1850, g: 0.45, thump: 0.32 },
+        { t: 0.082, d: 0.068, low: 680, high: 2150, g: 0.38, thump: 0.22 },
+        { t: 0.16, d: 0.065, low: 610, high: 1920, g: 0.3, thump: 0 },
       ]
-      snaps.forEach((s) => triggerNoiseGrain(ctx, now + s.t, s.d, s.f, 2.5, s.g, 'bandpass'))
+      bites.forEach((b) =>
+        playFractureCluster(ctx, now + b.t, b.d, {
+          density: 310,
+          formantLow: b.low,
+          formantHigh: b.high * crispBoost,
+          qLow: 1.6,
+          qHigh: 2.6,
+          gain: b.g,
+          woodyThump: b.thump,
+        }),
+      )
     } else if (kind === 'sugar-crack') {
-      // 🍓 유리알 탕후루: 얇은 유리 설탕 코팅이 빠작! 깨지는 고주파 크리스탈 스냅 + 맑은 공명음
-      const cracks = [0, 0.032, 0.068, 0.115, 0.155]
-      cracks.forEach((t, i) => {
-        triggerNoiseGrain(ctx, now + t, 0.024, 3200 + i * 380, 5.0, 0.22, 'highpass')
+      // 🍓 유리알 탕후루: 얇고 투명한 설탕 유리막이 '빠작! 톡톡' 날카롭게 금 가며 부서진 뒤 생과일 과즙이 터지는 소리
+      playFractureCluster(ctx, now, 0.055, {
+        density: 460,
+        formantLow: 1650,
+        formantHigh: 4800 * crispBoost,
+        qLow: 2.8,
+        qHigh: 4.5,
+        gain: 0.44,
+        woodyThump: 0.3,
       })
-      const tones = [1760, 2349, 2960]
-      tones.forEach((freq, i) => {
-        const osc = ctx.createOscillator()
-        const g = ctx.createGain()
-        osc.type = 'sine'
-        osc.frequency.setValueAtTime(freq, now + i * 0.045)
-        osc.frequency.exponentialRampToValueAtTime(freq * 1.15, now + i * 0.045 + 0.09)
-        g.gain.setValueAtTime(0.08, now + i * 0.045)
-        g.gain.exponentialRampToValueAtTime(0.0008, now + i * 0.045 + 0.11)
-        osc.connect(g)
-        g.connect(ctx.destination)
-        osc.start(now + i * 0.045)
-        osc.stop(now + i * 0.045 + 0.12)
+      playFractureCluster(ctx, now + 0.058, 0.065, {
+        density: 380,
+        formantLow: 1900,
+        formantHigh: 5200 * crispBoost,
+        qLow: 3.0,
+        qHigh: 4.2,
+        gain: 0.36,
+      })
+      // 설탕 코팅이 깨진 직후 상큼한 생딸기/포도 과육이 아삭 씹히며 과즙이 나오는 소리
+      playWetSquishFoley(ctx, now + 0.07, 0.21, {
+        baseCutoff: 520,
+        peakCutoff: 1350,
+        resonanceQ: 3.6,
+        bubbleCount: 6,
+        gain: 0.32,
+      })
+    } else if (kind === 'mochi-squish') {
+      // 🍡 쫀득 말랑 찹쌀떡 모찌:
+      // 1) 손가락이 폭신한 전분 가루 표면을 꾹 누를 때의 포근한 압착음
+      triggerSubBassTactilePulse(ctx, now, 0.3, 0.075)
+      playWetSquishFoley(ctx, now, 0.14, {
+        baseCutoff: 260,
+        peakCutoff: 620,
+        resonanceQ: 2.8,
+        bubbleCount: 3,
+        gain: 0.38,
+      })
+      // 2) 쫀득한 찰떡 반죽이 늘어나며 손끝에서 쩍~ 쫀득! 하고 떨어지는 점탄성 흡착음
+      playWetSquishFoley(ctx, now + 0.11, 0.21, {
+        baseCutoff: 380,
+        peakCutoff: 1180 * crispBoost,
+        resonanceQ: 4.5,
+        bubbleCount: 7,
+        wobbleHz: 9,
+        gain: 0.42,
       })
     } else if (kind === 'pudding-jiggle') {
-      // 🍮 말랑 푸딩 & 구미 젤리: 탱글탱글~ 탄성 있게 흔들리는 피치 모듈레이션 사운드
-      const osc = ctx.createOscillator()
-      const mod = ctx.createOscillator()
-      const modGain = ctx.createGain()
-      const mainGain = ctx.createGain()
-
-      osc.type = 'sine'
-      osc.frequency.setValueAtTime(240, now)
-      osc.frequency.exponentialRampToValueAtTime(420, now + 0.14)
-      osc.frequency.exponentialRampToValueAtTime(280, now + 0.26)
-      osc.frequency.exponentialRampToValueAtTime(360, now + 0.36)
-
-      mod.type = 'sine'
-      mod.frequency.setValueAtTime(18, now)
-      modGain.gain.setValueAtTime(55, now)
-
-      mainGain.gain.setValueAtTime(0.001, now)
-      mainGain.gain.linearRampToValueAtTime(0.18, now + 0.03)
-      mainGain.gain.exponentialRampToValueAtTime(0.001, now + 0.38)
-
-      mod.connect(modGain)
-      modGain.connect(osc.frequency)
-      osc.connect(mainGain)
-      mainGain.connect(ctx.destination)
-
-      osc.start(now)
-      mod.start(now)
-      osc.stop(now + 0.4)
-      mod.stop(now + 0.4)
-    } else if (kind === 'mochi-squish') {
-      // 🍡 찹쌀떡 모찌: 포근하게 꾹 눌리는 소리 + 쫀득하게 떨어지는 소리 2단계
-      const osc1 = ctx.createOscillator()
-      const g1 = ctx.createGain()
-      osc1.type = 'sine'
-      osc1.frequency.setValueAtTime(280, now)
-      osc1.frequency.exponentialRampToValueAtTime(140, now + 0.11)
-      g1.gain.setValueAtTime(0.16, now)
-      g1.gain.exponentialRampToValueAtTime(0.001, now + 0.12)
-      osc1.connect(g1)
-      g1.connect(ctx.destination)
-      osc1.start(now)
-      osc1.stop(now + 0.13)
-
-      // 쫀득하게 늘어나며 붙었다 떨어지는 고운 소리
-      const osc2 = ctx.createOscillator()
-      const g2 = ctx.createGain()
-      osc2.type = 'triangle'
-      osc2.frequency.setValueAtTime(190, now + 0.12)
-      osc2.frequency.exponentialRampToValueAtTime(520, now + 0.25)
-      g2.gain.setValueAtTime(0.12, now + 0.12)
-      g2.gain.exponentialRampToValueAtTime(0.001, now + 0.27)
-      osc2.connect(g2)
-      g2.connect(ctx.destination)
-      osc2.start(now + 0.12)
-      osc2.stop(now + 0.28)
+      // 🍮 탱글탱글 푸딩 & 구미 젤리:
+      // 촉촉한 카라멜 시럽이 묻은 푸딩이 접시 위에서 '탱-글-탱-글' 4번 탄성 있게 출렁이며 찰랑이는 소리
+      triggerSubBassTactilePulse(ctx, now, 0.26, 0.07)
+      playWetSquishFoley(ctx, now, 0.36, {
+        baseCutoff: 320,
+        peakCutoff: 980 * crispBoost,
+        resonanceQ: 5.2,
+        bubbleCount: 8,
+        wobbleHz: 13.5,
+        gain: 0.42,
+      })
     } else if (kind === 'choco-melt') {
-      // 🍫 달콤 퐁듀 초코: 따뜻하고 부드러운 가나슈 버블 팝 3연속
-      const pops = [
-        { t: 0, f1: 220, f2: 410 },
-        { t: 0.09, f1: 260, f2: 480 },
-        { t: 0.18, f1: 310, f2: 590 },
-      ]
-      pops.forEach((p) => {
-        const osc = ctx.createOscillator()
-        const g = ctx.createGain()
-        osc.type = 'sine'
-        osc.frequency.setValueAtTime(p.f1, now + p.t)
-        osc.frequency.exponentialRampToValueAtTime(p.f2, now + p.t + 0.075)
-        g.gain.setValueAtTime(0.14, now + p.t)
-        g.gain.exponentialRampToValueAtTime(0.001, now + p.t + 0.085)
-        osc.connect(g)
-        g.connect(ctx.destination)
-        osc.start(now + p.t)
-        osc.stop(now + p.t + 0.09)
+      // 🍫 달콤 퐁듀 초코: 따뜻하고 진한 초콜릿 가나슈가 꾸덕하게 휘저어지며 기포가 보글보글 터지는 소리
+      triggerSubBassTactilePulse(ctx, now, 0.24, 0.08)
+      playWetSquishFoley(ctx, now, 0.32, {
+        baseCutoff: 240,
+        peakCutoff: 760 * crispBoost,
+        resonanceQ: 4.0,
+        bubbleCount: 10,
+        wobbleHz: 7.5,
+        gain: 0.4,
       })
     } else if (kind === 'smore-sizzle') {
-      // 🔥 구운 스모어 마시멜로: 노릇한 마시멜로 껍질의 바스락 시즐링 + 폭신한 스퀴시
-      triggerNoiseGrain(ctx, now, 0.18, 2400, 1.8, 0.14, 'bandpass')
-      const osc = ctx.createOscillator()
-      const g = ctx.createGain()
-      osc.type = 'sine'
-      osc.frequency.setValueAtTime(210, now + 0.05)
-      osc.frequency.exponentialRampToValueAtTime(380, now + 0.22)
-      g.gain.setValueAtTime(0.14, now + 0.05)
-      g.gain.exponentialRampToValueAtTime(0.001, now + 0.24)
-      osc.connect(g)
-      g.connect(ctx.destination)
-      osc.start(now + 0.05)
-      osc.stop(now + 0.25)
-    } else {
-      // 🌈 시럽 & 스프링클 토핑: 알록달록 구슬이 또르르 구르는 하프 차임
-      const notes = [880, 1174, 1396, 1760]
-      notes.forEach((freq, i) => {
-        const osc = ctx.createOscillator()
-        const g = ctx.createGain()
-        osc.type = 'sine'
-        osc.frequency.setValueAtTime(freq * pitchBoost, now + i * 0.04)
-        g.gain.setValueAtTime(0.09, now + i * 0.04)
-        g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.04 + 0.12)
-        osc.connect(g)
-        g.connect(ctx.destination)
-        osc.start(now + i * 0.04)
-        osc.stop(now + i * 0.04 + 0.13)
+      // 🔥 구운 스모어 마시멜로: 겉의 노릇하게 구운 마시멜로 카라멜 크러스트가 바스락 갈라지며 속의 따뜻한 마시멜로가 폭신하게 늘어나는 소리
+      playFractureCluster(ctx, now, 0.11, {
+        density: 420,
+        formantLow: 950,
+        formantHigh: 3100 * crispBoost,
+        qLow: 1.5,
+        qHigh: 2.4,
+        gain: 0.32,
+        woodyThump: 0.26,
       })
-    }
-
-    // 연속 터치/콤보 시 중독성 있는 크리스탈 슈가 배음 추가
-    if (comboStep >= 2) {
-      const bell = ctx.createOscillator()
-      const bellGain = ctx.createGain()
-      bell.type = 'sine'
-      bell.frequency.setValueAtTime(1046.5 * pitchBoost, now + 0.06)
-      bell.frequency.exponentialRampToValueAtTime(1567.98 * pitchBoost, now + 0.19)
-      bellGain.gain.setValueAtTime(0.055, now + 0.06)
-      bellGain.gain.exponentialRampToValueAtTime(0.0008, now + 0.21)
-      bell.connect(bellGain)
-      bellGain.connect(ctx.destination)
-      bell.start(now + 0.06)
-      bell.stop(now + 0.22)
+      playWetSquishFoley(ctx, now + 0.06, 0.24, {
+        baseCutoff: 290,
+        peakCutoff: 840,
+        resonanceQ: 3.4,
+        bubbleCount: 6,
+        gain: 0.36,
+      })
+    } else {
+      // 🌈 시럽 & 스프링클 토핑: 진한 시럽이 쪼르륵 흐르고 설탕 스프링클 알갱이들이 케이크 위에 토독토독 쏟아지는 리얼 폴라 사운드
+      playWetSquishFoley(ctx, now, 0.18, {
+        baseCutoff: 450,
+        peakCutoff: 1150,
+        resonanceQ: 3.2,
+        bubbleCount: 5,
+        gain: 0.28,
+      })
+      playFractureCluster(ctx, now + 0.03, 0.22, {
+        density: 280,
+        formantLow: 1800,
+        formantHigh: 4600 * crispBoost,
+        qLow: 2.2,
+        qHigh: 3.8,
+        gain: 0.32,
+      })
     }
   } catch {
     // 오디오 컨텍스트 제한 시에도 앱이 절대 멈추지 않도록 안전 처리
   }
   return meta
 }
-

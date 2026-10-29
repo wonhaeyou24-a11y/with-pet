@@ -64,17 +64,17 @@ export default function MonsterHome({
       <div className="card fill">
         <div className="row wrap center" style={{ gap: 5 }}>
           {monster.is_shiny && (
-            <span className="chip honey" style={{ fontSize: 11 }}>
+            <span className="chip honey" style={{ fontSize: 12 }}>
               <SparkleIcon size={14} /> 빛나는 디저트
             </span>
           )}
-          <span className="chip honey" style={{ fontSize: 11, fontWeight: 800 }}>
+          <span className="chip honey" style={{ fontSize: 12, fontWeight: 800 }}>
             🪙 {coins} 코인
           </span>
           <button
             className="chip"
             onClick={handleTouchMonster}
-            style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 11, background: '#FFF2EC', color: '#D85A3A' }}
+            style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 12, background: '#FFF2EC', color: '#D85A3A' }}
           >
             🎧 식감 ASMR 듣기
           </button>
@@ -82,7 +82,7 @@ export default function MonsterHome({
             <button
               className="chip"
               onClick={onResetTestEgg}
-              style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 11, background: '#EBF8FF', color: '#1976D2' }}
+              style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 12, background: '#EBF8FF', color: '#1976D2' }}
               title="테스트용 새 1분 디저트 알을 다시 받습니다"
             >
               🥚 1분 알 다시뽑기
@@ -91,11 +91,11 @@ export default function MonsterHome({
         </div>
 
         {/* 4대 디저트 컨디션 미니 바 */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4, width: '100%' }}>
-          <div style={{ padding: '4px 6px', borderRadius: 10, background: '#FFF8F2', border: '1px solid #F0DFB8', textAlign: 'center', fontSize: 10, fontWeight: 800 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 4, width: '100%' }}>
+          <div style={{ padding: '4px 6px', borderRadius: 10, background: '#FFF8F2', border: '1px solid #F0DFB8', textAlign: 'center', fontSize: 12, fontWeight: 800 }}>
             🍓 당충전 {hunger}
           </div>
-          <div style={{ padding: '4px 6px', borderRadius: 10, background: '#FFF8F2', border: '1px solid #F0DFB8', textAlign: 'center', fontSize: 10, fontWeight: 800 }}>
+          <div style={{ padding: '4px 6px', borderRadius: 10, background: '#FFF8F2', border: '1px solid #F0DFB8', textAlign: 'center', fontSize: 12, fontWeight: 800 }}>
             💖 달콤함 {mood}
           </div>
           <div
@@ -105,14 +105,14 @@ export default function MonsterHome({
               background: fatigue >= 80 ? '#FFF0EE' : '#FFF8F2',
               border: fatigue >= 80 ? '1px solid #D9534F' : '1px solid #F0DFB8',
               textAlign: 'center',
-              fontSize: 10,
+              fontSize: 12,
               fontWeight: 800,
               color: fatigue >= 80 ? '#D9534F' : '#3B2F2F',
             }}
           >
             💤 노곤함 {fatigue}
           </div>
-          <div style={{ padding: '4px 6px', borderRadius: 10, background: '#FFF8F2', border: '1px solid #F0DFB8', textAlign: 'center', fontSize: 10, fontWeight: 800 }}>
+          <div style={{ padding: '4px 6px', borderRadius: 10, background: '#FFF8F2', border: '1px solid #F0DFB8', textAlign: 'center', fontSize: 12, fontWeight: 800 }}>
             ✨ 윤기 {cleanliness}
           </div>
         </div>
@@ -136,7 +136,7 @@ export default function MonsterHome({
         <h1 className="title-xl" style={{ fontSize: 22 }}>{monster.name}</h1>
         <div className="row wrap center" style={{ gap: 6 }}>
           <span className="chip">종족 {info?.name ?? monster.species}</span>
-          {info?.textureLabel && <span className="chip honey" style={{ fontSize: 11 }}>{info.textureLabel}</span>}
+          {info?.textureLabel && <span className="chip honey" style={{ fontSize: 12 }}>{info.textureLabel}</span>}
           <span className="chip" style={{ paddingLeft: 6 }}>
             <ElementIcon element={monster.element} size={18} />
             {ELEMENT_INFO[monster.element].label} 속성
@@ -148,7 +148,7 @@ export default function MonsterHome({
       <div className="card tight">
         <div className="row between">
           <h2 className="title" style={{ fontSize: 16 }}>
-            능력치 <span className="chip" style={{ fontSize: 11, marginLeft: 4 }}>총점 {totalStats(monster.stats)}</span>
+            능력치 <span className="chip" style={{ fontSize: 12, marginLeft: 4 }}>총점 {totalStats(monster.stats)}</span>
           </h2>
           <button className="btn-link" onClick={onDetail} style={{ padding: 2, fontWeight: 800 }}>
             🍰 플레이팅·변신 공방 <ChevronIcon size={16} />

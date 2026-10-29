@@ -1088,3 +1088,144 @@ p {
     animation: none;
   }
 }
+
+/* ───────────────────────────────────────────────
+   모바일 화면 정리 (폭 넘침 · 줄바꿈 · 글자 크기 통일)
+   ─────────────────────────────────────────────── */
+
+/* 화면·카드·줄 안의 요소가 내용 길이만큼 늘어나 화면 밖으로 밀려나지 않게 한다 */
+.screen,
+.card,
+.stage,
+.row > *,
+.grid-2 > * {
+  min-width: 0;
+}
+
+.screen {
+  width: 100%;
+  max-width: 440px;
+  height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  max-height: 100dvh;
+  overflow: hidden;
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card {
+  padding: 12px 14px;
+  border-radius: 22px;
+  gap: 8px;
+}
+
+.card.tight {
+  padding: 10px 14px;
+  gap: 6px;
+}
+
+/* 한 화면(무스크롤) 하단 컨트롤 덱: 남은 세로 공간을 정확히 채운다 */
+.deck-card {
+  flex: 1;
+  min-height: 0;
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: 22px;
+  box-shadow: var(--shadow-card);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.deck-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.title-xl {
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.title {
+  font-size: 17px;
+  line-height: 1.25;
+}
+
+.sub {
+  font-size: var(--fs-body-sm);
+  line-height: 1.5;
+}
+
+.small {
+  font-size: var(--fs-caption);
+  line-height: 1.45;
+}
+
+/* 화면 상단 머리줄: [뒤로] 제목 [칩] — 제목이 남는 폭을 쓰고, 넘치면 단어 단위로 두 줄까지 */
+.row.between > .title,
+.row.between > h1 {
+  flex: 1;
+  text-align: center;
+  font-size: var(--fs-title);
+  line-height: 1.3;
+}
+
+.row.between > .btn-round {
+  flex-shrink: 0;
+}
+
+/* 2칸 버튼: 칸 폭을 정확히 반씩 나누고, 긴 글자는 단어 단위로 줄바꿈 */
+.grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.grid-2 .btn {
+  white-space: normal;
+  line-height: 1.25;
+  font-size: var(--fs-body);
+  padding: 13px 10px;
+  min-height: 52px;
+}
+
+.btn {
+  line-height: 1.25;
+  text-align: center;
+}
+
+/* 칩: 한 줄 유지, 칸이 좁으면 말줄임 */
+.chip {
+  font-size: var(--fs-caption);
+  line-height: 1.3;
+  padding: 5px 10px;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toast {
+  white-space: normal;
+  width: max-content;
+  max-width: calc(100vw - 40px);
+  text-align: center;
+  font-size: var(--fs-body-sm);
+}
+
+.egg-bubble {
+  max-width: calc(100vw - 48px);
+}
+
+/* 버튼·칩을 누를 때 회색 박스 대신 살짝 눌리는 느낌 */
+button {
+  touch-action: manipulation;
+}

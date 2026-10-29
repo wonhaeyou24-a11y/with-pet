@@ -1,6 +1,7 @@
-import { useId, useRef, type PointerEvent } from 'react'
+import { useId, useRef, useState, type PointerEvent } from 'react'
 import { BackDecorations, FrontDecorations } from './Decorations'
 import { CHAMELEON_PALETTES, MorphBodyPaintOverlay, SyrupToppingLayer, UniversalWingLayer } from './MallangChameleon'
+import Monster3DView from './Monster3DView'
 import './monsters.css'
 import { SPECIES } from './registry'
 import type { BodyType, MonsterLook } from './types'
@@ -20,10 +21,12 @@ type Props = {
   fluid?: boolean
   // 메챠 카멜레온 공방에서 몸통 위에 직접 브러시/스탬프를 찍을 때 사용하는 좌표 콜백
   interactive?: boolean
+  // 2D 브러시 페인팅 탭이 아닐 때는 기본으로 Three.js 실시간 3D 모드를 사용한다
+  prefer2D?: boolean
   onCanvasPoint?: (x: number, y: number, phase: 'down' | 'move' | 'up') => void
 }
 
-// 개체마다 다른 외형(look) + 말랑카멜레온 체형변신·바디페인팅 + 특수변이 + 육성훈장 + 장식 7칸을 조합해 레이어 SVG 몬스터를 그린다
+// 실시간 3D(Three.js WebGL) 말랑·바삭 캐릭터를 우선 렌더링하고, 2D 바디페인팅 모드이거나 WebGL 미지원 시 레이어 SVG로 폴백한다
 export default function MonsterView({
   look,
   size = 240,
@@ -31,10 +34,12 @@ export default function MonsterView({
   title,
   fluid = false,
   interactive = false,
+  prefer2D = false,
   onCanvasPoint,
 }: Props) {
   const uid = useId().replace(/:/g, '')
   const svgRef = useRef<SVGSVGElement | null>(null)
+  const [fallback2D, setFallback2D] = useState(false)
   const activeSpecies = look.mallang?.morphForm ?? look.species
   const def = SPECIES[activeSpecies] ?? SPECIES[look.species]
   if (!def) return null
@@ -43,6 +48,18 @@ export default function MonsterView({
     ...look,
     species: activeSpecies,
     palette: look.mallang?.skinPalette ?? look.palette,
+  }
+
+  // 실시간 Three.js 3D 모드 (바디 페인팅 직접 드로잉 중이 아닐 때 기본 활성화)
+  if (!prefer2D && !interactive && !fallback2D) {
+    return (
+      <Monster3DView
+        look={effectiveLook}
+        size={size || 200}
+        fluid={fluid}
+        onFallbackNeeded={() => setFallback2D(true)}
+      />
+    )
   }
 
   const [bx, by] = BODY_SCALE[effectiveLook.bodyType]

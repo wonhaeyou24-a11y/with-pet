@@ -149,15 +149,31 @@ const SCREENS: Record<string, () => ReactNode> = {
 export default function ScreenGallery() {
   const [name, setName] = useState(() => decodeURIComponent(location.hash.split('/')[3] ?? '') || '알(대기)')
   return (
-    <div style={{ width: '100%' }}>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: 8, position: 'sticky', top: 0, background: '#fff8', zIndex: 50 }}>
+    <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+      <select
+        aria-label="화면 전환"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        style={{
+          position: 'fixed',
+          top: 4,
+          right: 6,
+          zIndex: 99,
+          fontSize: 11,
+          padding: '2px 6px',
+          borderRadius: 999,
+          border: '1px solid #e2cf9f',
+          background: 'rgba(255,253,249,0.85)',
+          color: '#7a6a60',
+        }}
+      >
         {Object.keys(SCREENS).map((n) => (
-          <button key={n} onClick={() => setName(n)} style={{ opacity: n === name ? 1 : 0.55, fontSize: 12 }}>
+          <option key={n} value={n}>
             {n}
-          </button>
+          </option>
         ))}
-      </div>
-      <div style={{ display: 'flex', justifyContent: 'center' }} key={name}>
+      </select>
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }} key={name}>
         {SCREENS[name]?.()}
       </div>
     </div>

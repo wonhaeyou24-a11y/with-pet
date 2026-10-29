@@ -87,7 +87,7 @@ export function SensoryBurst({ kind, triggerKey, bubble, combo = 0 }: SensoryBur
               borderRadius: 999,
               background: '#FF7A59',
               color: '#FFFFFF',
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: 900,
             }}
           >
