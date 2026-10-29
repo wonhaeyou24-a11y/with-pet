@@ -5,6 +5,7 @@
 import { useRef, useState } from 'react'
 import { addRibbonCoins } from '../config/boutique'
 import { CARE_ACTIONS, CARE_STATUS_INFO, DESSERT_FOODS, expForNextLevel } from '../config/care'
+import { recordMissionAction } from '../config/missions'
 import { personalityLabel, SPECIES_INFO } from '../config/species'
 import { monsterLook, type MonsterRow } from '../lib/api'
 import { callCare } from '../lib/careApi'
@@ -74,6 +75,7 @@ export default function CarePantry({ monster, coins, foodBag, onUpdate, onBack }
     setBusy(false)
     if (res.ok && res.monster && res.foodBag !== undefined && res.coins !== undefined) {
       onUpdate(res.monster, res.coins, res.foodBag)
+      recordMissionAction('d-care', 1)
     }
     if (res.message) showMessage(res.message, res.leveledUp)
   }

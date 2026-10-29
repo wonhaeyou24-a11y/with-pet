@@ -3,6 +3,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import type { EggRow, MonsterRow } from '../lib/api'
 import AsmrBattleArena from '../screens/AsmrBattleArena'
 import BoutiqueShop from '../screens/BoutiqueShop'
+import CakeBoxShareModal from '../screens/CakeBoxShareModal'
 import CarePantry from '../screens/CarePantry'
 import DessertPokedexScreen from '../screens/DessertPokedex'
 import DessertPlaza from '../screens/DessertPlaza'
@@ -10,6 +11,7 @@ import EggHome from '../screens/EggHome'
 import EvolutionRevealScreen from '../screens/EvolutionReveal'
 import HatchReveal from '../screens/HatchReveal'
 import Login from '../screens/Login'
+import MissionModal from '../screens/MissionModal'
 import MonsterDetail from '../screens/MonsterDetail'
 import MonsterHome from '../screens/MonsterHome'
 import MyRoomScreen from '../screens/MyRoomScreen'
@@ -168,6 +170,14 @@ const SCREENS: Record<string, () => ReactNode> = {
       monster={{ ...shiny, name: '두바이쫀득' }}
       onBack={noop}
       onOpenBoutique={noop}
+    />
+  ),
+  '파티세리 미션': () => <MissionModal onRewardCoins={noop} onClose={noop} />,
+  '케이크 상자 포장 카드': () => (
+    <CakeBoxShareModal
+      monster={{ ...shiny, name: '두바이쫀득' }}
+      ownerNickname="초록집사"
+      onClose={noop}
     />
   ),
 }

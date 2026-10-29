@@ -6,6 +6,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { addRibbonCoins } from '../config/boutique'
 import { expForNextLevel, TRAINING_COURSES, type TrainingCourse } from '../config/care'
+import { recordMissionAction } from '../config/missions'
 import { personalityLabel, SPECIES_INFO, STAT_INFO } from '../config/species'
 import { monsterLook, type MonsterRow } from '../lib/api'
 import { callCare } from '../lib/careApi'
@@ -191,6 +192,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
     if (res.ok && res.monster && res.foodBag !== undefined && res.coins !== undefined) {
       onUpdate(res.monster, res.coins, res.foodBag)
       addRibbonCoins(15, '파티세리 훈련 완료')
+      recordMissionAction('d-train', 1)
     }
     if (res.leveledUp) {
       setLevelUpBanner(true)
@@ -258,6 +260,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
 
     const ribbonEarned = floorsCleared * 20
     addRibbonCoins(ribbonEarned, '타워 탐험 돌파 보상')
+    recordMissionAction('w-tower', floorsCleared)
     onUpdate(nextMonster, updatedCoins, {})
     playDessertAsmr('wax-pop', 3)
     setToast(`🏰 ${floorsCleared}개 층 돌파 복귀 완료! EXP +${totalExpGain} · 🪙 +${totalCoinsGain} 코인 · 🎀 +${ribbonEarned} 리본 획득!`)

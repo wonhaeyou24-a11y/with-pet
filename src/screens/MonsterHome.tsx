@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { getRibbonCoins } from '../config/boutique'
+import { getClaimableMissionsCount } from '../config/missions'
 import { ELEMENT_INFO, SPECIES_INFO } from '../config/species'
 import { monsterLook, type MonsterRow } from '../lib/api'
 import { checkEvolutionEligibility } from '../lib/evolutionEngine'
@@ -14,6 +15,8 @@ import {
 } from '../lib/idleActivity'
 import { getSpeciesSoundKind, playDessertAsmr } from '../lib/sound'
 import MonsterView from '../monsters/MonsterView'
+import CakeBoxShareModal from './CakeBoxShareModal'
+import MissionModal from './MissionModal'
 import { ChevronIcon, ElementIcon, SparkleIcon } from '../ui/Icons'
 import { StatBars, TopBar, totalStats } from '../ui/parts'
 import { getSensoryReactionClass, SensoryBurst } from '../ui/SensoryFx'
@@ -31,6 +34,7 @@ type Props = {
   onOpenDex?: () => void
   onOpenMyRoom?: () => void
   onOpenBoutique?: () => void
+  onRewardCoins?: (amount: number) => void
   onResetTestEgg?: () => void
   onLogout?: () => void
 }
@@ -48,9 +52,13 @@ export default function MonsterHome({
   onOpenDex,
   onOpenMyRoom,
   onOpenBoutique,
+  onRewardCoins,
   onResetTestEgg,
   onLogout,
 }: Props) {
+  const [showMissions, setShowMissions] = useState<boolean>(false)
+  const [showCakeBox, setShowCakeBox] = useState<boolean>(false)
+  const [claimableMissions, setClaimableMissions] = useState<number>(() => getClaimableMissionsCount())
   const look = monsterLook(monster)
   const activeSpecies = look.mallang?.morphForm ?? monster.species
   const info = SPECIES_INFO[activeSpecies] ?? SPECIES_INFO[monster.species]
@@ -168,10 +176,70 @@ export default function MonsterHome({
           <div className="row" style={{ gap: 4 }}>
             <button
               className="chip"
-              onClick={handleTouchMonster}
-              style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 12, background: '#FFF2EC', color: '#D85A3A', padding: '2px 8px' }}
+              onClick={() => {
+                setShowMissions(true)
+                playDessertAsmr('mochi-squish')
+              }}
+              style={{
+                cursor: 'pointer',
+                border: claimableMissions > 0 ? '1.5px solid #FF9800' : 'none',
+                fontWeight: 800,
+                fontSize: 12,
+                background: claimableMissions > 0 ? '#FFF8E1' : '#FFF9F0',
+                color: '#E65100',
+                padding: '2px 7px',
+                position: 'relative',
+              }}
+              title="일일 & 주간 파티세리 미션"
             >
-              🎧 식감 ASMR
+              📜 미션
+              {claimableMissions > 0 && (
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: -4,
+                    right: -4,
+                    background: '#E11D48',
+                    color: '#FFFFFF',
+                    borderRadius: '50%',
+                    width: 14,
+                    height: 14,
+                    fontSize: 9,
+                    fontWeight: 900,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {claimableMissions}
+                </span>
+              )}
+            </button>
+            <button
+              className="chip"
+              onClick={() => {
+                setShowCakeBox(true)
+                playDessertAsmr('sugar-crack')
+              }}
+              style={{
+                cursor: 'pointer',
+                border: '1px solid #FBCFE8',
+                fontWeight: 800,
+                fontSize: 12,
+                background: '#FFF5F7',
+                color: '#BE185D',
+                padding: '2px 7px',
+              }}
+              title="파티세리 케이크 상자 포장 카드 자랑"
+            >
+              🎁 포장 자랑
+            </button>
+            <button
+              className="chip"
+              onClick={handleTouchMonster}
+              style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 12, background: '#FFF2EC', color: '#D85A3A', padding: '2px 7px' }}
+            >
+              🎧 ASMR
             </button>
             {onResetTestEgg && (
               <button
@@ -545,6 +613,29 @@ export default function MonsterHome({
           <span>🏆 광장 · ASMR 대전</span>
         </button>
       </div>
+
+      {/* 미션 모달 */}
+      {showMissions && (
+        <MissionModal
+          onRewardCoins={(amount) => {
+            onRewardCoins?.(amount)
+            setClaimableMissions(getClaimableMissionsCount())
+          }}
+          onClose={() => {
+            setShowMissions(false)
+            setClaimableMissions(getClaimableMissionsCount())
+          }}
+        />
+      )}
+
+      {/* 케이크 상자 포장 카드 자랑 모달 */}
+      {showCakeBox && (
+        <CakeBoxShareModal
+          monster={monster}
+          ownerNickname={nickname}
+          onClose={() => setShowCakeBox(false)}
+        />
+      )}
     </main>
   )
 }

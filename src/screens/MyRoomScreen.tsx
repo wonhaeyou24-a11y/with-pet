@@ -17,6 +17,7 @@ import {
   type RoomFurnitureDef,
   type RoomThemeDef,
 } from '../config/boutique'
+import { recordMissionAction } from '../config/missions'
 import { monsterLook, type MonsterRow } from '../lib/api'
 import { playDessertAsmr } from '../lib/sound'
 import Monster3DView from '../monsters/Monster3DView'
@@ -117,6 +118,7 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
     setNewComment('')
     const earned = addRibbonCoins(10, '방명록 작성')
     setCoinsState(earned)
+    recordMissionAction('w-social', 1)
     showToast('📝 방명록을 남겼습니다! (+10 🎀 리본 코인 획득)')
   }
 

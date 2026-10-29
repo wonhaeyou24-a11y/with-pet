@@ -4,6 +4,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { addRibbonCoins } from '../config/boutique'
+import { recordMissionAction } from '../config/missions'
 import { ELEMENT_INFO, SPECIES_INFO } from '../config/species'
 import { monsterLook, type MonsterRow } from '../lib/api'
 import { simulateAsmrBattle } from '../lib/battleEngine'
@@ -85,6 +86,8 @@ export default function AsmrBattleArena({
         const isWin = sim.winner === 'challenger'
         onRewardClaimed?.(isWin ? 30 : 15)
         addRibbonCoins(isWin ? 30 : 10, '친선 대전 보상')
+        recordMissionAction('d-battle', 1)
+        if (isWin) recordMissionAction('w-battle-win', 1)
       }
     }, turnInterval * 0.75)
 
@@ -136,6 +139,8 @@ export default function AsmrBattleArena({
       const isWin = sim.winner === 'challenger'
       onRewardClaimed?.(isWin ? 30 : 15)
       addRibbonCoins(isWin ? 30 : 10, '친선 대전 보상')
+      recordMissionAction('d-battle', 1)
+      if (isWin) recordMissionAction('w-battle-win', 1)
     }
   }
 

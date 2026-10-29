@@ -5,6 +5,7 @@
 
 import { useEffect, useRef, useState, type PointerEvent, type WheelEvent } from 'react'
 import { addRibbonCoins } from '../config/boutique'
+import { recordMissionAction } from '../config/missions'
 import { ELEMENT_INFO } from '../config/species'
 import { monsterLook, type MonsterRow } from '../lib/api'
 import { PLAZA_SHOWCASE_FRIENDS, type PlazaFriendEntry } from '../lib/battleEngine'
@@ -565,6 +566,7 @@ export default function DessertPlaza({
             onClick={() => {
               playDessertAsmr('mochi-squish')
               addRibbonCoins(10, '친구 미니룸 방문 응원')
+              recordMissionAction('w-social', 1)
               setToast(`🏰 ${selectedFriend.ownerNickname}님의 미니룸에 방명록 응원을 남겼습니다! (🎀 +10 리본)`)
               setTimeout(() => setToast(null), 3000)
             }}

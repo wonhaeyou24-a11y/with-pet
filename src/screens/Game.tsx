@@ -312,6 +312,7 @@ export default function Game({ player }: { player: Player }) {
         onOpenDex={() => setSubView('pokedex')}
         onOpenMyRoom={() => setSubView('myroom')}
         onOpenBoutique={() => setSubView('boutique')}
+        onRewardCoins={(amt) => setCoins((c) => c + amt)}
         onResetTestEgg={() => {
           const newEgg = issueNewTestEgg('common')
           setMonsters([])
