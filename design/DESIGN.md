@@ -118,6 +118,10 @@
 | 7 | 이름 짓기 | [07-naming.png](stitch/07-naming.png) | [code](stitch/code/07-naming.html) |
 | 8 | 홈: 몬스터 | [08-home-monster.png](stitch/08-home-monster.png) | [code](stitch/code/08-home-monster.html) |
 | 9 | 몬스터 상세 | [09-monster-detail.png](stitch/09-monster-detail.png) | [code](stitch/code/09-monster-detail.html) |
+| 10 | 꾸미기 & 장비 스튜디오 | [10-dressup-studio.png](stitch/10-dressup-studio.png) | [code](stitch/code/10-dressup-studio.html) |
+| 11 | 몬스터 개성 & 특수 변이 도감 | [11-species-identity.png](stitch/11-species-identity.png) | [code](stitch/code/11-species-identity.html) |
+| 12 | 말랑 카멜레온 변신 & 바디 페인팅 공방 | [12-mallang-chameleon-studio.png](stitch/12-mallang-chameleon-studio.png) | [code](stitch/code/12-mallang-chameleon-studio.html) |
+| 13 | 말랑 모찌 디저트 & 케이크·쿠키 플레이팅 쇼케이스 | [13-mochi-dessert-patisserie.png](stitch/13-mochi-dessert-patisserie.png) | [code](stitch/code/13-mochi-dessert-patisserie.html) |
 
 후보로 받았다가 고르지 않은 스타일(B 동화책, C 미니멀)은 [stitch/candidates/](stitch/candidates/)에 있다.
 

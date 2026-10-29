@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>펫과함께 - 모찌 디저트 플레이팅 쇼케이스 공방</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;family=Noto+Sans+KR:wght@500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "tertiary-fixed-dim": "#e8c25f",
+            "surface-container-lowest": "#ffffff",
+            "secondary": "#0f6c4d",
+            "outline": "#89726b",
+            "inverse-primary": "#ffb59e",
+            "surface-variant": "#f2dedd",
+            "surface-container-low": "#fff0f0",
+            "secondary-fixed": "#a1f3cc",
+            "on-tertiary": "#ffffff",
+            "secondary-container": "#9ef1c9",
+            "error": "#ba1a1a",
+            "on-primary-fixed": "#3a0b00",
+            "on-secondary": "#ffffff",
+            "error-container": "#ffdad6",
+            "surface-container-highest": "#f2dedd",
+            "on-primary-container": "#752305",
+            "surface-container": "#fee9e9",
+            "secondary-fixed-dim": "#85d7b1",
+            "on-tertiary-container": "#4f3c00",
+            "on-surface-variant": "#56423c",
+            "on-surface": "#231919",
+            "inverse-surface": "#392d2d",
+            "on-error-container": "#93000a",
+            "surface-container-high": "#f8e4e3",
+            "primary-container": "#ff8a65",
+            "on-primary": "#ffffff",
+            "on-secondary-container": "#177051",
+            "surface": "#fff8f7",
+            "on-primary-fixed-variant": "#7f2a0d",
+            "background": "#fff8f7",
+            "on-tertiary-fixed": "#241a00",
+            "on-secondary-fixed": "#002114",
+            "surface-bright": "#fff8f7",
+            "inverse-on-surface": "#ffedec",
+            "surface-tint": "#9f4122",
+            "tertiary-container": "#caa646",
+            "tertiary": "#765b00",
+            "primary-fixed-dim": "#ffb59e",
+            "surface-dim": "#e9d5d5",
+            "primary": "#9f4122",
+            "on-background": "#231919",
+            "tertiary-fixed": "#ffdf92",
+            "on-error": "#ffffff",
+            "outline-variant": "#ddc0b8",
+            "on-tertiary-fixed-variant": "#594400",
+            "on-secondary-fixed-variant": "#005138",
+            "primary-fixed": "#ffdbd0"
+          },
+          "borderRadius": {
+            "DEFAULT": "1rem",
+            "lg": "2rem",
+            "xl": "3rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "gutter": "1rem",
+            "space-xs": "0.375rem",
+            "space-sm": "0.75rem",
+            "margin": "1.25rem",
+            "space-xl": "2.25rem",
+            "space-lg": "1.5rem",
+            "space-md": "1rem"
+          },
+          "fontFamily": {
+            "body-md": ["Noto Sans KR", "Plus Jakarta Sans"],
+            "label-sm": ["Noto Sans KR", "Plus Jakarta Sans"],
+            "headline-lg": ["Noto Sans KR", "Plus Jakarta Sans"],
+            "body-sm": ["Noto Sans KR", "Plus Jakarta Sans"],
+            "body-lg": ["Noto Sans KR", "Plus Jakarta Sans"],
+            "headline-sm": ["Noto Sans KR", "Plus Jakarta Sans"],
+            "label-lg": ["Noto Sans KR", "Plus Jakarta Sans"],
+            "headline-md": ["Noto Sans KR", "Plus Jakarta Sans"],
+            "display-lg": ["Noto Sans KR", "Plus Jakarta Sans"],
+            "label-md": ["Noto Sans KR", "Plus Jakarta Sans"],
+            "display-lg-mobile": ["Noto Sans KR", "Plus Jakarta Sans"]
+          },
+          "fontSize": {
+            "body-md": ["14px", { "lineHeight": "22px", "fontWeight": "500" }],
+            "label-sm": ["10px", { "lineHeight": "14px", "fontWeight": "700" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "fontWeight": "500" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "500" }],
+            "headline-sm": ["18px", { "lineHeight": "26px", "fontWeight": "600" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "700" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "700" }],
+            "display-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+            "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "700" }],
+            "display-lg-mobile": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "800" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    .clay-surface {
+      box-shadow: 0 4px 16px rgba(186, 142, 75, 0.12), inset 0 2px 0 rgba(255, 255, 255, 0.7);
+    }
+    .clay-btn-primary {
+      box-shadow: 0 6px 16px rgba(255, 138, 101, 0.35), inset 0 2px 0 rgba(255, 255, 255, 0.45), inset 0 -4px 0 #cf5c36;
+      transition: all 0.15s ease-out;
+    }
+    .clay-btn-primary:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 6px rgba(255, 138, 101, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 #cf5c36;
+    }
+    .clay-card-active {
+      box-shadow: 0 4px 12px rgba(255, 138, 101, 0.25), inset 0 0 0 2px #ff8a65;
+    }
+    @keyframes gentle-bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+    .animate-gentle-bounce {
+      animation: gentle-bounce 3s ease-in-out infinite;
+    }
+    @keyframes sparkle-pulse {
+      0%, 100% { opacity: 0.4; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.15); }
+    }
+    .animate-sparkle {
+      animation: sparkle-pulse 2s ease-in-out infinite;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[#FFF9ED] text-on-surface antialiased min-h-screen flex justify-center selection:bg-primary-container selection:text-surface-container-lowest">
+<!-- Mobile Container (Max 480px, optimized for 390px viewport) -->
+<main class="w-full max-w-[480px] bg-background min-h-screen relative pb-10 flex flex-col shadow-2xl">
+<!-- 1. Header (Linear task flow with back action) -->
+<header class="sticky top-0 z-30 bg-surface/90 backdrop-blur-md px-margin py-space-sm flex items-center justify-between">
+<button aria-label="뒤로가기" class="w-10 h-10 rounded-full bg-surface-container-lowest border-2 border-outline-variant/40 flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-transform active:scale-95 shadow-sm" type="button">
+<span class="material-symbols-outlined text-[22px]">arrow_back_ios_new</span>
+</button>
+<div class="flex flex-col items-center text-center">
+<h1 class="font-headline-sm text-headline-sm text-on-surface font-bold flex items-center gap-1">
+<span>🍰</span> 모찌 디저트 플레이팅
+        </h1>
+<p class="font-label-sm text-label-sm text-outline font-medium tracking-tight">세상에서 가장 달콤한 나만의 모찌</p>
+</div>
+<!-- Honey & Berry Score Badge -->
+<div class="bg-gradient-to-r from-tertiary-fixed to-primary-fixed border border-tertiary-container/30 rounded-full px-2.5 py-1 flex items-center gap-1 shadow-sm">
+<span class="font-label-sm text-label-sm text-on-tertiary-fixed font-bold flex items-center">
+<span class="material-symbols-outlined text-[13px] text-tertiary mr-0.5" style="font-variation-settings: 'FILL' 1;">arrow_back_ios_new</span>185
+        </span>
+<span class="text-outline-variant text-[10px]">·</span>
+<span class="font-label-sm text-label-sm text-primary font-bold flex items-center">
+<span class="material-symbols-outlined text-[13px] text-primary-container mr-0.5" style="font-variation-settings: 'FILL' 1;">favorite</span>42
+        </span>
+</div>
+</header>
+<!-- Main Content Area -->
+<div class="px-margin flex flex-col gap-space-md pt-space-xs">
+<!-- 2. Central Showcase Stage (Transparent Patisserie Glass Dome & Cake Pedestal) -->
+<section class="relative bg-surface-container-lowest rounded-lg border-2 border-outline-variant/50 p-space-md clay-surface overflow-hidden">
+<!-- Floating Ambient Confectionery Sprinkles Decor -->
+<div class="absolute -top-6 -right-6 w-28 h-28 bg-primary-fixed/40 rounded-full blur-2xl pointer-events-none"></div>
+<div class="absolute -bottom-8 -left-6 w-32 h-32 bg-tertiary-fixed/30 rounded-full blur-2xl pointer-events-none"></div>
+<!-- Status Chips & Showcase Metadata -->
+<div class="flex items-center justify-between relative z-10">
+<div class="flex items-center gap-1.5 flex-wrap">
+<span class="bg-[#FFF2DE] text-on-primary-container border border-outline-variant/40 rounded-full px-2.5 py-0.5 font-label-md text-label-md font-bold flex items-center gap-1 shadow-xs">
+              🍓 생딸기 모찌 세트
+            </span>
+<span class="bg-secondary-fixed/50 text-secondary border border-secondary/20 rounded-full px-2 py-0.5 font-label-sm text-label-sm font-bold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">trophy</span> Top 5% 후보
+            </span>
+</div>
+<!-- 360 & Zoom Quick Floating Tool -->
+<div class="flex items-center gap-1 bg-surface-container rounded-full p-1 border border-outline-variant/40 shadow-inner">
+<button class="w-7 h-7 rounded-full bg-surface-container-lowest flex items-center justify-center text-on-surface hover:text-primary transition-all active:scale-90" title="360도 회전 뷰" type="button">
+<span class="material-symbols-outlined text-[16px]">360</span>
+</button>
+<button class="w-7 h-7 rounded-full bg-surface-container-lowest flex items-center justify-center text-on-surface hover:text-primary transition-all active:scale-90" title="디테일 확대" type="button">
+<span class="material-symbols-outlined text-[16px]">zoom_in</span>
+</button>
+</div>
+</div>
+<!-- Patisserie Glass Pedestal & Mochi Mascot Canvas -->
+<div class="relative w-full h-[230px] my-2 flex items-center justify-center">
+<!-- Glass Reflection Ring & Sugar Powder Sparkles -->
+<div class="absolute inset-2 border border-dashed border-outline-variant/60 rounded-xl pointer-events-none opacity-60"></div>
+<!-- Sparkle Particles -->
+<span class="material-symbols-outlined absolute top-4 left-6 text-tertiary-fixed-dim text-lg animate-sparkle" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined absolute top-12 right-8 text-primary-container text-base animate-sparkle" style="animation-delay: 0.7s; font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="material-symbols-outlined absolute bottom-14 left-8 text-secondary-fixed-dim text-sm animate-sparkle" style="animation-delay: 1.2s; font-variation-settings: 'FILL' 1;">arrow_back_ios_new</span>
+<!-- High-End Patisserie 3D Plating Illustration Representation -->
+<div class="relative z-10 flex flex-col items-center animate-gentle-bounce">
+<!-- Cherry & Whipped Cream Topper -->
+<div class="relative z-20 flex flex-col items-center -mb-2">
+<span class="text-2xl filter drop-shadow-md select-none transform hover:scale-125 transition-transform cursor-pointer">🍒</span>
+<div class="w-7 h-4 bg-white rounded-t-full border border-outline-variant/30 shadow-xs -mt-1"></div>
+</div>
+<!-- Mochi Monster Body (딸기모찌 말랑이) -->
+<div class="w-28 h-24 bg-gradient-to-b from-[#FFFFFF] to-[#FFF1EB] rounded-[48%_48%_44%_44%] border-[3px] border-[#3B2F2F] shadow-lg relative flex flex-col items-center justify-center">
+<!-- Chocolate Syrup Drizzle Patterns on top edge -->
+<div class="absolute -top-0.5 flex gap-1.5 opacity-85">
+<span class="w-2 h-3 bg-[#543026] rounded-b-full"></span>
+<span class="w-2.5 h-4 bg-[#543026] rounded-b-full"></span>
+<span class="w-1.5 h-2.5 bg-[#543026] rounded-b-full"></span>
+</div>
+<!-- Eyes and Blushing Cheeks -->
+<div class="flex items-center gap-6 mt-2">
+<div class="w-2.5 h-2.5 bg-[#3B2F2F] rounded-full shadow-inner"></div>
+<div class="w-2.5 h-2.5 bg-[#3B2F2F] rounded-full shadow-inner"></div>
+</div>
+<div class="flex items-center justify-between w-20 px-2 -mt-1">
+<div class="w-3.5 h-2 bg-[#FF8A65]/40 rounded-full blur-[1px]"></div>
+<!-- Cute smiling mouth -->
+<div class="w-2 h-1 border-b-2 border-[#3B2F2F] rounded-full -mt-0.5"></div>
+<div class="w-3.5 h-2 bg-[#FF8A65]/40 rounded-full blur-[1px]"></div>
+</div>
+<!-- Rainbow Sprinkles Speckles -->
+<div class="absolute bottom-2 flex gap-2 opacity-75">
+<div class="w-1.5 h-1 bg-tertiary-fixed-dim rounded-full rotate-45"></div>
+<div class="w-1.5 h-1 bg-secondary-fixed rounded-full -rotate-12"></div>
+<div class="w-1.5 h-1 bg-primary-container rounded-full rotate-12"></div>
+</div>
+</div>
+<!-- Strawberry Cream Cake Base Stand (Tier 1 Pedestal) -->
+<div class="relative -mt-3 z-0 flex flex-col items-center">
+<div class="w-44 h-8 bg-gradient-to-r from-[#FFE5EC] via-[#FFFFFF] to-[#FFE5EC] rounded-full border-[2.5px] border-[#3B2F2F] shadow-md flex items-center justify-around px-3">
+<span class="text-xs">🍓</span>
+<span class="text-[10px] text-outline font-bold">Whipped Cake Base</span>
+<span class="text-xs">🍓</span>
+</div>
+<!-- Pedestal Shadow on Showcase Glass Floor -->
+<div class="w-48 h-3.5 bg-[#3B2F2F]/10 rounded-full blur-[3px] -mt-1"></div>
+</div>
+</div>
+</div>
+<!-- Quick Interaction Bar Under Showcase -->
+<div class="grid grid-cols-3 gap-2 pt-2 border-t border-outline-variant/30">
+<button class="flex items-center justify-center gap-1 py-2 px-1 bg-surface-container rounded-DEFAULT border border-outline-variant/40 hover:bg-surface-container-high transition-transform active:scale-95 text-on-surface font-label-md text-label-md font-bold" type="button">
+<span class="material-symbols-outlined text-[16px] text-primary" style="font-variation-settings: 'FILL' 1;">package_2</span>
+<span>상자 포장</span>
+</button>
+<button class="flex items-center justify-center gap-1 py-2 px-1 bg-surface-container rounded-DEFAULT border border-outline-variant/40 hover:bg-surface-container-high transition-transform active:scale-95 text-on-surface font-label-md text-label-md font-bold" type="button">
+<span class="material-symbols-outlined text-[16px] text-tertiary" style="font-variation-settings: 'FILL' 1;">liquor</span>
+<span>시럽 뿌리기</span>
+</button>
+<button class="flex items-center justify-center gap-1 py-2 px-1 bg-surface-container rounded-DEFAULT border border-outline-variant/40 hover:bg-surface-container-high transition-transform active:scale-95 text-on-surface font-label-md text-label-md font-bold" type="button">
+<span class="material-symbols-outlined text-[16px] text-secondary" style="font-variation-settings: 'FILL' 1;">cached</span>
+<span>받침대 교체</span>
+</button>
+</div>
+</section>
+<!-- 3. Dessert Plating Customization Panel (Bottom Drawer Style) -->
+<section class="bg-surface-container-lowest rounded-lg border-2 border-outline-variant/50 p-space-md clay-surface flex flex-col gap-space-sm">
+<!-- Category Tabs -->
+<nav aria-label="플레이팅 카테고리" class="flex items-center justify-between p-1 bg-surface-container rounded-full border border-outline-variant/40">
+<button class="flex-1 py-2 rounded-full bg-primary-container text-surface-container-lowest font-label-md text-label-md font-bold shadow-sm transition-all text-center" type="button">
+            🎂 받침대 6종
+          </button>
+<button class="flex-1 py-2 rounded-full text-on-surface-variant hover:text-on-surface font-label-md text-label-md font-semibold transition-colors text-center" type="button">
+            🍒 토핑 &amp; 시럽
+          </button>
+<button class="flex-1 py-2 rounded-full text-on-surface-variant hover:text-on-surface font-label-md text-label-md font-semibold transition-colors text-center" type="button">
+            🏆 콘테스트
+          </button>
+</nav>
+<!-- 6-Type Pedestal Grid Selection -->
+<div class="grid grid-cols-3 gap-2.5 pt-1">
+<!-- Item 1 (Selected) -->
+<button class="flex flex-col items-center p-2 rounded-DEFAULT bg-[#FFF4F0] border-2 border-primary-container relative clay-card-active active:scale-95 transition-all text-left" type="button">
+<div class="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-primary-container text-white flex items-center justify-center shadow-xs">
+<span class="material-symbols-outlined text-[12px] font-bold">check</span>
+</div>
+<div class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-2xl shadow-inner mb-1">
+              🎂
+            </div>
+<span class="font-label-md text-label-md text-on-surface font-bold text-center line-clamp-1">생딸기 케이크</span>
+<span class="font-label-sm text-label-sm text-primary font-bold mt-0.5 bg-primary-fixed px-1.5 py-0.2 rounded-full">+25 매력</span>
+</button>
+<!-- Item 2 -->
+<button class="flex flex-col items-center p-2 rounded-DEFAULT bg-surface border border-outline-variant/40 hover:bg-surface-container active:scale-95 transition-all text-left" type="button">
+<div class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-2xl shadow-inner mb-1">
+              🍪
+            </div>
+<span class="font-label-md text-label-md text-on-surface font-bold text-center line-clamp-1">초코칩 쿠키</span>
+<span class="font-label-sm text-label-sm text-tertiary font-bold mt-0.5 bg-tertiary-fixed px-1.5 py-0.2 rounded-full">+20 매력</span>
+</button>
+<!-- Item 3 -->
+<button class="flex flex-col items-center p-2 rounded-DEFAULT bg-surface border border-outline-variant/40 hover:bg-surface-container active:scale-95 transition-all text-left" type="button">
+<div class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-2xl shadow-inner mb-1">
+              🍮
+            </div>
+<span class="font-label-md text-label-md text-on-surface font-bold text-center line-clamp-1">커스터드 푸딩</span>
+<span class="font-label-sm text-label-sm text-tertiary font-bold mt-0.5 bg-tertiary-fixed px-1.5 py-0.2 rounded-full">+20 매력</span>
+</button>
+<!-- Item 4 -->
+<button class="flex flex-col items-center p-2 rounded-DEFAULT bg-surface border border-outline-variant/40 hover:bg-surface-container active:scale-95 transition-all text-left" type="button">
+<div class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-2xl shadow-inner mb-1">
+              🧁
+            </div>
+<span class="font-label-md text-label-md text-on-surface font-bold text-center line-clamp-1">마카롱 방석</span>
+<span class="font-label-sm text-label-sm text-primary font-bold mt-0.5 bg-primary-fixed px-1.5 py-0.2 rounded-full">+25 매력</span>
+</button>
+<!-- Item 5 -->
+<button class="flex flex-col items-center p-2 rounded-DEFAULT bg-surface border border-outline-variant/40 hover:bg-surface-container active:scale-95 transition-all text-left" type="button">
+<div class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-2xl shadow-inner mb-1">
+              🍨
+            </div>
+<span class="font-label-md text-label-md text-on-surface font-bold text-center line-clamp-1">베리 파르페</span>
+<span class="font-label-sm text-label-sm text-secondary font-bold mt-0.5 bg-secondary-fixed px-1.5 py-0.2 rounded-full">+30 매력</span>
+</button>
+<!-- Item 6 -->
+<button class="flex flex-col items-center p-2 rounded-DEFAULT bg-surface border border-outline-variant/40 hover:bg-surface-container active:scale-95 transition-all text-left" type="button">
+<div class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-2xl shadow-inner mb-1">
+              🪹
+            </div>
+<span class="font-label-md text-label-md text-on-surface font-bold text-center line-clamp-1">포근 나무 둥지</span>
+<span class="font-label-sm text-label-sm text-outline font-bold mt-0.5 bg-surface-container-high px-1.5 py-0.2 rounded-full">+10 매력</span>
+</button>
+</div>
+<!-- Syrup & Powder Fast Toppings Multi-Chips -->
+<div class="pt-2 border-t border-outline-variant/30 flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline font-bold">달콤 시럽 &amp; 파우더 효과</span>
+<span class="font-label-sm text-label-sm text-primary font-bold">2개 적용 중</span>
+</div>
+<div class="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-nowrap">
+<!-- Applied Chip 1 -->
+<button class="bg-primary-fixed border border-primary text-on-primary-fixed rounded-full px-2.5 py-1 font-label-sm text-label-sm font-bold flex items-center gap-1 shadow-xs active:scale-95" type="button">
+<span>🍫 초코 드리즐</span>
+<span class="material-symbols-outlined text-[13px] text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</button>
+<!-- Inactive Chip 2 -->
+<button class="bg-surface-container border border-outline-variant/40 text-on-surface-variant rounded-full px-2.5 py-1 font-label-sm text-label-sm font-medium flex items-center gap-1 active:scale-95" type="button">
+<span>🍓 딸기 시럽</span>
+</button>
+<!-- Inactive Chip 3 -->
+<button class="bg-surface-container border border-outline-variant/40 text-on-surface-variant rounded-full px-2.5 py-1 font-label-sm text-label-sm font-medium flex items-center gap-1 active:scale-95" type="button">
+<span>🍵 말차 파우더</span>
+</button>
+<!-- Applied Chip 4 -->
+<button class="bg-tertiary-fixed border border-tertiary text-on-tertiary-fixed rounded-full px-2.5 py-1 font-label-sm text-label-sm font-bold flex items-center gap-1 shadow-xs active:scale-95" type="button">
+<span>🌈 레인보우 스프링클</span>
+<span class="material-symbols-outlined text-[13px] text-tertiary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</button>
+<!-- Inactive Chip 5 -->
+<button class="bg-surface-container border border-outline-variant/40 text-on-surface-variant rounded-full px-2.5 py-1 font-label-sm text-label-sm font-medium flex items-center gap-1 active:scale-95" type="button">
+<span>❄️ 슈가파우더</span>
+</button>
+</div>
+</div>
+<!-- 3D Coral Hero CTA Button -->
+<div class="pt-2 flex flex-col gap-2">
+<button class="w-full py-3.5 px-4 bg-primary-container text-surface-container-lowest font-headline-sm text-headline-sm font-bold rounded-xl clay-btn-primary flex items-center justify-center gap-2 cursor-pointer" type="button">
+<span>🍰</span>
+<span>나만의 모찌 디저트 완성 &amp; 자랑하기</span>
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">arrow_back_ios_new</span>
+</button>
+<p class="font-body-sm text-body-sm text-center text-outline leading-tight">
+            완성된 디저트 모찌는 보육실 식탁에 전시되며 친구들에게 한입 투표를 받아요! 💌
+          </p>
+</div>
+</section>
+</div>
+</main>
+</body></html>

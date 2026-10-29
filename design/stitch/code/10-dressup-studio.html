@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>펫과함께 - 꾸미기 & 장비 스튜디오</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Plus Jakarta Sans & Jua / Noto Sans KR -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Gaegu:wght@400;700&family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            clayBg: '#FFF6E9',
+            cardBg: '#FFFFFF',
+            clayCoral: '#FF8A65',
+            clayCoralDark: '#E66840',
+            clayMint: '#76C7A2',
+            clayMintLight: '#E8F7F0',
+            clayGold: '#FAD36E',
+            clayGoldLight: '#FFF8E1',
+            clayBrown: '#3B2F2F',
+            clayBrownLight: '#7D6A68',
+            clayPurple: '#A78BFA',
+            clayPurpleLight: '#F3E8FF',
+            clayBorder: '#F2E2C8',
+            dotColor: '#E8D8BA',
+          },
+          fontFamily: {
+            sans: ['"Noto Sans KR"', '"Plus Jakarta Sans"', 'sans-serif'],
+            cute: ['"Gaegu"', 'cursive', 'sans-serif'],
+          },
+          boxShadow: {
+            'clay-sm': '0 4px 0 #E2CDAE, 0 6px 16px rgba(100,70,40,0.06)',
+            'clay-btn': '0 5px 0 #DF6742, 0 8px 18px rgba(255,138,101,0.3)',
+            'clay-card': '0 8px 24px -4px rgba(130,90,50,0.08), 0 3px 0 #E8D5BC',
+            'clay-slot': '0 4px 0 #E5D2BA, 0 6px 12px rgba(140,100,50,0.08)',
+            'clay-active-slot': '0 4px 0 #FF6F43, 0 8px 16px rgba(255,138,101,0.35)',
+            'clay-inner': 'inset 0 3px 6px rgba(0,0,0,0.04)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Warm Clay dotted background pattern matching earlier screens */
+    body {
+      background-color: #FFF6E9;
+      background-image: radial-gradient(#E8D5B7 1.6px, transparent 1.6px);
+      background-size: 20px 20px;
+      color: #3B2F2F;
+      font-family: 'Noto Sans KR', sans-serif;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Custom smooth scrollbar for horizontal categories */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Soft pulse / float animations */
+    @keyframes floaty {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-5px) rotate(0.5deg); }
+    }
+    .animate-float {
+      animation: floaty 3.5s ease-in-out infinite;
+    }
+
+    @keyframes spinSlow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .animate-spin-slow {
+      animation: spinSlow 24s linear infinite;
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.55; transform: scale(1); }
+      50% { opacity: 0.9; transform: scale(1.04); }
+    }
+    .animate-pulse-glow {
+      animation: pulseGlow 3s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="flex justify-center items-start min-h-screen p-0 sm:py-6 antialiased">
+
+  <!-- Mobile Screen Frame (390px fixed container) -->
+  <div class="w-full max-w-[390px] min-h-screen bg-[#FFF7EB] shadow-2xl relative flex flex-col overflow-x-hidden border-x border-[#F0E0C8]/60 pb-8 sm:rounded-[40px] sm:min-h-[844px] sm:border-y sm:my-auto">
+
+    <!-- ==================== TOP APP BAR ==================== -->
+    <header class="sticky top-0 z-30 pt-3 pb-2.5 px-4 bg-[#FFF7EB]/90 backdrop-blur-md flex items-center justify-between border-b border-[#F2E0C4]/60">
+      <div class="flex items-center gap-2">
+        <button class="w-10 h-10 rounded-2xl bg-white border border-[#EED7BA] shadow-clay-sm flex items-center justify-center text-clayBrown active:scale-95 transition-transform" aria-label="뒤로가기">
+          <i data-lucide="chevron-left" class="w-6 h-6 stroke-[2.5]"></i>
+        </button>
+        <div>
+          <h1 class="text-[17px] font-extrabold tracking-tight text-clayBrown leading-none">꾸미기 & 장비</h1>
+          <p class="text-[10px] text-clayBrownLight font-medium mt-0.5">구름이의 드레스룸</p>
+        </div>
+      </div>
+
+      <!-- Currency / Status Pills -->
+      <div class="flex items-center gap-1.5">
+        <!-- Charm Score Pill -->
+        <div class="flex items-center gap-1 bg-white/95 px-2.5 py-1 rounded-full border border-[#FFD9CD] shadow-sm">
+          <span class="text-xs">✨</span>
+          <span class="text-[10px] text-[#A66248] font-bold">매력</span>
+          <span class="text-[12px] font-black text-clayCoral">245</span>
+        </div>
+        <!-- Star Shards Pill -->
+        <div class="flex items-center gap-1 bg-white/95 px-2.5 py-1 rounded-full border border-[#FFE7A8] shadow-sm">
+          <span class="text-xs">⭐</span>
+          <span class="text-[12px] font-black text-[#B07B12]">120</span>
+          <button class="w-4 h-4 rounded-full bg-clayGold/40 text-[#936605] flex items-center justify-center text-[10px] font-black leading-none ml-0.5 hover:bg-clayGold">+</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ==================== STAGE CONTAINER (MONSTER + 7 SLOTS) ==================== -->
+    <section class="relative px-3.5 pt-2 pb-3">
+      <!-- Monster Showcase Card -->
+      <div class="relative w-full rounded-[32px] bg-white border-2 border-[#F3E2CA] shadow-clay-card p-3 overflow-hidden">
+        
+        <!-- Ambient Background Glow & Constellation Pattern inside Stage -->
+        <div class="absolute inset-0 bg-gradient-to-b from-[#FFFDF9] via-[#FFF8EE] to-[#FFF1DE] pointer-events-none"></div>
+        <div class="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-clayGold/20 blur-2xl pointer-events-none"></div>
+        <div class="absolute -bottom-8 -left-8 w-44 h-44 rounded-full bg-clayCoral/15 blur-2xl pointer-events-none"></div>
+        
+        <!-- Celestial Star Aura behind monster -->
+        <div class="absolute top-[18%] left-1/2 -translate-x-1/2 w-56 h-56 rounded-full border border-dashed border-[#E7CE9D]/70 animate-spin-slow pointer-events-none flex items-center justify-center">
+          <div class="w-full h-full relative">
+            <span class="absolute top-0 left-1/2 -translate-x-1/2 text-[10px] text-clayGold opacity-80">✦</span>
+            <span class="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] text-clayGold opacity-80">★</span>
+            <span class="absolute left-1 top-1/2 -translate-y-1/2 text-[10px] text-clayGold opacity-80">✧</span>
+            <span class="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-clayGold opacity-80">✦</span>
+          </div>
+        </div>
+
+        <!-- Top info inside stage: Monster Name & Rarity -->
+        <div class="relative z-10 flex items-center justify-between px-2 pt-0.5">
+          <div class="flex items-center gap-1.5">
+            <span class="bg-clayCoral/15 text-clayCoral text-[11px] font-bold px-2 py-0.5 rounded-full border border-clayCoral/30">
+              Lv.1 몽실 (바람)
+            </span>
+            <span class="text-[13px] font-black text-clayBrown">구름이</span>
+          </div>
+          <div class="flex items-center gap-1 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-full text-[10px] font-bold text-amber-800">
+            <i data-lucide="sparkles" class="w-3 h-3 text-clayGold fill-clayGold"></i>
+            풀세트 보너스 <span class="text-clayCoral font-extrabold">+15%</span>
+          </div>
+        </div>
+
+        <!-- STAGE CENTER: Fantasy Decorated Baby Monster Illustration (SVG Canvas) -->
+        <div class="relative z-10 w-full h-[236px] flex items-center justify-center mt-1 mb-2">
+          
+          <!-- Golden Constellation Aura Light -->
+          <div class="absolute w-44 h-44 rounded-full bg-gradient-to-tr from-amber-200/40 via-orange-100/30 to-purple-100/30 blur-lg animate-pulse-glow"></div>
+
+          <!-- Monster Illustration SVG -->
+          <div class="relative animate-float cursor-pointer" title="터치하여 포즈 변경!">
+            <svg width="220" height="220" viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <!-- Soft Monster Body Gradients -->
+                <radialGradient id="bodyGlow" cx="50%" cy="40%" r="60%">
+                  <stop offset="0%" stop-color="#FFFFFF" />
+                  <stop offset="70%" stop-color="#FFF8EE" />
+                  <stop offset="100%" stop-color="#FCEFD8" />
+                </radialGradient>
+                <linearGradient id="hatGrad" x1="30" y1="10" x2="110" y2="90" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#7C3AED" />
+                  <stop offset="50%" stop-color="#6366F1" />
+                  <stop offset="100%" stop-color="#4F46E5" />
+                </linearGradient>
+                <linearGradient id="goldBrim" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stop-color="#FCD34D" />
+                  <stop offset="100%" stop-color="#F59E0B" />
+                </linearGradient>
+                <linearGradient id="scarfGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#FF8A65" />
+                  <stop offset="100%" stop-color="#E76F51" />
+                </linearGradient>
+                <filter id="softShadow" x="-10%" y="-10%" width="130%" height="130%">
+                  <feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#8C663D" flood-opacity="0.15" />
+                </filter>
+                <filter id="glowGold" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#FCD34D" flood-opacity="0.8" />
+                </filter>
+              </defs>
+
+              <!-- Pedestal Shadow -->
+              <ellipse cx="110" cy="188" rx="60" ry="12" fill="#EADBCE" opacity="0.75" />
+              <ellipse cx="110" cy="186" rx="42" ry="8" fill="#D6C0AF" opacity="0.6" />
+
+              <!-- BACK DECORATION: Meteor Wings (등 장식: 유성 망토 날개) -->
+              <g opacity="0.9" filter="url(#glowGold)">
+                <!-- Left Wing -->
+                <path d="M68 116C46 100 32 110 30 126C28 140 44 148 58 142C64 140 68 136 70 132" fill="#E0E7FF" stroke="#A5B4FC" stroke-width="2.5" stroke-linecap="round" />
+                <path d="M52 112L36 94" stroke="#FDE68A" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 3" />
+                <!-- Right Wing -->
+                <path d="M152 116C174 100 188 110 190 126C192 140 176 148 162 142C156 140 152 136 150 132" fill="#E0E7FF" stroke="#A5B4FC" stroke-width="2.5" stroke-linecap="round" />
+                <path d="M168 112L184 94" stroke="#FDE68A" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 3" />
+              </g>
+
+              <!-- MONSTER MAIN BODY (Fluffy cloud baby monster) -->
+              <g filter="url(#softShadow)">
+                <!-- Cloud bumps forming the round body -->
+                <ellipse cx="110" cy="132" rx="48" ry="44" fill="url(#bodyGlow)" stroke="#3B2F2F" stroke-width="3.5" />
+                <!-- Fluffy cloud ears/puffs -->
+                <circle cx="66" cy="120" r="17" fill="url(#bodyGlow)" stroke="#3B2F2F" stroke-width="3.2" />
+                <circle cx="154" cy="120" r="17" fill="url(#bodyGlow)" stroke="#3B2F2F" stroke-width="3.2" />
+                <!-- Soft blush cheeks -->
+                <circle cx="85" cy="140" r="8" fill="#FF8A65" opacity="0.45" />
+                <circle cx="135" cy="140" r="8" fill="#FF8A65" opacity="0.45" />
+                <!-- Cute Face: Closed happy eyes & tiny mouth -->
+                <path d="M85 130C88 126 95 126 98 130" stroke="#3B2F2F" stroke-width="3.2" stroke-linecap="round" />
+                <path d="M122 130C125 126 132 126 135 130" stroke="#3B2F2F" stroke-width="3.2" stroke-linecap="round" />
+                <!-- Tiny sweet smiling mouth -->
+                <path d="M107 141C109 144 111 144 113 141" stroke="#3B2F2F" stroke-width="2.8" stroke-linecap="round" />
+                <circle cx="110" cy="137" r="1.5" fill="#3B2F2F" />
+              </g>
+
+              <!-- FOREHEAD MARK: Star Medal Mark -->
+              <path d="M110 106L112 111L117 112L113 115L114 120L110 117L106 120L107 115L103 112L108 111L110 106Z" fill="#F59E0B" stroke="#D97706" stroke-width="1" />
+
+              <!-- FACE ACCESSORY: Tiny Alchemy Round Goggles (얼굴: 동글 안경) -->
+              <g>
+                <!-- Left lens -->
+                <circle cx="91" cy="129" r="11" fill="#E0F2FE" fill-opacity="0.4" stroke="#D97706" stroke-width="2.5" />
+                <path d="M86 124L90 128" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" />
+                <!-- Right lens -->
+                <circle cx="129" cy="129" r="11" fill="#E0F2FE" fill-opacity="0.4" stroke="#D97706" stroke-width="2.5" />
+                <path d="M124 124L128 128" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" />
+                <!-- Bridge -->
+                <path d="M102 128C106 125 114 125 118 128" stroke="#D97706" stroke-width="2.5" stroke-linecap="round" />
+                <!-- Side straps -->
+                <path d="M80 129L72 130" stroke="#B45309" stroke-width="2" />
+                <path d="M140 129L148 130" stroke="#B45309" stroke-width="2" />
+              </g>
+
+              <!-- NECK ACCESSORY: Cozy Floating Rune Scarf (목: 룬 무늬 머플러) -->
+              <g filter="url(#softShadow)">
+                <path d="M78 152C88 159 132 159 142 152C146 157 142 165 130 168C110 171 88 170 78 163C76 158 76 154 78 152Z" fill="url(#scarfGrad)" stroke="#3B2F2F" stroke-width="2.8" />
+                <!-- Hanging scarf tail with rune pattern -->
+                <path d="M125 163C126 175 132 184 135 186C138 187 144 186 145 180C146 172 143 162 139 157" fill="#FF8A65" stroke="#3B2F2F" stroke-width="2.6" />
+                <!-- Golden Rune marks on scarf -->
+                <circle cx="94" cy="160" r="2" fill="#FDE68A" />
+                <circle cx="110" cy="163" r="2" fill="#FDE68A" />
+                <circle cx="126" cy="161" r="2" fill="#FDE68A" />
+                <path d="M136 172L140 176M140 172L136 176" stroke="#FEF08A" stroke-width="1.8" stroke-linecap="round" />
+              </g>
+
+              <!-- HEAD ACCESSORY: Starry Wizard Hat (머리: 별마법사 모자) -->
+              <g filter="url(#softShadow)">
+                <!-- Hat Cone -->
+                <path d="M76 96C86 64 100 40 128 32C122 46 138 68 144 96Z" fill="url(#hatGrad)" stroke="#3B2F2F" stroke-width="3" />
+                <!-- Gold Star pattern on hat -->
+                <path d="M106 60L108 64L112 65L109 68L110 72L106 70L102 72L103 68L100 65L104 64L106 60Z" fill="#FDE047" />
+                <circle cx="124" cy="48" r="2.5" fill="#FDE047" />
+                <circle cx="92" cy="78" r="2" fill="#FDE047" />
+                <!-- Slump tip with dangling star bell -->
+                <path d="M128 32C133 30 142 34 144 42" stroke="#6366F1" stroke-width="5" stroke-linecap="round" />
+                <circle cx="144" cy="44" r="5" fill="#F59E0B" stroke="#78350F" stroke-width="1.5" />
+                <!-- Hat Brim -->
+                <path d="M64 97C78 90 142 90 156 97C158 102 148 106 110 106C72 106 62 102 64 97Z" fill="url(#goldBrim)" stroke="#3B2F2F" stroke-width="2.8" />
+                <!-- Cyan magic gem buckle -->
+                <rect x="105" y="93" width="10" height="9" rx="3" fill="#06B6D4" stroke="#083344" stroke-width="1.5" />
+              </g>
+
+              <!-- HAND ACCESSORY: Glowing Lantern Staff (손: 별빛 등불 지팡이) -->
+              <g filter="url(#softShadow)">
+                <!-- Little monster hand holding staff -->
+                <ellipse cx="62" cy="148" rx="8" ry="7" fill="#FFFFFF" stroke="#3B2F2F" stroke-width="2.5" />
+                <!-- Wooden Staff -->
+                <path d="M60 110L62 182" stroke="#78350F" stroke-width="4" stroke-linecap="round" />
+                <!-- Curved Staff Head -->
+                <path d="M60 112C58 98 48 96 46 102C44 108 48 116 52 118" stroke="#92400E" stroke-width="3" stroke-linecap="round" />
+                <!-- Hanging Lantern String -->
+                <path d="M47 106L47 114" stroke="#D97706" stroke-width="1.8" />
+                <!-- Glowing Lantern Body -->
+                <rect x="40" y="114" width="14" height="18" rx="4" fill="#FEF3C7" stroke="#92400E" stroke-width="2" filter="url(#glowGold)" />
+                <circle cx="47" cy="123" r="4" fill="#F59E0B" />
+                <!-- Lantern Cap & Base -->
+                <path d="M38 114H56" stroke="#78350F" stroke-width="2.5" stroke-linecap="round" />
+                <path d="M39 132H55" stroke="#78350F" stroke-width="2.5" stroke-linecap="round" />
+              </g>
+
+              <!-- Floating Sparkle Particles around monster -->
+              <g>
+                <text x="36" y="80" font-size="12" fill="#F59E0B">✦</text>
+                <text x="174" y="80" font-size="14" fill="#FF8A65">✨</text>
+                <text x="172" y="160" font-size="11" fill="#76C7A2">✧</text>
+                <text x="38" y="164" font-size="11" fill="#A78BFA">✦</text>
+              </g>
+            </svg>
+          </div>
+
+          <!-- Quick Action: Remove All / Reset View -->
+          <div class="absolute bottom-1 right-2 flex items-center gap-1.5 z-20">
+            <button class="px-2.5 py-1 bg-white/90 hover:bg-white rounded-full border border-[#E9D7C0] shadow-sm text-[10px] font-bold text-clayBrownLight flex items-center gap-1 active:scale-95 transition-transform">
+              <i data-lucide="rotate-ccw" class="w-2.5 h-2.5"></i>
+              미리보기 360°
+            </button>
+          </div>
+        </div>
+
+        <!-- ==================== 7 DECORATION SLOTS PODS ==================== -->
+        <!-- Arranged horizontally or in ergonomic dual rows surrounding stage footer -->
+        <div class="relative z-10 pt-2 border-t border-[#F2E4CF]">
+          <div class="flex items-center justify-between px-1 mb-1.5">
+            <span class="text-[11px] font-extrabold text-clayBrown flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-clayCoral"></span>
+              장식 슬롯 (7칸)
+            </span>
+            <span class="text-[10px] font-semibold text-clayCoral">6/7 부위 장착 완료</span>
+          </div>
+
+          <!-- 7 Slots Horizontal Scroll / Grid (compact rounded cards) -->
+          <div class="grid grid-cols-7 gap-1.5">
+            
+            <!-- Slot 1: 머리 (장착중 - 별마법사 모자) -->
+            <button class="group flex flex-col items-center p-1 rounded-2xl bg-white border-2 border-clayCoral shadow-clay-active-slot active:scale-95 transition-all relative">
+              <div class="w-9 h-9 rounded-xl bg-[#F3E8FF] border border-[#DDD6FE] flex items-center justify-center text-lg relative">
+                🧙‍♂️
+                <span class="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-clayCoral text-white text-[8px] font-black flex items-center justify-center">E</span>
+              </div>
+              <span class="text-[9px] font-extrabold text-clayBrown mt-1">머리</span>
+            </button>
+
+            <!-- Slot 2: 얼굴 (장착중 - 연금술사 안경) -->
+            <button class="group flex flex-col items-center p-1 rounded-2xl bg-white border-2 border-clayCoral shadow-clay-active-slot active:scale-95 transition-all relative">
+              <div class="w-9 h-9 rounded-xl bg-[#FEF3C7] border border-[#FDE68A] flex items-center justify-center text-lg relative">
+                👓
+                <span class="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-clayCoral text-white text-[8px] font-black flex items-center justify-center">E</span>
+              </div>
+              <span class="text-[9px] font-extrabold text-clayBrown mt-1">얼굴</span>
+            </button>
+
+            <!-- Slot 3: 목 (장착중 - 룬 머플러) -->
+            <button class="group flex flex-col items-center p-1 rounded-2xl bg-white border-2 border-clayCoral shadow-clay-active-slot active:scale-95 transition-all relative">
+              <div class="w-9 h-9 rounded-xl bg-[#FFE4E6] border border-[#FECDD3] flex items-center justify-center text-lg relative">
+                🧣
+                <span class="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-clayCoral text-white text-[8px] font-black flex items-center justify-center">E</span>
+              </div>
+              <span class="text-[9px] font-extrabold text-clayBrown mt-1">목</span>
+            </button>
+
+            <!-- Slot 4: 등 (유성 날개 - 장착중) -->
+            <button class="group flex flex-col items-center p-1 rounded-2xl bg-white border-2 border-clayCoral shadow-clay-active-slot active:scale-95 transition-all relative">
+              <div class="w-9 h-9 rounded-xl bg-[#E0E7FF] border border-[#C7D2FE] flex items-center justify-center text-lg relative">
+                🪽
+                <span class="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-clayCoral text-white text-[8px] font-black flex items-center justify-center">E</span>
+              </div>
+              <span class="text-[9px] font-extrabold text-clayBrown mt-1">등</span>
+            </button>
+
+            <!-- Slot 5: 손 (장착중 - 별빛 등불 지팡이) -->
+            <button class="group flex flex-col items-center p-1 rounded-2xl bg-white border-2 border-clayCoral shadow-clay-active-slot active:scale-95 transition-all relative">
+              <div class="w-9 h-9 rounded-xl bg-[#FEF9C3] border border-[#FDE047] flex items-center justify-center text-lg relative">
+                🏮
+                <span class="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-clayCoral text-white text-[8px] font-black flex items-center justify-center">E</span>
+              </div>
+              <span class="text-[9px] font-extrabold text-clayBrown mt-1">손</span>
+            </button>
+
+            <!-- Slot 6: 배경 (밤하늘 천문대 - 빈 슬롯 / 해제됨) -->
+            <button class="group flex flex-col items-center p-1 rounded-2xl bg-[#FBF6EE] border-2 border-dashed border-[#DFCEBA] hover:border-clayCoral/50 active:scale-95 transition-all relative opacity-70">
+              <div class="w-9 h-9 rounded-xl bg-white/70 border border-[#EADBCE] flex items-center justify-center text-sm text-clayBrownLight">
+                <i data-lucide="plus" class="w-4 h-4 text-clayBrownLight"></i>
+              </div>
+              <span class="text-[9px] font-medium text-clayBrownLight mt-1">배경</span>
+            </button>
+
+            <!-- Slot 7: 이펙트 (장착중 - 황금 별자리 오라) -->
+            <button class="group flex flex-col items-center p-1 rounded-2xl bg-white border-2 border-clayCoral shadow-clay-active-slot active:scale-95 transition-all relative">
+              <div class="w-9 h-9 rounded-xl bg-[#FEF08A]/40 border border-[#FACC15] flex items-center justify-center text-lg relative">
+                ✨
+                <span class="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-clayCoral text-white text-[8px] font-black flex items-center justify-center">E</span>
+              </div>
+              <span class="text-[9px] font-extrabold text-clayBrown mt-1">이펙트</span>
+            </button>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== MIDDLE SECTION: BATTLE EQUIPMENT 3 SLOTS ==================== -->
+    <section class="px-3.5 py-1">
+      <div class="w-full rounded-[26px] bg-white border-2 border-[#F1E1CA] shadow-clay-sm p-3">
+        <!-- Title & Sub -->
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-clayMint"></span>
+            <h2 class="text-[12px] font-extrabold text-clayBrown">전투 장비 (3칸)</h2>
+            <span class="text-[10px] text-clayBrownLight font-medium">능력치 보너스 적용중</span>
+          </div>
+          <button class="text-[10px] font-bold text-clayMint flex items-center gap-0.5 hover:underline">
+            장비 강화 <i data-lucide="chevron-right" class="w-3 h-3"></i>
+          </button>
+        </div>
+
+        <!-- 3 Equipment Horizontal Pods -->
+        <div class="grid grid-cols-3 gap-2">
+
+          <!-- 1. 무기: 벼락 발톱 +7 (희귀, 코랄 배지) -->
+          <div class="relative flex flex-col items-center p-2 rounded-2xl bg-[#FFF6F2] border border-[#FFD5C6] shadow-sm hover:shadow-md transition-shadow">
+            <span class="absolute -top-1.5 left-2 px-1.5 py-0.2 bg-clayCoral text-white text-[8px] font-black rounded-md tracking-tight">
+              무기
+            </span>
+            <div class="w-10 h-10 mt-1 rounded-xl bg-white border border-[#FFCEBC] flex items-center justify-center text-xl shadow-inner">
+              ⚡
+            </div>
+            <p class="text-[10.5px] font-extrabold text-clayBrown mt-1.5 text-center leading-tight">벼락 발톱</p>
+            <div class="flex items-center gap-1 mt-0.5">
+              <span class="px-1 py-0.2 bg-clayCoral/15 text-clayCoral text-[9px] font-black rounded">희귀</span>
+              <span class="text-[10px] font-black text-clayCoral">+7</span>
+            </div>
+            <p class="text-[8.5px] text-clayBrownLight mt-0.5 font-medium">공격력 +48</p>
+          </div>
+
+          <!-- 2. 방어구: 별비늘 갑옷 +5 (고급, 민트 배지) -->
+          <div class="relative flex flex-col items-center p-2 rounded-2xl bg-[#F0FAF5] border border-[#C6ECD8] shadow-sm hover:shadow-md transition-shadow">
+            <span class="absolute -top-1.5 left-2 px-1.5 py-0.2 bg-clayMint text-white text-[8px] font-black rounded-md tracking-tight">
+              방어구
+            </span>
+            <div class="w-10 h-10 mt-1 rounded-xl bg-white border border-[#BCE8D1] flex items-center justify-center text-xl shadow-inner">
+              🛡️
+            </div>
+            <p class="text-[10.5px] font-extrabold text-clayBrown mt-1.5 text-center leading-tight">별비늘 갑옷</p>
+            <div class="flex items-center gap-1 mt-0.5">
+              <span class="px-1 py-0.2 bg-clayMint/20 text-[#309166] text-[9px] font-black rounded">고급</span>
+              <span class="text-[10px] font-black text-clayMint">+5</span>
+            </div>
+            <p class="text-[8.5px] text-clayBrownLight mt-0.5 font-medium">방어력 +32</p>
+          </div>
+
+          <!-- 3. 장신구: 고대 태양 반지 +9 (전설, 보라/골드 배지) -->
+          <div class="relative flex flex-col items-center p-2 rounded-2xl bg-[#FAF5FF] border border-[#E9D5FF] shadow-sm hover:shadow-md transition-shadow">
+            <span class="absolute -top-1.5 left-2 px-1.5 py-0.2 bg-gradient-to-r from-clayPurple to-clayGold text-white text-[8px] font-black rounded-md tracking-tight">
+              장신구
+            </span>
+            <div class="w-10 h-10 mt-1 rounded-xl bg-white border border-[#DDD6FE] flex items-center justify-center text-xl shadow-inner">
+              💍
+            </div>
+            <p class="text-[10.5px] font-extrabold text-clayBrown mt-1.5 text-center leading-tight truncate w-full text-center">태양 반지</p>
+            <div class="flex items-center gap-1 mt-0.5">
+              <span class="px-1 py-0.2 bg-clayPurple/20 text-[#7C3AED] text-[9px] font-black rounded">전설</span>
+              <span class="text-[10px] font-black text-clayPurple">+9</span>
+            </div>
+            <p class="text-[8.5px] text-clayBrownLight mt-0.5 font-medium">치명타 +12%</p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== BOTTOM DRAWER CARD: WARDROBE & DYE ==================== -->
+    <section class="px-3.5 pt-2 flex-1">
+      <div class="w-full rounded-[32px] bg-white border-2 border-[#F1E0C7] shadow-clay-card p-3.5 flex flex-col">
+        
+        <!-- Category Filter Pills (Scrollable) -->
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+          <button class="px-3 py-1.5 rounded-full bg-clayCoral text-white text-[11px] font-extrabold shadow-sm flex-shrink-0 active:scale-95 transition-transform">
+            전체
+          </button>
+          <button class="px-3 py-1.5 rounded-full bg-[#FFF6EB] text-clayBrown hover:bg-[#FFEED9] text-[11px] font-bold border border-[#EED7BA] flex-shrink-0 active:scale-95 transition-transform">
+            머리 (8)
+          </button>
+          <button class="px-3 py-1.5 rounded-full bg-[#FFF6EB] text-clayBrown hover:bg-[#FFEED9] text-[11px] font-bold border border-[#EED7BA] flex-shrink-0 active:scale-95 transition-transform">
+            얼굴 (4)
+          </button>
+          <button class="px-3 py-1.5 rounded-full bg-[#FFF6EB] text-clayBrown hover:bg-[#FFEED9] text-[11px] font-bold border border-[#EED7BA] flex-shrink-0 active:scale-95 transition-transform">
+            목 (5)
+          </button>
+          <button class="px-3 py-1.5 rounded-full bg-[#FFF6EB] text-clayBrown hover:bg-[#FFEED9] text-[11px] font-bold border border-[#EED7BA] flex-shrink-0 active:scale-95 transition-transform">
+            등 (3)
+          </button>
+          <button class="px-3 py-1.5 rounded-full bg-[#FFF6EB] text-clayBrown hover:bg-[#FFEED9] text-[11px] font-bold border border-[#EED7BA] flex-shrink-0 active:scale-95 transition-transform">
+            손 (6)
+          </button>
+          <button class="px-3 py-1.5 rounded-full bg-[#FFF6EB] text-clayBrown hover:bg-[#FFEED9] text-[11px] font-bold border border-[#EED7BA] flex-shrink-0 active:scale-95 transition-transform">
+            이펙트 (5)
+          </button>
+          <!-- Dye Tab with Star Shards badge -->
+          <button class="px-2.5 py-1.5 rounded-full bg-gradient-to-r from-amber-100 to-orange-100 text-[#8F521E] hover:from-amber-200 text-[11px] font-extrabold border border-amber-300 flex items-center gap-1 flex-shrink-0 active:scale-95 transition-transform">
+            <span>🎨</span> 염색(별조각)
+          </button>
+        </div>
+
+        <!-- 2x3 Grid of Unique Collectible Items -->
+        <div class="grid grid-cols-3 gap-2.5 mt-3">
+
+          <!-- Item 1: 별마법사 모자 (장착중 - 전설) -->
+          <div class="relative flex flex-col p-2 rounded-2xl bg-white border-2 border-clayCoral shadow-clay-slot cursor-pointer transition-transform active:scale-95">
+            <!-- Equipped Badge -->
+            <span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-clayCoral text-white text-[8px] font-black leading-none">
+              장착중
+            </span>
+            <!-- Item Icon Box -->
+            <div class="w-full aspect-square rounded-xl bg-gradient-to-b from-[#F5F3FF] to-[#EDE9FE] border border-[#DDD6FE] flex items-center justify-center text-3xl">
+              🧙‍♂️
+            </div>
+            <!-- Item Details -->
+            <div class="mt-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-black text-clayPurple">전설</span>
+                <span class="text-[9px] font-bold text-clayCoral">+35 매력</span>
+              </div>
+              <p class="text-[10px] font-extrabold text-clayBrown truncate">별마법사 모자</p>
+            </div>
+          </div>
+
+          <!-- Item 2: 연금술사 동글안경 (장착중 - 희귀) -->
+          <div class="relative flex flex-col p-2 rounded-2xl bg-white border-2 border-clayCoral shadow-clay-slot cursor-pointer transition-transform active:scale-95">
+            <span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-clayCoral text-white text-[8px] font-black leading-none">
+              장착중
+            </span>
+            <div class="w-full aspect-square rounded-xl bg-gradient-to-b from-[#FFFBEB] to-[#FEF3C7] border border-[#FDE68A] flex items-center justify-center text-3xl">
+              👓
+            </div>
+            <div class="mt-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-black text-clayCoral">희귀</span>
+                <span class="text-[9px] font-bold text-clayCoral">+20 매력</span>
+              </div>
+              <p class="text-[10px] font-extrabold text-clayBrown truncate">연금술 안경</p>
+            </div>
+          </div>
+
+          <!-- Item 3: 딸기 마카롱 베레모 (보관중 - 일반) -->
+          <div class="relative flex flex-col p-2 rounded-2xl bg-white border border-[#EADBCE] shadow-sm hover:border-clayCoral/50 cursor-pointer transition-transform active:scale-95">
+            <div class="w-full aspect-square rounded-xl bg-gradient-to-b from-[#FFF1F2] to-[#FFE4E6] border border-[#FECDD3] flex items-center justify-center text-3xl">
+              🍓
+            </div>
+            <div class="mt-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-black text-slate-500">일반</span>
+                <span class="text-[9px] font-bold text-clayBrownLight">+10 매력</span>
+              </div>
+              <p class="text-[10px] font-extrabold text-clayBrown truncate">딸기 베레모</p>
+            </div>
+          </div>
+
+          <!-- Item 4: 룬 무늬 머플러 (장착중 - 희귀) -->
+          <div class="relative flex flex-col p-2 rounded-2xl bg-white border-2 border-clayCoral shadow-clay-slot cursor-pointer transition-transform active:scale-95">
+            <span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-clayCoral text-white text-[8px] font-black leading-none">
+              장착중
+            </span>
+            <div class="w-full aspect-square rounded-xl bg-gradient-to-b from-[#FFF7ED] to-[#FFEDD5] border border-[#FED7AA] flex items-center justify-center text-3xl">
+              🧣
+            </div>
+            <div class="mt-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-black text-clayCoral">희귀</span>
+                <span class="text-[9px] font-bold text-clayCoral">+18 매력</span>
+              </div>
+              <p class="text-[10px] font-extrabold text-clayBrown truncate">룬 머플러</p>
+            </div>
+          </div>
+
+          <!-- Item 5: 별빛 등불 지팡이 (장착중 - 전설) -->
+          <div class="relative flex flex-col p-2 rounded-2xl bg-white border-2 border-clayCoral shadow-clay-slot cursor-pointer transition-transform active:scale-95">
+            <span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-clayCoral text-white text-[8px] font-black leading-none">
+              장착중
+            </span>
+            <div class="w-full aspect-square rounded-xl bg-gradient-to-b from-[#FEFCE8] to-[#FEF08A] border border-[#FACC15] flex items-center justify-center text-3xl">
+              🏮
+            </div>
+            <div class="mt-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-black text-clayPurple">전설</span>
+                <span class="text-[9px] font-bold text-clayCoral">+40 매력</span>
+              </div>
+              <p class="text-[10px] font-extrabold text-clayBrown truncate">등불 지팡이</p>
+            </div>
+          </div>
+
+          <!-- Item 6: 포근 수면 안대 (보관중 - 일반) -->
+          <div class="relative flex flex-col p-2 rounded-2xl bg-white border border-[#EADBCE] shadow-sm hover:border-clayCoral/50 cursor-pointer transition-transform active:scale-95">
+            <div class="w-full aspect-square rounded-xl bg-gradient-to-b from-[#F0FDF4] to-[#DCFCE7] border border-[#BBF7D0] flex items-center justify-center text-3xl">
+              💤
+            </div>
+            <div class="mt-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-black text-slate-500">일반</span>
+                <span class="text-[9px] font-bold text-clayBrownLight">+8 매력</span>
+              </div>
+              <p class="text-[10px] font-extrabold text-clayBrown truncate">포근 수면안대</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Dye & Save CTA Bar -->
+        <div class="grid grid-cols-2 gap-2 mt-4 pt-2 border-t border-[#F2E4CF]">
+          <!-- Dye Palette Button -->
+          <button class="w-full py-3 px-3 rounded-2xl bg-[#FFF8EE] hover:bg-[#FFF2E0] border-2 border-[#E9D6BE] text-clayBrown font-black text-[12px] flex items-center justify-center gap-1.5 shadow-clay-sm active:scale-95 transition-all">
+            <span class="text-base">🎨</span>
+            <span>색상 염색하기</span>
+            <span class="text-[10px] text-[#A66F17] bg-clayGold/40 px-1.5 py-0.5 rounded-full font-bold ml-0.5">⭐5</span>
+          </button>
+
+          <!-- Save Equipment 3D Button -->
+          <button class="w-full py-3 px-3 rounded-2xl bg-gradient-to-b from-[#FF9877] to-clayCoral text-white font-black text-[13px] flex items-center justify-center gap-1.5 shadow-clay-btn active:translate-y-1 active:shadow-none transition-all">
+            <i data-lucide="check" class="w-4 h-4 stroke-[3]"></i>
+            <span>코디 저장하기</span>
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Lucide Icon Initialization -->
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>

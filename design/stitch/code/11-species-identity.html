@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>펫과함께 - 몬스터 개성 도감</title>
+<!-- Fonts & Material Symbols -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;family=Noto+Sans+KR:wght@500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "outline": "#89726b",
+            "on-secondary-fixed-variant": "#005138",
+            "on-secondary-container": "#177051",
+            "on-primary-container": "#752305",
+            "secondary": "#0f6c4d",
+            "primary-fixed-dim": "#ffb59e",
+            "on-primary-fixed": "#3a0b00",
+            "on-tertiary-container": "#4f3c00",
+            "surface-variant": "#f2dedd",
+            "inverse-surface": "#392d2d",
+            "tertiary-container": "#caa646",
+            "on-primary-fixed-variant": "#7f2a0d",
+            "on-tertiary": "#ffffff",
+            "surface": "#fff8f7",
+            "tertiary": "#765b00",
+            "inverse-primary": "#ffb59e",
+            "background": "#fff8f7",
+            "tertiary-fixed": "#ffdf92",
+            "secondary-fixed": "#a1f3cc",
+            "primary": "#9f4122",
+            "tertiary-fixed-dim": "#e8c25f",
+            "primary-fixed": "#ffdbd0",
+            "primary-container": "#ff8a65",
+            "on-tertiary-fixed-variant": "#594400",
+            "secondary-container": "#9ef1c9",
+            "secondary-fixed-dim": "#85d7b1",
+            "surface-bright": "#fff8f7",
+            "on-tertiary-fixed": "#241a00",
+            "surface-container": "#fee9e9",
+            "surface-container-lowest": "#ffffff",
+            "on-surface-variant": "#56423c",
+            "error": "#ba1a1a",
+            "surface-container-high": "#f8e4e3",
+            "on-secondary-fixed": "#002114",
+            "on-error": "#ffffff",
+            "on-surface": "#231919",
+            "on-background": "#231919",
+            "inverse-on-surface": "#ffedec",
+            "outline-variant": "#ddc0b8",
+            "surface-container-highest": "#f2dedd",
+            "error-container": "#ffdad6",
+            "on-primary": "#ffffff",
+            "surface-container-low": "#fff0f0",
+            "surface-tint": "#9f4122",
+            "surface-dim": "#e9d5d5",
+            "on-error-container": "#93000a",
+            "on-secondary": "#ffffff"
+          },
+          "borderRadius": {
+            "DEFAULT": "1rem",
+            "lg": "2rem",
+            "xl": "3rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xl": "2.25rem",
+            "gutter": "1rem",
+            "space-md": "1rem",
+            "space-sm": "0.75rem",
+            "space-lg": "1.5rem",
+            "margin": "1.25rem",
+            "space-xs": "0.375rem"
+          },
+          "fontFamily": {
+            "headline-md": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "body-md": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "body-lg": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "body-sm": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "headline-sm": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "display-lg": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "label-sm": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "display-lg-mobile": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "headline-lg": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "label-md": ["Plus Jakarta Sans", "Noto Sans KR"],
+            "label-lg": ["Plus Jakarta Sans", "Noto Sans KR"]
+          },
+          "fontSize": {
+            "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "700" }],
+            "body-md": ["14px", { "lineHeight": "22px", "fontWeight": "500" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "500" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "fontWeight": "500" }],
+            "headline-sm": ["18px", { "lineHeight": "26px", "fontWeight": "600" }],
+            "display-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+            "label-sm": ["10px", { "lineHeight": "14px", "fontWeight": "700" }],
+            "display-lg-mobile": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+            "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "700" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "700" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      font-family: 'Plus Jakarta Sans', 'Noto Sans KR', sans-serif;
+      background-color: #fff8f7;
+    }
+    
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      line-height: 1;
+      text-transform: none;
+      letter-spacing: normal;
+      word-wrap: normal;
+      white-space: nowrap;
+      direction: ltr;
+    }
+
+    /* Clay Elevation Shading Rules */
+    .clay-surface-resting {
+      border: 1.5px solid #ddc0b8;
+      box-shadow: 0 4px 16px rgba(159, 65, 34, 0.08);
+    }
+    
+    .clay-btn-primary {
+      box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.45), inset 0 -4px 0 #752305, 0 6px 16px rgba(255, 138, 101, 0.35);
+      transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .clay-btn-primary:active {
+      transform: translateY(2px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -2px 0 #752305, 0 2px 8px rgba(255, 138, 101, 0.2);
+    }
+
+    .clay-btn-secondary {
+      box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.4), inset 0 -3px 0 #005138, 0 4px 12px rgba(15, 108, 77, 0.15);
+      transition: all 0.15s ease;
+    }
+    .clay-btn-secondary:active {
+      transform: translateY(2px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 #005138;
+    }
+
+    .clay-badge {
+      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.8), 0 2px 6px rgba(159, 65, 34, 0.06);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface antialiased flex justify-center min-h-screen selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Mobile Container (Max 480px) -->
+<main class="w-full max-w-[480px] bg-background min-h-screen flex flex-col relative pb-32">
+<!-- Top App Bar (Shared Component Anchor) -->
+<header class="fixed top-0 left-0 w-full z-40 flex justify-between items-center px-margin py-space-sm max-w-[480px] mx-auto bg-surface/90 backdrop-blur-md border-b border-outline-variant/30 shadow-sm">
+<div class="flex items-center gap-space-xs">
+<button aria-label="뒤로가기" class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-primary active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[20px]">arrow_back</span>
+</button>
+<span class="text-headline-md font-headline-md font-bold text-primary tracking-tight">펫과함께</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="flex items-center bg-surface-container-high px-2.5 py-1 rounded-full border border-outline-variant/40">
+<span class="material-symbols-outlined text-primary text-[18px] mr-1" data-weight="fill" style="font-variation-settings: 'FILL' 1;">energy_savings_leaf</span>
+<span class="text-label-md font-label-md text-primary">3,850</span>
+</div>
+<button class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">help</span>
+</button>
+</div>
+</header>
+<!-- Content Spacer for Fixed Top Bar -->
+<div class="h-16"></div>
+<!-- Screen Title & Intro -->
+<section class="px-margin pt-space-md pb-space-xs">
+<div class="flex items-center justify-between">
+<div>
+<div class="flex items-center gap-1.5 mb-1">
+<span class="bg-primary-fixed text-on-primary-fixed text-label-sm font-label-sm px-2 py-0.5 rounded-full clay-badge">
+              도감 컬렉션 V2.4
+            </span>
+<span class="flex items-center text-tertiary text-label-sm font-label-sm">
+<span class="material-symbols-outlined text-[13px] mr-0.5" data-weight="fill" style="font-variation-settings: 'FILL' 1;">arrow_back_ios_new</span> 100% 수집중
+            </span>
+</div>
+<h1 class="text-headline-lg font-headline-lg text-primary tracking-tight">몬스터 개성 도감</h1>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-0.5">세상에 단 하나뿐인 나의 파트너</p>
+</div>
+<div class="w-12 h-12 rounded-2xl bg-surface-container-low border border-outline-variant/60 flex items-center justify-center text-primary-container shadow-inner">
+<span class="material-symbols-outlined text-[28px]" data-weight="fill" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+</div>
+<!-- 4-Step Identity Layer Horizontal Filter Pill -->
+<div class="mt-space-md flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+<button class="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary text-on-primary text-label-sm font-label-sm shadow-sm clay-badge">
+<span>✨ 4단계 개성 레이어</span>
+</button>
+<span class="text-outline-variant text-[10px]">▶</span>
+<button class="flex-shrink-0 px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant text-label-sm font-label-sm border border-outline-variant/30">
+          1. 체형 실루엣
+        </button>
+<span class="text-outline-variant text-[10px]">▶</span>
+<button class="flex-shrink-0 px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant text-label-sm font-label-sm border border-outline-variant/30">
+          2. 특수 변이
+        </button>
+<span class="text-outline-variant text-[10px]">▶</span>
+<button class="flex-shrink-0 px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant text-label-sm font-label-sm border border-outline-variant/30">
+          3. 육성 훈장
+        </button>
+</div>
+</section>
+<!-- SECTION 2: Top Hero Showcase Card -->
+<section class="px-margin mt-space-sm">
+<div class="relative bg-surface-container-lowest rounded-lg p-space-lg clay-surface-resting overflow-hidden">
+<!-- Background Soft Clay Glow & Accents -->
+<div class="absolute -top-16 -right-16 w-48 h-48 bg-primary-fixed/40 rounded-full blur-2xl pointer-events-none"></div>
+<div class="absolute -bottom-10 -left-10 w-36 h-36 bg-secondary-fixed/50 rounded-full blur-xl pointer-events-none"></div>
+<!-- Header Info -->
+<div class="flex items-start justify-between relative z-10">
+<div>
+<div class="flex items-center gap-1.5">
+<span class="bg-primary-container text-on-primary text-label-sm font-label-sm px-2.5 py-0.5 rounded-full shadow-sm">
+                0.2% 초희귀 변이
+              </span>
+<span class="bg-tertiary-fixed text-on-tertiary-fixed text-label-sm font-label-sm px-2 py-0.5 rounded-full flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span> 명예 각인
+              </span>
+</div>
+<h2 class="text-headline-md font-headline-md text-on-surface mt-1.5">흑염 (Black Flame)</h2>
+<p class="text-body-sm font-body-sm text-outline font-semibold">칠흑 크리스탈 변이체 · 3성 궁극형</p>
+</div>
+<button aria-label="관심 몬스터 등록" class="w-9 h-9 rounded-full bg-surface-container-high text-primary flex items-center justify-center border border-outline-variant/40 active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-[20px]" data-weight="fill" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</button>
+</div>
+<!-- Featured Monster Clay Stage Showcase -->
+<div class="relative mt-space-md flex flex-col items-center justify-center">
+<!-- Monster Visual Stage Plate -->
+<div class="w-64 h-56 relative rounded-2xl bg-gradient-to-b from-surface-container-low to-surface-container-high border-2 border-outline-variant/40 flex items-center justify-center shadow-inner overflow-hidden">
+<!-- Soft Clay Model Monster Illustration -->
+<img class="w-full h-full object-cover rounded-xl" data-alt="A charming cuddly claymation baby wolf monster sculpted from smooth dark charcoal clay, featuring glowing translucent amber horns and deep cyan crystal spikes along its spine. The cute creature stands proudly on a warm sandy pedestal with soft ambient rim lighting, displaying a tiny golden star etched on its forehead. The aesthetic is adorable cozy mobile gaming with tactile claymorphism surfaces and cheerful pastel warmth." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSDbsAWEscEdp9BtV8XtsXu70XpdGLH-T96wp1JfJ0He73nCoAf85w4kKFwszN13OxvZkfYXj271Mx5cz0bPRAya4GzX1Llzx2Cca1GpkVzQIyyMH68iJ0exyvo7B1JUXhFnwnhPU7fSMilE3Iz90S43qS-vWeznWumxb8BAqJDkPaJRjIJ6c63TOqsTbb_Y_o74K8IXKijS5ryF5Kc9P12egTLkm45tQizsM0kWjsdaIVJdDOcMHSza2ZnlgAJkeDIlmibE90y88"/>
+<!-- Floating Micro-Badges on Monster Details -->
+<div class="absolute top-2 left-2 bg-inverse-surface/85 backdrop-blur-sm text-inverse-on-surface text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border border-outline-variant/30 shadow-sm">
+<span class="material-symbols-outlined text-tertiary-fixed text-[12px]" data-weight="fill" style="font-variation-settings: 'FILL' 1;">kid_star</span>
+<span>이마: 탑 30층 정복 별 표식</span>
+</div>
+<div class="absolute bottom-2 right-2 bg-primary-container text-on-primary text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[12px]" data-weight="fill" style="font-variation-settings: 'FILL' 1;">military_tech</span>
+<span>갈기: 대전 100승 금빛 팁</span>
+</div>
+</div>
+<!-- Rarity & Trait Pill Chips Cluster -->
+<div class="flex flex-wrap gap-1.5 mt-space-sm justify-center w-full">
+<span class="bg-secondary-fixed text-on-secondary-fixed text-label-sm font-label-sm px-2.5 py-1 rounded-full flex items-center gap-1 border border-secondary-fixed-dim">
+<span class="material-symbols-outlined text-[13px]">diamond</span>
+              수정 변이 (0.2%)
+            </span>
+<span class="bg-tertiary-fixed text-on-tertiary-fixed text-label-sm font-label-sm px-2.5 py-1 rounded-full flex items-center gap-1 border border-tertiary-fixed-dim">
+<span class="material-symbols-outlined text-[13px]">trophy</span>
+              100승 금빛 갈기
+            </span>
+<span class="bg-surface-variant text-on-surface-variant text-label-sm font-label-sm px-2.5 py-1 rounded-full flex items-center gap-1 border border-outline-variant/40">
+<span class="material-symbols-outlined text-[13px]">flare</span>
+              은하수 오라
+            </span>
+</div>
+<!-- Description Micro-Copy -->
+<p class="text-body-sm font-body-sm text-on-surface-variant text-center mt-space-sm px-2 leading-relaxed bg-surface-container-low/70 py-2 rounded-xl border border-outline-variant/20">
+            "동일한 종족이라도 <span class="text-primary font-bold">육성 궤적</span>과 <span class="text-secondary font-bold">부화 잠재력</span>에 따라 완전히 다른 실루엣과 질감을 가집니다."
+          </p>
+<!-- 360 Viewing CTA Button -->
+<button class="mt-space-md w-full py-3 bg-primary-container text-on-primary text-label-lg font-label-lg rounded-xl clay-btn-primary flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[20px]" data-weight="fill" style="font-variation-settings: 'FILL' 1;">view_in_ar</span>
+<span>360° 디테일 감상 &amp; 모션 보기</span>
+</button>
+</div>
+</div>
+</section>
+<!-- SECTION 3: Distinct Monster Silhouettes (3x2 Grid) -->
+<section class="px-margin mt-space-xl">
+<div class="flex items-center justify-between mb-space-sm">
+<div>
+<div class="flex items-center gap-1">
+<h3 class="text-headline-sm font-headline-sm text-on-surface">종족별 고유 실루엣</h3>
+<span class="text-body-sm font-body-sm text-primary font-bold">(6종)</span>
+</div>
+<p class="text-body-sm font-body-sm text-outline">체형 차별화 시스템 &amp; 골격 프로필</p>
+</div>
+<span class="bg-secondary-fixed text-on-secondary-fixed-variant text-label-sm font-label-sm px-2.5 py-1 rounded-full font-bold">
+          골격 100% 오픈
+        </span>
+</div>
+<!-- 3x2 Bento Style Grid -->
+<div class="grid grid-cols-2 gap-space-sm">
+<!-- Monster 1: 몽실 (바람) -->
+<div class="bg-surface-container-lowest rounded-lg p-space-sm clay-surface-resting flex flex-col justify-between hover:border-primary transition-colors">
+<div>
+<div class="flex items-center justify-between mb-2">
+<span class="bg-surface-container text-primary text-label-sm font-label-sm px-2 py-0.5 rounded-full font-bold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">air</span> 바람
+              </span>
+<span class="text-[11px] font-bold text-outline">01</span>
+</div>
+<div class="w-full h-24 rounded-xl bg-surface-container-low flex items-center justify-center overflow-hidden border border-outline-variant/30 mb-2">
+<img class="w-full h-full object-cover" data-alt="A pastel sky-blue fluffy cloud monster sculpted from soft marshmallow clay, hovering gently with playful wind swirl spiraling clay horns and tiny rosy cheeks. The background is a clean warm cream vignette with gentle sunbeams, highlighting the rounded round silhouette with tactile tactile smoothness." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAL2-FABNXWBuuu6-Kh1Gkez50FpI0792s3EUGd70gUYXAOsbdXC8ntxUss9iylVjKsS99cWzI0IZ23ZUsJED2zheckYooPjzEEd6KAewBMfqJ6pHbahuZQQIr-BNJzAzVVdpK8GeIenLzxbQOujwVFcCUzOqiVeYvJRsc-ssIArWsY0UwBYNQYv7usdFKSskG_O4xkFisTFterQT5AyXkItOg4YQg16BlXbYoi1MO4Om0njxzA5uARZWzupCDKpeUG-WxfC2uSHZo"/>
+</div>
+<h4 class="text-body-lg font-headline-sm text-on-surface font-bold">몽실</h4>
+<p class="text-body-sm font-body-sm text-on-surface-variant font-semibold text-[11px] leading-snug mt-0.5">
+              구름 방울 체형 + 소용돌이 뿔
+            </p>
+</div>
+<div class="mt-2 pt-2 border-t border-outline-variant/20 flex items-center justify-between text-[11px] text-outline font-bold">
+<span>둥실 솜사탕 체형</span>
+<span class="text-primary">자세 A</span>
+</div>
+</div>
+<!-- Monster 2: 콩콩 (풀) -->
+<div class="bg-surface-container-lowest rounded-lg p-space-sm clay-surface-resting flex flex-col justify-between hover:border-primary transition-colors">
+<div>
+<div class="flex items-center justify-between mb-2">
+<span class="bg-secondary-fixed text-on-secondary-fixed-variant text-label-sm font-label-sm px-2 py-0.5 rounded-full font-bold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">spa</span> 풀
+              </span>
+<span class="text-[11px] font-bold text-outline">02</span>
+</div>
+<div class="w-full h-24 rounded-xl bg-surface-container-low flex items-center justify-center overflow-hidden border border-outline-variant/30 mb-2">
+<img class="w-full h-full object-cover" data-alt="A chubby acorn-shaped clay creature rendered in warm mint green and olive hues with a giant broad leaf paddle tail, tiny clay paws, and curious beaded black eyes. Set in a warm nursery scene with delicate light wood table grains, conveying an earthy grounded baby monster silhouette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-ylOdmR0VJeOfr1SUxzuOcws95pnPa9KPDPhfzMMxgsQeDv_dTNiuuVcuokvlnBJc9NIeJJDBLdTItugIpBCypVCgLmtvqp8M-Z1dhixG1wtkV4Fgj2b1kLuK7bMZRwRIaiQwpdQEGOrLZBicuoMqeRgcAXrWBSIp-P3HBTCMHYpqumY4K-ywhLQpzd22zORdca30QK8oHxoU_1_jmC4Obe-W_-2fC-grLcTJn02iac95IPCVFRCYKCckSpPy7SZrr9959fsZDhU"/>
+</div>
+<h4 class="text-body-lg font-headline-sm text-on-surface font-bold">콩콩</h4>
+<p class="text-body-sm font-body-sm text-on-surface-variant font-semibold text-[11px] leading-snug mt-0.5">
+              도토리 체형 + 거대 잎사귀 꼬리
+            </p>
+</div>
+<div class="mt-2 pt-2 border-t border-outline-variant/20 flex items-center justify-between text-[11px] text-outline font-bold">
+<span>땅딸보 2족보행</span>
+<span class="text-secondary">자세 B</span>
+</div>
+</div>
+<!-- Monster 3: 번개꼬리 (전기) -->
+<div class="bg-surface-container-lowest rounded-lg p-space-sm clay-surface-resting flex flex-col justify-between hover:border-primary transition-colors">
+<div>
+<div class="flex items-center justify-between mb-2">
+<span class="bg-tertiary-fixed text-on-tertiary-fixed text-label-sm font-label-sm px-2 py-0.5 rounded-full font-bold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">bolt</span> 전기
+              </span>
+<span class="text-[11px] font-bold text-outline">03</span>
+</div>
+<div class="w-full h-24 rounded-xl bg-surface-container-low flex items-center justify-center overflow-hidden border border-outline-variant/30 mb-2">
+<img class="w-full h-full object-cover" data-alt="An agile serpentine ferret dragon creature modeled in warm honey yellow clay with a soft S-curve posture and translucent crystalline lightning bolts along its long tail tip. The lighting features warm ambient gold tones with soft diffused drop shadows on a warm biscuit canvas." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHO8QcCcIto6NuJIHkP54E5CAwGQ7Js490uyb30siQJyOnnBBYfIdxZ4GJYvdJTnyRtUt1ysr2_aUxUENmJhhNB0qxaOKjLQW5GmHivP7VU266IlpjgWT7vW6ViGVyYYTp85-C5Wh638IgGhWDN8Lc1sLpzHLLdQmOi5AXnnhIgV4K0jsqYLNOD-0_JtI_OKa_1WrevvyuhNFeMvb5jycRhvAJtVT8qP54CI2YmB79ftMfdwaPXPyXUaz0LY8xoamjmrFPnNnXKpc"/>
+</div>
+<h4 class="text-body-lg font-headline-sm text-on-surface font-bold">번개꼬리</h4>
+<p class="text-body-sm font-body-sm text-on-surface-variant font-semibold text-[11px] leading-snug mt-0.5">
+              유연한 S자 체형 + 수정 번개 꼬리
+            </p>
+</div>
+<div class="mt-2 pt-2 border-t border-outline-variant/20 flex items-center justify-between text-[11px] text-outline font-bold">
+<span>날렵한 족제비형</span>
+<span class="text-tertiary">자세 C</span>
+</div>
+</div>
+<!-- Monster 4: 강철등 (땅) -->
+<div class="bg-surface-container-lowest rounded-lg p-space-sm clay-surface-resting flex flex-col justify-between hover:border-primary transition-colors">
+<div>
+<div class="flex items-center justify-between mb-2">
+<span class="bg-surface-variant text-on-surface-variant text-label-sm font-label-sm px-2 py-0.5 rounded-full font-bold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">shield</span> 땅
+              </span>
+<span class="text-[11px] font-bold text-outline">04</span>
+</div>
+<div class="w-full h-24 rounded-xl bg-surface-container-low flex items-center justify-center overflow-hidden border border-outline-variant/30 mb-2">
+<img class="w-full h-full object-cover" data-alt="A sturdy 4-legged armadillo turtle monster modeled from rich terracotta and biscuit ceramic clay, featuring thick segmented rock shell plates on its back and chunky round feet. Set in a warm daylight meadow with soft clay soil textures and pillowy round stones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_EUVtmuUdV6LEc_rKWam81SGdrxKFr64-8hU0qbUHBfPotA6Wlp-UcYEJaJo8omqC54MRC3JlfIbsf5NIx1ThMvQxDkENy-YDVgvj6IvsON9YtL6u3VsKzeb3qDc2ghYYHxWbdl-9juwFvlyKJsWkedm1PEPELOb7lUA4cJZL_qe22qktDYk67yXbUzVSPraPohiWN407CRnPLzdpiFpk5XSw6DLKBiyolwZUVObJWCnslShCmoY7lKBveUZCuJGVs3yG-I4iAkU"/>
+</div>
+<h4 class="text-body-lg font-headline-sm text-on-surface font-bold">강철등</h4>
+<p class="text-body-sm font-body-sm text-on-surface-variant font-semibold text-[11px] leading-snug mt-0.5">
+              4족 판갑 체형 + 바위 등딱지
+            </p>
+</div>
+<div class="mt-2 pt-2 border-t border-outline-variant/20 flex items-center justify-between text-[11px] text-outline font-bold">
+<span>육중한 거북형</span>
+<span class="text-outline">자세 D</span>
+</div>
+</div>
+<!-- Monster 5: 흑염 (불) -->
+<div class="bg-surface-container-lowest rounded-lg p-space-sm clay-surface-resting flex flex-col justify-between hover:border-primary transition-colors">
+<div>
+<div class="flex items-center justify-between mb-2">
+<span class="bg-primary-fixed text-on-primary-fixed text-label-sm font-label-sm px-2 py-0.5 rounded-full font-bold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">local_fire_department</span> 불
+              </span>
+<span class="text-[11px] font-bold text-outline">05</span>
+</div>
+<div class="w-full h-24 rounded-xl bg-surface-container-low flex items-center justify-center overflow-hidden border border-outline-variant/30 mb-2">
+<img class="w-full h-full object-cover" data-alt="A courageous tiny lion wolf whelp sculpted from soft deep espresso clay with sculpted billowing flame mane tipped with warm coral and orange ember accents. Cheerful friendly posture in cozy game concept art style, standing on a soft ceramic cushion." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBuV9Qqp6k6R0XMihxF-qB1V_Xq7UhQxw917q1-2Bb4D_KbmsiDICk3jWR9vx555VF5pLQgUz9l8BSAXhgfv52rhxVPRfMKtv8FE2mnBtEbk7F3DIfriTyin5k_ODTlJsYyETy1b2e26eK1OVELtWHz30GRcOW6WDi68Z5spV9bzOuVt_IhTNU9VNe_yFGxLaF5JHZHNqa_Bp1FRi4Kipyl1LTwK1Ch1--3HEwi5g7OhewZO0hoi4BlElXnIorpUp4NLKq4Gr1A2VI"/>
+</div>
+<h4 class="text-body-lg font-headline-sm text-on-surface font-bold">흑염</h4>
+<p class="text-body-sm font-body-sm text-on-surface-variant font-semibold text-[11px] leading-snug mt-0.5">
+              타오르는 흑염 갈기 + 불씨 눈동자
+            </p>
+</div>
+<div class="mt-2 pt-2 border-t border-outline-variant/20 flex items-center justify-between text-[11px] text-outline font-bold">
+<span>당당한 사자형</span>
+<span class="text-primary font-bold">자세 E</span>
+</div>
+</div>
+<!-- Monster 6: 별비늘 (물) -->
+<div class="bg-surface-container-lowest rounded-lg p-space-sm clay-surface-resting flex flex-col justify-between hover:border-primary transition-colors">
+<div>
+<div class="flex items-center justify-between mb-2">
+<span class="bg-secondary-fixed text-on-secondary-fixed-variant text-label-sm font-label-sm px-2 py-0.5 rounded-full font-bold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">water_drop</span> 물
+              </span>
+<span class="text-[11px] font-bold text-outline">06</span>
+</div>
+<div class="w-full h-24 rounded-xl bg-surface-container-low flex items-center justify-center overflow-hidden border border-outline-variant/30 mb-2">
+<img class="w-full h-full object-cover" data-alt="An elegant miniature water dragon with scalloped aquatic fin wings shaped like gentle ocean waves, crafted from iridescent pastel mint and seafoam clay with tiny pearlescent scales. Soft gentle studio lighting casting a warm biscuit tone on the backdrop." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZZ4KJX4sVo6HguBq2LZXjW7RBq_joCctrNUgVQjXAbvE0fnDtT3lFSpxJARoh__XHAdANlecAyahMYgyeJXw49VFuufmjdl5exxVv1bGCjxDXoIYpwd14XoLs7G9ZgeJK894qLQrNhKAzzCD9oeFAg6kzljrUE13B4riDS9LignaTDk-wEVPPWdTeVNesRhyZSw1x6ldGC9cq9NLZ-ttCF5ifc_XLqS_4qKxuyEdFZLofBdGg8UNAPRa4XrgIPV-PWu1N0OJMMZs"/>
+</div>
+<h4 class="text-body-lg font-headline-sm text-on-surface font-bold">별비늘</h4>
+<p class="text-body-sm font-body-sm text-on-surface-variant font-semibold text-[11px] leading-snug mt-0.5">
+              비행 날개 용 + 은하수 비늘
+            </p>
+</div>
+<div class="mt-2 pt-2 border-t border-outline-variant/20 flex items-center justify-between text-[11px] text-outline font-bold">
+<span>물결 지느러미형</span>
+<span class="text-secondary font-bold">자세 F</span>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 4: Growth Marks & Evolution Branch Forecast -->
+<section class="px-margin mt-space-xl flex flex-col gap-space-md">
+<!-- Card 1: 키우며 생기는 흔적 (육성 훈장) -->
+<div class="bg-surface-container-lowest rounded-lg p-space-md clay-surface-resting">
+<div class="flex items-center justify-between pb-space-xs border-b border-outline-variant/20">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-primary-fixed flex items-center justify-center text-on-primary-fixed">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+</div>
+<div>
+<h3 class="text-headline-sm font-headline-sm text-on-surface text-[16px]">육성 훈장 &amp; 영광의 흔적</h3>
+<p class="text-body-sm font-body-sm text-outline text-[11px]">배틀과 퀘스트로 몬스터의 몸에 새겨지는 실시간 외형</p>
+</div>
+</div>
+<!-- Toggle Switch (Active Coral) -->
+<div class="flex items-center gap-1.5 bg-surface-container-low px-2 py-1 rounded-full border border-outline-variant/40">
+<span class="text-[10px] font-bold text-on-surface-variant">외형 On</span>
+<button aria-label="훈장 외형 토글" class="w-9 h-5 bg-primary-container rounded-full relative p-0.5 transition-colors focus:outline-none shadow-inner" id="badgeToggle">
+<span class="block w-4 h-4 bg-surface rounded-full shadow-md transform translate-x-4 transition-transform"></span>
+</button>
+</div>
+</div>
+<!-- 3 Growth Marks Chips -->
+<div class="flex flex-col gap-2 mt-space-sm">
+<!-- Badge Item 1 (Unlocked) -->
+<div class="flex items-center justify-between p-2.5 rounded-xl bg-surface-container-low border border-outline-variant/30">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-lg bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center clay-badge">
+<span class="material-symbols-outlined text-[18px]" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<div>
+<p class="text-body-md font-body-md font-bold text-on-surface text-[13px]">시련의 탑 별표식</p>
+<p class="text-body-sm font-body-sm text-outline text-[11px]">이마 중앙에 빛나는 별 각인 (30층 달성)</p>
+</div>
+</div>
+<span class="bg-secondary-fixed text-on-secondary-fixed-variant text-label-sm font-label-sm px-2 py-0.5 rounded-full font-bold">
+              보유중
+            </span>
+</div>
+<!-- Badge Item 2 (Unlocked) -->
+<div class="flex items-center justify-between p-2.5 rounded-xl bg-surface-container-low border border-outline-variant/30">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-lg bg-primary-fixed text-on-primary-fixed flex items-center justify-center clay-badge">
+<span class="material-symbols-outlined text-[18px]" data-weight="fill" style="font-variation-settings: 'FILL' 1;">crown</span>
+</div>
+<div>
+<p class="text-body-md font-body-md font-bold text-on-surface text-[13px]">주간 챔피언 왕관</p>
+<p class="text-body-sm font-body-sm text-outline text-[11px]">머리 위를 맴도는 황금 입자 오라</p>
+</div>
+</div>
+<span class="bg-secondary-fixed text-on-secondary-fixed-variant text-label-sm font-label-sm px-2 py-0.5 rounded-full font-bold">
+              보유중
+            </span>
+</div>
+<!-- Badge Item 3 (Locked Challenge) -->
+<div class="flex items-center justify-between p-2.5 rounded-xl bg-surface-container-highest/60 border border-outline-variant/40 opacity-80">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-lg bg-surface-variant text-outline flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">electric_bolt</span>
+</div>
+<div>
+<p class="text-body-md font-body-md font-bold text-on-surface text-[13px]">보스 토벌 흉터</p>
+<p class="text-body-sm font-body-sm text-outline text-[11px]">볼에 새겨지는 날렵한 번개 문양 흉터</p>
+</div>
+</div>
+<span class="bg-surface text-outline text-label-sm font-label-sm px-2 py-0.5 rounded-full border border-outline-variant/40 font-bold">
+              도전 가능
+            </span>
+</div>
+</div>
+</div>
+<!-- Card 2: 미스터리 진화 갈래 예고 -->
+<div class="bg-gradient-to-br from-surface-container-lowest to-surface-container-low rounded-lg p-space-md clay-surface-resting relative overflow-hidden">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="bg-tertiary-fixed text-on-tertiary-fixed text-label-sm font-label-sm px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">schedule</span> 23시간 후 진화
+            </span>
+<span class="text-primary text-body-sm font-body-sm font-bold text-[12px]">D-1</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant text-[20px]">help</span>
+</div>
+<!-- Silhouette Preview Card -->
+<div class="mt-space-sm bg-surface-container-high rounded-xl p-3 border border-outline-variant/30 flex items-center gap-3">
+<div class="w-16 h-16 rounded-xl bg-inverse-surface/90 text-surface flex items-center justify-center relative shadow-inner flex-shrink-0">
+<span class="material-symbols-outlined text-[32px] text-tertiary-fixed" data-weight="fill" style="font-variation-settings: 'FILL' 1;">mystery</span>
+<div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-primary-container text-on-primary text-[10px] font-bold flex items-center justify-center">
+              ⚡
+            </div>
+</div>
+<div class="flex-1">
+<p class="text-body-sm font-body-sm text-primary font-bold text-[12px]">내일 예고된 변이 갈래</p>
+<h4 class="text-headline-sm font-headline-sm text-on-surface text-[15px]">[뇌운 몽실 / 전사형]</h4>
+<p class="text-body-sm font-body-sm text-on-surface-variant text-[11px] leading-snug mt-0.5">
+              현재 <span class="text-primary font-bold">전투 훈련</span> 수치가 높아 날개 대신 <span class="text-secondary font-bold">번개 뿔</span>이 돋아나고 있어요!
+            </p>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="grid grid-cols-2 gap-2 mt-space-sm">
+<button class="py-2.5 px-3 bg-primary-container text-on-primary text-label-md font-label-md rounded-xl clay-btn-primary flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[16px]">fitness_center</span>
+<span>훈련으로 갈래 바꾸기</span>
+</button>
+<button class="py-2.5 px-3 bg-secondary text-on-secondary text-label-md font-label-md rounded-xl clay-btn-secondary flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[16px]">account_tree</span>
+<span>진화 분기 도감 보기</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Bottom Navigation Bar (Shared Component Anchor) -->
+<!-- Logic: Screen title maps directly to '도감' (Index 1 is Active) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-gutter py-space-xs pb-6 max-w-[480px] mx-auto backdrop-blur-md bg-surface-container-lowest/95 border-t border-outline-variant/40 shadow-[0_-4px_16px_rgba(159,65,34,0.08)] rounded-t-lg">
+<!-- Tab 1: 보육실 (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-2 py-1.5 transition-colors active:scale-90 transition-transform duration-150 ease-out hover:bg-surface-container hover:text-on-surface" href="#">
+<span class="material-symbols-outlined text-[22px]">nest_cam_indoor</span>
+<span class="text-label-sm font-label-sm mt-0.5">보육실</span>
+</a>
+<!-- Tab 2: 도감 (ACTIVE - Matches Screen Intent) -->
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-3 py-1.5 transition-transform active:scale-95 shadow-sm" href="#">
+<span class="material-symbols-outlined text-[22px]" data-weight="fill" style="font-variation-settings: 'FILL' 1;">pets</span>
+<span class="text-label-sm font-label-sm mt-0.5 font-bold">도감</span>
+</a>
+<!-- Tab 3: 산책 (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-2 py-1.5 transition-colors active:scale-90 transition-transform duration-150 ease-out hover:bg-surface-container hover:text-on-surface" href="#">
+<span class="material-symbols-outlined text-[22px]">park</span>
+<span class="text-label-sm font-label-sm mt-0.5">산책</span>
+</a>
+<!-- Tab 4: 가방 (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-2 py-1.5 transition-colors active:scale-90 transition-transform duration-150 ease-out hover:bg-surface-container hover:text-on-surface" href="#">
+<span class="material-symbols-outlined text-[22px]">backpack</span>
+<span class="text-label-sm font-label-sm mt-0.5">가방</span>
+</a>
+<!-- Tab 5: 설정 (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-2 py-1.5 transition-colors active:scale-90 transition-transform duration-150 ease-out hover:bg-surface-container hover:text-on-surface" href="#">
+<span class="material-symbols-outlined text-[22px]">settings</span>
+<span class="text-label-sm font-label-sm mt-0.5">설정</span>
+</a>
+</nav>
+</main>
+<!-- Interactive Micro-Scripts -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Toggle Switch Interactive Animation
+      const badgeToggle = document.getElementById('badgeToggle');
+      if (badgeToggle) {
+        let active = true;
+        badgeToggle.addEventListener('click', () => {
+          active = !active;
+          const circle = badgeToggle.querySelector('span');
+          if (active) {
+            badgeToggle.classList.remove('bg-outline-variant');
+            badgeToggle.classList.add('bg-primary-container');
+            circle.classList.add('translate-x-4');
+            circle.classList.remove('translate-x-0');
+          } else {
+            badgeToggle.classList.remove('bg-primary-container');
+            badgeToggle.classList.add('bg-outline-variant');
+            circle.classList.remove('translate-x-4');
+            circle.classList.add('translate-x-0');
+          }
+        });
+      }
+    });
+  </script>
+</body></html>

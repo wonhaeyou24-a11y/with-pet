@@ -1,26 +1,41 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { callEgg, serverNow, type EggRow, type MonsterRow } from '../lib/api'
+import { PLAZA_SHOWCASE_FRIENDS, type PlazaFriendEntry } from '../lib/battleEngine'
+import { callCare } from '../lib/careApi'
+import { getSpeciesSoundKind, playDessertAsmr } from '../lib/sound'
 import { supabase, type Player } from '../lib/supabase'
+import AsmrBattleArena from './AsmrBattleArena'
+import CarePantry from './CarePantry'
+import DessertPlaza from './DessertPlaza'
 import EggHome, { type CareFx } from './EggHome'
 import HatchReveal from './HatchReveal'
 import MonsterDetail from './MonsterDetail'
 import MonsterHome from './MonsterHome'
 import Naming from './Naming'
+import PatisserieTraining from './PatisserieTraining'
+import SkillTreeScreen from './SkillTreeScreen'
 
 const HATCH_ANIMATION_MS = 1600
 
-// 돌봄을 받은 알이 하는 말
+// 돌봄을 받은 디저트 알이 하는 말
 const EGG_LINES = {
-  pet: ['음냐… 기분 좋아~', '쓰담쓰담 좋아요!', '콩닥콩닥~ 두근두근', '헤헤, 간지러워요'],
-  warm: ['따끈따끈~ 포근해요', '몸이 사르르 녹아요', '히히, 따뜻해~', '햇살 냄새가 나요'],
+  pet: ['쫀득쫀득~ 반죽이 말랑해져요!', '쓰담쓰담 달콤해요!', '콩닥콩닥~ 맛있게 부풀어요', '헤헤, 슈가파우더가 간지러워요'],
+  warm: ['따끈따끈~ 오븐처럼 포근해요', '설탕 시럽이 사르르 녹아요', '히히, 노릇노릇 따뜻해~', '달콤한 바닐라 향기가 나요'],
 }
 
 type Limits = { pet: number; warm: number }
+type MonsterSubView = 'home' | 'detail' | 'care' | 'train' | 'skills' | 'plaza' | 'battle'
 
-// 서버에서 받은 알·몬스터 상태에 따라 보여 줄 화면을 고른다 (알 → 부화 → 이름 짓기 → 몬스터 홈)
+// 서버에서 받은 알·몬스터 상태에 따라 보여 줄 화면을 고른다 (알 → 부화 → 이름 짓기 → 몬스터 홈 / 돌보기 / 훈련 / 공방)
 export default function Game({ player }: { player: Player }) {
   const [egg, setEgg] = useState<EggRow | null>(null)
   const [monsters, setMonsters] = useState<MonsterRow[]>([])
+  const [coins, setCoins] = useState<number>(Math.max(player.coins, 200))
+  const [foodBag, setFoodBag] = useState<Record<string, number>>({
+    '기본 슈가파우더': 3,
+    '생딸기 슈가시럽': 1,
+    '피스타치오 크림': 1,
+  })
   const [limits, setLimits] = useState<Limits>({ pet: 5, warm: 5 })
   const [loaded, setLoaded] = useState(false)
   const [loadError, setLoadError] = useState('')
@@ -30,7 +45,8 @@ export default function Game({ player }: { player: Player }) {
   const [bubble, setBubble] = useState('')
   const [tick, setTick] = useState(0)
   const [hatching, setHatching] = useState<{ rarity: EggRow['rarity']; monster: MonsterRow | null } | null>(null)
-  const [detail, setDetail] = useState(false)
+  const [subView, setSubView] = useState<MonsterSubView>('home')
+  const [battleTarget, setBattleTarget] = useState<PlazaFriendEntry>(PLAZA_SHOWCASE_FRIENDS[0])
   const toastTimer = useRef<number | undefined>(undefined)
   const fxTimer = useRef<number | undefined>(undefined)
 
@@ -42,10 +58,19 @@ export default function Game({ player }: { player: Player }) {
     }
     setLoadError('')
     setEgg(res.egg ?? null)
-    setMonsters(res.monsters ?? [])
+    const list = res.monsters ?? []
+    if (list[0]) {
+      const careRes = await callCare(list[0], player.coins, 'sync')
+      if (careRes.ok && careRes.monster) {
+        list[0] = careRes.monster
+        if (careRes.coins !== undefined) setCoins(careRes.coins)
+        if (careRes.foodBag) setFoodBag(careRes.foodBag)
+      }
+    }
+    setMonsters(list)
     if (res.limits) setLimits(res.limits)
     setLoaded(true)
-  }, [])
+  }, [player.coins])
 
   useEffect(() => {
     sync()
@@ -76,6 +101,7 @@ export default function Game({ player }: { player: Player }) {
       // 줄어든 부화 시간은 서버가 돌려준 값에서 계산한다 (수치를 화면에 따로 두지 않는다)
       const minutes = Math.round((before - Date.parse(res.egg.hatch_at)) / 60_000)
       const lines = EGG_LINES[action]
+      playDessertAsmr(action === 'pet' ? 'mochi-squish' : 'smore-sizzle')
       navigator.vibrate?.(action === 'pet' ? [15, 50, 15] : 35)
       setFx((cur) => ({ kind: action, key: (cur?.key ?? 0) + 1, minutes }))
       setBubble(lines[Math.floor(Math.random() * lines.length)])
@@ -92,10 +118,12 @@ export default function Game({ player }: { player: Player }) {
   async function hatch() {
     if (!egg || busy) return
     setBusy(true)
+    playDessertAsmr('sugar-crack')
     setHatching({ rarity: egg.rarity, monster: null })
     const [res] = await Promise.all([callEgg('hatch', { eggId: egg.id }), new Promise((r) => setTimeout(r, HATCH_ANIMATION_MS))])
     setBusy(false)
     if (res.ok && res.monster) {
+      playDessertAsmr(getSpeciesSoundKind(res.monster.species))
       setHatching({ rarity: egg.rarity, monster: res.monster })
       setEgg(null)
     } else {
@@ -136,10 +164,87 @@ export default function Game({ player }: { player: Player }) {
   }
 
   if (monster) {
-    return detail ? (
-      <MonsterDetail monster={monster} onBack={() => setDetail(false)} />
-    ) : (
-      <MonsterHome nickname={player.nickname} monster={monster} onDetail={() => setDetail(true)} onLogout={logout} />
+    const handleCareUpdate = (nextMonster: MonsterRow, nextCoins: number, nextBag: Record<string, number>) => {
+      setMonsters((list) => list.map((m) => (m.id === nextMonster.id ? nextMonster : m)))
+      setCoins(nextCoins)
+      setFoodBag(nextBag)
+    }
+
+    if (subView === 'detail') {
+      return <MonsterDetail monster={monster} onBack={() => setSubView('home')} />
+    }
+    if (subView === 'care') {
+      return (
+        <CarePantry
+          monster={monster}
+          coins={coins}
+          foodBag={foodBag}
+          onUpdate={handleCareUpdate}
+          onBack={() => setSubView('home')}
+        />
+      )
+    }
+    if (subView === 'train') {
+      return (
+        <PatisserieTraining
+          monster={monster}
+          coins={coins}
+          onUpdate={handleCareUpdate}
+          onGoRest={() => setSubView('care')}
+          onBack={() => setSubView('home')}
+        />
+      )
+    }
+    if (subView === 'skills') {
+      return (
+        <SkillTreeScreen
+          monster={monster}
+          onUpdateMonster={(nextMonster) => {
+            setMonsters((list) => list.map((m) => (m.id === nextMonster.id ? nextMonster : m)))
+          }}
+          onBack={() => setSubView('home')}
+        />
+      )
+    }
+    if (subView === 'plaza') {
+      return (
+        <DessertPlaza
+          myMonster={monster}
+          myNickname={player.nickname}
+          coins={coins}
+          onEarnCoins={(delta) => setCoins((c) => c + delta)}
+          onChallenge={(friend) => {
+            setBattleTarget(friend)
+            setSubView('battle')
+          }}
+          onOpenSkillTree={() => setSubView('skills')}
+          onBack={() => setSubView('home')}
+        />
+      )
+    }
+    if (subView === 'battle') {
+      return (
+        <AsmrBattleArena
+          challenger={monster}
+          defender={battleTarget.monster}
+          defenderOwnerName={battleTarget.ownerNickname}
+          onRewardClaimed={(coinsEarned) => setCoins((c) => c + coinsEarned)}
+          onBack={() => setSubView('plaza')}
+        />
+      )
+    }
+    return (
+      <MonsterHome
+        nickname={player.nickname}
+        monster={monster}
+        coins={coins}
+        onDetail={() => setSubView('detail')}
+        onOpenCare={() => setSubView('care')}
+        onOpenTrain={() => setSubView('train')}
+        onOpenSkills={() => setSubView('skills')}
+        onOpenPlaza={() => setSubView('plaza')}
+        onLogout={logout}
+      />
     )
   }
 

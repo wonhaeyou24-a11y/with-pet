@@ -25,24 +25,28 @@ export default function Naming({ monster, onSubmit }: Props) {
   }
 
   const info = SPECIES_INFO[monster.species]
+  const look = monsterLook(monster)
   return (
     <main className="screen">
       <div className="center-text stack" style={{ alignItems: 'center', gap: 8, marginTop: 8 }}>
         <span className="chip coral">부화 성공!</span>
-        <h1 className="title">새 친구의 이름을 지어 주세요</h1>
-        <p className="sub">다정한 이름을 입력해 주세요</p>
-        <span className="chip" style={{ gap: 8 }}>
-          종족 {info?.name ?? monster.species}
-          <ElementIcon element={monster.element} size={20} />
-          {ELEMENT_INFO[monster.element].label} 속성
-        </span>
+        <h1 className="title">새 디저트 친구의 이름을 지어 주세요</h1>
+        <p className="sub">달콤하고 다정한 이름을 입력해 주세요</p>
+        <div className="row wrap center" style={{ gap: 6 }}>
+          <span className="chip" style={{ gap: 8 }}>
+            종족 {info?.name ?? monster.species}
+            <ElementIcon element={monster.element} size={20} />
+            {ELEMENT_INFO[monster.element].label} 속성
+          </span>
+          {info?.textureLabel && <span className="chip honey">{info.textureLabel}</span>}
+        </div>
       </div>
 
       <div className="stage" style={{ alignItems: 'center' }}>
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <MonsterView look={monsterLook(monster)} size={200} title={info?.name} />
+          <MonsterView look={look} size={200} title={info?.name} />
         </div>
-        <Nest width={230} lift={42} front={false} />
+        <Nest width={230} lift={42} front={false} dessertBase={look.mallang?.dessertBase} />
       </div>
 
       <form className="card" onSubmit={submit}>

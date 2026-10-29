@@ -1,4 +1,6 @@
+import { defaultDessertBase } from '../config/species'
 import { supabase } from './supabase'
+import { loadMallangCustom } from '../monsters/MallangChameleon'
 import type { Element, MonsterLook } from '../monsters/types'
 
 export type Rarity = 'common' | 'rare' | 'legendary'
@@ -26,7 +28,27 @@ export interface MonsterRow {
   talents: Stats
   stats: Stats
   trait: string
+  fav_food?: string
+  disliked_food?: string
+  discovered_fav?: boolean
+  discovered_disliked?: boolean
+  recent_foods?: string[]
+  care_counts?: Record<string, number>
+  unlocked_skills?: string[]
+  equipped_skills?: string[]
+  battle_stance?: 'aggressive' | 'balanced' | 'defensive' | 'trickster'
+  bio?: string
+  likes_count?: number
+  wins?: number
+  losses?: number
   level: number
+  exp?: number
+  sp?: number
+  hunger?: number
+  mood?: number
+  fatigue?: number
+  cleanliness?: number
+  last_calc_at?: string
   personality_active: number
   personality_bond: number
   is_shiny: boolean
@@ -35,7 +57,21 @@ export interface MonsterRow {
 }
 
 export function monsterLook(m: MonsterRow): MonsterLook {
-  return { species: m.species, ...m.parts }
+  const saved = loadMallangCustom(m.id)
+  const fallbackBase = defaultDessertBase(saved?.morphForm ?? m.species)
+  const mergedMallang = saved ?? m.parts.mallang ?? { dessertBase: fallbackBase }
+  if (!mergedMallang.dessertBase) {
+    mergedMallang.dessertBase = fallbackBase
+  }
+  return {
+    species: m.species,
+    ...m.parts,
+    shiny: m.is_shiny || m.parts.shiny,
+    mutation: m.mutation ?? m.parts.mutation ?? null,
+    decorations: saved?.decorations ?? m.parts.decorations,
+    medals: saved?.medals ?? m.parts.medals,
+    mallang: mergedMallang,
+  }
 }
 
 interface EggResponse {

@@ -34,7 +34,7 @@ const range = (r: Rand, min: number, max: number) => min + int(r, max - min + 1)
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v))
 
 function weighted<T extends string>(r: Rand, weights: Record<T, number>): T {
-  const entries = Object.entries(weights) as [T, number][]
+  const entries = (Object.entries(weights) as [T, number][]).filter(([, w]) => w > 0)
   let roll = r() * entries.reduce((sum, [, w]) => sum + w, 0)
   for (const [key, w] of entries) {
     roll -= w

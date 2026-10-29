@@ -51,8 +51,22 @@ Deno.serve(async (req) => {
         await admin.from('eggs').insert({ owner: uid, rarity, hatch_at: new Date(now.getTime() + EGG.hatchMinutes[rarity] * 60_000).toISOString() })
       }
     }
+    // 이미 지급된 미부화 알의 남은 시간이 현재 설정된 최대 부화 시간(테스트 1분 등)보다 길면 즉시 단축해 준다
+    let egg = await currentEgg()
+    if (egg) {
+      const maxTarget = now.getTime() + (EGG.hatchMinutes[egg.rarity as Rarity] ?? 1) * 60_000
+      if (Date.parse(egg.hatch_at) > maxTarget) {
+        const { data: shortened } = await admin
+          .from('eggs')
+          .update({ hatch_at: new Date(maxTarget).toISOString() })
+          .eq('id', egg.id)
+          .select('*')
+          .maybeSingle()
+        if (shortened) egg = shortened
+      }
+    }
     const { data: monsters } = await admin.from('monsters').select('*').eq('owner', uid).order('created_at')
-    return json({ ok: true, egg: await currentEgg(), monsters: monsters ?? [], limits: { pet: EGG.pet.dailyLimit, warm: EGG.warm.dailyLimit } })
+    return json({ ok: true, egg, monsters: monsters ?? [], limits: { pet: EGG.pet.dailyLimit, warm: EGG.warm.dailyLimit } })
   }
 
   if (action === 'pet' || action === 'warm') {

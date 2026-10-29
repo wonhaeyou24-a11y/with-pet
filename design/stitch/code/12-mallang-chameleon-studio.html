@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>펫과함께 - 말랑 카멜레온 변신 &amp; 바디 페인팅 공방</title>
+<!-- Google Fonts: Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;family=Noto+Sans+KR:wght@500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-secondary-fixed": "#002114",
+            "primary-container": "#ff8a65",
+            "tertiary-fixed": "#ffdf92",
+            "surface-container-highest": "#f2dedd",
+            "on-tertiary-fixed": "#241a00",
+            "surface": "#fff8f7",
+            "on-tertiary-fixed-variant": "#594400",
+            "secondary-fixed": "#a1f3cc",
+            "primary": "#9f4122",
+            "on-primary-fixed": "#3a0b00",
+            "surface-container": "#fee9e9",
+            "on-primary-fixed-variant": "#7f2a0d",
+            "on-surface": "#231919",
+            "on-secondary-fixed-variant": "#005138",
+            "surface-tint": "#9f4122",
+            "inverse-primary": "#ffb59e",
+            "secondary": "#0f6c4d",
+            "error": "#ba1a1a",
+            "tertiary-fixed-dim": "#e8c25f",
+            "on-tertiary": "#ffffff",
+            "on-secondary-container": "#177051",
+            "on-primary": "#ffffff",
+            "inverse-surface": "#392d2d",
+            "tertiary": "#765b00",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-high": "#f8e4e3",
+            "surface-bright": "#fff8f7",
+            "tertiary-container": "#caa646",
+            "secondary-fixed-dim": "#85d7b1",
+            "inverse-on-surface": "#ffedec",
+            "error-container": "#ffdad6",
+            "background": "#fff8f7",
+            "on-surface-variant": "#56423c",
+            "on-error-container": "#93000a",
+            "surface-container-low": "#fff0f0",
+            "primary-fixed": "#ffdbd0",
+            "surface-dim": "#e9d5d5",
+            "on-background": "#231919",
+            "on-tertiary-container": "#4f3c00",
+            "on-primary-container": "#752305",
+            "outline-variant": "#ddc0b8",
+            "primary-fixed-dim": "#ffb59e",
+            "surface-variant": "#f2dedd",
+            "on-secondary": "#ffffff",
+            "outline": "#89726b",
+            "on-error": "#ffffff",
+            "secondary-container": "#9ef1c9"
+          },
+          "borderRadius": {
+            "DEFAULT": "1rem",
+            "lg": "2rem",
+            "xl": "3rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xs": "0.375rem",
+            "space-xl": "2.25rem",
+            "space-lg": "1.5rem",
+            "gutter": "1rem",
+            "space-md": "1rem",
+            "margin": "1.25rem",
+            "space-sm": "0.75rem"
+          },
+          "fontFamily": {
+            "headline-sm": ["Plus Jakarta Sans", "Noto Sans KR", "sans-serif"],
+            "body-sm": ["Plus Jakarta Sans", "Noto Sans KR", "sans-serif"],
+            "headline-lg": ["Plus Jakarta Sans", "Noto Sans KR", "sans-serif"],
+            "display-lg-mobile": ["Plus Jakarta Sans", "Noto Sans KR", "sans-serif"],
+            "body-lg": ["Plus Jakarta Sans", "Noto Sans KR", "sans-serif"],
+            "headline-md": ["Plus Jakarta Sans", "Noto Sans KR", "sans-serif"],
+            "label-md": ["Plus Jakarta Sans", "Noto Sans KR", "sans-serif"],
+            "body-md": ["Plus Jakarta Sans", "Noto Sans KR", "sans-serif"],
+            "label-sm": ["Plus Jakarta Sans", "Noto Sans KR", "sans-serif"],
+            "display-lg": ["Plus Jakarta Sans", "Noto Sans KR", "sans-serif"],
+            "label-lg": ["Plus Jakarta Sans", "Noto Sans KR", "sans-serif"]
+          },
+          "fontSize": {
+            "headline-sm": ["18px", { "lineHeight": "26px", "fontWeight": "600" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "fontWeight": "500" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+            "display-lg-mobile": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "500" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "700" }],
+            "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "700" }],
+            "body-md": ["14px", { "lineHeight": "22px", "fontWeight": "500" }],
+            "label-sm": ["10px", { "lineHeight": "14px", "fontWeight": "700" }],
+            "display-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "700" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 24px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    /* Soft Claymorphic visual styling */
+    .clay-card {
+      background: #FFFFFF;
+      border: 1.5px solid #F0DFB8;
+      box-shadow: 0 4px 14px rgba(186, 142, 75, 0.12), inset 0 2px 0 rgba(255, 255, 255, 0.9);
+    }
+    .clay-button-primary {
+      box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.45), inset 0 -4px 0 #752305, 0 6px 16px rgba(159, 65, 34, 0.25);
+    }
+    .clay-button-primary:active {
+      transform: translateY(3px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 #752305, 0 2px 6px rgba(159, 65, 34, 0.2);
+    }
+    .clay-button-soft {
+      box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.8), inset 0 -3px 0 rgba(0, 0, 0, 0.08), 0 3px 8px rgba(186, 142, 75, 0.12);
+    }
+    .clay-button-soft:active {
+      transform: translateY(2px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 rgba(0, 0, 0, 0.08);
+    }
+    .clay-pill-active {
+      box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.5), inset 0 -2px 0 rgba(117, 35, 5, 0.4), 0 3px 8px rgba(159, 65, 34, 0.22);
+    }
+    .clay-droplet {
+      box-shadow: inset 0 3px 2px rgba(255, 255, 255, 0.6), inset 0 -3px 4px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(90, 60, 40, 0.18);
+    }
+    /* Hide scrollbar for clean horizontal drawers */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    /* Mochi float animation */
+    @keyframes floatMochi {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-6px) rotate(1deg); }
+    }
+    .mochi-float {
+      animation: floatMochi 3.6s ease-in-out infinite;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface antialiased flex justify-center items-start min-h-screen">
+<!-- Mobile Viewport Container (Portrait 390px locked) -->
+<main class="w-[390px] min-h-screen bg-background relative flex flex-col pb-6 overflow-x-hidden border-x border-outline-variant/20 shadow-2xl">
+<!-- Top Header Bar (Focused journey task bar) -->
+<header class="sticky top-0 z-30 bg-surface/95 backdrop-blur-md px-margin py-space-sm flex items-center justify-between shadow-sm">
+<div class="flex items-center gap-2">
+<button aria-label="뒤로가기" class="w-10 h-10 rounded-full clay-button-soft bg-surface-container-lowest flex items-center justify-center text-primary active:scale-90 transition-transform" type="button">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">arrow_back_ios_new</span>
+</button>
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<h1 class="font-headline-sm text-headline-sm text-on-surface tracking-tight leading-none">말랑이 변신 &amp; 페인팅</h1>
+<span class="inline-flex items-center px-1.5 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm">공방</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate max-w-[170px]">무엇으로든 변하는 나만의 말랑이</p>
+</div>
+</div>
+<!-- Personality Score Badge -->
+<div class="flex items-center gap-1 px-3 py-1.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed border border-tertiary-container/30 shadow-sm">
+<span class="material-symbols-outlined text-[16px] text-tertiary" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="font-label-md text-label-md">개성 380</span>
+</div>
+</header>
+<!-- Main Workspace Container -->
+<div class="px-margin flex flex-col gap-3 pt-2">
+<!-- Interactive Canvas Stage Card (Centerpiece showcase) -->
+<section class="relative w-full rounded-lg bg-surface-container-low border border-outline-variant/40 p-3 overflow-hidden shadow-[0_6px_20px_rgba(186,142,75,0.12)]">
+<!-- Subtle Pattern Backdrop & Aura Ring -->
+<div class="absolute inset-0 opacity-40 bg-[radial-gradient(#ddc0b8_1.2px,transparent_1.2px)] [background-size:14px_14px]"></div>
+<div class="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-primary-fixed-dim/30 blur-2xl pointer-events-none"></div>
+<div class="absolute -bottom-8 -left-8 w-44 h-44 rounded-full bg-secondary-fixed-dim/35 blur-2xl pointer-events-none"></div>
+<!-- Stage Header Badges & Actions -->
+<div class="relative z-10 flex items-center justify-between">
+<div class="flex items-center gap-1.5 bg-surface-container-lowest/90 backdrop-blur-sm px-2.5 py-1 rounded-full border border-outline-variant/30 shadow-xs">
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+<span class="font-label-sm text-label-sm text-primary font-bold">Lv.2 젤리 카멜레온</span>
+<span class="text-outline-variant text-[10px]">•</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">자유도 100%</span>
+</div>
+<!-- Random Morph Dice Button -->
+<button class="flex items-center gap-1 bg-surface-container-lowest px-2.5 py-1 rounded-full clay-button-soft text-primary font-label-md text-label-md active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">casino</span>
+<span>랜덤 변신</span>
+</button>
+</div>
+<!-- Chameleon Interactive Showcase Viewport -->
+<div class="relative w-full h-56 flex items-center justify-center my-1 select-none">
+<!-- Soft Pedestal Cushion Shadow -->
+<div class="absolute bottom-4 w-44 h-9 bg-primary/10 rounded-full blur-md"></div>
+<div class="absolute bottom-5 w-48 h-6 bg-surface-container-highest/80 rounded-full border border-outline-variant/30"></div>
+<!-- Mochi Character Visual Illustration Card -->
+<div class="relative z-10 w-44 h-44 flex items-center justify-center mochi-float cursor-pointer">
+<img class="w-full h-full object-contain filter drop-shadow-[0_10px_16px_rgba(159,65,34,0.18)]" data-alt="An adorable squishy mochi clay chameleon pet creature sitting on a soft miniature ceramic pedestal. The chameleon is chubby and pastel mint and soft peach, with large glossy anime black eyes with white heart reflections, blushing pink cheeks, and a curled jelly tail. It wears a miniature golden clay crown, tiny adorable translucent dragon wings, and has colorful hand-painted pastel rainbow stripes and tiny star stamps on its belly. Warm high-key studio lighting with soft clay textures and pastel storybook warmth." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0hZIYvrG3YtwzKY1-wPUq6XI8Mm28bp6oNnZ3iBpvlYsmoW1wkLgm0zIjqNX1TD-GjB0JcxBGm4tHpxtLtTfHSOViDk3PImFdgFBD4jsG6hGBo2kwTjwyuvLQRNzJLmqWcGEv4XrKuviv4TGiKQGR3AQFV96DH-Ge0hIcydXB9VepDI-3Arlxvy_VH0sZ4-QQ81gq7hIF0tBdjBg6aOii0NfHf-obSZEZRg3rlAFoqRslATadHez2CcH8Svp8pWZg-zQTOplKFZM"/>
+<!-- Floating Sparkle Accents -->
+<div class="absolute -top-1 right-2 text-tertiary-container animate-bounce">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<div class="absolute bottom-6 -left-1 text-primary-container">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+</div>
+<!-- Stage Side Quick Gizmo: 360 Rotation Handle -->
+<div class="absolute top-2 right-2 flex flex-col gap-1.5">
+<button aria-label="360도 회전 미리보기" class="w-8 h-8 rounded-full bg-surface-container-lowest/90 backdrop-blur-sm flex items-center justify-center clay-button-soft text-on-surface-variant hover:text-primary active:scale-90" type="button">
+<span class="material-symbols-outlined text-[18px]">360</span>
+</button>
+<button aria-label="확대 보기" class="w-8 h-8 rounded-full bg-surface-container-lowest/90 backdrop-blur-sm flex items-center justify-center clay-button-soft text-on-surface-variant hover:text-primary active:scale-90" type="button">
+<span class="material-symbols-outlined text-[18px]">zoom_in</span>
+</button>
+</div>
+</div>
+<!-- Floating Stage Tool Bar (Direct Painting Controls) -->
+<div class="relative z-10 flex items-center justify-between pt-1">
+<div class="flex items-center gap-1.5 bg-surface-container-lowest/95 backdrop-blur-md p-1 rounded-full border border-outline-variant/40 shadow-sm">
+<button class="flex items-center gap-1 px-3 py-1 rounded-full bg-primary-container text-on-primary font-label-md text-label-md clay-pill-active" type="button">
+<span class="material-symbols-outlined text-[16px]">brush</span>
+<span>그리기</span>
+</button>
+<button class="flex items-center gap-1 px-2.5 py-1 rounded-full text-on-surface-variant hover:text-primary font-label-md text-label-md active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[16px]">ink_eraser</span>
+<span>지우개</span>
+</button>
+</div>
+<!-- Undo / Redo buttons -->
+<div class="flex items-center gap-1 bg-surface-container-lowest/95 backdrop-blur-md p-1 rounded-full border border-outline-variant/40 shadow-sm">
+<button aria-label="실행 취소" class="w-7 h-7 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary active:scale-90" type="button">
+<span class="material-symbols-outlined text-[16px]">undo</span>
+</button>
+<button aria-label="다시 실행" class="w-7 h-7 rounded-full flex items-center justify-center text-outline-variant hover:text-on-surface-variant active:scale-90" type="button">
+<span class="material-symbols-outlined text-[16px]">redo</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Mode Switcher Tabs (3 Core Customization Layers) -->
+<nav aria-label="커스터마이징 모드" class="grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-surface-container border border-outline-variant/40">
+<!-- Tab 1: Active -->
+<button class="flex items-center justify-center gap-1 py-2 px-1 rounded-lg bg-surface-container-lowest text-primary font-label-md text-label-md clay-pill-active border border-outline-variant/30" type="button">
+<span class="material-symbols-outlined text-[16px] text-primary" style="font-variation-settings: 'FILL' 1;">palette</span>
+<span class="truncate">페인팅</span>
+</button>
+<!-- Tab 2: Morphing -->
+<button class="flex items-center justify-center gap-1 py-2 px-1 rounded-lg text-on-surface-variant hover:text-primary font-label-md text-label-md transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">pest_control</span>
+<span class="truncate">체형 몰딩</span>
+</button>
+<!-- Tab 3: Parts & Accessories -->
+<button class="flex items-center justify-center gap-1 py-2 px-1 rounded-lg text-on-surface-variant hover:text-primary font-label-md text-label-md transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">extension</span>
+<span class="truncate">만능 파츠</span>
+</button>
+</nav>
+<!-- Painting & Morphing Control Panel (Drawer Card) -->
+<section class="clay-card rounded-lg p-3.5 flex flex-col gap-3">
+<!-- Brush Size Slider & Header -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[18px]" style="font-variation-settings: 'FILL' 1;">format_paint</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface text-[15px]">찰흙 물감 &amp; 브러시</h2>
+</div>
+<!-- Brush Thickness Selector -->
+<div class="flex items-center gap-1 bg-surface-container-low px-2 py-1 rounded-full border border-outline-variant/30">
+<button class="w-5 h-5 rounded-full flex items-center justify-center text-outline hover:text-primary" type="button">
+<span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+</button>
+<button class="w-5 h-5 rounded-full bg-primary-container text-on-primary flex items-center justify-center shadow-xs" type="button">
+<span class="w-2.5 h-2.5 rounded-full bg-white"></span>
+</button>
+<button class="w-5 h-5 rounded-full flex items-center justify-center text-outline hover:text-primary" type="button">
+<span class="w-3.5 h-3.5 rounded-full bg-current"></span>
+</button>
+</div>
+</div>
+<!-- Clay Paint Palette (Squishy Droplets) -->
+<div class="flex items-center justify-between gap-1 overflow-x-auto no-scrollbar py-1 px-0.5">
+<!-- Coral (Selected) -->
+<button aria-label="코랄 물감" class="relative group flex-shrink-0 w-8 h-8 rounded-full bg-primary-container clay-droplet ring-2 ring-primary ring-offset-2 ring-offset-surface-container-lowest transition-transform active:scale-90" type="button">
+<span class="absolute inset-0 flex items-center justify-center text-white font-label-sm text-[10px]">✓</span>
+</button>
+<!-- Mint -->
+<button aria-label="민트 물감" class="flex-shrink-0 w-8 h-8 rounded-full bg-secondary-fixed-dim clay-droplet hover:scale-105 active:scale-90 transition-transform" type="button">
+</button>
+<!-- Honey Gold -->
+<button aria-label="허니골드 물감" class="flex-shrink-0 w-8 h-8 rounded-full bg-tertiary-fixed clay-droplet hover:scale-105 active:scale-90 transition-transform" type="button">
+</button>
+<!-- Soft Sky Blue -->
+<button aria-label="하늘빛 물감" class="flex-shrink-0 w-8 h-8 rounded-full bg-secondary-container clay-droplet hover:scale-105 active:scale-90 transition-transform" type="button">
+</button>
+<!-- Lavender -->
+<button aria-label="라벤더 물감" class="flex-shrink-0 w-8 h-8 rounded-full bg-surface-container-highest clay-droplet hover:scale-105 active:scale-90 transition-transform" type="button">
+</button>
+<!-- Melon Green -->
+<button aria-label="메론초록 물감" class="flex-shrink-0 w-8 h-8 rounded-full bg-secondary-fixed clay-droplet hover:scale-105 active:scale-90 transition-transform" type="button">
+</button>
+<!-- Choco Charcoal -->
+<button aria-label="초코차콜 물감" class="flex-shrink-0 w-8 h-8 rounded-full bg-on-surface-variant clay-droplet hover:scale-105 active:scale-90 transition-transform" type="button">
+</button>
+<!-- Rainbow Magic Special Droplet -->
+<button aria-label="무지개 마법 브러시" class="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-tr from-primary-container via-tertiary-fixed to-secondary-fixed clay-droplet hover:scale-110 active:scale-90 transition-transform p-[2px]" type="button">
+<span class="w-full h-full rounded-full flex items-center justify-center text-white text-[12px]">✨</span>
+</button>
+</div>
+<!-- Stamp Shelf ("원터치 스탬프") -->
+<div class="flex flex-col gap-1.5 pt-1">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant flex items-center gap-1">
+<span>원터치 스탬프</span>
+<span class="text-tertiary-container font-body-sm text-body-sm">(무한 찍기 가능)</span>
+</span>
+<span class="font-label-sm text-label-sm text-outline">좌우로 밀기</span>
+</div>
+<div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+<!-- Stamp 1 -->
+<button class="flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-surface-container-low hover:bg-surface-container border border-outline-variant/30 text-on-surface font-label-md text-label-md active:scale-90 transition-all" type="button">
+<span class="text-tertiary-container">⭐</span>
+<span>별빛</span>
+</button>
+<!-- Stamp 2 (Selected) -->
+<button class="flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-primary-fixed text-on-primary-fixed border border-primary-container font-label-md text-label-md shadow-xs active:scale-90 transition-all" type="button">
+<span class="text-primary">❤️</span>
+<span>쫀득하트</span>
+</button>
+<!-- Stamp 3 -->
+<button class="flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-surface-container-low hover:bg-surface-container border border-outline-variant/30 text-on-surface font-label-md text-label-md active:scale-90 transition-all" type="button">
+<span class="text-tertiary">⚡</span>
+<span>번개</span>
+</button>
+<!-- Stamp 4 -->
+<button class="flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-surface-container-low hover:bg-surface-container border border-outline-variant/30 text-on-surface font-label-md text-label-md active:scale-90 transition-all" type="button">
+<span class="text-primary-container">🔥</span>
+<span>앙증불꽃</span>
+</button>
+<!-- Stamp 5 -->
+<button class="flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-surface-container-low hover:bg-surface-container border border-outline-variant/30 text-on-surface font-label-md text-label-md active:scale-90 transition-all" type="button">
+<span class="text-secondary">🌀</span>
+<span>소용돌이</span>
+</button>
+<!-- Stamp 6 -->
+<button class="flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-surface-container-low hover:bg-surface-container border border-outline-variant/30 text-on-surface font-label-md text-label-md active:scale-90 transition-all" type="button">
+<span>🍉</span>
+<span>수박</span>
+</button>
+</div>
+</div>
+<!-- Body Morph Quick Bar ("말랑 체형 즉시 변신") -->
+<div class="flex flex-col gap-1.5 pt-1 border-t border-outline-variant/20">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface">말랑 체형 변형 프리셋</span>
+<span class="font-label-sm text-label-sm text-primary font-bold">카멜레온형 적용중</span>
+</div>
+<div class="grid grid-cols-5 gap-1.5">
+<!-- Chameleon (Selected) -->
+<button class="flex flex-col items-center gap-1 p-1.5 rounded-xl bg-primary-fixed/60 border-2 border-primary-container active:scale-95 transition-all" type="button">
+<div class="w-8 h-8 rounded-lg bg-surface-container-lowest flex items-center justify-center text-[18px] shadow-xs">
+                🦎
+              </div>
+<span class="font-label-sm text-[10px] text-primary font-bold truncate">원조형</span>
+</button>
+<!-- Cloud -->
+<button class="flex flex-col items-center gap-1 p-1.5 rounded-xl bg-surface-container-low hover:bg-surface-container border border-outline-variant/30 active:scale-95 transition-all" type="button">
+<div class="w-8 h-8 rounded-lg bg-surface-container-lowest flex items-center justify-center text-[18px]">
+                ☁️
+              </div>
+<span class="font-label-sm text-[10px] text-on-surface-variant truncate">폭신구름</span>
+</button>
+<!-- Dragon -->
+<button class="flex flex-col items-center gap-1 p-1.5 rounded-xl bg-surface-container-low hover:bg-surface-container border border-outline-variant/30 active:scale-95 transition-all" type="button">
+<div class="w-8 h-8 rounded-lg bg-surface-container-lowest flex items-center justify-center text-[18px]">
+                🐉
+              </div>
+<span class="font-label-sm text-[10px] text-on-surface-variant truncate">아기용</span>
+</button>
+<!-- Golem -->
+<button class="flex flex-col items-center gap-1 p-1.5 rounded-xl bg-surface-container-low hover:bg-surface-container border border-outline-variant/30 active:scale-95 transition-all" type="button">
+<div class="w-8 h-8 rounded-lg bg-surface-container-lowest flex items-center justify-center text-[18px]">
+                🛡️
+              </div>
+<span class="font-label-sm text-[10px] text-on-surface-variant truncate">돌골렘</span>
+</button>
+<!-- Lion Cub -->
+<button class="flex flex-col items-center gap-1 p-1.5 rounded-xl bg-surface-container-low hover:bg-surface-container border border-outline-variant/30 active:scale-95 transition-all" type="button">
+<div class="w-8 h-8 rounded-lg bg-surface-container-lowest flex items-center justify-center text-[18px]">
+                🦁
+              </div>
+<span class="font-label-sm text-[10px] text-on-surface-variant truncate">아기사자</span>
+</button>
+</div>
+</div>
+<!-- Primary Call to Action Button -->
+<div class="pt-1">
+<button class="w-full py-3.5 px-4 rounded-xl bg-primary-container text-on-primary font-headline-sm text-headline-sm flex items-center justify-center gap-2 clay-button-primary transition-all duration-150 active:scale-[0.98]" type="button">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">auto_fix_high</span>
+<span>변신 &amp; 페인팅 저장하기 ✨</span>
+</button>
+<p class="text-center font-body-sm text-[11px] text-outline mt-1.5">공방에서 저장하면 즉시 펫 보육실과 산책에서 변신 모습이 유지됩니다</p>
+</div>
+</section>
+</div>
+</main>
+<script>
+    // Lightweight interactive feedback for palette selection & tool clicks
+    document.addEventListener('DOMContentLoaded', () => {
+      const droplets = document.querySelectorAll('.clay-droplet');
+      droplets.forEach(droplet => {
+        droplet.addEventListener('click', function() {
+          droplets.forEach(d => {
+            d.classList.remove('ring-2', 'ring-primary', 'ring-offset-2', 'ring-offset-surface-container-lowest');
+            const check = d.querySelector('span');
+            if (check && !d.classList.contains('bg-gradient-to-tr')) check.remove();
+          });
+          this.classList.add('ring-2', 'ring-primary', 'ring-offset-2', 'ring-offset-surface-container-lowest');
+          if (!this.querySelector('span') && !this.classList.contains('bg-gradient-to-tr')) {
+            const checkEl = document.createElement('span');
+            checkEl.className = 'absolute inset-0 flex items-center justify-center text-white font-label-sm text-[10px]';
+            checkEl.textContent = '✓';
+            this.appendChild(checkEl);
+          }
+        });
+      });
+    });
+  </script>
+</body></html>

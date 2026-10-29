@@ -1,3 +1,4 @@
+import { chameleon, choco, dubaiCookie, jelly, mochi, pudding, smore, tanghulu, waxBall } from './MallangChameleon'
 import { beongaekkori } from './species/Beongaekkori'
 import { byeolbineul } from './species/Byeolbineul'
 import { gangcheoldeung } from './species/Gangcheoldeung'
@@ -8,6 +9,15 @@ import type { SpeciesDef } from './types'
 
 // 종족을 추가할 때 여기에 등록한다. 서버가 정하는 부품 개수(partCounts)와 맞춰야 한다.
 export const SPECIES: Record<string, SpeciesDef> = {
+  [dubaiCookie.id]: dubaiCookie,
+  [waxBall.id]: waxBall,
+  [tanghulu.id]: tanghulu,
+  [smore.id]: smore,
+  [mochi.id]: mochi,
+  [pudding.id]: pudding,
+  [jelly.id]: jelly,
+  [choco.id]: choco,
+  [chameleon.id]: chameleon,
   [mongsil.id]: mongsil,
   [kongkong.id]: kongkong,
   [beongaekkori.id]: beongaekkori,

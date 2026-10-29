@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { ELEMENT_INFO, MUTATION_LABEL, SPECIES_INFO } from '../config/species'
 import { monsterLook, type MonsterRow, type Rarity } from '../lib/api'
+import { getSpeciesSoundKind, playDessertAsmr } from '../lib/sound'
 import MonsterView from '../monsters/MonsterView'
 import { EggArt, EggShellCup } from '../ui/EggArt'
 import { ElementIcon, SparkleIcon } from '../ui/Icons'
@@ -16,6 +18,8 @@ const CONFETTI = [
 ] as const
 
 export default function HatchReveal({ rarity, monster, onNext }: { rarity: Rarity; monster: MonsterRow | null; onNext: () => void }) {
+  const [asmrBubble, setAsmrBubble] = useState<string | null>(null)
+
   if (!monster) {
     return (
       <main className="screen center">
@@ -25,21 +29,49 @@ export default function HatchReveal({ rarity, monster, onNext }: { rarity: Rarit
             <EggArt rarity={rarity} mood="ready" size={200} />
           </div>
         </div>
-        <p className="title center-text">알이 깨어나는 중…</p>
+        <p className="title center-text">빠작…! 달콤한 알이 깨어나는 중…</p>
       </main>
     )
   }
 
   const info = SPECIES_INFO[monster.species]
+  const look = monsterLook(monster)
+
+  function handlePlayHatchAsmr() {
+    if (!monster) return
+    const meta = playDessertAsmr(getSpeciesSoundKind(monster.species, look.mallang?.dessertBase))
+    setAsmrBubble(meta.onomatopoeia)
+    setTimeout(() => setAsmrBubble(null), 1800)
+  }
+
   return (
     <main className="screen center">
-      <div className="stage" style={{ alignItems: 'center' }}>
+      <div className="stage" style={{ alignItems: 'center', position: 'relative', cursor: 'pointer' }} onClick={handlePlayHatchAsmr}>
         <div className="halo" />
         {CONFETTI.map(([left, color, delay], i) => (
           <span key={i} className="confetti" style={{ left, background: color, animationDelay: `${delay}s` }} />
         ))}
+        {asmrBubble && (
+          <div
+            style={{
+              position: 'absolute',
+              top: 4,
+              zIndex: 10,
+              padding: '6px 14px',
+              borderRadius: 999,
+              background: '#3B2F2F',
+              color: '#FFFDF9',
+              fontSize: 13,
+              fontWeight: 800,
+              boxShadow: '0 6px 16px rgba(59,47,47,0.22)',
+              pointerEvents: 'none',
+            }}
+          >
+            🔊 {asmrBubble}
+          </div>
+        )}
         <div className="pop-in" style={{ position: 'relative', zIndex: 0 }}>
-          <MonsterView look={monsterLook(monster)} size={230} title={info?.name} />
+          <MonsterView look={look} size={230} title={info?.name} />
         </div>
         <div style={{ marginTop: -50, position: 'relative', zIndex: 1 }}>
           <EggShellCup rarity={rarity} width={170} />
@@ -48,7 +80,7 @@ export default function HatchReveal({ rarity, monster, onNext }: { rarity: Rarit
 
       <div className="stack center-text" style={{ gap: 8, alignItems: 'center' }}>
         <h1 className="title-xl">태어났어요!</h1>
-        <p className="sub">따뜻한 보살핌 속에서 알을 깨고 나왔어요</p>
+        <p className="sub">따뜻한 보살핌 속에서 달콤한 디저트 친구가 깨어났어요</p>
         <div className="chip" style={{ fontSize: 17, padding: '8px 16px', gap: 10 }}>
           {info?.name ?? monster.species}
           <span style={{ color: 'var(--border)' }}>|</span>
@@ -61,6 +93,15 @@ export default function HatchReveal({ rarity, monster, onNext }: { rarity: Rarit
             </>
           )}
         </div>
+        {info?.textureLabel && (
+          <button
+            className="chip coral"
+            onClick={handlePlayHatchAsmr}
+            style={{ cursor: 'pointer', border: 'none', fontWeight: 800 }}
+          >
+            🎧 {info.textureLabel} (터치해 소리 듣기)
+          </button>
+        )}
         {monster.is_shiny && (
           <span className="chip honey">
             <SparkleIcon size={16} /> 빛나는 몬스터!
