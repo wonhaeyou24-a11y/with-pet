@@ -69,6 +69,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
     return Math.max(0, Math.ceil((sess.finishAt - Date.now()) / 1000))
   })
   const trainTimerRef = useRef<number | null>(null)
+  const [liveActionPhase, setLiveActionPhase] = useState<number>(0) // 훈련/타워 실시간 액션 틱 (0, 1, 2, 3)
 
   // 2. 디저트 타워 무한 탐험 상태 (로컬 스토리지에 최고 층 영구 보관)
   const [towerFloor, setTowerFloor] = useState<number>(() => {
@@ -124,9 +125,10 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
     const updateTimer = () => {
       const left = Math.max(0, Math.ceil((trainSession.finishAt - Date.now()) / 1000))
       setTrainTimeLeft(left)
+      setLiveActionPhase((p) => (p + 1) % 4)
       if (left <= 0) {
         if (trainTimerRef.current) clearInterval(trainTimerRef.current)
-      } else if (left % 4 === 0) {
+      } else if (left % 3 === 0) {
         playDessertAsmr(trainSession.asmr)
       }
     }
@@ -294,10 +296,23 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
           </span>
         </div>
 
-        {/* 3D 캐릭터 훈련 연출 스테이지 */}
+        {/* 3D 캐릭터 스테이지 & 실시간 훈련/타워 탐험 액션 연출 뷰 */}
         <div
           className="stage"
-          style={{ alignItems: 'center', position: 'relative', height: 154, minHeight: 154, padding: 2, cursor: 'pointer' }}
+          style={{
+            alignItems: 'center',
+            position: 'relative',
+            height: 154,
+            minHeight: 154,
+            padding: 2,
+            cursor: 'pointer',
+            background: trainSession
+              ? 'linear-gradient(180deg, #FFF3E0 0%, #FFE0B2 100%)'
+              : towerSession
+                ? 'linear-gradient(180deg, #EDE7F6 0%, #D1C4E9 100%)'
+                : undefined,
+            overflow: 'hidden',
+          }}
           onClick={() => triggerAsmr(selectedCourse.asmr)}
         >
           {asmrBubble && (
@@ -306,62 +321,180 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                 position: 'absolute',
                 top: 4,
                 zIndex: 10,
-                padding: '5px 12px',
+                padding: '4px 10px',
                 borderRadius: 999,
                 background: '#3B2F2F',
                 color: '#FFFDF9',
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: 800,
-                boxShadow: '0 6px 16px rgba(59,47,47,0.22)',
+                boxShadow: '0 4px 12px rgba(59,47,47,0.22)',
                 pointerEvents: 'none',
               }}
             >
               🔊 {asmrBubble}
             </div>
           )}
-          {trainSession && (
+
+          {/* 1. 훈련 진행 중일 때: 실시간 훈련 액션(땀방울 & 덤벨 치대기 모션) */}
+          {trainSession ? (
             <div
               style={{
-                position: 'absolute',
-                top: 8,
-                left: 10,
-                zIndex: 10,
-                padding: '4px 10px',
-                borderRadius: 999,
-                background: trainTimeLeft > 0 ? '#FF7A59' : '#4CAF50',
-                color: '#FFFFFF',
-                fontSize: 12,
-                fontWeight: 900,
-                boxShadow: '0 4px 12px rgba(255,122,89,0.3)',
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
               }}
             >
-              {trainTimeLeft > 0
-                ? `🏋️ 훈련 중… ${Math.floor(trainTimeLeft / 60)}분 ${trainTimeLeft % 60}초`
-                : '🎉 훈련 완료! 보상 대기'}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 6,
+                  left: 10,
+                  zIndex: 10,
+                  padding: '3px 9px',
+                  borderRadius: 999,
+                  background: trainTimeLeft > 0 ? '#FF7A59' : '#4CAF50',
+                  color: '#FFFFFF',
+                  fontSize: 11,
+                  fontWeight: 900,
+                  boxShadow: '0 3px 8px rgba(255,122,89,0.3)',
+                }}
+              >
+                {trainTimeLeft > 0
+                  ? `🏋️ [실시간 특훈] ${Math.floor(trainTimeLeft / 60)}분 ${trainTimeLeft % 60}초`
+                  : '🎉 훈련 완료!'}
+              </div>
+
+              {/* 땀방울/기합 말풍선 */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 10,
+                  right: 12,
+                  zIndex: 10,
+                  padding: '3px 8px',
+                  borderRadius: 999,
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  border: '1.5px solid #FF9800',
+                  color: '#E65100',
+                  fontSize: 11,
+                  fontWeight: 900,
+                  animation: 'pulse 0.8s infinite alternate',
+                }}
+              >
+                {liveActionPhase % 2 === 0 ? '💦 읏샤읏샤! 덤벨 치대기' : '🔥 바사삭 근력 단련 중!'}
+              </div>
+
+              {/* 캐릭터 바운스 훈련 액션 */}
+              <div
+                style={{
+                  transform:
+                    liveActionPhase % 2 === 0
+                      ? 'scale(1.08, 0.92) translateY(6px)'
+                      : 'scale(0.94, 1.08) translateY(-6px)',
+                  transition: 'transform 0.25s cubic-bezier(0.18, 0.89, 0.32, 1.28)',
+                }}
+              >
+                <MonsterView look={look} size={138} title={info?.name} />
+              </div>
             </div>
-          )}
-          {towerSession && (
+          ) : towerSession ? (
+            /* 2. 타워 탐험 진행 중일 때: 실시간 몬스터 조우 & 공방 배틀 액션 */
             <div
               style={{
-                position: 'absolute',
-                top: 8,
-                left: 10,
-                zIndex: 10,
-                padding: '4px 10px',
-                borderRadius: 999,
-                background: '#7C4DFF',
-                color: '#FFFFFF',
-                fontSize: 12,
-                fontWeight: 900,
-                boxShadow: '0 4px 12px rgba(124,77,255,0.3)',
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-around',
+                padding: '0 12px',
+                position: 'relative',
               }}
             >
-              🏰 {towerSession.currentFloor}층 탐험 중 (목표 {towerSession.targetFloor}층)
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 6,
+                  left: 10,
+                  zIndex: 10,
+                  padding: '3px 9px',
+                  borderRadius: 999,
+                  background: '#7C4DFF',
+                  color: '#FFFFFF',
+                  fontSize: 11,
+                  fontWeight: 900,
+                  boxShadow: '0 3px 8px rgba(124,77,255,0.3)',
+                }}
+              >
+                🏰 {towerSession.currentFloor}층 실시간 탐사 배틀 중
+              </div>
+
+              {/* 내 몬스터 돌진 모션 */}
+              <div
+                style={{
+                  transform:
+                    liveActionPhase % 2 === 0 ? 'translateX(10px) rotate(4deg)' : 'translateX(0px)',
+                  transition: 'transform 0.22s ease',
+                  textAlign: 'center',
+                }}
+              >
+                <MonsterView look={look} size={110} title={info?.name} />
+                <div style={{ fontSize: 10, fontWeight: 800, color: '#3E2723' }}>내 디저트</div>
+              </div>
+
+              {/* 공방 이펙트 */}
+              <div
+                style={{
+                  fontSize: 18,
+                  fontWeight: 900,
+                  color: '#D81B60',
+                  animation: 'pulse 0.5s infinite alternate',
+                }}
+              >
+                {liveActionPhase % 2 === 0 ? '💥 CRUNCH!' : '⚔️ 돌파전'}
+              </div>
+
+              {/* 타워 수호 몬스터 */}
+              <div
+                style={{
+                  transform:
+                    liveActionPhase % 2 === 0 ? 'translateX(-8px) scale(0.95)' : 'translateX(0px)',
+                  transition: 'transform 0.22s ease',
+                  textAlign: 'center',
+                }}
+              >
+                <div
+                  style={{
+                    width: 75,
+                    height: 75,
+                    borderRadius: '50%',
+                    background: 'radial-gradient(circle, #7E57C2 0%, #4527A0 100%)',
+                    display: 'grid',
+                    placeItems: 'center',
+                    fontSize: 34,
+                    boxShadow: '0 4px 12px rgba(69,39,160,0.3)',
+                  }}
+                >
+                  {towerSession.currentFloor % 3 === 0
+                    ? '🐲'
+                    : towerSession.currentFloor % 2 === 0
+                      ? '🍫'
+                      : '🍬'}
+                </div>
+                <div style={{ fontSize: 10, fontWeight: 800, color: '#512DA8', marginTop: 2 }}>
+                  {towerSession.currentFloor}층 수호 몬스터
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* 3. 대기 상태 기본 뷰 */
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <MonsterView look={look} size={148} title={info?.name} />
             </div>
           )}
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <MonsterView look={look} size={148} title={info?.name} />
-          </div>
         </div>
 
         {/* 레벨 경험치 바 & 노곤함(피로도) 게이지 */}

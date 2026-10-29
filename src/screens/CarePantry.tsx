@@ -25,6 +25,7 @@ type PantryTab = 'bag' | 'care' | 'shop'
 export default function CarePantry({ monster, coins, foodBag, onUpdate, onBack }: Props) {
   const [tab, setTab] = useState<PantryTab>('bag')
   const [busy, setBusy] = useState(false)
+  const [isResting, setIsResting] = useState<boolean>(false)
   const [toast, setToast] = useState<string | null>(null)
   const [asmrBubble, setAsmrBubble] = useState<string | null>(null)
   const [activeSoundKind, setActiveSoundKind] = useState<DessertSoundKind>(() =>
@@ -79,6 +80,22 @@ export default function CarePantry({ monster, coins, foodBag, onUpdate, onBack }
   async function handleCareAction(kind: 'play' | 'clean' | 'rest', asmr: DessertSoundKind) {
     if (busy) return
     setBusy(true)
+
+    if (kind === 'rest') {
+      setIsResting(true)
+      triggerAsmr('smore-sizzle')
+      const res = await callCare(monster, coins, 'care_action', { kind })
+      setTimeout(() => {
+        setIsResting(false)
+        setBusy(false)
+        if (res.ok && res.monster && res.foodBag !== undefined && res.coins !== undefined) {
+          onUpdate(res.monster, res.coins, res.foodBag)
+        }
+        showMessage('🌙 꿀잠 낮잠 완료! 노곤함이 깨끗이 풀리고 쫀득 탄력이 돌아왔어요! ✨', res.leveledUp)
+      }, 1500)
+      return
+    }
+
     triggerAsmr(asmr)
     const res = await callCare(monster, coins, 'care_action', { kind })
     setBusy(false)
@@ -136,14 +153,47 @@ export default function CarePantry({ monster, coins, foodBag, onUpdate, onBack }
         {/* 3D 인터랙티브 스테이지 */}
         <div
           className="stage"
-          style={{ alignItems: 'center', position: 'relative', cursor: 'pointer', height: 152, minHeight: 152, padding: 2 }}
+          style={{
+            alignItems: 'center',
+            position: 'relative',
+            cursor: 'pointer',
+            height: 152,
+            minHeight: 152,
+            padding: 2,
+            background: isResting ? 'linear-gradient(180deg, #1A132B 0%, #2D1B36 100%)' : undefined,
+            transition: 'background 0.4s ease',
+          }}
           onClick={() => triggerAsmr(getSpeciesSoundKind(activeSpecies, look.mallang?.dessertBase))}
         >
+          {isResting && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 8,
+                zIndex: 12,
+                padding: '4px 14px',
+                borderRadius: 999,
+                background: 'rgba(255, 255, 255, 0.95)',
+                color: '#3E2723',
+                fontSize: 12,
+                fontWeight: 900,
+                boxShadow: '0 4px 14px rgba(0,0,0,0.3)',
+                animation: 'bounce 1.2s infinite ease-in-out',
+              }}
+            >
+              💤 쿨쿨 낮잠 중… (노곤함 -35 회복 중 ✨)
+            </div>
+          )}
           <SensoryBurst kind={activeSoundKind} triggerKey={burstKey} bubble={asmrBubble} combo={combo} />
           <div
             key={`care-react-${burstKey}`}
             className={burstKey > 0 ? getSensoryReactionClass(activeSoundKind) : ''}
-            style={{ position: 'relative', zIndex: 1 }}
+            style={{
+              position: 'relative',
+              zIndex: 1,
+              transform: isResting ? 'scale(0.92) rotate(4deg)' : undefined,
+              transition: 'transform 0.4s ease',
+            }}
           >
             <MonsterView look={look} size={146} title={info?.name} />
           </div>

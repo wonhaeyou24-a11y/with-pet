@@ -16,20 +16,17 @@ import {
 import { DECO_ITEMS, type DecoSlot } from '../monsters/Decorations'
 import {
   CHAMELEON_PALETTES,
-  CLAY_PAINTS,
   DESSERT_BASES,
   loadMallangCustom,
   MALLANG_PRESETS,
   MORPH_FORMS,
   saveMallangCustom,
-  STAMP_CATALOG,
   SYRUP_CATALOG,
   WING_CATALOG,
   type DessertBaseId,
   type MorphFormId,
   type PaintStamp,
   type PaintStroke,
-  type StampKind,
   type SyrupId,
   type WingKind,
 } from '../monsters/MallangChameleon'
@@ -50,7 +47,7 @@ const SLOT_LABELS: { slot: DecoSlot; label: string; defaultIcon: string }[] = [
   { slot: 'effect', label: '효과', defaultIcon: '✨' },
 ]
 
-type StudioTab = 'dessert' | 'soundboard' | 'morph' | 'paint' | 'parts'
+type StudioTab = 'dessert' | 'soundboard' | 'morph' | 'parts'
 
 function daysTogether(hatchedAt: string) {
   return Math.max(1, Math.floor((serverNow() - Date.parse(hatchedAt)) / 86_400_000) + 1)
@@ -72,14 +69,9 @@ export default function MonsterDetail({ monster, onBack }: { monster: MonsterRow
   const [showcaseBoxMode, setShowcaseBoxMode] = useState<boolean>(false)
   const [biteVotes, setBiteVotes] = useState<number>(42)
 
-  // 바디 페인팅 & 스탬프 상태
-  const [toolMode, setToolMode] = useState<'brush' | 'stamp'>('brush')
-  const [paintColor, setPaintColor] = useState<string>(CLAY_PAINTS[0].color)
-  const [brushSize, setBrushSize] = useState<number>(12)
-  const [selectedStamp, setSelectedStamp] = useState<StampKind>('star')
+  // 바디 페인팅 보존 상태 (레거시 커스텀 유지용)
   const [strokes, setStrokes] = useState<PaintStroke[]>(savedCustom?.strokes ?? [])
   const [stamps, setStamps] = useState<PaintStamp[]>(savedCustom?.stamps ?? [])
-  const isDrawingRef = useRef(false)
 
   // 장식 7칸 & 육성 훈장 상태
   const [activeSlot, setActiveSlot] = useState<DecoSlot>('head')
@@ -161,65 +153,6 @@ export default function MonsterDetail({ monster, onBack }: { monster: MonsterRow
     baseCharm + syrupCharm + Math.min(30, strokes.length * 3 + stamps.length * 5 + (wingKind !== 'none' ? 10 : 0))
   const slotItems = DECO_ITEMS.filter((i) => i.slot === activeSlot)
 
-  function handleCanvasPoint(x: number, y: number, phase: 'down' | 'move' | 'up') {
-    if (phase === 'down') {
-      triggerAsmr(getSpeciesSoundKind(morphForm, dessertBase))
-      if (toolMode === 'stamp') {
-        const meta = STAMP_CATALOG.find((s) => s.kind === selectedStamp)
-        setStamps((prev) => [
-          ...prev.slice(-39),
-          {
-            kind: selectedStamp,
-            x,
-            y,
-            color: paintColor || meta?.defaultColor || '#FBC02D',
-            scale: 1.05,
-          },
-        ])
-        return
-      }
-      isDrawingRef.current = true
-      setStrokes((prev) => [
-        ...prev.slice(-59),
-        {
-          color: paintColor,
-          size: brushSize,
-          points: [[x, y]],
-        },
-      ])
-    } else if (phase === 'move') {
-      if (!isDrawingRef.current || toolMode !== 'brush') return
-      setStrokes((prev) => {
-        if (prev.length === 0) return prev
-        const last = prev[prev.length - 1]
-        const lastPt = last.points[last.points.length - 1]
-        if (lastPt && Math.hypot(lastPt[0] - x, lastPt[1] - y) < 3.5) return prev
-        const updated: PaintStroke = {
-          ...last,
-          points: [...last.points.slice(-119), [x, y]],
-        }
-        return [...prev.slice(0, -1), updated]
-      })
-    } else if (phase === 'up') {
-      isDrawingRef.current = false
-    }
-  }
-
-  function undoPaint() {
-    if (toolMode === 'stamp' && stamps.length > 0) {
-      setStamps((prev) => prev.slice(0, -1))
-    } else if (strokes.length > 0) {
-      setStrokes((prev) => prev.slice(0, -1))
-    } else if (stamps.length > 0) {
-      setStamps((prev) => prev.slice(0, -1))
-    }
-  }
-
-  function clearPaint() {
-    setStrokes([])
-    setStamps([])
-  }
-
   function applyMallangPreset(presetId: string) {
     const found = MALLANG_PRESETS.find((p) => p.id === presetId)
     if (!found) return
@@ -257,7 +190,22 @@ export default function MonsterDetail({ monster, onBack }: { monster: MonsterRow
   }
 
   function toggleDeco(slot: DecoSlot, id: string) {
-    setDeco((prev) => ({ ...prev, [slot]: prev[slot] === id ? null : id }))
+    const nextDeco = { ...deco, [slot]: deco[slot] === id ? null : id }
+    setDeco(nextDeco)
+    saveMallangCustom(monster.id, {
+      morphForm,
+      skinPalette,
+      wingKind,
+      strokes,
+      stamps,
+      dessertBase,
+      syrups,
+      decorations: nextDeco,
+      medals,
+    })
+    triggerAsmr('sugar-crack')
+    setSaveToast('🎀 장식 착용이 즉시 저장되었어요!')
+    setTimeout(() => setSaveToast(null), 2000)
   }
 
   function handleSaveStudio() {
@@ -342,9 +290,8 @@ export default function MonsterDetail({ monster, onBack }: { monster: MonsterRow
               look={look}
               size={156}
               title={info?.name}
-              animate={studioTab !== 'paint'}
-              interactive={studioTab === 'paint'}
-              onCanvasPoint={studioTab === 'paint' ? handleCanvasPoint : undefined}
+              animate
+              interactive
             />
           </div>
         </div>
@@ -402,21 +349,20 @@ export default function MonsterDetail({ monster, onBack }: { monster: MonsterRow
         )}
       </div>
 
-      {/* 하단 원스크린 5대 공방 탭 덱 */}
+      {/* 하단 원스크린 4대 공방 탭 덱 */}
       <div className="card deck-card" style={{ padding: '10px 12px', gap: 6 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 4, flexShrink: 0 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 4, flexShrink: 0 }}>
           {[
             { id: 'dessert' as const, label: '🎂 받침대' },
             { id: 'soundboard' as const, label: '🎧 ASMR' },
             { id: 'morph' as const, label: '🍡 15체형' },
-            { id: 'paint' as const, label: '🖌️ 페인팅' },
-            { id: 'parts' as const, label: '🎀 장식' },
+            { id: 'parts' as const, label: '🎀 7칸 장식' },
           ].map((t) => (
             <button
               key={t.id}
               onClick={() => setStudioTab(t.id)}
               style={{
-                padding: '7px 2px',
+                padding: '8px 2px',
                 borderRadius: 11,
                 border: studioTab === t.id ? '2px solid #FF7A59' : '1.5px solid #F0DFB8',
                 background: studioTab === t.id ? '#FFF2EC' : '#FFFFFF',
@@ -600,117 +546,7 @@ export default function MonsterDetail({ monster, onBack }: { monster: MonsterRow
           </div>
         )}
 
-        {/* 탭 4: 2D 바디 페인팅 & 스탬프 */}
-        {studioTab === 'paint' && (
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 6, flex: 1 }}>
-            <div className="row between">
-              <div className="row" style={{ gap: 4 }}>
-                {[
-                  { size: 7, label: '얇게' },
-                  { size: 12, label: '보통' },
-                  { size: 18, label: '굵게' },
-                ].map((b) => (
-                  <button
-                    key={b.size}
-                    onClick={() => {
-                      setBrushSize(b.size)
-                      setToolMode('brush')
-                    }}
-                    style={{
-                      padding: '3px 8px',
-                      borderRadius: 999,
-                      border: toolMode === 'brush' && brushSize === b.size ? '2px solid #3B2F2F' : '1px solid #E5D4B0',
-                      background: toolMode === 'brush' && brushSize === b.size ? '#FFE8D6' : '#FFFFFF',
-                      fontSize: 12,
-                      fontWeight: 800,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    🖌️ {b.label}
-                  </button>
-                ))}
-              </div>
-              <div className="row" style={{ gap: 4 }}>
-                <button className="chip" onClick={undoPaint} style={{ cursor: 'pointer', border: 'none', fontSize: 12 }}>
-                  ↩️ 취소
-                </button>
-                <button className="chip" onClick={clearPaint} style={{ cursor: 'pointer', border: 'none', fontSize: 12 }}>
-                  🗑️ 지우기
-                </button>
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 5 }}>
-              {CLAY_PAINTS.map((c) => {
-                const selected = paintColor === c.color
-                return (
-                  <button
-                    key={c.id}
-                    onClick={() => {
-                      setPaintColor(c.color)
-                      setToolMode('brush')
-                    }}
-                    style={{
-                      padding: '5px 6px',
-                      borderRadius: 10,
-                      border: selected ? '2px solid #3B2F2F' : '1px solid #F0DFB8',
-                      background: selected ? '#FFF8EE' : '#FFFFFF',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      fontSize: 12,
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: 12,
-                        height: 12,
-                        borderRadius: 99,
-                        background: c.color,
-                        border: '1px solid #3B2F2F',
-                        flexShrink: 0,
-                      }}
-                    />
-                    {c.name}
-                  </button>
-                )
-              })}
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 4 }}>
-              {STAMP_CATALOG.map((st) => {
-                const active = toolMode === 'stamp' && selectedStamp === st.kind
-                return (
-                  <button
-                    key={st.kind}
-                    onClick={() => {
-                      setToolMode('stamp')
-                      setSelectedStamp(st.kind)
-                      setPaintColor(st.defaultColor)
-                    }}
-                    style={{
-                      padding: '5px 2px',
-                      borderRadius: 10,
-                      border: active ? '2px solid #FF7A59' : '1px solid #F0DFB8',
-                      background: active ? '#FFF2EC' : '#FFFFFF',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <span style={{ fontSize: 16 }}>{st.icon}</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: '#3B2F2F' }}>{st.label.slice(0, 2)}</span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* 탭 5: 만능 날개·장신구 7칸·프로필 요약 */}
+        {/* 탭 4: 만능 날개·장신구 7칸·프로필 요약 */}
         {studioTab === 'parts' && (
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 6, flex: 1 }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 4 }}>

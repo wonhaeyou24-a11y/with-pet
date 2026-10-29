@@ -1,18 +1,16 @@
-// M3 화면 3: 🏆 지인 디저트 쇼케이스 광장 & 파티세리 프로필 카드 (원스크린 100dvh 무스크롤 덱 레이아웃)
-// 지인들의 대표 3D 디저트 몬스터를 구경하고, 직접 터치해 식감 ASMR과 손맛을 느껴보며,
-// 한입 투표(좋아요)·응원 댓글·친선 대전을 스크롤 없이 한 화면에서 진행합니다.
+// M3 화면 3: 🏆 지인 디저트 인터랙티브 2.5D 파티세리 광장 맵
+// 넓은 디저트 광장에 지인들의 캐릭터들이 모여 있으며,
+// 줌인/줌아웃(0.75x~1.85x)과 드래그 패닝으로 광장을 둘러보고 캐릭터의 장식·꾸밈을 확대 감상하며,
+// 머리 위 순위·승률 배지를 확인하고 터치 시 친선 대전 및 한입 투표를 진행합니다.
 
-import { useEffect, useState } from 'react'
-import { SKILL_NODES_T1 } from '../config/skills'
-import { ELEMENT_INFO, personalityLabel, SPECIES_INFO } from '../config/species'
+import { useEffect, useRef, useState, type PointerEvent, type WheelEvent } from 'react'
+import { ELEMENT_INFO } from '../config/species'
 import { monsterLook, type MonsterRow } from '../lib/api'
 import { PLAZA_SHOWCASE_FRIENDS, type PlazaFriendEntry } from '../lib/battleEngine'
-import { getSpeciesSoundKind, playDessertAsmr } from '../lib/sound'
+import { playDessertAsmr } from '../lib/sound'
 import { supabase } from '../lib/supabase'
 import MonsterView from '../monsters/MonsterView'
 import { BackIcon, ElementIcon } from '../ui/Icons'
-import { totalStats } from '../ui/parts'
-import { getSensoryReactionClass, SensoryBurst } from '../ui/SensoryFx'
 
 interface Props {
   myMonster: MonsterRow
@@ -24,36 +22,48 @@ interface Props {
   onBack: () => void
 }
 
-const EMOJI_CHOICES = ['🥄', '💚', '🍓', '🍮', '🍫', '🔥', '💖', '👑']
+const CANVAS_W = 860
+const CANVAS_H = 720
+const CENTER_X = CANVAS_W / 2
+const CENTER_Y = CANVAS_H / 2
 
-// 입력값 엄격 검증 및 태그 제거 (Zero-Trust Sanitization)
-function sanitizeComment(raw: string): string {
-  return raw.replace(/[<>&"'`]/g, '').trim().slice(0, 50)
-}
+// 광장 내 캐릭터 스폰 좌표 (분수대 주변, 테라스, 잔디밭 등)
+const PLAZA_COORDS = [
+  { x: CENTER_X - 120, y: CENTER_Y - 70, rank: 1, winRate: 88, zone: '초코 분수대 앞' },
+  { x: CENTER_X + 130, y: CENTER_Y - 60, rank: 2, winRate: 81, zone: '바닐라 테라스' },
+  { x: CENTER_X - 160, y: CENTER_Y + 110, rank: 3, winRate: 74, zone: '마카롱 정원' },
+  { x: CENTER_X + 150, y: CENTER_Y + 120, rank: 4, winRate: 69, zone: '크런치 가든' },
+  { x: CENTER_X, y: CENTER_Y + 170, rank: 5, winRate: 62, zone: '광장 벤치' },
+]
 
 export default function DessertPlaza({
   myMonster,
-  myNickname,
   coins,
   onEarnCoins,
   onChallenge,
-  onOpenSkillTree,
   onBack,
 }: Props) {
   const [entries, setEntries] = useState<PlazaFriendEntry[]>(PLAZA_SHOWCASE_FRIENDS)
   const [selectedIdx, setSelectedIdx] = useState<number>(0)
-  const [subTab, setSubTab] = useState<'skills' | 'comments'>('skills')
   const [likedIds, setLikedIds] = useState<Record<string, boolean>>({})
-  const [selectedEmoji, setSelectedEmoji] = useState<string>('🥄')
-  const [commentInput, setCommentInput] = useState<string>('')
   const [toast, setToast] = useState<string | null>(null)
 
-  // 오감 자극(시각·손맛·청각) 터치 상태
-  const [burstKey, setBurstKey] = useState(0)
-  const [burstBubble, setBurstBubble] = useState<string | null>(null)
-  const [combo, setCombo] = useState(0)
+  // 2.5D 광장 줌 & 패닝 상태
+  const [zoom, setZoom] = useState<number>(0.85)
+  const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
+  const dragRef = useRef<{
+    active: boolean
+    startX: number
+    startY: number
+    originX: number
+    originY: number
+    moved: boolean
+  }>({ active: false, startX: 0, startY: 0, originX: 0, originY: 0, moved: false })
 
-  // 실제 DB에 등록된 지인들의 몬스터가 있으면 함께 불러와 광장에 병합
+  const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map())
+  const pinchDistRef = useRef<number | null>(null)
+
+  // DB에 등록된 지인들의 몬스터 불러오기
   useEffect(() => {
     let cancelled = false
     async function fetchRealFriends() {
@@ -71,17 +81,17 @@ export default function DessertPlaza({
         players?.forEach((p: { id: string; nickname: string }) => nickMap.set(p.id, p.nickname))
 
         const mapped: PlazaFriendEntry[] = (realMonsters as MonsterRow[]).map((m) => ({
-          ownerNickname: nickMap.get(m.owner) ?? '파티시에지인',
+          ownerNickname: nickMap.get(m.owner) ?? '지인파티시에',
           badge: '✨ 지인 파티시에',
-          bio: m.bio ?? '정성껏 키운 나만의 디저트 몬스터예요! 한입 투표 눌러주세요 🍰',
-          likes: m.likes_count ?? 18,
+          bio: m.bio ?? '정성껏 키운 나만의 디저트 몬스터예요! 🍰',
+          likes: m.likes_count ?? 24,
           monster: m,
-          comments: [{ author: '민트파티시에', emoji: '🥄', text: '우와 너무 맛있어 보여요!!' }],
+          comments: [],
         }))
 
         setEntries([...mapped, ...PLAZA_SHOWCASE_FRIENDS])
       } catch {
-        // 오프라인/로컬 환경에서는 기본 쇼케이스 파트너 유지
+        // 오프라인 폴백 세이프가드
       }
     }
     void fetchRealFriends()
@@ -90,370 +100,469 @@ export default function DessertPlaza({
     }
   }, [myMonster.id])
 
-  const current = entries[selectedIdx] ?? entries[0]
-  const look = monsterLook(current.monster)
-  const activeSpecies = look.mallang?.morphForm ?? current.monster.species
-  const info = SPECIES_INFO[activeSpecies] ?? SPECIES_INFO[current.monster.species]
-  const soundKind = getSpeciesSoundKind(activeSpecies, look.mallang?.dessertBase)
-  const reactionClass = burstKey > 0 ? getSensoryReactionClass(soundKind) : ''
-
-  function handleTouchFriendMonster() {
-    const nextCombo = combo + 1
-    setCombo(nextCombo)
-    const meta = playDessertAsmr(soundKind, nextCombo)
-    setBurstBubble(meta.onomatopoeia)
-    setBurstKey((k) => k + 1)
-  }
+  const selectedFriend = entries[selectedIdx] ?? entries[0]
+  const selLook = monsterLook(selectedFriend.monster)
 
   function showToast(msg: string) {
     setToast(msg)
-    setTimeout(() => setToast(null), 3000)
+    setTimeout(() => setToast(null), 2400)
   }
 
-  function handleLikeVote() {
-    const id = current.monster.id
-    if (likedIds[id]) {
-      handleTouchFriendMonster()
-      showToast('💖 이미 오늘 한입 투표를 보낸 디저트예요!')
+  function handleSelectFriend(idx: number) {
+    setSelectedIdx(idx)
+    const coord = PLAZA_COORDS[idx % PLAZA_COORDS.length]
+    playDessertAsmr('syrup-drizzle')
+    // 부드럽게 해당 캐릭터 위치로 포커스 이동
+    const targetZoom = Math.max(zoom, 1.1)
+    setZoom(targetZoom)
+    setPan({
+      x: (CENTER_X - coord.x) * targetZoom * 0.7,
+      y: (CENTER_Y - coord.y) * targetZoom * 0.7,
+    })
+  }
+
+  function handleVote(friend: PlazaFriendEntry) {
+    const fid = friend.monster.id
+    if (likedIds[fid]) {
+      showToast('이미 오늘 한입 투표를 보냈어요!')
       return
     }
-    setLikedIds((prev) => ({ ...prev, [id]: true }))
-    setEntries((prev) =>
-      prev.map((item, idx) => (idx === selectedIdx ? { ...item, likes: item.likes + 1 } : item)),
+    playDessertAsmr('mochi-squish', 2)
+    setLikedIds((prev) => ({ ...prev, [fid]: true }))
+    setEntries((list) =>
+      list.map((it) => (it.monster.id === fid ? { ...it, likes: it.likes + 1 } : it)),
     )
-    playDessertAsmr('syrup-drizzle', 2)
-    setBurstBubble('🥄 한입 투표 완료! (+5 우정 코인)')
-    setBurstKey((k) => k + 1)
     onEarnCoins(5)
-    showToast(`🥄 [${current.monster.name}]에게 한입 투표를 보내고 +5 우정 코인을 받았어요!`)
+    showToast(`🥄 [${friend.ownerNickname}]님에게 달콤한 한입 응원 전달! (+5 코인)`)
   }
 
-  function handleAddComment() {
-    const clean = sanitizeComment(commentInput)
-    if (!clean) return
-    setEntries((prev) =>
-      prev.map((item, idx) =>
-        idx === selectedIdx
-          ? {
-              ...item,
-              comments: [...item.comments, { author: myNickname, emoji: selectedEmoji, text: clean }],
-            }
-          : item,
-      ),
-    )
-    setCommentInput('')
-    playDessertAsmr('syrup-drizzle', 2)
-    onEarnCoins(3)
-    showToast('💬 다정한 한줄 응원을 남기고 +3 우정 코인을 받았어요!')
+  // 포인터 드래그 & 핀치 줌 핸들러
+  function handlePointerDown(e: PointerEvent<HTMLDivElement>) {
+    e.currentTarget.setPointerCapture(e.pointerId)
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+    if (pointersRef.current.size === 2) {
+      const pts = Array.from(pointersRef.current.values())
+      pinchDistRef.current = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y)
+      dragRef.current.active = false
+      return
+    }
+
+    dragRef.current = {
+      active: true,
+      startX: e.clientX,
+      startY: e.clientY,
+      originX: pan.x,
+      originY: pan.y,
+      moved: false,
+    }
   }
 
-  const equippedSkills = (current.monster.equipped_skills ?? ['kataifi-strike', 'sugar-shield', 'sweet-gaze', 'element-drizzle'])
-    .map((id) => SKILL_NODES_T1.find((s) => s.id === id))
-    .filter(Boolean)
+  function handlePointerMove(e: PointerEvent<HTMLDivElement>) {
+    if (pointersRef.current.has(e.pointerId)) {
+      pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+    }
+
+    if (pointersRef.current.size === 2 && pinchDistRef.current !== null) {
+      const pts = Array.from(pointersRef.current.values())
+      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y)
+      const ratio = dist / pinchDistRef.current
+      setZoom((z) => Math.max(0.7, Math.min(1.85, Number((z * ratio).toFixed(3)))))
+      pinchDistRef.current = dist
+      return
+    }
+
+    if (!dragRef.current.active) return
+    const dx = e.clientX - dragRef.current.startX
+    const dy = e.clientY - dragRef.current.startY
+    if (Math.hypot(dx, dy) > 5) dragRef.current.moved = true
+
+    setPan({
+      x: dragRef.current.originX + dx,
+      y: dragRef.current.originY + dy,
+    })
+  }
+
+  function handlePointerUp(e: PointerEvent<HTMLDivElement>) {
+    pointersRef.current.delete(e.pointerId)
+    if (pointersRef.current.size < 2) pinchDistRef.current = null
+    dragRef.current.active = false
+  }
+
+  function handleWheel(e: WheelEvent<HTMLDivElement>) {
+    e.preventDefault()
+    const delta = e.deltaY < 0 ? 0.12 : -0.12
+    setZoom((z) => Math.max(0.7, Math.min(1.85, Number((z + delta).toFixed(2)))))
+  }
 
   return (
-    <main className="screen">
-      {/* 상단 바 */}
-      <div className="row between" style={{ flexShrink: 0 }}>
+    <main
+      className="mobile-screen"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100dvh',
+        background: '#FAF5EE',
+        overflow: 'hidden',
+        userSelect: 'none',
+      }}
+    >
+      {/* 1. 상단 헤더 */}
+      <div
+        className="row between"
+        style={{
+          padding: '10px 14px',
+          background: '#FFFDF9',
+          borderBottom: '1.5px solid #F0DFB8',
+          flexShrink: 0,
+          zIndex: 20,
+        }}
+      >
         <button className="btn-round" onClick={onBack} aria-label="뒤로">
           <BackIcon />
         </button>
-        <h1 className="title" style={{ fontSize: 17 }}>🏆 지인 디저트 광장</h1>
-        <div className="row" style={{ gap: 4 }}>
-          <button
-            className="chip coral"
-            onClick={onOpenSkillTree}
-            style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 12, padding: '3px 8px' }}
-          >
-            🌈 스킬트리
-          </button>
-          <span className="chip honey" style={{ fontWeight: 800, fontSize: 12, padding: '3px 8px' }}>
-            🪙 {coins}
-          </span>
+        <div>
+          <h1 className="title" style={{ fontSize: 16, margin: 0, textAlign: 'center' }}>
+            🏰 파티세리 광장 빌리지
+          </h1>
+          <div style={{ fontSize: 11, color: '#8D6E63', textAlign: 'center' }}>
+            👆 드래그 탐색 · 🤏 줌인 확대 · 캐릭터 터치
+          </div>
         </div>
+        <span className="chip honey" style={{ fontWeight: 800, fontSize: 12 }}>
+          🪙 {coins}
+        </span>
       </div>
 
-      {/* 지인 디저트 선택 탭 바 (3×2 그리드) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 5, flexShrink: 0 }}>
-        {entries.slice(0, 6).map((entry, idx) => {
-          const isSel = idx === selectedIdx
-          const spInfo = SPECIES_INFO[entry.monster.species]
-          return (
-            <button
-              key={entry.monster.id}
-              onClick={() => {
-                setSelectedIdx(idx)
-                setCombo(0)
-                const sKind = getSpeciesSoundKind(entry.monster.species)
-                const meta = playDessertAsmr(sKind)
-                setBurstBubble(meta.onomatopoeia)
-                setBurstKey((k) => k + 1)
-              }}
-              style={{
-                padding: '5px 6px',
-                borderRadius: 10,
-                border: isSel ? '2px solid #FF7A59' : '1.5px solid #F0DFB8',
-                background: isSel ? '#FFF2EC' : '#FFFFFF',
-                fontSize: 12,
-                fontWeight: 800,
-                color: '#3B2F2F',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                cursor: 'pointer',
-              }}
-            >
-              {entry.monster.name || spInfo?.name}
-            </button>
-          )
-        })}
-      </div>
-
-      {/* 선택된 지인 몬스터의 3D 쇼케이스 카드 */}
+      {/* 2. 2.5D 인터랙티브 광장 맵 (무스크롤 뷰포트) */}
       <div
-        className="card"
         style={{
-          background: 'linear-gradient(180deg, #FFF7F9 0%, #FFFDF9 100%)',
-          border: '2px dashed #FF8A65',
-          padding: '10px 12px',
-          gap: 6,
-          flexShrink: 0,
+          position: 'relative',
+          flex: 1,
+          minHeight: 0,
+          overflow: 'hidden',
+          background: 'radial-gradient(circle at 50% 50%, #FFF8E7 0%, #F5E6CC 100%)',
+          touchAction: 'none',
         }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        onWheel={handleWheel}
       >
-        <div className="row wrap between" style={{ gap: 4 }}>
-          <div className="row wrap" style={{ gap: 4 }}>
-            <span className="chip coral" style={{ fontSize: 12, padding: '2px 8px' }}>
-              {current.badge}
-            </span>
-            <span style={{ fontSize: 15, fontWeight: 900, color: '#3B2F2F' }}>
-              {current.monster.name} <span style={{ fontSize: 12, color: '#7A6A60' }}>({current.ownerNickname})</span>
-            </span>
-          </div>
-          <span className="chip honey" style={{ fontWeight: 800, fontSize: 12, padding: '2px 8px' }}>
-            ❤️ {current.likes}
-          </span>
-        </div>
-
-        {/* 3D 쇼케이스 스테이지 */}
+        {/* 줌 컨트롤러 */}
         <div
-          className="stage"
-          style={{ alignItems: 'center', position: 'relative', height: 156, minHeight: 156, padding: 2, cursor: 'pointer' }}
-          onClick={handleTouchFriendMonster}
+          style={{
+            position: 'absolute',
+            right: 12,
+            top: 12,
+            zIndex: 15,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 6,
+          }}
+          onPointerDown={(e) => e.stopPropagation()}
         >
-          <SensoryBurst kind={soundKind} triggerKey={burstKey} bubble={burstBubble} combo={combo} />
-          <div key={burstKey} className={reactionClass} style={{ position: 'relative', zIndex: 1 }}>
-            <MonsterView look={look} size={150} title={current.monster.name ?? info?.name} />
-          </div>
-        </div>
-
-        <div className="row wrap center" style={{ gap: 4 }}>
-          <span className="chip" style={{ fontSize: 12, padding: '2px 7px' }}>{info?.name ?? current.monster.species}</span>
-          {info?.textureLabel && <span className="chip honey" style={{ fontSize: 12, padding: '2px 7px' }}>{info.textureLabel}</span>}
-          <span className="chip" style={{ fontSize: 12, padding: '2px 7px' }}>
-            <ElementIcon element={current.monster.element} size={14} />
-            {ELEMENT_INFO[current.monster.element].label}
-          </span>
-          <span className="chip coral" style={{ fontSize: 12, padding: '2px 7px' }}>Lv.{current.monster.level}</span>
-          <span className="chip" style={{ fontSize: 12, padding: '2px 7px' }}>
-            {personalityLabel(current.monster.personality_active, current.monster.personality_bond)}
-          </span>
-        </div>
-
-        {/* 광장 핵심 액션 버튼 2종: 한입 투표 & 친선 대전 */}
-        <div className="grid-2" style={{ gap: 6 }}>
-          <button className="btn mint" onClick={handleLikeVote} style={{ padding: '9px 8px', fontSize: 12 }}>
-            🥄 한입 투표 ❤️ ({current.likes})
+          <button
+            onClick={() => setZoom((z) => Math.min(1.85, Number((z + 0.25).toFixed(2))))}
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: 12,
+              background: '#FFFDF9',
+              border: '1.5px solid #D7CCC8',
+              fontSize: 18,
+              fontWeight: 900,
+              cursor: 'pointer',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+            }}
+          >
+            ＋
           </button>
-          <button className="btn" onClick={() => onChallenge(current)} style={{ padding: '9px 8px', fontSize: 12 }}>
-            ⚔️ 식감 ASMR 친선전!
+          <button
+            onClick={() => {
+              setZoom(0.85)
+              setPan({ x: 0, y: 0 })
+            }}
+            style={{
+              width: 38,
+              height: 28,
+              borderRadius: 8,
+              background: '#FFFDF9',
+              border: '1.5px solid #D7CCC8',
+              fontSize: 11,
+              fontWeight: 800,
+              cursor: 'pointer',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+            }}
+          >
+            초기화
+          </button>
+          <button
+            onClick={() => setZoom((z) => Math.max(0.7, Number((z - 0.25).toFixed(2))))}
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: 12,
+              background: '#FFFDF9',
+              border: '1.5px solid #D7CCC8',
+              fontSize: 18,
+              fontWeight: 900,
+              cursor: 'pointer',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+            }}
+          >
+            －
           </button>
         </div>
 
-        {toast && (
+        {/* 광장 캔버스 월드 */}
+        <div
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            width: CANVAS_W,
+            height: CANVAS_H,
+            marginLeft: -CENTER_X,
+            marginTop: -CENTER_Y,
+            transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
+            transformOrigin: '50% 50%',
+            transition: dragRef.current.active ? 'none' : 'transform 0.22s ease-out',
+          }}
+        >
+          {/* 광장 바닥 아트 (디저트 타일 & 분수대) */}
           <div
             style={{
-              padding: '5px 10px',
-              borderRadius: 10,
-              background: '#E8F8F0',
-              color: '#177051',
-              fontSize: 12,
-              fontWeight: 800,
-              textAlign: 'center',
+              position: 'absolute',
+              inset: 0,
+              borderRadius: 40,
+              border: '4px dashed #E0CFB5',
+              background: 'repeating-linear-gradient(45deg, #FFFDF8, #FFFDF8 20px, #FDF7EC 20px, #FDF7EC 40px)',
+              boxShadow: 'inset 0 0 40px rgba(141,110,99,0.15)',
+            }}
+          />
+
+          {/* 중앙 달콤 퐁듀 분수대 */}
+          <div
+            style={{
+              position: 'absolute',
+              left: CENTER_X - 60,
+              top: CENTER_Y - 60,
+              width: 120,
+              height: 120,
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, #FF80AB 0%, #FF4081 70%, #F50057 100%)',
+              border: '4px solid #FFFFFF',
+              boxShadow: '0 8px 24px rgba(255,64,129,0.3)',
+              display: 'grid',
+              placeItems: 'center',
+              color: '#FFFFFF',
+              fontSize: 32,
+              zIndex: 2,
             }}
           >
-            {toast}
+            ⛲
+            <span
+              style={{
+                position: 'absolute',
+                bottom: 6,
+                fontSize: 10,
+                fontWeight: 900,
+                background: 'rgba(0,0,0,0.4)',
+                padding: '1px 6px',
+                borderRadius: 999,
+              }}
+            >
+              디저트 분수
+            </span>
           </div>
-        )}
+
+          {/* 지인들의 캐릭터 노드 배치 */}
+          {entries.slice(0, PLAZA_COORDS.length).map((friend, idx) => {
+            const coord = PLAZA_COORDS[idx]
+            const isSelected = idx === selectedIdx
+            const fLook = monsterLook(friend.monster)
+
+            return (
+              <div
+                key={friend.monster.id}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleSelectFriend(idx)
+                }}
+                style={{
+                  position: 'absolute',
+                  left: coord.x - 55,
+                  top: coord.y - 65,
+                  width: 110,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  zIndex: isSelected ? 10 : 3,
+                  transform: isSelected ? 'scale(1.18)' : 'scale(1)',
+                  transition: 'transform 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28)',
+                }}
+              >
+                {/* 머리 위 순위 & 승률 배지 */}
+                <div
+                  style={{
+                    padding: '3px 8px',
+                    borderRadius: 999,
+                    background:
+                      coord.rank === 1
+                        ? 'linear-gradient(90deg, #FFD700, #FFA000)'
+                        : coord.rank === 2
+                          ? 'linear-gradient(90deg, #E0E0E0, #BDBDBD)'
+                          : coord.rank === 3
+                            ? 'linear-gradient(90deg, #FFAB91, #D84315)'
+                            : '#5D4037',
+                    color: coord.rank <= 2 ? '#3E2723' : '#FFFFFF',
+                    fontSize: 10,
+                    fontWeight: 900,
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                    whiteSpace: 'nowrap',
+                    marginBottom: 2,
+                  }}
+                >
+                  {coord.rank === 1 ? '👑 1위' : `${coord.rank}위`} · 승률 {coord.winRate}%
+                </div>
+
+                {/* 3D 캐릭터 아바타 */}
+                <div
+                  style={{
+                    width: 90,
+                    height: 90,
+                    borderRadius: '50%',
+                    background: isSelected ? 'rgba(255, 235, 59, 0.25)' : 'transparent',
+                    border: isSelected ? '2px solid #FFD600' : 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    position: 'relative',
+                  }}
+                >
+                  <MonsterView look={fLook} size={84} title={friend.monster.name ?? undefined} />
+                </div>
+
+                {/* 캐릭터 이름 & 주인 닉네임 */}
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 800,
+                    color: '#3E2723',
+                    background: 'rgba(255,255,255,0.92)',
+                    padding: '2px 8px',
+                    borderRadius: 999,
+                    marginTop: 2,
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    maxWidth: 100,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {friend.monster.name}
+                </div>
+                <div style={{ fontSize: 9, color: '#795548', fontWeight: 700 }}>
+                  @{friend.ownerNickname}
+                </div>
+              </div>
+            )
+          })}
+        </div>
       </div>
 
-      {/* 하단 원스크린 탭 덱: 장착 스킬·능력치 / 한입 응원록 */}
-      <div className="card deck-card" style={{ padding: '10px 12px', gap: 6 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 6, flexShrink: 0 }}>
+      {/* 3. 하단 선택된 지인 디저트 프로필 카드 (친선전 & 한입 투표 & 3D 장식 보기) */}
+      <div
+        className="card tight"
+        style={{
+          flexShrink: 0,
+          background: '#FFFDF9',
+          borderTop: '2px solid #FFB74D',
+          padding: '10px 14px',
+          gap: 6,
+          boxShadow: '0 -4px 16px rgba(0,0,0,0.06)',
+          zIndex: 20,
+        }}
+      >
+        <div className="row between" style={{ gap: 8 }}>
+          <div className="row" style={{ gap: 8, minWidth: 0, flex: 1 }}>
+            <span
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 14,
+                background: '#FFF3E0',
+                border: '1.5px solid #FFB74D',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+                flexShrink: 0,
+              }}
+            >
+              <MonsterView look={selLook} size={44} title={selectedFriend.monster.name ?? undefined} />
+            </span>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div className="row" style={{ gap: 4 }}>
+                <strong style={{ fontSize: 14, color: '#3E2723' }}>
+                  {selectedFriend.monster.name}
+                </strong>
+                <span className="chip honey" style={{ fontSize: 10, padding: '1px 5px' }}>
+                  Lv.{selectedFriend.monster.level}
+                </span>
+                <span className="chip" style={{ fontSize: 10, padding: '1px 5px' }}>
+                  <ElementIcon element={selectedFriend.monster.element} size={11} />
+                  {ELEMENT_INFO[selectedFriend.monster.element].label}
+                </span>
+              </div>
+              <div style={{ fontSize: 11, color: '#8D6E63', marginTop: 1 }}>
+                파티시에: <strong>{selectedFriend.ownerNickname}</strong> · {selectedFriend.bio}
+              </div>
+            </div>
+          </div>
+
+          {/* 한입 투표 버튼 */}
           <button
-            onClick={() => setSubTab('skills')}
+            onClick={() => handleVote(selectedFriend)}
             style={{
-              padding: '7px 6px',
-              borderRadius: 12,
-              border: subTab === 'skills' ? '2px solid #FF7A59' : '1.5px solid #F0DFB8',
-              background: subTab === 'skills' ? '#FFF2EC' : '#FFFFFF',
-              fontSize: 12,
-              fontWeight: 800,
-              color: '#3B2F2F',
+              padding: '6px 10px',
+              borderRadius: 10,
+              border: '1.5px solid #FF80AB',
+              background: likedIds[selectedFriend.monster.id] ? '#FF80AB' : '#FFF0F5',
+              color: likedIds[selectedFriend.monster.id] ? '#FFFFFF' : '#C2185B',
+              fontSize: 11,
+              fontWeight: 900,
               cursor: 'pointer',
+              flexShrink: 0,
             }}
           >
-            ⚔️ 장착 스킬 · 능력치
-          </button>
-          <button
-            onClick={() => setSubTab('comments')}
-            style={{
-              padding: '7px 6px',
-              borderRadius: 12,
-              border: subTab === 'comments' ? '2px solid #FF7A59' : '1.5px solid #F0DFB8',
-              background: subTab === 'comments' ? '#FFF2EC' : '#FFFFFF',
-              fontSize: 12,
-              fontWeight: 800,
-              color: '#3B2F2F',
-              cursor: 'pointer',
-            }}
-          >
-            💬 한입 응원록 ({current.comments.length})
+            🥄 한입 ({selectedFriend.likes})
           </button>
         </div>
 
-        {subTab === 'skills' ? (
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 6, flex: 1 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 5 }}>
-              {equippedSkills.map((sk) =>
-                sk ? (
-                  <div
-                    key={sk.id}
-                    onClick={() => {
-                      playDessertAsmr(sk.asmr)
-                      setBurstBubble(`${sk.icon} ${sk.onomatopoeia}`)
-                      setBurstKey((k) => k + 1)
-                    }}
-                    style={{
-                      padding: '6px 8px',
-                      borderRadius: 12,
-                      background: '#FFFBF2',
-                      border: '1px solid #F0DFB8',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <span style={{ fontSize: 16 }}>{sk.icon}</span>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 12, fontWeight: 800, color: '#3B2F2F' }}>{sk.name}</div>
-                      <div style={{ fontSize: 12, color: '#D85A3A', fontWeight: 700 }}>{sk.onomatopoeia}</div>
-                    </div>
-                  </div>
-                ) : null,
-              )}
-            </div>
-            <div className="row between" style={{ gap: 4 }}>
-              <span style={{ fontSize: 12, fontWeight: 800, color: '#5D4037', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                “{current.bio}”
-              </span>
-              <span className="chip" style={{ fontSize: 12, flexShrink: 0, padding: '2px 7px' }}>
-                총점 {totalStats(current.monster.stats)}
-              </span>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 4 }}>
-              {[
-                { label: '체력', val: current.monster.stats.hp, color: '#F47C7C' },
-                { label: '공격', val: current.monster.stats.atk, color: '#FF9F7A' },
-                { label: '방어', val: current.monster.stats.def, color: '#F5B82E' },
-                { label: '속도', val: current.monster.stats.spd, color: '#4FB888' },
-                { label: '지능', val: current.monster.stats.int, color: '#4FA3E0' },
-                { label: '매력', val: current.monster.stats.cha, color: '#B07CF0' },
-              ].map((st) => (
-                <div
-                  key={st.label}
-                  style={{
-                    padding: '4px 2px',
-                    borderRadius: 10,
-                    background: '#FFFBF2',
-                    border: '1px solid #F0DFB8',
-                    textAlign: 'center',
-                  }}
-                >
-                  <div style={{ fontSize: 12, fontWeight: 800, color: '#7A6A60' }}>{st.label}</div>
-                  <div style={{ fontSize: 12, fontWeight: 900, color: st.color }}>{st.val}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 6, flex: 1 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {current.comments.slice(-3).map((c, i) => (
-                <div
-                  key={i}
-                  style={{
-                    padding: '6px 10px',
-                    borderRadius: 12,
-                    background: '#FFFBF2',
-                    border: '1px solid #F0DFB8',
-                    fontSize: 12,
-                  }}
-                >
-                  <strong>
-                    {c.emoji} {c.author}
-                  </strong>
-                  : {c.text}
-                </div>
-              ))}
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <div className="row wrap" style={{ gap: 4 }}>
-                {EMOJI_CHOICES.map((em) => (
-                  <button
-                    key={em}
-                    onClick={() => setSelectedEmoji(em)}
-                    style={{
-                      padding: '3px 7px',
-                      borderRadius: 999,
-                      border: selectedEmoji === em ? '2px solid #FF7A59' : '1px solid #E5D4B0',
-                      background: selectedEmoji === em ? '#FFF2EC' : '#FFFFFF',
-                      fontSize: 13,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {em}
-                  </button>
-                ))}
-              </div>
-              <div className="row" style={{ gap: 6 }}>
-                <input
-                  value={commentInput}
-                  maxLength={50}
-                  placeholder="달콤한 한줄 응원을 남겨 보세요 (+3 코인)"
-                  onChange={(e) => setCommentInput(e.target.value)}
-                  style={{
-                    flex: 1,
-                    padding: '8px 10px',
-                    borderRadius: 999,
-                    border: '1.5px solid #F0DFB8',
-                    fontSize: 12,
-                  }}
-                />
-                <button
-                  className="btn"
-                  disabled={!commentInput.trim()}
-                  onClick={handleAddComment}
-                  style={{ padding: '8px 12px', fontSize: 12, flexShrink: 0 }}
-                >
-                  등록
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* 액션 버튼 바: 친선 대전 신청 */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 6, marginTop: 4 }}>
+          <button
+            className="btn"
+            onClick={() => onChallenge(selectedFriend)}
+            style={{
+              padding: '10px',
+              fontSize: 13,
+              fontWeight: 900,
+              background: 'linear-gradient(90deg, #FF7A59 0%, #FF9800 100%)',
+              color: '#FFFFFF',
+              boxShadow: '0 4px 10px rgba(255,122,89,0.3)',
+            }}
+          >
+            ⚔️ [친선 대전 신청] ASMR 턴제 배틀 시작
+          </button>
+        </div>
       </div>
+
+      {toast && <div className="toast">{toast}</div>}
     </main>
   )
 }

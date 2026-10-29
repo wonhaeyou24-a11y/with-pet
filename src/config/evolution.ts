@@ -391,3 +391,4 @@ export const EVO_STAGE_REQUIREMENTS = {
   2: { level: 8, label: '파티세리' }, // 1차 진화: 8레벨 달성 시
   3: { level: 15, label: '로얄 마스터' }, // 2차 최종 진화: 15레벨 달성 시
 } as const
+

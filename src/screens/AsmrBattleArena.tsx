@@ -53,43 +53,50 @@ export default function AsmrBattleArena({
   const cPct = Math.max(0, Math.min(100, Math.round((cHp / sim.challengerMaxHp) * 100)))
   const dPct = Math.max(0, Math.min(100, Math.round((dHp / sim.defenderMaxHp) * 100)))
 
-  // 자동 턴제 공방 루프 & 다단계 액션 연출 (돌진 ➔ 타격 ➔ 반응)
+  // 자동 턴제 공방 루프 (마운트 즉시 0.4초 후 자동 시작)
   useEffect(() => {
     if (!playing || isFinished) return
-    const turnInterval = speed === 2 ? 1100 : 1850
 
-    // 1단계: 돌진/스킬 준비
-    setActionPhase('windup')
-    const windupTimer = window.setTimeout(() => {
+    const turnInterval = speed === 2 ? 800 : 1400
+
+    // 1단계: 턴 개시 및 돌진 모션
+    const t1 = setTimeout(() => {
+      setActionPhase('windup')
+    }, 50)
+
+    // 2단계: 타격 & ASMR 사운드
+    const t2 = setTimeout(() => {
       setActionPhase('strike')
-    }, turnInterval * 0.3)
-
-    // 2단계: 타격 및 ASMR 사운드 재생
-    const strikeTimer = window.setTimeout(() => {
-      setActionPhase('reaction')
       const nextStep = stepIdx + 1
       const turn = sim.turns[nextStep - 1]
       if (turn) {
         playDessertAsmr(turn.asmr, turn.hitCount ?? (turn.isCrit ? 3 : 1))
       }
+    }, turnInterval * 0.4)
+
+    // 3단계: 피격 반응 & 스텝 인덱스 증가
+    const t3 = setTimeout(() => {
+      setActionPhase('reaction')
+      const nextStep = stepIdx + 1
       setStepIdx(nextStep)
       if (nextStep >= sim.turns.length && !rewarded) {
         setRewarded(true)
         onRewardClaimed?.(sim.winner === 'challenger' ? 30 : 15)
       }
-    }, turnInterval * 0.65)
+    }, turnInterval * 0.75)
 
-    // 3단계: 다음 턴 대기
-    const endTimer = window.setTimeout(() => {
+    // 4단계: 턴 복귀
+    const t4 = setTimeout(() => {
       setActionPhase('idle')
     }, turnInterval)
 
     return () => {
-      window.clearTimeout(windupTimer)
-      window.clearTimeout(strikeTimer)
-      window.clearTimeout(endTimer)
+      clearTimeout(t1)
+      clearTimeout(t2)
+      clearTimeout(t3)
+      clearTimeout(t4)
     }
-  }, [playing, isFinished, stepIdx, speed, sim, rewarded, onRewardClaimed])
+  }, [playing, isFinished, stepIdx, speed])
 
   // 플레이어 실시간 터치 응원 (유대감 및 손맛 피드백)
   function handleCheer() {
@@ -525,6 +532,77 @@ export default function AsmrBattleArena({
           })}
         </div>
       </div>
+
+      {/* 대전 종료 결과 팝업 & 광장 복귀 모달 */}
+      {isFinished && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 50,
+            background: 'rgba(0,0,0,0.65)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 20,
+            animation: 'fadeIn 0.25s ease',
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: 320,
+              background: '#FFFDF9',
+              borderRadius: 20,
+              border: '2px solid #FFD54F',
+              padding: '20px 18px',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12,
+              boxShadow: '0 12px 32px rgba(0,0,0,0.3)',
+            }}
+          >
+            <div style={{ fontSize: 44 }}>
+              {sim.winner === 'challenger' ? '🎉🏆🎉' : '💔🍪💦'}
+            </div>
+            <h2
+              style={{
+                fontSize: 20,
+                fontWeight: 900,
+                margin: 0,
+                color: sim.winner === 'challenger' ? '#E65100' : '#4E342E',
+              }}
+            >
+              {sim.winner === 'challenger' ? '달콤한 승리 달성!' : '아쉬운 패배!'}
+            </h2>
+            <div style={{ fontSize: 13, color: '#6D4C41', lineHeight: 1.4 }}>
+              {sim.winner === 'challenger'
+                ? `[${defender.name ?? '상대'}]와의 친선전에서 승리하여 🪙 30 코인을 획득했습니다!`
+                : `[${defender.name ?? '상대'}]와의 명승부 끝에 🪙 15 코인을 획득했습니다!`}
+            </div>
+
+            <button
+              onClick={onBack}
+              style={{
+                padding: '13px',
+                borderRadius: 14,
+                border: 'none',
+                background: 'linear-gradient(90deg, #FF7A59 0%, #FF9800 100%)',
+                color: '#FFFFFF',
+                fontSize: 15,
+                fontWeight: 900,
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(255,122,89,0.35)',
+                marginTop: 4,
+              }}
+            >
+              🏆 대전 종료 &amp; 광장으로 복귀
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   )
 }

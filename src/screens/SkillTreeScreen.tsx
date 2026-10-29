@@ -740,70 +740,123 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
         </div>
       </div>
 
-      {/* 4. 하단 고정 선택 노드 상세 & 해금/장착 액션 바 (페이지 스크롤 없음) */}
+      {/* 4. 하단 고정 선택 노드 상세 & 해금/장착 액션 바 (글씨 잘림/칸 깨짐 완전 방지 3단 구조) */}
       <div
         className="card tight"
         style={{
           flexShrink: 0,
           background: '#FFFDF9',
           border: `2px solid ${selectedPositioned.color}`,
-          padding: '10px 12px',
-          gap: 6,
+          padding: '8px 12px',
+          gap: 5,
         }}
       >
-        <div className="row between" style={{ gap: 8 }}>
-          <div className="row" style={{ gap: 8, minWidth: 0 }}>
+        {/* 1단: 아이콘 + 스킬 이름 + 티어/가지 뱃지 */}
+        <div className="row between" style={{ alignItems: 'center', gap: 6 }}>
+          <div className="row" style={{ alignItems: 'center', gap: 6, minWidth: 0, flex: 1 }}>
             <span
               style={{
-                width: 38,
-                height: 38,
-                borderRadius: 12,
+                width: 32,
+                height: 32,
+                borderRadius: 10,
                 background: `${selectedPositioned.color}22`,
                 border: `1.5px solid ${selectedPositioned.color}`,
                 display: 'grid',
                 placeItems: 'center',
-                fontSize: 20,
+                fontSize: 18,
                 flexShrink: 0,
               }}
             >
               {selNode.icon}
             </span>
-            <div style={{ minWidth: 0 }}>
-              <div className="row" style={{ gap: 6 }}>
-                <strong style={{ fontSize: 15, color: '#3B2F2F' }}>{selNode.name}</strong>
-                <span className="chip" style={{ fontSize: 12, padding: '2px 7px' }}>
-                  {selectedPositioned.branchName}
-                </span>
-                <span
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 900,
-                    padding: '2px 6px',
-                    borderRadius: 6,
-                    background: selNode.tier === 3 ? '#FFD700' : selNode.tier === 2 ? '#BA68C8' : '#81C784',
-                    color: selNode.tier === 3 ? '#3E2723' : '#FFFFFF',
-                  }}
-                >
-                  {selNode.tier === 3 ? '👑 궁극기' : selNode.tier === 2 ? '⚡ Tier 2' : 'Tier 1'}
-                </span>
-              </div>
-              <div style={{ fontSize: 12, color: '#D85A3A', fontWeight: 700 }}>
-                🔊 {selNode.onomatopoeia}
-              </div>
-            </div>
+            <strong
+              style={{
+                fontSize: 14,
+                color: '#3B2F2F',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {selNode.name}
+            </strong>
           </div>
 
+          <div className="row" style={{ gap: 4, flexShrink: 0 }}>
+            <span
+              className="chip"
+              style={{
+                fontSize: 10,
+                padding: '2px 6px',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+              }}
+            >
+              {selectedPositioned.branchName}
+            </span>
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 900,
+                padding: '2px 6px',
+                borderRadius: 6,
+                background:
+                  selNode.tier === 3 ? '#FFD700' : selNode.tier === 2 ? '#BA68C8' : '#81C784',
+                color: selNode.tier === 3 ? '#3E2723' : '#FFFFFF',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+              }}
+            >
+              {selNode.tier === 3 ? '👑 궁극기' : selNode.tier === 2 ? '⚡ Tier 2' : 'Tier 1'}
+            </span>
+          </div>
+        </div>
+
+        {/* 2단: 온오마토페이아 & 소리듣기 버튼 */}
+        <div className="row between" style={{ alignItems: 'center', gap: 6 }}>
+          <div
+            style={{
+              fontSize: 11,
+              color: '#D85A3A',
+              fontWeight: 700,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              flex: 1,
+            }}
+          >
+            🔊 {selNode.onomatopoeia}
+          </div>
           <button
             className="chip"
             onClick={() => playDessertAsmr(selNode.asmr)}
-            style={{ cursor: 'pointer', flexShrink: 0, fontWeight: 800, background: '#FFF2EC', color: '#D85A3A' }}
+            style={{
+              cursor: 'pointer',
+              flexShrink: 0,
+              fontWeight: 800,
+              fontSize: 11,
+              padding: '2px 7px',
+              background: '#FFF2EC',
+              color: '#D85A3A',
+            }}
           >
             🎧 소리듣기
           </button>
         </div>
 
-        <div className="row between" style={{ gap: 8 }}>
-          <p style={{ fontSize: 13, color: '#5D4037', fontWeight: 600, flex: 1 }}>
+        {/* 3단: 스킬 상세 효과 & 해금/장착 버튼 */}
+        <div className="row between" style={{ alignItems: 'center', gap: 8, marginTop: 2 }}>
+          <p
+            style={{
+              fontSize: 12,
+              color: '#5D4037',
+              fontWeight: 600,
+              margin: 0,
+              flex: 1,
+              lineHeight: 1.35,
+              wordBreak: 'keep-all',
+            }}
+          >
             {selNode.effectText}
           </p>
 
@@ -811,7 +864,7 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
             <button
               className="btn"
               onClick={() => handleUnlock(selNode)}
-              style={{ padding: '9px 14px', fontSize: 13, flexShrink: 0 }}
+              style={{ padding: '7px 12px', fontSize: 12, flexShrink: 0, whiteSpace: 'nowrap' }}
             >
               🔓 SP {selNode.spCost} 해금
             </button>
@@ -819,12 +872,15 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
             <button
               className={isSelEquipped ? 'btn' : 'btn mint'}
               onClick={() => handleToggleEquip(selNode)}
-              style={{ padding: '9px 14px', fontSize: 13, flexShrink: 0 }}
+              style={{ padding: '7px 12px', fontSize: 12, flexShrink: 0, whiteSpace: 'nowrap' }}
             >
               {isSelEquipped ? '장착 해제' : '⚔️ 슬롯 장착'}
             </button>
           ) : (
-            <span className="chip mint" style={{ fontWeight: 900, flexShrink: 0 }}>
+            <span
+              className="chip mint"
+              style={{ fontWeight: 900, flexShrink: 0, fontSize: 11, padding: '4px 8px' }}
+            >
               ✨ 패시브 적용중
             </span>
           )}

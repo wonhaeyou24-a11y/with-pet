@@ -227,17 +227,17 @@ export default function MonsterHome({
               }}
               style={{
                 position: 'absolute',
-                top: 4,
+                top: 0,
                 left: '50%',
                 transform: 'translateX(-50%)',
                 zIndex: 12,
-                padding: '4px 12px',
+                padding: '3px 10px',
                 borderRadius: 999,
                 background: 'linear-gradient(90deg, #FFD700, #FF6F00)',
                 color: '#3E2723',
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: 900,
-                boxShadow: '0 4px 12px rgba(255,215,0,0.5)',
+                boxShadow: '0 3px 10px rgba(255,215,0,0.5)',
                 cursor: 'pointer',
                 animation: 'bounce 1.5s infinite ease-in-out',
                 whiteSpace: 'nowrap',
@@ -246,6 +246,8 @@ export default function MonsterHome({
               ✨ {evoEligibility.targetStage}단계 각성 진화 가능!
             </div>
           )}
+
+          {/* 백그라운드 훈련 / 타워 탐험 진행 뱃지 */}
           {trainSess && (
             <div
               onClick={(e) => {
@@ -254,10 +256,10 @@ export default function MonsterHome({
               }}
               style={{
                 position: 'absolute',
-                top: 4,
-                left: 6,
+                top: 2,
+                left: 4,
                 zIndex: 10,
-                padding: '4px 9px',
+                padding: '3px 8px',
                 borderRadius: 999,
                 background: trainLeftSec > 0 ? '#FF7A59' : '#4CAF50',
                 color: '#FFFFFF',
@@ -279,10 +281,10 @@ export default function MonsterHome({
               }}
               style={{
                 position: 'absolute',
-                top: 4,
-                right: 6,
+                top: 2,
+                right: 4,
                 zIndex: 10,
-                padding: '4px 9px',
+                padding: '3px 8px',
                 borderRadius: 999,
                 background: '#7C4DFF',
                 color: '#FFFFFF',
@@ -300,17 +302,21 @@ export default function MonsterHome({
             <div
               style={{
                 position: 'absolute',
-                top: 6,
+                top: 2,
                 zIndex: 9,
-                padding: '5px 12px',
+                padding: '3px 10px',
                 borderRadius: 999,
-                background: 'rgba(255, 253, 245, 0.95)',
+                background: 'rgba(255, 253, 245, 0.96)',
                 border: '1.5px solid #FFB74D',
                 color: '#4E342E',
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: 800,
-                boxShadow: '0 4px 12px rgba(78,52,46,0.15)',
+                boxShadow: '0 3px 10px rgba(78,52,46,0.15)',
                 animation: 'bounce 2s infinite ease-in-out',
+                maxWidth: '85%',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
               }}
             >
               💭 {suggestion.balloon}
@@ -321,46 +327,46 @@ export default function MonsterHome({
           <div
             key={`home-react-${burstKey}`}
             className={burstKey > 0 ? getSensoryReactionClass(soundKind) : ''}
-            style={{ position: 'relative', zIndex: 1 }}
+            style={{ position: 'relative', zIndex: 1, marginTop: 8 }}
           >
-            <MonsterView look={look} size={170} title={info?.name} />
+            <MonsterView look={look} size={145} title={info?.name} />
           </div>
         </div>
 
-        {/* 캐릭터 이름 및 종족·속성·레벨 뱃지 */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, width: '100%' }}>
-          <h1 className="title-xl" style={{ fontSize: 20, margin: 0, lineHeight: 1.1 }}>{monster.name}</h1>
+        {/* 캐릭터 이름 및 종족·속성·레벨 뱃지 (캐릭터와 절대 겹치지 않게 분리) */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, width: '100%', flexShrink: 0, marginTop: 4 }}>
+          <h1 className="title-xl" style={{ fontSize: 18, margin: 0, lineHeight: 1.1 }}>{monster.name}</h1>
           <div className="row wrap center" style={{ gap: 4 }}>
-            <span className="chip" style={{ fontSize: 12, padding: '2px 7px' }}>{info?.name ?? monster.species}</span>
-            {info?.textureLabel && <span className="chip honey" style={{ fontSize: 12, padding: '2px 7px' }}>{info.textureLabel}</span>}
-            <span className="chip" style={{ fontSize: 12, padding: '2px 7px' }}>
-              <ElementIcon element={monster.element} size={14} />
+            <span className="chip" style={{ fontSize: 11, padding: '2px 7px' }}>{info?.name ?? monster.species}</span>
+            {info?.textureLabel && <span className="chip honey" style={{ fontSize: 11, padding: '2px 7px' }}>{info.textureLabel}</span>}
+            <span className="chip" style={{ fontSize: 11, padding: '2px 7px' }}>
+              <ElementIcon element={monster.element} size={13} />
               {ELEMENT_INFO[monster.element].label}
             </span>
-            <span className="chip coral" style={{ fontSize: 12, padding: '2px 7px' }}>Lv.{monster.level}</span>
+            <span className="chip coral" style={{ fontSize: 11, padding: '2px 7px' }}>Lv.{monster.level}</span>
           </div>
         </div>
       </div>
 
-      {/* 3-1. 펫의 능동적 자율 제안 소통 카드 */}
+      {/* 3-1. 펫의 능동적 자율 제안 소통 카드 (컴팩트 독립 슬롯) */}
       {suggestion && (
         <div
           style={{
-            padding: '8px 12px',
-            borderRadius: 14,
+            padding: '6px 10px',
+            borderRadius: 12,
             background: 'linear-gradient(90deg, #FFF8E1 0%, #FFECB3 100%)',
             border: '1.5px solid #FFC107',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: 8,
+            gap: 6,
             flexShrink: 0,
-            boxShadow: '0 3px 8px rgba(255,193,7,0.2)',
+            boxShadow: '0 2px 6px rgba(255,193,7,0.2)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-            <span style={{ fontSize: 18 }}>💡</span>
-            <span style={{ fontSize: 12, fontWeight: 800, color: '#4E342E', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0, flex: 1 }}>
+            <span style={{ fontSize: 16, flexShrink: 0 }}>💡</span>
+            <span style={{ fontSize: 11, fontWeight: 800, color: '#4E342E', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {suggestion.message}
             </span>
           </div>
@@ -368,7 +374,7 @@ export default function MonsterHome({
             <button
               className="chip honey"
               onClick={handleAcceptSuggestion}
-              style={{ cursor: 'pointer', border: 'none', fontWeight: 900, fontSize: 11, padding: '3px 8px' }}
+              style={{ cursor: 'pointer', border: 'none', fontWeight: 900, fontSize: 11, padding: '2px 7px' }}
             >
               {suggestion.actionLabel}
             </button>
@@ -378,8 +384,8 @@ export default function MonsterHome({
                 dismissPetSuggestion(monster.id)
                 setSuggestion(null)
               }}
-              style={{ cursor: 'pointer', border: 'none', fontSize: 11, padding: '3px 6px' }}
-              title="나중에 하기"
+              style={{ cursor: 'pointer', border: 'none', fontSize: 11, padding: '2px 5px' }}
+              title="닫기"
             >
               ✕
             </button>

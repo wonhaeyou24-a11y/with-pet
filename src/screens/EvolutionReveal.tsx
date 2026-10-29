@@ -300,25 +300,26 @@ export default function EvolutionRevealScreen({ monster, onUpdateMonster, onBack
           </button>
         </div>
       ) : (
-        /* 진화 전 안내 및 4대 분기 선택 화면 */
+        /* 진화 전 안내 및 4대 분기 선택 화면 (모바일 100dvh 완벽 컴팩트 배치) */
         <div
           style={{
             flex: 1,
             display: 'flex',
             flexDirection: 'column',
-            padding: '14px 16px',
+            padding: '8px 14px 12px',
             overflowY: 'auto',
-            gap: 12,
+            gap: 8,
           }}
         >
           {/* 캐릭터 3D 프리뷰 & 레벨 조건 안내 */}
           <div
             style={{
               position: 'relative',
-              height: 200,
+              height: 140,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              flexShrink: 0,
             }}
           >
             {isEvolving ? (
@@ -327,32 +328,32 @@ export default function EvolutionRevealScreen({ monster, onUpdateMonster, onBack
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  gap: 12,
+                  gap: 8,
                   animation: 'pulse 1s infinite alternate',
                 }}
               >
-                <div style={{ fontSize: 44 }}>✨👑✨</div>
-                <strong style={{ fontSize: 18, color: '#FFE082' }}>
+                <div style={{ fontSize: 36 }}>✨👑✨</div>
+                <strong style={{ fontSize: 16, color: '#FFE082' }}>
                   디저트 코어가 황금빛으로 달아오르는 중...
                 </strong>
-                <div style={{ fontSize: 13, color: '#FFB74D' }}>
+                <div style={{ fontSize: 12, color: '#FFB74D' }}>
                   {branchMeta.subtitle} 속성을 흡수하고 있습니다!
                 </div>
               </div>
             ) : (
-              <Monster3DView look={preLook} size={200} fluid interactive />
+              <Monster3DView look={preLook} size={140} fluid interactive />
             )}
 
             {/* 레벨 및 단계 배지 */}
             <div
               style={{
                 position: 'absolute',
-                top: 4,
-                left: 8,
-                background: 'rgba(0,0,0,0.55)',
-                padding: '4px 10px',
+                top: 0,
+                left: 4,
+                background: 'rgba(0,0,0,0.6)',
+                padding: '3px 8px',
                 borderRadius: 999,
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: 800,
                 color: '#FFF8E1',
               }}
@@ -365,28 +366,29 @@ export default function EvolutionRevealScreen({ monster, onUpdateMonster, onBack
           <div
             style={{
               background: 'rgba(255, 255, 255, 0.08)',
-              borderRadius: 14,
+              borderRadius: 12,
               border: `1.5px solid ${branchMeta.color}`,
-              padding: '10px 14px',
+              padding: '8px 12px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
+              flexShrink: 0,
             }}
           >
             <div>
-              <div style={{ fontSize: 12, color: '#B39DDB', fontWeight: 700 }}>
+              <div style={{ fontSize: 11, color: '#B39DDB', fontWeight: 700 }}>
                 목표: {targetStage}단계 [{branchMeta.name}]
               </div>
-              <strong style={{ fontSize: 15, color: '#FFFFFF' }}>{targetName}</strong>
-              <div style={{ fontSize: 11, color: '#FFB74D' }}>칭호: {targetTitle}</div>
+              <strong style={{ fontSize: 14, color: '#FFFFFF' }}>{targetName}</strong>
+              <div style={{ fontSize: 10, color: '#FFB74D' }}>칭호: {targetTitle}</div>
             </div>
             <div
               style={{
                 background: eligibility.canEvolve ? '#4CAF50' : '#E53935',
                 color: '#FFFFFF',
-                padding: '4px 10px',
+                padding: '3px 8px',
                 borderRadius: 999,
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: 900,
               }}
             >
@@ -395,11 +397,11 @@ export default function EvolutionRevealScreen({ monster, onUpdateMonster, onBack
           </div>
 
           {/* 4대 진화 분기 탭 */}
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 800, color: '#E1BEE7', marginBottom: 8 }}>
+          <div style={{ flexShrink: 0 }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: '#E1BEE7', marginBottom: 6 }}>
               🌟 진화 갈래 선택 (적합도 AI 분석)
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6 }}>
               {(['sweet-melty', 'crispy-crunch', 'royal-chef', 'gourmet-rainbow'] as EvoBranchId[]).map(
                 (bId) => {
                   const b = EVO_BRANCHES[bId]
@@ -415,8 +417,8 @@ export default function EvolutionRevealScreen({ monster, onUpdateMonster, onBack
                         playDessertAsmr(b.asmr)
                       }}
                       style={{
-                        padding: '10px 8px',
-                        borderRadius: 12,
+                        padding: '8px 6px',
+                        borderRadius: 10,
                         border: isSelected ? `2px solid ${b.color}` : '1.5px solid rgba(255,255,255,0.15)',
                         background: isSelected ? 'rgba(255, 255, 255, 0.16)' : 'rgba(0,0,0,0.35)',
                         color: '#FFFFFF',
@@ -430,24 +432,24 @@ export default function EvolutionRevealScreen({ monster, onUpdateMonster, onBack
                         <span
                           style={{
                             position: 'absolute',
-                            top: -6,
-                            right: 6,
+                            top: -5,
+                            right: 4,
                             background: '#FFD700',
                             color: '#3E2723',
-                            fontSize: 10,
+                            fontSize: 9,
                             fontWeight: 900,
-                            padding: '1px 6px',
+                            padding: '1px 5px',
                             borderRadius: 999,
                           }}
                         >
                           추천
                         </span>
                       )}
-                      <div style={{ fontSize: 14, fontWeight: 900, color: b.color }}>
+                      <div style={{ fontSize: 13, fontWeight: 900, color: b.color }}>
                         {b.icon} {b.name}
                       </div>
-                      <div style={{ fontSize: 11, color: '#CCCCCC', marginTop: 2 }}>{b.subtitle}</div>
-                      <div style={{ fontSize: 10, color: '#FFD54F', marginTop: 4 }}>
+                      <div style={{ fontSize: 10, color: '#CCCCCC', marginTop: 1 }}>{b.subtitle}</div>
+                      <div style={{ fontSize: 10, color: '#FFD54F', marginTop: 2 }}>
                         적합도: <strong>{score}점</strong>
                       </div>
                     </button>
@@ -460,43 +462,41 @@ export default function EvolutionRevealScreen({ monster, onUpdateMonster, onBack
           {/* 선택한 분기 설명 카드 */}
           <div
             style={{
-              background: 'rgba(0,0,0,0.4)',
-              borderRadius: 14,
-              padding: '10px 14px',
-              fontSize: 12,
-              lineHeight: 1.5,
+              background: 'rgba(0,0,0,0.35)',
+              borderRadius: 12,
+              padding: '8px 10px',
+              fontSize: 11,
+              lineHeight: 1.4,
               color: '#EDE7F6',
-              borderLeft: `4px solid ${branchMeta.color}`,
+              borderLeft: `3px solid ${branchMeta.color}`,
+              flexShrink: 0,
             }}
           >
             <div style={{ fontWeight: 800, color: branchMeta.color, marginBottom: 2 }}>
               {branchMeta.icon} {branchMeta.name} 특화 가이드
             </div>
             <p style={{ margin: 0 }}>{branchMeta.desc}</p>
-            <div style={{ fontSize: 11, color: '#FFA726', marginTop: 4 }}>
-              💡 조건 힌트: {branchMeta.conditionHint}
-            </div>
           </div>
 
           {/* 하단 진화 버튼 */}
-          <div style={{ marginTop: 'auto', paddingTop: 8 }}>
+          <div style={{ marginTop: 'auto', paddingTop: 4, paddingBottom: 6 }}>
             <button
               onClick={handleStartEvolution}
               disabled={!eligibility.canEvolve || isEvolving}
               style={{
                 width: '100%',
-                padding: '15px',
+                padding: '13px',
                 borderRadius: 14,
                 border: 'none',
                 background: eligibility.canEvolve
                   ? `linear-gradient(90deg, ${branchMeta.color}, #FFD700)`
                   : 'rgba(255,255,255,0.12)',
                 color: eligibility.canEvolve ? '#1F112B' : '#888888',
-                fontSize: 16,
+                fontSize: 15,
                 fontWeight: 900,
                 cursor: eligibility.canEvolve ? 'pointer' : 'not-allowed',
                 boxShadow: eligibility.canEvolve
-                  ? '0 6px 20px rgba(255, 215, 0, 0.4)'
+                  ? '0 4px 16px rgba(255, 215, 0, 0.4)'
                   : 'none',
               }}
             >
