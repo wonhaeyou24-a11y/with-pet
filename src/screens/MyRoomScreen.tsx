@@ -513,20 +513,21 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
         </div>
       </div>
 
-      {/* 3. 🌟 전체화면으로 꽉 채운 감성 미니룸 캔버스 스테이지 */}
+      {/* 3. 🌟 아늑하고 예쁜 비율의 싸이월드 감성 미니룸 캔버스 스테이지 */}
       <div
         style={{
-          flex: 1,
-          minHeight: 320,
+          height: 'clamp(260px, 38vh, 320px)',
+          minHeight: 260,
           position: 'relative',
-          margin: '4px 8px',
-          borderRadius: 20,
+          margin: '4px 10px',
+          borderRadius: 18,
           background: currentTheme.wallBg,
-          border: '2.5px solid #FBCFE8',
-          boxShadow: 'inset 0 4px 16px rgba(0,0,0,0.06), 0 8px 24px rgba(244,114,182,0.18)',
+          border: '2px solid #FBCFE8',
+          boxShadow: 'inset 0 4px 14px rgba(0,0,0,0.06), 0 6px 20px rgba(244,114,182,0.15)',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
+          flexShrink: 0,
         }}
       >
         {/* 상단 벽면 (감성 레이스 창문 & 파티세리 벽면 선반 & 네온 레터링) */}
@@ -663,12 +664,12 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
               left: '50%',
               transform: `translateX(-50%) ${bouncePet ? 'translateY(-14px) scale(1.08)' : 'translateY(0)'}`,
               transition: 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
-              width: 'clamp(180px, 30vh, 230px)',
-              height: 'clamp(180px, 30vh, 230px)',
+              width: 175,
+              height: 175,
               zIndex: 3,
             }}
           >
-            <Monster3DView look={look} size={210} fluid interactive />
+            <Monster3DView look={look} size={175} fluid interactive />
           </div>
         </div>
 
@@ -763,20 +764,19 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
         </span>
       </div>
 
-      {/* 5. 룸 꾸미기 편집 패널 or 방명록 (슬림 서랍형 수납) */}
+      {/* 5. 룸 꾸미기 편집 패널 or 방명록 (모바일 하단까지 시원하게 꽉 채움) */}
       <div
         style={{
-          maxHeight: 180,
-          minHeight: 130,
-          margin: '0 8px 6px',
-          borderRadius: 14,
+          flex: 1,
+          minHeight: 140,
+          margin: '0 10px calc(10px + env(safe-area-inset-bottom, 0px))',
+          borderRadius: 16,
           background: '#FFFFFF',
           border: '1.5px solid #FBCFE8',
-          boxShadow: '0 2px 8px rgba(244,114,182,0.1)',
+          boxShadow: '0 2px 10px rgba(244,114,182,0.12)',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
-          flexShrink: 0,
         }}
       >
         {isEditing ? (

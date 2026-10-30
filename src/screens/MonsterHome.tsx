@@ -23,7 +23,7 @@ import { useAccount } from '../lib/shopApi'
 import DessertShowroomModal from './DessertShowroomModal'
 import DessertSoundStudioModal from './DessertSoundStudioModal'
 import { ChevronIcon, ElementIcon, SparkleIcon } from '../ui/Icons'
-import { StatBars, totalStats } from '../ui/parts'
+import { totalStats } from '../ui/parts'
 import { getSensoryReactionClass, SensoryBurst } from '../ui/SensoryFx'
 
 type Props = {
@@ -644,9 +644,10 @@ export default function MonsterHome({
           <div
             key={`home-react-${burstKey}`}
             className={burstKey > 0 ? getSensoryReactionClass(soundKind) : ''}
-            style={{ position: 'relative', zIndex: 1, marginTop: 8 }}
+            style={{ position: 'relative', zIndex: 1, marginTop: 4 }}
           >
-            <MonsterView look={look} size={145} title={info?.name} />
+            {/* 🌟 메인 디저트 펫 강조: 145px ➔ 200px 대폭 확대 */}
+            <MonsterView look={look} size={200} title={info?.name} />
           </div>
         </div>
 
@@ -721,18 +722,35 @@ export default function MonsterHome({
         </div>
       )}
 
-      {/* 4. 능력치 요약 카드 */}
-      <div className="card tight" style={{ flexShrink: 0, padding: '8px 12px', gap: 4 }}>
-        <div className="row between">
-          <h2 className="title" style={{ fontSize: 14 }}>
-            능력치 <span className="chip" style={{ fontSize: 12, marginLeft: 4, padding: '1px 6px' }}>총점 {totalStats(monster.stats)}</span>
-          </h2>
-          <button className="btn-link" onClick={onDetail} style={{ padding: 2, fontWeight: 800, fontSize: 12 }}>
-            🍰 플레이팅·변신 공방 <ChevronIcon size={14} />
-          </button>
+      {/* 🌟 4. 플레이팅 변신공방 와이드 배너 버튼 (능력치 창 대신 메뉴 위에 길게 한 줄로 재배치) */}
+      <button
+        onClick={onDetail}
+        style={{
+          width: '100%',
+          padding: '10px 14px',
+          borderRadius: 14,
+          border: 'none',
+          background: 'linear-gradient(90deg, #FF7043 0%, #FF9800 50%, #FFA726 100%)',
+          color: '#FFFFFF',
+          fontWeight: 900,
+          fontSize: 13,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          boxShadow: '0 3px 10px rgba(255, 112, 67, 0.32)',
+          cursor: 'pointer',
+          flexShrink: 0,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 20 }}>🍰</span>
+          <span style={{ letterSpacing: '0.2px' }}>플레이팅 변신공방 · 펫 상세정보</span>
         </div>
-        <StatBars stats={monster.stats} compact />
-      </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(255,255,255,0.25)', padding: '3px 8px', borderRadius: 8, fontSize: 11, fontWeight: 900 }}>
+          <span>전투력 ⚔️ {totalStats(monster.stats)}</span>
+          <ChevronIcon size={13} />
+        </div>
+      </button>
 
       {/* 4. 하단 메뉴 8개: 모두 같은 입체 타일 (아이콘 원 + 제목 + 보조 글) */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7, flexShrink: 0 }}>
