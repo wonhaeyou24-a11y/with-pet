@@ -2,7 +2,7 @@
 // - 장착 방식이 아닌, 스킬 레벨(Lv.1 ~ Lv.Max)을 올리면 즉시 펫의 능력치와 대전 액티브에 영구 누적 적용됩니다.
 // - 여러 스킬을 골고루 올릴수록 펫이 다채롭게 강화되며, 방사형 캔버스를 시원하게 확장하여 펫의 공간을 극대화했습니다.
 
-import { useMemo, useRef, useState, type PointerEvent, type WheelEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type PointerEvent, type WheelEvent } from 'react'
 import {
   BRANCH_STAT_LABEL,
   computeSkillStatBonus,
@@ -63,6 +63,11 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
   // 방사형 캔버스 줌(확대/축소) & 패닝(이동) 상태
   const [zoom, setZoom] = useState<number>(0.82)
   const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
+  // 드래그·핀치 중의 실시간 값 (React 상태는 손을 뗄 때만 갱신해서 노드 30여 개를 매번 다시 그리지 않는다)
+  const canvasRef = useRef<HTMLDivElement | null>(null)
+  const liveRef = useRef<{ x: number; y: number; zoom: number }>({ x: 0, y: 0, zoom: 0.82 })
+  const rafRef = useRef<number | null>(null)
+  const wheelTimerRef = useRef<number | null>(null)
   const dragRef = useRef<{
     active: boolean
     startX: number
@@ -73,6 +78,7 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
   }>({ active: false, startX: 0, startY: 0, originX: 0, originY: 0, moved: false })
 
   // 멀티터치 핀치 줌 추적용
+  const pinchedRef = useRef(false)
   const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map())
   const pinchDistRef = useRef<number | null>(null)
 
@@ -153,6 +159,39 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
     () => radialNodes.find((p) => p.node.id === selectedId) ?? radialNodes[0],
     [radialNodes, selectedId],
   )
+
+  // 상태가 바뀌면(스킬 눌러 이동, 중앙 펫 눌러 초기화 등) 실시간 값도 맞춰 둔다
+  useEffect(() => {
+    liveRef.current = { x: pan.x, y: pan.y, zoom }
+  }, [pan, zoom])
+
+  function scheduleApplyView() {
+    if (rafRef.current !== null) return
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null
+      const el = canvasRef.current
+      if (!el) return
+      const v = liveRef.current
+      el.style.transition = 'none'
+      el.style.transform = `translate3d(${v.x}px, ${v.y}px, 0) scale(${v.zoom})`
+    })
+  }
+
+  // 제스처가 끝나면 마지막 값을 React 상태로 확정한다
+  function commitView() {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current)
+      rafRef.current = null
+    }
+    const el = canvasRef.current
+    const v = liveRef.current
+    if (el) {
+      el.style.transition = 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)'
+      el.style.transform = `translate3d(${v.x}px, ${v.y}px, 0) scale(${v.zoom})`
+    }
+    setPan({ x: v.x, y: v.y })
+    setZoom(v.zoom)
+  }
 
   function showToastMsg(msg: string) {
     setToast(msg)
@@ -299,8 +338,8 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
       active: true,
       startX: e.clientX,
       startY: e.clientY,
-      originX: pan.x,
-      originY: pan.y,
+      originX: liveRef.current.x,
+      originY: liveRef.current.y,
       moved: false,
     }
   }
@@ -315,7 +354,9 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
       const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y)
       if (pinchDistRef.current && pinchDistRef.current > 10) {
         const ratio = dist / pinchDistRef.current
-        setZoom((z) => Math.max(0.55, Math.min(1.85, Number((z * ratio).toFixed(2)))))
+        liveRef.current.zoom = Math.max(0.55, Math.min(1.85, Number((liveRef.current.zoom * ratio).toFixed(3))))
+        pinchedRef.current = true
+        scheduleApplyView()
       }
       pinchDistRef.current = dist
       return
@@ -327,10 +368,9 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
     if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
       dragRef.current.moved = true
     }
-    setPan({
-      x: Math.max(-340, Math.min(340, dragRef.current.originX + dx)),
-      y: Math.max(-340, Math.min(340, dragRef.current.originY + dy)),
-    })
+    liveRef.current.x = Math.max(-340, Math.min(340, dragRef.current.originX + dx))
+    liveRef.current.y = Math.max(-340, Math.min(340, dragRef.current.originY + dy))
+    scheduleApplyView()
   }
 
   function handlePointerUp(e: PointerEvent<HTMLDivElement>) {
@@ -338,12 +378,18 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
     if (pointersRef.current.size < 2) {
       pinchDistRef.current = null
     }
+    const changed = (dragRef.current.active && dragRef.current.moved) || pinchedRef.current
     dragRef.current.active = false
+    if (pointersRef.current.size === 0) pinchedRef.current = false
+    if (changed) commitView()
   }
 
   function handleWheel(e: WheelEvent<HTMLDivElement>) {
     const delta = e.deltaY < 0 ? 0.12 : -0.12
-    setZoom((z) => Math.max(0.55, Math.min(1.85, Number((z + delta).toFixed(2)))))
+    liveRef.current.zoom = Math.max(0.55, Math.min(1.85, Number((liveRef.current.zoom + delta).toFixed(3))))
+    scheduleApplyView()
+    if (wheelTimerRef.current) window.clearTimeout(wheelTimerRef.current)
+    wheelTimerRef.current = window.setTimeout(commitView, 140)
   }
 
   const selNode = selectedPositioned.node
@@ -499,77 +545,11 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
           cursor: dragRef.current.active ? 'grabbing' : 'grab',
         }}
       >
-        {/* 우측 하단 줌 컨트롤러 */}
-        <div
-          onPointerDown={(e) => e.stopPropagation()}
-          style={{
-            position: 'absolute',
-            right: 8,
-            bottom: 8,
-            zIndex: 15,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 4,
-          }}
-        >
-          <button
-            onClick={() => setZoom((z) => Math.min(1.85, Number((z + 0.2).toFixed(2))))}
-            style={{
-              width: 34,
-              height: 30,
-              borderRadius: 8,
-              border: '1px solid rgba(255,255,255,0.25)',
-              background: 'rgba(35, 26, 48, 0.9)',
-              color: '#FFF',
-              fontSize: 16,
-              fontWeight: 900,
-              cursor: 'pointer',
-            }}
-          >
-            ＋
-          </button>
-          <button
-            onClick={() => {
-              setZoom(0.82)
-              setPan({ x: 0, y: 0 })
-            }}
-            style={{
-              width: 34,
-              height: 24,
-              padding: 0,
-              whiteSpace: 'nowrap',
-              borderRadius: 6,
-              border: '1px solid rgba(255,255,255,0.25)',
-              background: 'rgba(35, 26, 48, 0.9)',
-              color: '#FFE082',
-              fontSize: 10,
-              fontWeight: 800,
-              cursor: 'pointer',
-            }}
-          >
-            {Math.round(zoom * 100)}%
-          </button>
-          <button
-            onClick={() => setZoom((z) => Math.max(0.55, Number((z - 0.2).toFixed(2))))}
-            style={{
-              width: 34,
-              height: 30,
-              borderRadius: 8,
-              border: '1px solid rgba(255,255,255,0.25)',
-              background: 'rgba(35, 26, 48, 0.9)',
-              color: '#FFF',
-              fontSize: 16,
-              fontWeight: 900,
-              cursor: 'pointer',
-            }}
-          >
-            －
-          </button>
-        </div>
-
         {/* 960x960 방사형 월드 컨테이너 */}
         <div
+          ref={canvasRef}
           style={{
+            willChange: 'transform',
             position: 'absolute',
             left: '50%',
             top: '50%',

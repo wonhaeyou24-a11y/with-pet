@@ -109,7 +109,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
     return null
   })
   const [towerEntriesLeft, setTowerEntriesLeft] = useState<number | null>(null)
-  const [exploreLog, setExploreLog] = useState<string>('탐사 대기 중')
+  const [, setExploreLog] = useState<string>('탐사 대기 중')
   const exploreTimerRef = useRef<number | null>(null)
 
   const look = monsterLook(monster)
@@ -132,7 +132,17 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
       monster.stats.cha * 0.8,
   )
 
-  const currentFloorInfo = getTowerFloorInfo(towerFloor)
+  // 탐험 중이면 지금 오르는 층을, 아니면 다음에 출발할 층을 보여 준다
+  const shownFloor = towerSession ? towerSession.currentFloor : towerFloor
+  const baseFloor = towerSession ? towerSession.startFloor : towerFloor
+  const currentFloorInfo = getTowerFloorInfo(shownFloor)
+  const towerElapsed = towerSession ? Math.max(0, (serverNow() - towerSession.startedAt) / 1000) : 0
+  const towerTotalSec = towerSession ? towerSession.secPerFloor * towerSession.maxFloors : 0
+  const towerDone = !!towerSession && towerElapsed >= towerTotalSec
+  const towerFloorsDone = towerSession ? Math.min(towerSession.maxFloors, Math.floor(towerElapsed / Math.max(1, towerSession.secPerFloor))) : 0
+  const towerNextIn = towerSession ? Math.max(0, Math.ceil(towerSession.secPerFloor - (towerElapsed % towerSession.secPerFloor))) : 0
+  const towerLeft = towerSession ? Math.max(0, Math.ceil(towerTotalSec - towerElapsed)) : 0
+  const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 
   function triggerAsmr(kind: DessertSoundKind) {
     const meta = playDessertAsmr(kind)
@@ -196,19 +206,19 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
   }, [trainSession])
 
   // 타워 탐험 타이머 관리
+  const towerStartedAt = towerSession?.startedAt ?? 0
   useEffect(() => {
-    if (!towerSession) return
+    if (!towerStartedAt) return
 
     const updateTower = () => {
-      const syn = syncTowerProgress(towerSession)
-      setTowerSession({ ...syn.session })
+      setTowerSession((prev) => {
+        if (!prev) return prev
+        const syn = syncTowerProgress(prev)
+        if (syn.floorsCleared > 0) setExploreLog(syn.session.logs[syn.session.logs.length - 1] ?? '탐사 진행 중')
+        if (syn.isDone && exploreTimerRef.current) clearInterval(exploreTimerRef.current)
+        return { ...syn.session }
+      })
       setLiveActionPhase((p) => (p + 1) % 8)
-      if (syn.floorsCleared > 0) {
-        setExploreLog(syn.session.logs[syn.session.logs.length - 1] ?? '탐사 진행 중')
-      }
-      if (syn.isDone) {
-        if (exploreTimerRef.current) clearInterval(exploreTimerRef.current)
-      }
     }
 
     updateTower()
@@ -217,7 +227,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
     return () => {
       if (exploreTimerRef.current) clearInterval(exploreTimerRef.current)
     }
-  }, [towerSession])
+  }, [towerStartedAt])
 
   // 훈련 시작
   async function handleStartTraining() {
@@ -515,8 +525,8 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
           style={{
             alignItems: 'center',
             position: 'relative',
-            height: 265,
-            minHeight: 265,
+            height: 'clamp(150px, 26dvh, 265px)',
+            minHeight: 150,
             padding: 0,
             cursor: 'pointer',
             borderRadius: 14,
@@ -594,7 +604,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                     boxShadow: '0 2px 8px rgba(124,77,255,0.4)',
                   }}
                 >
-                  🏰 {towerFloor}층 {currentFloorInfo.isBoss ? '🔥 [BOSS]' : ''} {currentFloorInfo.name}
+                  🏰 {shownFloor}층 {currentFloorInfo.isBoss ? '🔥 [BOSS]' : ''} {currentFloorInfo.name}
                 </span>
                 <span
                   style={{
@@ -606,7 +616,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                     fontWeight: 800,
                   }}
                 >
-                  {towerSession ? '🏃 자율 진격 중' : '⚔️ 탐험 대기'}
+                  {towerSession ? (towerDone ? '🏁 탐험 완료!' : `🏃 진격 중 · ${mmss(towerLeft)} 남음`) : '⚔️ 탐험 대기'}
                 </span>
               </div>
 
@@ -820,7 +830,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                       border: '2px solid rgba(255,255,255,0.4)',
                     }}
                   >
-                    {currentFloorInfo.isBoss ? '👹' : towerFloor % 3 === 0 ? '🐲' : towerFloor % 2 === 0 ? '🍫' : '🍬'}
+                    {currentFloorInfo.isBoss ? '👹' : shownFloor % 3 === 0 ? '🐲' : shownFloor % 2 === 0 ? '🍫' : '🍬'}
                   </div>
                   <span
                     style={{
@@ -1065,6 +1075,8 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
           borderRadius: 16,
           flex: 1,
           minHeight: 0,
+          overflowY: 'auto',
+          overscrollBehavior: 'contain',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
@@ -1322,6 +1334,9 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                     void finishTraining()
                   }}
                   style={{
+                    position: 'sticky',
+                    bottom: 2,
+                    zIndex: 6,
                     minHeight: 54,
                     padding: '14px 0',
                     width: '100%',
@@ -1333,8 +1348,6 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                     fontSize: 16,
                     cursor: 'pointer',
                     boxShadow: '0 4px 0 #1B5E20, 0 6px 12px rgba(46,125,50,0.3)',
-                    position: 'relative',
-                    zIndex: 5,
                     touchAction: 'manipulation',
                   }}
                 >
@@ -1353,6 +1366,9 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                 disabled={busy}
                 onClick={handleStartTraining}
                 style={{
+                  position: 'sticky',
+                  bottom: 2,
+                  zIndex: 6,
                   minHeight: 58,
                   padding: '14px 0',
                   width: '100%',
@@ -1412,7 +1428,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
               <div style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'space-between', zIndex: 2 }}>
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: 11 }}>🚩</div>
-                  <div style={{ fontSize: 8, fontWeight: 800, color: '#5E35B1' }}>{towerFloor}F</div>
+                  <div style={{ fontSize: 8, fontWeight: 800, color: '#5E35B1' }}>{baseFloor}F</div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: 11 }}>🍬</div>
@@ -1428,7 +1444,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                 </div>
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: 11 }}>🏁</div>
-                  <div style={{ fontSize: 8, fontWeight: 900, color: '#4527A0' }}>{towerFloor + 3}F</div>
+                  <div style={{ fontSize: 8, fontWeight: 900, color: '#4527A0' }}>{baseFloor + 3}F</div>
                 </div>
               </div>
             </div>
@@ -1447,7 +1463,11 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
             >
               <div>
                 <span style={{ fontSize: 11, fontWeight: 900, color: '#3E2723' }}>
-                  수호자: {currentFloorInfo.enemy} {towerSession ? `· ${exploreLog}` : ''}
+                  {towerSession
+                    ? towerDone
+                      ? `🏁 ${towerSession.maxFloors}개 층을 모두 돌파했어요! 전리품을 받아 가세요`
+                      : `🏃 ${towerSession.startFloor}층부터 진격 중 · ${towerFloorsDone}/${towerSession.maxFloors}층 돌파 · 다음 층까지 ${towerNextIn}초`
+                    : `수호자: ${currentFloorInfo.enemy}`}
                 </span>
                 <div style={{ fontSize: 9, color: '#7E57C2', fontWeight: 800 }}>
                   권장 전투력 ⚔️ {currentFloorInfo.reqCp} · 보상 +{currentFloorInfo.rewardExp} EXP
@@ -1464,6 +1484,9 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                 disabled={busy}
                 onClick={finishExplore}
                 style={{
+                  position: 'sticky',
+                  bottom: 2,
+                  zIndex: 6,
                   minHeight: 58,
                   padding: '14px 0',
                   width: '100%',
@@ -1478,7 +1501,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                   touchAction: 'manipulation',
                 }}
               >
-                {busy ? '⏳ 전리품 받는 중…' : '🏁 탐험 완료 & 전리품 수령하기!'}
+                {busy ? '⏳ 전리품 받는 중…' : towerDone ? '🏁 탐험 완료 & 전리품 수령하기!' : towerFloorsDone >= 1 ? `↩️ 지금 돌아가기 (${towerFloorsDone}개 층 전리품)` : '⏳ 첫 층 진격 중… (곧 돌아올 수 있어요)'}
               </button>
             ) : tooTired ? (
               <div className="row between" style={{ background: '#FFF0EE', padding: '5px 8px', borderRadius: 10, border: '1px dashed #D9534F' }}>
@@ -1492,6 +1515,9 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                 disabled={busy}
                 onClick={handleStartExplore}
                 style={{
+                  position: 'sticky',
+                  bottom: 2,
+                  zIndex: 6,
                   minHeight: 58,
                   padding: '14px 8px',
                   width: '100%',

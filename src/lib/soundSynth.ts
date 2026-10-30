@@ -506,22 +506,21 @@ const RECIPES: Record<SynthKind, { total: number; finish: FinishOpts; build: Rec
     },
   },
 
-  // 🫧 왁뿌볼 선택음: 단단한 왁스 껍질이 "딱! 뿌직" 묵직하게 갈라지고, 굵은 조각이 후드득 떨어진 뒤 말랑한 속이 "찌걱" 눌린다 (0.5초)
+  // 🫧 왁뿌볼 선택음: 실제 "왁스 부수기" 녹음(design/reference/wax_crush_asmr_crisp.wav)의 특징을 따라간다.
+  // 녹음 분석: 한 번 부술 때 0.4~0.7초 동안 5~10ms 간격의 날카로운 클릭이 처음에 촘촘히 터지고 점점 듬성듬성해진다.
+  // 소리의 중심은 3~6kHz(약 48%)이고 6kHz 이상도 약 35%로 아주 밝다. 저음(700Hz 아래)은 거의 없다.
   'wax-tap': {
-    total: 0.5,
-    finish: { reverb: 0.06, level: 0.8, highCut: 9000 },
+    total: 0.6,
+    finish: { reverb: 0.04, level: 0.56, highCut: 14000 },
     build: (m) => {
-      // 1) 딱: 단단한 껍질이 갈라지는 날카로운 첫 타격
-      tick(m, 0, jit(m, 2200), 1, 0.3, -0.15)
-      crackCluster(m, 0.002, { n: 16, spanMs: 16, fLo: jit(m, 1400), fHi: jit(m, 4200), dLo: 1.2, dHi: 5, amp: 1, ampDecay: 1.2, noiseMix: 0.25, panSpread: 0.35 })
-      // 2) 뿌직: 굵은 균열이 이어지며 뼈 부러지듯 갈라지는 몸통 (낮은 대역)
-      crackCluster(m, 0.014, { n: 18, spanMs: 70, fLo: jit(m, 700), fHi: jit(m, 2400), dLo: 3, dHi: 11, amp: 0.85, ampDecay: 1.5, noiseMix: 0.45, panSpread: 0.4 })
-      thump(m, 0.004, jit(m, 170), 90, 34, 0.5)
-      // 3) 굵은 조각들이 후드득 떨어지는 소리
-      crackCluster(m, 0.07, { n: 14, spanMs: 120, fLo: jit(m, 1600), fHi: jit(m, 5200), dLo: 1.5, dHi: 6, amp: 0.45, ampDecay: 2.2, noiseMix: 0.3, panSpread: 0.6 })
-      // 4) 속의 말랑이가 눌리며 나는 촉촉한 찌걱
-      swell(m, 0.09, 0.22, { type: 'bp', f0: 300, f1: 850, q: 3, attackMs: 25, releaseMs: 110, amp: 0.12, color: 'pink' })
-      bubble(m, 0.11, 400 + m.rand() * 240, 1.5, 24, 0.22, 0.12)
+      // 첫 타격: 바싹 마른 껍질이 갈라지는 한 번의 날카로운 "딱"
+      tick(m, 0, jit(m, 5200), 0.9, 1, -0.1)
+      // 본체: 앞쪽에 몰려 있다가 뒤로 갈수록 듬성듬성해지는 밝은 클릭 40개 (skew 로 앞쪽 밀집)
+      crackCluster(m, 0.002, { n: 40, spanMs: 460, skew: 2.3, fLo: jit(m, 2800), fHi: jit(m, 9500), dLo: 0.5, dHi: 2.2, amp: 0.95, ampDecay: 1.2, noiseMix: 0.55, panSpread: 0.55 })
+      // 가장 밝은 반짝임(10kHz 이상): 녹음에서 6kHz 위가 약 1/3을 차지한다
+      scatter(m, 0.004, { count: 14, spanMs: 340, p: 1.6, fLo: 7500, fHi: 12500, dMs: 0.6, amp: 0.3 })
+      // 부서지는 조각이 이어서 바스락거리는 가벼운 꼬리
+      crackCluster(m, 0.2, { n: 8, spanMs: 300, skew: 1.6, fLo: 3200, fHi: 7000, dLo: 0.8, dHi: 2.8, amp: 0.4, ampDecay: 1.6, noiseMix: 0.6, panSpread: 0.6 })
     },
   },
 
