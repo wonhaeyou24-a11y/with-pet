@@ -745,7 +745,7 @@ export default function DessertPlaza({
                     <MonsterView
                       look={myLook}
                       size={92}
-                      prefer2D={false}
+                      prefer2D
                       title={myMonster.name ?? undefined}
                     />
                   </div>
@@ -894,7 +894,7 @@ export default function DessertPlaza({
                     <MonsterView
                       look={fLook}
                       size={90}
-                      prefer2D={false}
+                      prefer2D
                       title={friend.monster.name ?? undefined}
                     />
                   </div>
