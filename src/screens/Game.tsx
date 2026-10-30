@@ -10,6 +10,7 @@ import AsmrBattleArena from './AsmrBattleArena'
 import BoutiqueShop from './BoutiqueShop'
 import CarePantry from './CarePantry'
 import DessertPokedexScreen from './DessertPokedex'
+import GearScreen from './GearScreen'
 import DessertPlaza from './DessertPlaza'
 import EggHome, { type CareFx } from './EggHome'
 import EvolutionRevealScreen from './EvolutionReveal'
@@ -35,7 +36,7 @@ const EGG_LINES = {
 }
 
 type Limits = { pet: number; warm: number }
-type MonsterSubView = 'home' | 'detail' | 'care' | 'train' | 'skills' | 'plaza' | 'battle' | 'evolution' | 'pokedex' | 'boutique' | 'myroom' | 'visit'
+type MonsterSubView = 'home' | 'detail' | 'care' | 'train' | 'skills' | 'plaza' | 'battle' | 'evolution' | 'pokedex' | 'boutique' | 'myroom' | 'visit' | 'gear'
 
 // 서버에서 받은 알·몬스터 상태에 따라 보여 줄 화면을 고른다 (알 → 부화 → 이름 짓기 → 몬스터 홈 / 돌보기 / 훈련 / 공방)
 export default function Game({ player }: { player: Player }) {
@@ -256,6 +257,9 @@ export default function Game({ player }: { player: Player }) {
         />
       )
     }
+    if (subView === 'gear') {
+      return <GearScreen monster={monster} coins={coins} onCoins={setCoins} onBack={() => setSubView('home')} />
+    }
     if (subView === 'boutique') {
       return (
         <BoutiqueShop
@@ -409,6 +413,7 @@ export default function Game({ player }: { player: Player }) {
         onOpenDex={() => setSubView('pokedex')}
         onOpenMyRoom={() => setSubView('myroom')}
         onOpenBoutique={() => setSubView('boutique')}
+        onOpenGear={() => setSubView('gear')}
         onRewardCoins={earnLocalCoins}
         onCoins={setCoinsFromServer}
         onResetTestEgg={

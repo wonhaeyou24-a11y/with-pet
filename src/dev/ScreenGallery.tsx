@@ -9,6 +9,7 @@ import DessertPokedexScreen from '../screens/DessertPokedex'
 import DessertPlaza from '../screens/DessertPlaza'
 import DessertSoundStudioModal from '../screens/DessertSoundStudioModal'
 import EggHome from '../screens/EggHome'
+import GearScreen from '../screens/GearScreen'
 import EvolutionRevealScreen from '../screens/EvolutionReveal'
 import HatchReveal from '../screens/HatchReveal'
 import Login from '../screens/Login'
@@ -123,6 +124,7 @@ const SCREENS: Record<string, () => ReactNode> = {
       onBack={noop}
     />
   ),
+  '장비·강화(M5)': () => <GearGallery monster={{ ...shiny, name: '두바이쫀득', level: 8 }} />,
   '식감 스킬트리(M3)': () => (
     <SkillTreeScreen
       monster={{ ...shiny, name: '두바이쫀득', level: 8, sp: 4 }}
@@ -225,4 +227,18 @@ export default function ScreenGallery() {
       </div>
     </div>
   )
+}
+
+function GearGallery({ monster }: { monster: MonsterRow }) {
+  const [coins, setCoins] = useState(5000)
+  useEffect(() => {
+    void import('../lib/gearApi').then(async (g) => {
+      if (g.getGear().items.length === 0) {
+        for (const d of ['wood-spoon', 'apron-cotton', 'sugar-charm']) await g.buyGear(d)
+        const items = g.getGear().items
+        await g.equipGear(items[0].id, monster.id)
+      }
+    })
+  }, [monster.id])
+  return <GearScreen monster={monster} coins={coins} onCoins={setCoins} onBack={() => {}} />
 }

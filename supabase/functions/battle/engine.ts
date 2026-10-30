@@ -19,6 +19,7 @@ export interface BattleMonster {
   unlocked_skills?: string[] | null
   equipped_skills?: string[] | null
   skill_levels?: Record<string, number> | null
+  gear?: Partial<Stats> | null
 }
 
 export interface BattleTurnLog {

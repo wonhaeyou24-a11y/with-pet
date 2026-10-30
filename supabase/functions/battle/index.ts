@@ -76,7 +76,12 @@ Deno.serve(async (req) => {
 
       // 시드는 서버가 정한다 (폰이 유리한 시드를 고르지 못한다)
       const seed = Math.floor(Math.random() * 2_000_000_000)
-      const result = simulateAsmrBattle(mine, other, seed)
+      // 장착 장비의 능력치는 서버가 DB에서 읽어 더한다 (양쪽 모두)
+      const [{ data: myGear }, { data: otherGear }] = await Promise.all([
+        admin.rpc('gear_bonus', { p_monster: mine.id }),
+        admin.rpc('gear_bonus', { p_monster: other.id }),
+      ])
+      const result = simulateAsmrBattle({ ...mine, gear: myGear ?? null }, { ...other, gear: otherGear ?? null }, seed)
       const won = result.winner === 'challenger'
       const reward = rewardsLeft > 0 ? (won ? BATTLE.rewardWin : BATTLE.rewardLose) : 0
 

@@ -18,6 +18,8 @@ export interface SkillMonster {
   unlocked_skills?: string[] | null
   equipped_skills?: string[] | null
   skill_levels?: Record<string, number> | null
+  // 장착한 장비가 더해 주는 능력치 (서버가 gear_bonus 로 채운다. 화면 미리보기는 비워 둔다)
+  gear?: Partial<Stats> | null
 }
 
 // 티어별 최대 레벨 (1티어 5, 2티어 4, 3티어 궁극기 3)
@@ -100,13 +102,14 @@ export function computeSkillStatBonus(levels: Record<string, number>): Stats {
 // 전투 등에 쓰는 '스킬 보너스가 반영된' 능력치
 export function getBoostedStats(m: SkillMonster): Stats {
   const bonus = computeSkillStatBonus(getSkillLevels(m))
+  const g = m.gear ?? {}
   return {
-    hp: (m.stats.hp ?? 0) + bonus.hp,
-    atk: (m.stats.atk ?? 0) + bonus.atk,
-    def: (m.stats.def ?? 0) + bonus.def,
-    spd: (m.stats.spd ?? 0) + bonus.spd,
-    int: (m.stats.int ?? 0) + bonus.int,
-    cha: (m.stats.cha ?? 0) + bonus.cha,
+    hp: (m.stats.hp ?? 0) + bonus.hp + (g.hp ?? 0),
+    atk: (m.stats.atk ?? 0) + bonus.atk + (g.atk ?? 0),
+    def: (m.stats.def ?? 0) + bonus.def + (g.def ?? 0),
+    spd: (m.stats.spd ?? 0) + bonus.spd + (g.spd ?? 0),
+    int: (m.stats.int ?? 0) + bonus.int + (g.int ?? 0),
+    cha: (m.stats.cha ?? 0) + bonus.cha + (g.cha ?? 0),
   }
 }
 

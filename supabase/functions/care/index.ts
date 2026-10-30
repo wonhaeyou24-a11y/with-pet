@@ -285,7 +285,18 @@ Deno.serve(async (req) => {
       }
 
       const startFloor = Number(monster.tower_floor ?? 1)
-      const secPerFloor = towerSecPerFloor(battlePower(state.stats), startFloor)
+      // 장착 장비 능력치도 전투력에 포함한다
+      const { data: gearBonus } = await admin.rpc('gear_bonus', { p_monster: monster.id })
+      const gb = (gearBonus ?? {}) as Partial<Stats>
+      const gearedStats: Stats = {
+        hp: state.stats.hp + (gb.hp ?? 0),
+        atk: state.stats.atk + (gb.atk ?? 0),
+        def: state.stats.def + (gb.def ?? 0),
+        spd: state.stats.spd + (gb.spd ?? 0),
+        int: state.stats.int + (gb.int ?? 0),
+        cha: state.stats.cha + (gb.cha ?? 0),
+      }
+      const secPerFloor = towerSecPerFloor(battlePower(gearedStats), startFloor)
       const maxFloors = ACTIVITY.tower.maxFloors
       // 입장 횟수를 먼저 차감한다 (읽은 값과 같을 때만, 연타해도 한 번만)
       let entryGuard = admin.from('players').update({ tower_day: today, tower_entries: entriesUsedToday + 1 }).eq('id', uid)
@@ -344,6 +355,8 @@ Deno.serve(async (req) => {
       }
       await saveEarnings(result.state.coins, result.coinsGain)
       await admin.from('care_logs').insert({ owner: uid, monster_id: monster.id, action: 'tower', detail: `${sess.start_floor}~${newFloor - 1}층` })
+      // 보스 층(5층마다)을 지났으면 장비를 받는다 (이 구간은 처음 오르는 층이라 같은 층으로 반복해서 받을 수 없다)
+      const { data: gearDrops } = await admin.rpc('gear_tower_drop', { p_owner: uid, p_from: Number(sess.start_floor), p_to: newFloor - 1 })
       return json({
         ok: true,
         monster: updated,
@@ -355,6 +368,7 @@ Deno.serve(async (req) => {
         towerFloor: newFloor,
         expGain: result.expGain,
         coinsGain: result.coinsGain,
+        gearDrops: gearDrops ?? [],
       })
     }
 
