@@ -133,6 +133,41 @@ export function scheduleAutoIdleNotifications(monsterId: string, monsterName: st
         }, remainingSec * 1000)
       }
     }
+
+    // 3. 신규 M5 탐험 완료 자동 시스템 알림
+    try {
+      const rawExplore = localStorage.getItem(`pet_explore_trip_${monsterId}`)
+      if (rawExplore) {
+        const trip = JSON.parse(rawExplore)
+        if (trip && trip.finishAt) {
+          scheduleExploreNotification(monsterName, trip)
+        }
+      }
+    } catch {}
+  } catch {
+    // 무중단
+  }
+}
+
+// 🔔 M5 탐험 완료 자동 알림 스케줄러
+export function scheduleExploreNotification(
+  monsterName: string,
+  trip: { region: string; zone: number; finishAt: string },
+) {
+  try {
+    if (typeof window === 'undefined' || !('Notification' in window) || Notification.permission !== 'granted') {
+      return
+    }
+    const finishMs = Date.parse(trip.finishAt)
+    const remainingMs = finishMs - Date.now()
+    if (remainingMs > 0) {
+      setTimeout(() => {
+        sendIdleNotification(
+          `🧭 [${monsterName}] 탐험 복귀 완료!`,
+          `펫이 ${trip.region} ${trip.zone}구역 탐험을 마치고 보물과 함께 돌아왔어요! 🎁`,
+        )
+      }, remainingMs)
+    }
   } catch {
     // 무중단
   }

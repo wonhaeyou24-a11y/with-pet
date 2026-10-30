@@ -18,6 +18,7 @@ import { serverNow, type MonsterRow, type Stats } from '../lib/api'
 import { exploreFinish, exploreStart, exploreState, type ExploreFinish, type ExploreState } from '../lib/exploreApi'
 import { refreshGear, useGear } from '../lib/gearApi'
 import { playDessertAsmr } from '../lib/sound'
+import { scheduleExploreNotification } from '../lib/idleActivity'
 import { BackIcon } from '../ui/Icons'
 
 interface Props {
@@ -54,8 +55,15 @@ export default function ExploreScreen({ monster, coins, onUpdate, onGoRest, onBa
   const [now, setNow] = useState(() => serverNow())
 
   const load = useCallback(async () => {
-    setSt(await exploreState(monster.id))
-  }, [monster.id])
+    const s = await exploreState(monster.id)
+    setSt(s)
+    if (s.trip) {
+      localStorage.setItem(`pet_explore_trip_${monster.id}`, JSON.stringify(s.trip))
+      scheduleExploreNotification(monster.name || '디저트', s.trip)
+    } else {
+      localStorage.removeItem(`pet_explore_trip_${monster.id}`)
+    }
+  }, [monster.id, monster.name])
 
   useEffect(() => {
     void load()
@@ -105,6 +113,10 @@ export default function ExploreScreen({ monster, coins, onUpdate, onGoRest, onBa
     if (!r.ok) return say(r.message ?? '잠시 후 다시 해 주세요.')
     playDessertAsmr('mochi-squish', 0)
     say(`${region.icon} ${region.name} ${zone}구역으로 출발!`)
+    if (r.trip) {
+      localStorage.setItem(`pet_explore_trip_${monster.id}`, JSON.stringify(r.trip))
+      scheduleExploreNotification(monster.name || '디저트', r.trip)
+    }
     await load()
   }
 
@@ -118,6 +130,7 @@ export default function ExploreScreen({ monster, coins, onUpdate, onGoRest, onBa
       return load()
     }
     if (r.monster) onUpdate(r.monster, r.coins ?? coins, r.foodBag ?? {})
+    localStorage.removeItem(`pet_explore_trip_${monster.id}`)
     playDessertAsmr(r.result && (r.result.tier === 'great' || r.result.tier === 'success') ? 'starlight-ting' : 'jelly-gummy', 2)
     setDone(r)
     await Promise.all([load(), refreshGear()])

@@ -26,6 +26,7 @@ import {
   type TowerExpeditionSession,
   type TrainingSession,
 } from '../lib/idleActivity'
+import { exploreState, type Trip } from '../lib/exploreApi'
 import { playDessertAsmr, type DessertSoundKind } from '../lib/sound'
 import MonsterView from '../monsters/MonsterView'
 import { BackIcon } from '../ui/Icons'
@@ -112,6 +113,22 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
   const [towerEntriesLeft, setTowerEntriesLeft] = useState<number | null>(null)
   const [, setExploreLog] = useState<string>('탐사 대기 중')
   const exploreTimerRef = useRef<number | null>(null)
+
+  // 3. 신규 M5 탐험 상태 동기화 (탐험 중이면 훈련/타워 잠금)
+  const [exploreTrip, setExploreTrip] = useState<Trip | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    exploreState(monster.id).then((st) => {
+      if (!cancelled && st.trip) {
+        setExploreTrip(st.trip)
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [monster.id])
+
+  const isExploring = !!exploreTrip && Date.parse(exploreTrip.finishAt) > serverNow()
 
   const look = monsterLook(monster)
   const activeSpecies = look.mallang?.morphForm ?? monster.species
@@ -232,6 +249,11 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
 
   // 훈련 시작
   async function handleStartTraining() {
+    if (isExploring) {
+      setToast('🧭 현재 펫이 탐험 중입니다! 탐험 복귀 후에 훈련할 수 있어요.')
+      setTimeout(() => setToast(null), 3000)
+      return
+    }
     if (tooTired || busy || (trainSession && trainTimeLeft > 0)) return
     if (!IS_DEV_MOCK) {
       setBusy(true)
@@ -311,6 +333,11 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
 
   // 타워 탐사 시작
   function handleStartExplore() {
+    if (isExploring) {
+      setToast('🧭 현재 펫이 탐험 중입니다! 탐험 복귀 후에 타워에 입장할 수 있어요.')
+      setTimeout(() => setToast(null), 3000)
+      return
+    }
     if (tooTired || busy || towerSession) return
     if (!IS_DEV_MOCK) {
       setBusy(true)
@@ -623,7 +650,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                 </span>
               </div>
 
-              {/* 뒷배경: 무한 스크롤되는 성벽 & 별빛 텍스처 */}
+              {/* 뒷배경: 탐험 중일 때만 스크롤되는 성벽 & 별빛 텍스처 */}
               <div
                 style={{
                   position: 'absolute',
@@ -631,227 +658,258 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                   backgroundImage:
                     'radial-gradient(circle at 20% 30%, rgba(255,255,255,0.3) 1.5px, transparent 1.5px), radial-gradient(circle at 75% 25%, rgba(255,215,0,0.3) 2px, transparent 2px)',
                   backgroundSize: '160px 100px',
-                  animation: 'towerScrollBg 12s linear infinite',
+                  animation: towerSession && !towerDone ? 'towerScrollBg 12s linear infinite' : 'none',
                 }}
               />
 
-              {/* 중앙 액션 횡스크롤 스테이지: 펫 우측 러닝 + 보물상자 + 몬스터 격퇴 */}
-              <div
-                style={{
-                  position: 'relative',
-                  width: '100%',
-                  height: 180,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '0 20px',
-                  zIndex: 10,
-                }}
-              >
-                {/* 1. 내 캐릭터 (우측으로 총총 달리는 러닝 & 점핑 액션) */}
+              {/* 중앙 스테이지: 탐험 중일 때만 러닝&전투 액션, 대기 중일 때는 성문 앞 출격 대기 */}
+              {towerSession ? (
                 <div
                   style={{
-                    position: 'absolute',
-                    left: '18%',
-                    bottom: 14,
+                    position: 'relative',
+                    width: '100%',
+                    height: 180,
                     display: 'flex',
-                    flexDirection: 'column',
                     alignItems: 'center',
-                    animation: 'petRunJump 0.45s ease-in-out infinite',
+                    justifyContent: 'space-between',
+                    padding: '0 20px',
+                    zIndex: 10,
                   }}
                 >
-                  {/* 머리 위 실시간 EXP/코인 플로팅 보상 */}
+                  {/* 1. 내 캐릭터 (우측으로 총총 달리는 러닝 & 점핑 액션) */}
                   <div
-                    key={`reward-${liveActionPhase}`}
                     style={{
                       position: 'absolute',
-                      top: -18,
-                      fontSize: 12,
-                      fontWeight: 900,
-                      color: liveActionPhase % 2 === 0 ? '#FFE082' : '#69F0AE',
-                      textShadow: '0 1px 4px rgba(0,0,0,0.6)',
-                      animation: 'floatReward 1.4s ease-out forwards',
-                      whiteSpace: 'nowrap',
+                      left: '18%',
+                      bottom: 14,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      animation: 'petRunJump 0.45s ease-in-out infinite',
                     }}
                   >
-                    {liveActionPhase % 2 === 0 ? '🪙 +12 코인!' : '✨ EXP +35!'}
-                  </div>
-                  <MonsterView look={look} size={200} title={info?.name} />
-                  <div
-                    style={{
-                      width: 80,
-                      height: 16,
-                      borderRadius: '50%',
-                      background: 'radial-gradient(ellipse, rgba(0,0,0,0.4) 0%, transparent 70%)',
-                      marginTop: -8,
-                    }}
-                  />
-                </div>
-
-                {/* 2. 중앙 획득 오브젝트: Stitch 황금 페이스트리 보물상자 & 마법 젤리 */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: '50%',
-                    bottom: 24,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    animation: 'pulseGlow 1.2s ease infinite',
-                    zIndex: 12,
-                  }}
-                >
-                  {liveActionPhase % 2 === 0 ? (
-                    /* 🎁 Stitch 황금 페이스트리 보물상자 (Golden Pastry Chest) */
+                    {/* 머리 위 실시간 EXP/코인 플로팅 보상 */}
                     <div
+                      key={`reward-${liveActionPhase}`}
                       style={{
-                        position: 'relative',
-                        width: 52,
-                        height: 44,
-                        background: 'linear-gradient(180deg, #FFE082 0%, #FFB300 40%, #FF8F00 100%)',
-                        borderRadius: '12px 12px 10px 10px',
-                        border: '2px solid #FFF8E1',
-                        boxShadow: '0 4px 14px rgba(255, 143, 0, 0.5), inset 0 2px 0 rgba(255,255,255,0.7)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                        position: 'absolute',
+                        top: -18,
+                        fontSize: 12,
+                        fontWeight: 900,
+                        color: liveActionPhase % 2 === 0 ? '#FFE082' : '#69F0AE',
+                        textShadow: '0 1px 4px rgba(0,0,0,0.6)',
+                        animation: 'floatReward 1.4s ease-out forwards',
+                        whiteSpace: 'nowrap',
                       }}
                     >
-                      {/* 생크림 웨이브 덮개 띠 */}
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: -4,
-                          left: '50%',
-                          transform: 'translateX(-50%)',
-                          width: 48,
-                          height: 10,
-                          borderRadius: 999,
-                          background: '#FFFFFF',
-                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                          border: '1px solid #FFE082',
-                        }}
-                      />
-                      {/* 루비 딸기 보석 자물쇠 */}
-                      <div
-                        style={{
-                          fontSize: 16,
-                          filter: 'drop-shadow(0 2px 4px rgba(216,27,96,0.5))',
-                          marginTop: 2,
-                        }}
-                      >
-                        🍓
-                      </div>
-                      {/* 황금빛 별빛 스파클 */}
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: -10,
-                          right: -6,
-                          fontSize: 12,
-                          animation: 'pulse 0.8s infinite alternate',
-                        }}
-                      >
-                        ✨
-                      </div>
+                      {liveActionPhase % 2 === 0 ? '🪙 +12 코인!' : '✨ EXP +35!'}
                     </div>
-                  ) : (
-                    /* 🍬 별빛 크리스탈 마법 젤리 */
+                    <MonsterView look={look} size={200} title={info?.name} />
                     <div
                       style={{
-                        width: 42,
-                        height: 42,
+                        width: 80,
+                        height: 16,
                         borderRadius: '50%',
-                        background: 'radial-gradient(circle at 35% 35%, #FF80AB 0%, #F50057 60%, #880E4F 100%)',
-                        border: '2px solid #FFFFFF',
-                        boxShadow: '0 0 16px rgba(245, 0, 87, 0.6), inset 0 3px 0 rgba(255,255,255,0.6)',
+                        background: 'radial-gradient(ellipse, rgba(0,0,0,0.4) 0%, transparent 70%)',
+                        marginTop: -8,
+                      }}
+                    />
+                  </div>
+
+                  {/* 2. 중앙 획득 오브젝트: Stitch 황금 페이스트리 보물상자 & 마법 젤리 */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      left: '50%',
+                      bottom: 24,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      animation: 'pulseGlow 1.2s ease infinite',
+                      zIndex: 12,
+                    }}
+                  >
+                    {liveActionPhase % 2 === 0 ? (
+                      <div
+                        style={{
+                          position: 'relative',
+                          width: 52,
+                          height: 44,
+                          background: 'linear-gradient(180deg, #FFE082 0%, #FFB300 40%, #FF8F00 100%)',
+                          borderRadius: '12px 12px 10px 10px',
+                          border: '2px solid #FFF8E1',
+                          boxShadow: '0 4px 14px rgba(255, 143, 0, 0.5), inset 0 2px 0 rgba(255,255,255,0.7)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: -4,
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            width: 48,
+                            height: 10,
+                            borderRadius: 999,
+                            background: '#FFFFFF',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                            border: '1px solid #FFE082',
+                          }}
+                        />
+                        <div style={{ fontSize: 16, filter: 'drop-shadow(0 2px 4px rgba(216,27,96,0.5))', marginTop: 2 }}>
+                          🍓
+                        </div>
+                        <div style={{ position: 'absolute', top: -10, right: -6, fontSize: 12, animation: 'pulse 0.8s infinite alternate' }}>
+                          ✨
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          width: 42,
+                          height: 42,
+                          borderRadius: '50%',
+                          background: 'radial-gradient(circle at 35% 35%, #FF80AB 0%, #F50057 60%, #880E4F 100%)',
+                          border: '2px solid #FFFFFF',
+                          boxShadow: '0 0 16px rgba(245, 0, 87, 0.6), inset 0 3px 0 rgba(255,255,255,0.6)',
+                          display: 'grid',
+                          placeItems: 'center',
+                          fontSize: 20,
+                        }}
+                      >
+                        🍬
+                      </div>
+                    )}
+                    <span
+                      style={{
+                        fontSize: 8,
+                        fontWeight: 900,
+                        color: '#FFF8E1',
+                        background: 'rgba(0,0,0,0.6)',
+                        padding: '1px 5px',
+                        borderRadius: 6,
+                        marginTop: 2,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {liveActionPhase % 2 === 0 ? '황금 페이스트리 상자' : '별빛 젤리젬'}
+                    </span>
+                  </div>
+
+                  {/* 3. 오른쪽 층 수호자 몬스터 (피격 리액션) */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      right: '10%',
+                      bottom: 18,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      animation: 'enemyReactHit 1.2s ease-in-out infinite',
+                    }}
+                  >
+                    <div
+                      key={`dmg-${liveActionPhase}`}
+                      style={{
+                        position: 'absolute',
+                        top: -20,
+                        fontSize: 14,
+                        fontWeight: 900,
+                        color: '#FF5252',
+                        textShadow: '0 1px 4px rgba(0,0,0,0.8)',
+                        animation: 'floatReward 1.2s ease-out forwards',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      💥 CRITICAL -124!
+                    </div>
+                    <div
+                      style={{
+                        width: 68,
+                        height: 68,
+                        borderRadius: '50%',
+                        background: currentFloorInfo.isBoss
+                          ? 'radial-gradient(circle, #FF5252 0%, #B71C1C 100%)'
+                          : 'radial-gradient(circle, #AB47BC 0%, #4A148C 100%)',
                         display: 'grid',
                         placeItems: 'center',
-                        fontSize: 20,
+                        fontSize: 34,
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                        border: '2px solid rgba(255,255,255,0.4)',
                       }}
                     >
-                      🍬
+                      {currentFloorInfo.isBoss ? '👹' : shownFloor % 3 === 0 ? '🐲' : shownFloor % 2 === 0 ? '🍫' : '🍬'}
                     </div>
-                  )}
-                  <span
-                    style={{
-                      fontSize: 8,
-                      fontWeight: 900,
-                      color: '#FFF8E1',
-                      background: 'rgba(0,0,0,0.6)',
-                      padding: '1px 5px',
-                      borderRadius: 6,
-                      marginTop: 2,
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {liveActionPhase % 2 === 0 ? '황금 페이스트리 상자' : '별빛 젤리젬'}
-                  </span>
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 800,
+                        color: '#E1BEE7',
+                        background: 'rgba(0,0,0,0.5)',
+                        padding: '1px 6px',
+                        borderRadius: 8,
+                        marginTop: 3,
+                      }}
+                    >
+                      {currentFloorInfo.enemy}
+                    </span>
+                  </div>
                 </div>
-
-                {/* 3. 오른쪽 층 수호자 몬스터 (피격 리액션) */}
+              ) : (
+                /* 출격 대기 상태: 펫이 타워 입구에서 늠름하게 대기 */
                 <div
                   style={{
-                    position: 'absolute',
-                    right: '10%',
-                    bottom: 18,
+                    position: 'relative',
+                    width: '100%',
+                    height: 180,
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    animation: 'enemyReactHit 1.2s ease-in-out infinite',
+                    justifyContent: 'center',
+                    zIndex: 10,
                   }}
                 >
-                  {/* 타격 시 대미지 숫자 플로팅 */}
                   <div
-                    key={`dmg-${liveActionPhase}`}
                     style={{
-                      position: 'absolute',
-                      top: -20,
-                      fontSize: 14,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      animation: 'pulseGlow 2.8s ease-in-out infinite',
+                    }}
+                  >
+                    <MonsterView look={look} size={185} title={info?.name} />
+                    <div
+                      style={{
+                        width: 90,
+                        height: 18,
+                        borderRadius: '50%',
+                        background: 'radial-gradient(ellipse, rgba(0,0,0,0.4) 0%, transparent 70%)',
+                        marginTop: -6,
+                      }}
+                    />
+                  </div>
+                  <div
+                    style={{
+                      marginTop: 4,
+                      background: 'rgba(25, 12, 38, 0.85)',
+                      border: '1.5px solid #BA68C8',
+                      borderRadius: 999,
+                      padding: '3px 12px',
+                      fontSize: 11,
                       fontWeight: 900,
-                      color: '#FF5252',
-                      textShadow: '0 1px 4px rgba(0,0,0,0.8)',
-                      animation: 'floatReward 1.2s ease-out forwards',
-                      whiteSpace: 'nowrap',
+                      color: '#FFE082',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
                     }}
                   >
-                    💥 CRITICAL -124!
+                    ⚔️ {shownFloor}층 수호자 [{currentFloorInfo.enemy}] 출격 대기 중
                   </div>
-                  <div
-                    style={{
-                      width: 68,
-                      height: 68,
-                      borderRadius: '50%',
-                      background: currentFloorInfo.isBoss
-                        ? 'radial-gradient(circle, #FF5252 0%, #B71C1C 100%)'
-                        : 'radial-gradient(circle, #AB47BC 0%, #4A148C 100%)',
-                      display: 'grid',
-                      placeItems: 'center',
-                      fontSize: 34,
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-                      border: '2px solid rgba(255,255,255,0.4)',
-                    }}
-                  >
-                    {currentFloorInfo.isBoss ? '👹' : shownFloor % 3 === 0 ? '🐲' : shownFloor % 2 === 0 ? '🍫' : '🍬'}
-                  </div>
-                  <span
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 800,
-                      color: '#E1BEE7',
-                      background: 'rgba(0,0,0,0.5)',
-                      padding: '1px 6px',
-                      borderRadius: 8,
-                      marginTop: 3,
-                    }}
-                  >
-                    {currentFloorInfo.enemy}
-                  </span>
                 </div>
-              </div>
+              )}
 
-              {/* 하단 무한 이동 코블스톤 타일 바닥 */}
+              {/* 하단 코블스톤 타일 바닥 */}
               <div
                 style={{
                   height: 22,
@@ -860,7 +918,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                     'repeating-linear-gradient(90deg, #311B92 0px, #311B92 18px, #4527A0 18px, #4527A0 36px)',
                   borderTop: '2px solid #7E57C2',
                   boxShadow: 'inset 0 4px 8px rgba(0,0,0,0.5)',
-                  animation: 'towerFloorScroll 1.6s linear infinite',
+                  animation: towerSession && !towerDone ? 'towerFloorScroll 1.6s linear infinite' : 'none',
                   zIndex: 15,
                 }}
               />
@@ -1151,6 +1209,27 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
         {/* ======================================================== */}
         {activeTab === 'courses' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, justifyContent: 'space-between' }}>
+            {/* 탐험 중 잠금 알림 배너 */}
+            {isExploring && (
+              <div
+                style={{
+                  background: 'linear-gradient(90deg, #1B5E20, #2E7D32)',
+                  color: '#FFFFFF',
+                  borderRadius: 10,
+                  padding: '5px 10px',
+                  fontSize: 10.5,
+                  fontWeight: 900,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  boxShadow: '0 2px 6px rgba(27,94,32,0.3)',
+                  border: '1px solid #81C784',
+                }}
+              >
+                <span>🧭 현재 펫이 [{exploreTrip?.region} {exploreTrip?.zone}구역] 탐험 중입니다</span>
+                <span style={{ fontSize: 9.5, color: '#C8E6C9' }}>복귀 후 이용 가능</span>
+              </div>
+            )}
             {/* 5대 코스 선택 바: 컴팩트 슬림화 */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 4, paddingBottom: 2 }}>
               {TRAINING_COURSES.map((course) => {
@@ -1352,7 +1431,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                 </div>
               ) : (
                 <button
-                  disabled={busy}
+                  disabled={busy || isExploring}
                   onPointerDown={(e) => {
                     if (e.pointerType === 'mouse') return
                     lastTouchClaimRef.current = Date.now()
@@ -1392,7 +1471,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
               </div>
             ) : (
               <button
-                disabled={busy}
+                disabled={busy || isExploring}
                 onClick={handleStartTraining}
                 style={{
                   position: 'sticky',
@@ -1403,16 +1482,18 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                   width: '100%',
                   borderRadius: 12,
                   border: 'none',
-                  background: 'linear-gradient(180deg, #FF8A65 0%, #F4511E 100%)',
+                  background: isExploring ? '#78909C' : 'linear-gradient(180deg, #FF8A65 0%, #F4511E 100%)',
                   color: '#FFFFFF',
                   fontWeight: 900,
                   fontSize: 14,
-                  cursor: 'pointer',
-                  boxShadow: '0 3px 0 #BF360C, 0 5px 10px rgba(244,81,30,0.25)',
+                  cursor: isExploring ? 'not-allowed' : 'pointer',
+                  boxShadow: isExploring ? 'none' : '0 3px 0 #BF360C, 0 5px 10px rgba(244,81,30,0.25)',
                   touchAction: 'manipulation',
                 }}
               >
-                ⚡ {selectedCourse.name} 출발 ({fastMode ? '10초' : durationLabel(COURSE_DURATIONS[selectedCourse.id] ?? 150)})
+                {isExploring
+                  ? '🔒 탐험 진행 중 (탐험 복귀 후 훈련 가능)'
+                  : `⚡ ${selectedCourse.name} 출발 (${fastMode ? '10초' : durationLabel(COURSE_DURATIONS[selectedCourse.id] ?? 150)})`}
               </button>
             )}
           </div>
@@ -1423,6 +1504,27 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
         {/* ======================================================== */}
         {activeTab === 'tower' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, justifyContent: 'space-between' }}>
+            {/* 탐험 중 잠금 알림 배너 */}
+            {isExploring && (
+              <div
+                style={{
+                  background: 'linear-gradient(90deg, #1B5E20, #2E7D32)',
+                  color: '#FFFFFF',
+                  borderRadius: 10,
+                  padding: '5px 10px',
+                  fontSize: 10.5,
+                  fontWeight: 900,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  boxShadow: '0 2px 6px rgba(27,94,32,0.3)',
+                  border: '1px solid #81C784',
+                }}
+              >
+                <span>🧭 현재 펫이 [{exploreTrip?.region} {exploreTrip?.zone}구역] 탐험 중입니다</span>
+                <span style={{ fontSize: 9.5, color: '#C8E6C9' }}>복귀 후 이용 가능</span>
+              </div>
+            )}
             {/* 가로 진행 지도 (여유 공간에 맞게 시원하게 확대) */}
             <div
               style={{
@@ -1511,7 +1613,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
             {/* 타워 출발 / 복귀 버튼 */}
             {towerSession ? (
               <button
-                disabled={busy}
+                disabled={busy || isExploring}
                 onClick={finishExplore}
                 style={{
                   position: 'sticky',
@@ -1542,7 +1644,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
               </div>
             ) : (
               <button
-                disabled={busy}
+                disabled={busy || isExploring}
                 onClick={handleStartExplore}
                 style={{
                   position: 'sticky',
@@ -1562,7 +1664,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                   touchAction: 'manipulation',
                 }}
               >
-                🏰 디저트 타워 {towerFloor}층~{towerFloor + 3}층 출발!{towerEntriesLeft !== null ? ` (오늘 ${towerEntriesLeft}회)` : ''}
+                {isExploring ? '🔒 탐험 진행 중 (탐험 복귀 후 입장 가능)' : `🏰 디저트 타워 ${towerFloor}층~${towerFloor + 3}층 출발!${towerEntriesLeft !== null ? ` (오늘 ${towerEntriesLeft}회)` : ''}`}
               </button>
             )}
           </div>
