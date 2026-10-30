@@ -4,6 +4,7 @@
 
 import { DESSERT_FOODS, expForNextLevel, TRAINING_COURSES, type TrainingId } from '../config/care'
 import { serverNow, type MonsterRow, type Stats } from './api'
+import { SERVER_TIMEOUT_MS, withTimeout } from './net'
 import { supabase } from './supabase'
 
 export interface CareResponse {
@@ -362,9 +363,12 @@ export async function callCare(
   }
 
   try {
-    const { data, error } = await supabase.functions.invoke('care', {
-      body: { action, monsterId: baseMonster.id, ...params },
-    })
+    const { data, error } = await withTimeout(
+      supabase.functions.invoke('care', {
+        body: { action, monsterId: baseMonster.id, ...params },
+      }),
+      SERVER_TIMEOUT_MS,
+    )
     if (!error && data && typeof data === 'object' && 'ok' in data) {
       return data as CareResponse
     }

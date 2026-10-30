@@ -120,7 +120,7 @@ export default function EggHome(p: EggHomeProps) {
           </div>
 
           <div className="grid-2">
-            <button className="btn" onClick={p.onPet} disabled={p.busy || p.usedPet >= p.limits.pet}>
+            <button className="btn" data-silent onClick={p.onPet} disabled={p.busy || p.usedPet >= p.limits.pet}>
               <PawIcon size={22} color="#fff" />
               <span>
                 쓰다듬기
@@ -129,7 +129,7 @@ export default function EggHome(p: EggHomeProps) {
                 </span>
               </span>
             </button>
-            <button className="btn mint" onClick={p.onWarm} disabled={p.busy || p.usedWarm >= p.limits.warm}>
+            <button className="btn mint" data-silent onClick={p.onWarm} disabled={p.busy || p.usedWarm >= p.limits.warm}>
               <SunIcon size={22} color="#fff" />
               <span>
                 따뜻하게 하기

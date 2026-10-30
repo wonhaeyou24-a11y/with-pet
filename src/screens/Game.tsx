@@ -4,6 +4,7 @@ import { PLAZA_SHOWCASE_FRIENDS, type PlazaFriendEntry } from '../lib/battleEngi
 import { callCare } from '../lib/careApi'
 import { getSpeciesSoundKind, playDessertAsmr } from '../lib/sound'
 import { supabase, type Player } from '../lib/supabase'
+import Loading from '../ui/Loading'
 import AsmrBattleArena from './AsmrBattleArena'
 import BoutiqueShop from './BoutiqueShop'
 import CarePantry from './CarePantry'
@@ -173,7 +174,7 @@ export default function Game({ player }: { player: Player }) {
       </main>
     )
   }
-  if (!loaded) return null
+  if (!loaded) return <Loading />
 
   const monster = monsters[0]
 

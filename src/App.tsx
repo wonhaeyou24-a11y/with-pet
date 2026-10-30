@@ -4,6 +4,7 @@ import { supabase, type Player } from './lib/supabase'
 import Game from './screens/Game'
 import Login from './screens/Login'
 import Nickname from './screens/Nickname'
+import Loading from './ui/Loading'
 
 export default function App() {
   const [session, setSession] = useState<Session | null | undefined>(undefined)
@@ -48,9 +49,10 @@ export default function App() {
       .then(({ data }) => setPlayer(data))
   }, [userId, isDevBypass])
 
-  if (session === undefined) return null
+  if (session === undefined) return <Loading />
   if (!session) return <Login />
-  if (player === undefined) return null
+  if (player === undefined) return <Loading />
+
   if (player === null) return <Nickname userId={session.user.id} onDone={setPlayer} />
   return <Game player={player} />
 }

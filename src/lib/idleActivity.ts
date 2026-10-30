@@ -3,6 +3,7 @@
 
 import { TRAINING_COURSES, type TrainingCourse, type TrainingId } from '../config/care'
 import type { Stats } from '../lib/api'
+import { withJosa } from './josa'
 import { type DessertSoundKind } from './sound'
 
 export interface TrainingSession {
@@ -275,9 +276,9 @@ export function checkPetAutonomousSuggestion(
       id: `sug-rest-${now}`,
       type: 'rest',
       title: '💤 졸려요...',
-      message: `${petName}이가 오늘 열심히 뛰어서 눈이 스르륵 감긴대요. 쇼케이스에서 쿨링 휴식을 취할까요?`,
+      message: `${withJosa(petName, '이/가')} 오늘 열심히 뛰어서 눈이 스르륵 감긴대요. 쇼케이스에서 쿨링 휴식을 취할까요?`,
       balloon: '후아암... 졸려요. 조금만 쉬어도 될까요?',
-      actionLabel: '🌙 쿨링 휴식 시켜주기',
+      actionLabel: '🌙 휴식 보내기',
       timestamp: now,
     }
   }
@@ -303,9 +304,9 @@ export function checkPetAutonomousSuggestion(
       id: `sug-train-${now}`,
       type: 'train',
       title: '💪 훈련 다녀올게요!',
-      message: `컨디션 최고! ${petName}이가 "${randomCourse.name}" 훈련으로 능력을 키우고 싶대요.`,
+      message: `컨디션 최고! ${withJosa(petName, '이/가')} "${randomCourse.name}" 훈련으로 능력을 키우고 싶대요.`,
       balloon: `주인님! 오늘 몸이 가벼워요! ${randomCourse.name} 다녀올까요?`,
-      actionLabel: `⚡ ${randomCourse.name} 보내기`,
+      actionLabel: '⚡ 훈련 보내기',
       courseId: randomCourse.id,
       timestamp: now,
     }
@@ -317,9 +318,9 @@ export function checkPetAutonomousSuggestion(
       id: `sug-explore-${now}`,
       type: 'explore',
       title: '🏰 타워 탐험 제안',
-      message: `${petName}이가 디저트 타워 ${towerFloor}층에서 달콤한 보물 냄새가 난다며 다녀오겠대요!`,
+      message: `${withJosa(petName, '이/가')} 디저트 타워 ${towerFloor}층에서 달콤한 보물 냄새가 난다며 다녀오겠대요!`,
       balloon: `디저트 타워 ${towerFloor}층에 가볼래요! 전리품 가져올게요!`,
-      actionLabel: `🏰 ${towerFloor}층 탐험 출발!`,
+      actionLabel: '🏰 탐험 출발!',
       suggestedFloor: towerFloor,
       timestamp: now,
     }

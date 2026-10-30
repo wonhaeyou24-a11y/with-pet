@@ -385,9 +385,9 @@ export const PLAZA_SHOWCASE_FRIENDS: PlazaFriendEntry[] = [
     },
   },
   {
-    ownerNickname: '왁싱볼장인',
+    ownerNickname: '왁뿌볼장인',
     badge: '🫧 과즙팡 ASMR 마스터',
-    bio: '톡! 파삭 깨물면 시원한 포도·소다 과즙이 쭈욱 터지는 왁싱볼이에요 🫧💦',
+    bio: '단단한 껍질을 꾹 누르면 아그작! 깨지고 속은 말랑말랑한 왁뿌볼이에요 🫧',
     likes: 76,
     comments: [
       { author: '민트파티시에', emoji: '🫧', text: '터치할 때 톡! 파삭~ 과즙 터지는 소리 중독성 미쳤어요 ㅋㅋ' },

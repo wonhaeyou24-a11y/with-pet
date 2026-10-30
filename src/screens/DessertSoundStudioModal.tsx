@@ -130,6 +130,13 @@ const SOUND_STUDIO_ITEMS: SoundCardItem[] = [
     category: 'chewy',
   },
   {
+    speciesId: 'ui-tap',
+    speciesName: '기본 버튼 선택음',
+    soundKind: 'wax-tap',
+    textureLabel: '🫧 짧은 아그작 (모든 버튼의 기본 소리)',
+    category: 'crispy',
+  },
+  {
     speciesId: 'choco-cookie-base',
     speciesName: '초코 쿠키 받침대',
     soundKind: 'cookie-crisp',

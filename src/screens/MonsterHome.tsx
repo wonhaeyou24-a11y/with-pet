@@ -180,8 +180,8 @@ export default function MonsterHome({
             boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
           }}
         >
-          {/* 프로필 & 닉네임 & 칭호 */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+          {/* 프로필 & 닉네임 & 칭호 (좁은 폰에서는 이름을 말줄임으로 줄이고, 오른쪽 재화·버튼은 절대 줄바꿈하지 않는다) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 }}>
             <div
               style={{
                 width: 32,
@@ -197,9 +197,9 @@ export default function MonsterHome({
             >
               🍰
             </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ fontSize: 13, fontWeight: 900, color: '#3E2723', lineHeight: 1.1 }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0 }}>
+                <span style={{ fontSize: 13, fontWeight: 900, color: '#3E2723', lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {nickname}
                 </span>
                 {monster.is_shiny && (
@@ -208,27 +208,29 @@ export default function MonsterHome({
                   </span>
                 )}
               </div>
-              <div style={{ fontSize: 10, fontWeight: 800, color: '#FF7043', marginTop: 1 }}>
+              <div style={{ fontSize: 10, fontWeight: 800, color: '#FF7043', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 Lv.{monster.level} 파티시에
               </div>
             </div>
           </div>
 
           {/* 재화 2종 & 3대 퀵 버튼 (절대 줄바꿈 없이 한 줄 정돈) */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, marginLeft: 6 }}>
             {/* 코인 */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 3,
-                padding: '4px 8px',
+                gap: 2,
+                padding: '4px 6px',
                 borderRadius: 12,
                 background: '#FFF8E1',
                 border: '1px solid #FFE082',
                 fontSize: 11,
                 fontWeight: 900,
                 color: '#E65100',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
               }}
               title="골드 코인"
             >
@@ -242,8 +244,8 @@ export default function MonsterHome({
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 3,
-                padding: '4px 8px',
+                gap: 2,
+                padding: '4px 6px',
                 borderRadius: 12,
                 background: '#FDF2F8',
                 border: '1px solid #F472B6',
@@ -251,6 +253,8 @@ export default function MonsterHome({
                 fontWeight: 900,
                 color: '#BE185D',
                 cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
               }}
               title="부티크 리본코인 (터치시 상점 이동)"
             >
@@ -265,8 +269,9 @@ export default function MonsterHome({
                 playDessertAsmr('mochi-squish')
               }}
               style={{
-                width: 32,
-                height: 32,
+                width: 30,
+                height: 30,
+                flexShrink: 0,
                 borderRadius: 10,
                 border: claimableMissions > 0 ? '1.5px solid #FF9800' : '1px solid #E0D3C5',
                 background: claimableMissions > 0 ? '#FFF8E1' : '#FFFDF9',
@@ -308,8 +313,9 @@ export default function MonsterHome({
                 playDessertAsmr('cookie-crisp')
               }}
               style={{
-                width: 32,
-                height: 32,
+                width: 30,
+                height: 30,
+                flexShrink: 0,
                 borderRadius: 10,
                 border: '1px solid #BBDEFB',
                 background: '#E3F2FD',
@@ -330,8 +336,9 @@ export default function MonsterHome({
                 playDessertAsmr('sugar-crack')
               }}
               style={{
-                width: 32,
-                height: 32,
+                width: 30,
+                height: 30,
+                flexShrink: 0,
                 borderRadius: 10,
                 border: '1px solid #D7CCC8',
                 background: '#EFEBE9',
@@ -518,19 +525,23 @@ export default function MonsterHome({
                 position: 'absolute',
                 top: 2,
                 zIndex: 9,
-                padding: '3px 10px',
-                borderRadius: 999,
+                padding: '4px 11px',
+                borderRadius: 14,
                 background: 'rgba(255, 253, 245, 0.96)',
                 border: '1.5px solid #FFB74D',
                 color: '#4E342E',
                 fontSize: 11,
                 fontWeight: 800,
+                lineHeight: 1.3,
+                textAlign: 'center',
                 boxShadow: '0 3px 10px rgba(78,52,46,0.15)',
                 animation: 'bounce 2s infinite ease-in-out',
-                maxWidth: '85%',
-                whiteSpace: 'nowrap',
+                maxWidth: '92%',
+                // 한 줄에 다 안 들어가면 두 줄까지 보여 주고, 그래도 길면 말줄임
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
                 overflow: 'hidden',
-                textOverflow: 'ellipsis',
               }}
             >
               💭 {suggestion.balloon}
@@ -580,7 +591,18 @@ export default function MonsterHome({
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0, flex: 1 }}>
             <span style={{ fontSize: 16, flexShrink: 0 }}>💡</span>
-            <span style={{ fontSize: 11, fontWeight: 800, color: '#4E342E', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 800,
+                color: '#4E342E',
+                lineHeight: 1.25,
+                overflow: 'hidden',
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+              }}
+            >
               {suggestion.message}
             </span>
           </div>
@@ -588,7 +610,7 @@ export default function MonsterHome({
             <button
               className="chip honey"
               onClick={handleAcceptSuggestion}
-              style={{ cursor: 'pointer', border: 'none', fontWeight: 900, fontSize: 11, padding: '2px 7px' }}
+              style={{ cursor: 'pointer', border: 'none', fontWeight: 900, fontSize: 11, padding: '2px 7px', maxWidth: 104, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}
             >
               {suggestion.actionLabel}
             </button>

@@ -116,7 +116,7 @@ export const SKILL_NODES_T1: SkillNodeDef[] = [
     id: 'wax-ball-burst',
     branch: 'assault',
     tier: 1,
-    name: '왁싱볼 과즙팡 파열',
+    name: '왁뿌볼 아그작 파열',
     kind: 'active',
     power: 42,
     spCost: 1,

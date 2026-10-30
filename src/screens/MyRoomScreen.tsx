@@ -252,6 +252,8 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
               display: 'flex',
               alignItems: 'center',
               gap: 4,
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
               padding: '4px 8px',
               borderRadius: 16,
               background: '#FDF2F8',

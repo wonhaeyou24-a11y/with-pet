@@ -580,6 +580,8 @@ export default function DessertPlaza({
             style={{
               width: 36,
               height: 28,
+              padding: 0,
+              whiteSpace: 'nowrap',
               borderRadius: 8,
               border: '1.5px solid rgba(0,0,0,0.15)',
               background: 'rgba(255,255,255,0.92)',

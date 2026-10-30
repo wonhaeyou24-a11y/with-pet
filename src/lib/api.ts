@@ -1,6 +1,7 @@
 import { defaultDessertBase } from '../config/species'
 import { loadMallangCustom } from '../monsters/MallangChameleon'
 import type { BodyType, Element, Expression, MonsterLook } from '../monsters/types'
+import { SERVER_TIMEOUT_MS, withTimeout } from './net'
 import { supabase } from './supabase'
 
 export type Rarity = 'common' | 'rare' | 'legendary'
@@ -280,7 +281,7 @@ export async function callEgg(action: 'sync' | 'pet' | 'warm' | 'hatch', params:
   const localEgg = loadLocalEgg()
 
   try {
-    const { data, error } = await supabase.functions.invoke('egg', { body: { action, ...params } })
+    const { data, error } = await withTimeout(supabase.functions.invoke('egg', { body: { action, ...params } }), SERVER_TIMEOUT_MS)
     if (!error && data) {
       const res = data as EggResponse
       if (res.now) serverOffsetMs = Date.parse(res.now) - Date.now()

@@ -232,6 +232,8 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
               display: 'flex',
               alignItems: 'center',
               gap: 5,
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
               padding: '5px 10px',
               borderRadius: 20,
               background: 'linear-gradient(135deg, #FDF2F8 0%, #FCE7F3 100%)',

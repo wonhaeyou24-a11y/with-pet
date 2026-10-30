@@ -155,10 +155,10 @@ export const SPECIES_EVOLUTIONS: Record<string, SpeciesEvoData> = {
   'wax-ball': {
     baseSpecies: 'wax-ball',
     stageNames: {
-      1: '톡톡 과즙 왁싱볼',
+      1: '아그작 왁뿌볼',
       2: {
         'sweet-melty': '멜팅 시럽 왁스볼',
-        'crispy-crunch': '크래킹 밀랍 왁싱볼',
+        'crispy-crunch': '크래킹 왁스 왁뿌볼',
         'royal-chef': '연금술 크리스탈 왁스볼',
         'gourmet-rainbow': '오로라 쥬시 왁스볼',
       },

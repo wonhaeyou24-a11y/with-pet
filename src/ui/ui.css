@@ -305,6 +305,8 @@ p {
 
 /* 칩 */
 .chip {
+  white-space: nowrap;
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -616,6 +618,9 @@ p {
 
 .fit-fill > * {
   height: 100%;
+  display: flex;
+  align-items: flex-end; /* 키가 큰 폰에서도 알이 둥지 바로 위에 앉는다 */
+  justify-content: center;
 }
 
 .fit-fill svg {

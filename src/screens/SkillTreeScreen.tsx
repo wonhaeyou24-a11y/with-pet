@@ -494,6 +494,8 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
             style={{
               width: 34,
               height: 24,
+              padding: 0,
+              whiteSpace: 'nowrap',
               borderRadius: 6,
               border: '1px solid rgba(255,255,255,0.25)',
               background: 'rgba(35, 26, 48, 0.9)',

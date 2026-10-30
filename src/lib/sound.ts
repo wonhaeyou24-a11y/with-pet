@@ -6,6 +6,7 @@ import { synthesizeDessertSound, type SynthKind } from './soundSynth'
 export type DessertSoundKind =
   | 'kataifi-crunch' // 💚 두바이 쫀득쿠키: 바사삭! 카다이프 면발 & 피스타치오 크런치
   | 'wax-pop' // 🫧 왁뿌볼: 단단한 왁스 껍질이 꾹 눌리다 아-그-작 깨지고, 속의 말랑한 점액이 쭈욱 새는 소리
+  | 'wax-tap' // 🫧 왁뿌볼 선택음: 버튼을 누를 때 나는 짧은 아그작 (기본 버튼 소리)
   | 'cookie-crisp' // 🍪 초코칩 쿠키 / 크로플: 오독오독 바삭한 버터 쿠키 베어무는 소리
   | 'sugar-crack' // 🍓 유리알 탕후루: 빠작! 톡! 얇고 투명한 설탕 코팅이 경쾌하게 깨지는 소리
   | 'mochi-squish' // 🍡 찹쌀떡 모찌: 쫀득~ 말랑말랑 찰떡 반죽이 늘어났다 떼어지는 소리
@@ -43,6 +44,13 @@ export const DESSERT_SOUND_CATALOG: Record<DessertSoundKind, SoundMeta> = {
     label: '왁뿌볼 아그작 말랑',
     onomatopoeia: '끽… 아-그-작! 쭈왁~ 🫧',
     desc: '단단하게 코팅된 왁스 껍질이 꾹 눌리다 아-그-작 세 조각으로 깨지고, 부스러기가 후두둑 떨어진 뒤 속의 말랑한 점액이 쭈욱 새어 나오는 왁뿌볼 ASMR',
+    icon: '🫧',
+  },
+  'wax-tap': {
+    kind: 'wax-tap',
+    label: '왁뿌볼 선택음',
+    onomatopoeia: '아그작! 🫧',
+    desc: '버튼을 누를 때마다 나는 짧고 경쾌한 왁뿌볼 소리. 단단한 껍질이 아그작 갈라지고 말랑한 끝맛이 남아요',
     icon: '🫧',
   },
   'cookie-crisp': {
@@ -251,6 +259,7 @@ export function getSensoryCategory(kind: DessertSoundKind): SensoryCategory {
   if (
     kind === 'kataifi-crunch' ||
     kind === 'wax-pop' ||
+    kind === 'wax-tap' ||
     kind === 'cookie-crisp' ||
     kind === 'sugar-crack' ||
     kind === 'acorn-snap' ||
@@ -266,6 +275,7 @@ export function getSensoryCategory(kind: DessertSoundKind): SensoryCategory {
 const HAPTIC_PATTERNS: Record<DessertSoundKind, number | number[]> = {
   'kataifi-crunch': [14, 18, 12, 16, 16, 20, 12],
   'wax-pop': [26, 18, 12, 48],
+  'wax-tap': 8,
   'cookie-crisp': [24, 24, 18, 22],
   'sugar-crack': [30, 28, 14],
   'mochi-squish': [20, 48, 16],
@@ -379,8 +389,11 @@ function warmUpAll(ctx: AudioContext) {
 
 // 디저트 질감별 ASMR 사운드 + 손맛 햅틱 재생 (Zero-Crash 보장)
 // comboStep이 커질수록 소리가 살짝 높고 빨라져 연타의 쾌감이 쌓인다
+let lastAsmrAt = 0
+
 export function playDessertAsmr(kind: DessertSoundKind, comboStep = 0): SoundMeta {
   const meta = DESSERT_SOUND_CATALOG[kind] ?? DESSERT_SOUND_CATALOG['mochi-squish']
+  lastAsmrAt = Date.now()
   try {
     triggerSensoryHaptic(kind)
     if (isAsmrMuted()) return meta
@@ -399,4 +412,31 @@ export function playDessertAsmr(kind: DessertSoundKind, comboStep = 0): SoundMet
     // 오디오 컨텍스트 제한 시에도 앱이 절대 멈추지 않도록 안전 처리
   }
   return meta
+}
+
+// ───────── 기본 선택 버튼음: 왁뿌볼 ─────────
+// 화면의 모든 버튼을 누를 때 짧은 왁뿌볼 소리(wax-tap)를 낸다.
+// - 버튼이 이미 자기 소리를 내는 경우(돌보기·훈련·대전 등)에는 겹치지 않도록 건너뛴다
+// - 버튼에 data-silent 를 달면 소리를 내지 않는다 (입력칸·스위치처럼 조용해야 하는 곳)
+// - 소리를 끄면(isAsmrMuted) 선택음도 함께 꺼진다
+const UI_TAP_GAP_MS = 70
+const OWN_SOUND_GRACE_MS = 160
+let uiTapInstalled = false
+let lastUiTapAt = 0
+
+export function installUiTapSound(): void {
+  if (uiTapInstalled || typeof document === 'undefined') return
+  uiTapInstalled = true
+  // 버블 단계에서 듣는다: 버튼 자신의 onClick(React)이 먼저 실행된 뒤, 그 버튼이 따로 소리를 냈는지 확인할 수 있다
+  document.addEventListener('click', (e) => {
+    const target = e.target
+    if (!(target instanceof Element)) return
+    const btn = target.closest('button, [role="button"]')
+    if (!btn || btn.closest('[data-silent]')) return
+    if ((btn as HTMLButtonElement).disabled || btn.getAttribute('aria-disabled') === 'true') return
+    const now = Date.now()
+    if (now - lastUiTapAt < UI_TAP_GAP_MS || now - lastAsmrAt < OWN_SOUND_GRACE_MS) return
+    lastUiTapAt = now
+    playDessertAsmr('wax-tap')
+  })
 }

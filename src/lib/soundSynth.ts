@@ -453,6 +453,7 @@ function finish(m: Mixer, o: FinishOpts): SynthSound {
 export type SynthKind =
   | 'kataifi-crunch'
   | 'wax-pop'
+  | 'wax-tap'
   | 'cookie-crisp'
   | 'sugar-crack'
   | 'mochi-squish'
@@ -502,6 +503,23 @@ const RECIPES: Record<SynthKind, { total: number; finish: FinishOpts; build: Rec
       tick(m, 0.66, 1700, 9, 0.42, 0.1)
       bubble(m, 0.665, 300, 2.2, 32, 0.34, 0.1)
       thump(m, 0.66, 130, 72, 55, 0.3)
+    },
+  },
+
+  // 🫧 왁뿌볼 선택음: 버튼을 누를 때마다 들어도 피곤하지 않은 짧은 "아그작 + 말랑" (0.3초, 조금 작은 음량)
+  'wax-tap': {
+    total: 0.5,
+    finish: { reverb: 0.1, level: 0.72, highCut: 11000 },
+    build: (m) => {
+      tick(m, 0, jit(m, 2400), 1, 0.2, -0.2)
+      // 껍질이 아그작 갈라지는 한 번의 소리 + 작은 '턱'
+      crackCluster(m, 0.012, { n: 26, spanMs: 22, fLo: jit(m, 1500), fHi: jit(m, 5600), dLo: 1, dHi: 5, amp: 0.9, ampDecay: 2.2, noiseMix: 0.4, panSpread: 0.35 })
+      crackCluster(m, 0.014, { n: 8, spanMs: 20, fLo: 600, fHi: 1400, dLo: 4, dHi: 9, amp: 0.55, ampDecay: 1.8, noiseMix: 0.5 })
+      thump(m, 0.012, jit(m, 210), 105, 36, 0.42)
+      // 부스러기와 속의 말랑한 끝맛
+      scatter(m, 0.05, { count: 7, spanMs: 110, p: 1.5, fLo: 3000, fHi: 7000, dMs: 0.9, amp: 0.22 })
+      swell(m, 0.06, 0.16, { type: 'bp', f0: 350, f1: 800, q: 4, attackMs: 20, releaseMs: 80, amp: 0.1, color: 'pink' })
+      bubble(m, 0.1, 480 + m.rand() * 320, 1.4, 26, 0.26, 0.15)
     },
   },
 

@@ -7,7 +7,8 @@ import { getSensoryCategory, type DessertSoundKind } from '../lib/sound'
 
 const PARTICLE_ICONS: Record<DessertSoundKind, string[]> = {
   'kataifi-crunch': ['🌾', '💚', '✨', '🥜', '🌾', '✨', '🍫', '💚'],
-  'wax-pop': ['🫧', '💦', '🍇', '✨', '🫧', '🍑', '💧', '✨'],
+  'wax-pop': ['🫧', '💥', '✨', '🍬', '🫧', '🌸', '✨', '🫧'],
+  'wax-tap': ['🫧', '✨', '💥', '🫧', '✨', '🍬', '🫧', '✨'],
   'sugar-crack': ['💎', '🍓', '✨', '🫧', '💎', '🍒', '✨', '🍓'],
   'cookie-crisp': ['🍪', '🍫', '✨', '🥨', '🍪', '✨', '🌰', '🍫'],
   'mochi-squish': ['🍡', '🤍', '💕', '✨', '🍡', '🌸', '🤍', '💖'],

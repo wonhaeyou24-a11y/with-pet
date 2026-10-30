@@ -86,7 +86,7 @@ export const STAMP_CATALOG: { kind: StampKind; label: string; icon: string; defa
 
 export const MORPH_FORMS: { id: MorphFormId; name: string; icon: string; desc: string }[] = [
   { id: 'dubai-cookie', name: '두바이 쫀득쿠키', icon: '💚', desc: '바사삭! 볶은 카다이프 면발과 진한 피스타치오 크림이 터져나오는 쿠키' },
-  { id: 'wax-ball', name: '톡톡 과즙 왁싱볼', icon: '🫧', desc: '톡! 파삭~ 얇은 밀랍 왁스 껍질을 깨면 진한 과일 시럽이 쭈욱 터지는 구슬' },
+  { id: 'wax-ball', name: '아그작 왁뿌볼', icon: '🫧', desc: '단단한 왁스 껍질을 누르면 아그작! 깨지고 속은 말랑말랑한 구슬' },
   { id: 'tanghulu', name: '유리알 탕후루', icon: '🍓', desc: '빠작! 얇고 투명한 크리스탈 설탕 코팅이 영롱하게 빛나는 과일꼬치' },
   { id: 'smore', name: '구운 스모어 마시멜로', icon: '🔥', desc: '치익~ 모닥불에 노릇하게 구워진 폭신쫀득 고양이 발바닥 마시멜로' },
   { id: 'mochi', name: '쫀득 찹쌀떡 모찌', icon: '🍡', desc: '케이크·쿠키 위에 얹기 좋은 말랑 찹쌀떡 디저트 체형' },
@@ -154,7 +154,7 @@ export const MALLANG_PRESETS: { id: string; name: string; icon: string; custom: 
   },
   {
     id: 'juicy-wax-ball-set',
-    name: '🫧 과즙팡 왁싱볼',
+    name: '🫧 왁뿌볼',
     icon: '🫧',
     custom: {
       morphForm: 'wax-ball',
