@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { supabase, type Player } from './lib/supabase'
 import Game from './screens/Game'
 import Login from './screens/Login'
+import { IS_DEV_MOCK } from './lib/devMode'
 import Nickname from './screens/Nickname'
 import Loading from './ui/Loading'
 
@@ -10,9 +11,8 @@ export default function App() {
   const [session, setSession] = useState<Session | null | undefined>(undefined)
   const [player, setPlayer] = useState<Player | null | undefined>(undefined)
 
-  const isDevBypass =
-    typeof window !== 'undefined' &&
-    (window.location.search.includes('dev=true') || localStorage.getItem('dev_bypass') === 'true')
+  // 개발 서버에서만 가능한 가짜 로그인 (배포 빌드에서는 항상 꺼져 있다)
+  const isDevBypass = IS_DEV_MOCK
 
   useEffect(() => {
     if (isDevBypass) {

@@ -11,6 +11,7 @@ import { recordMissionAction } from '../config/missions'
 import { personalityLabel, SPECIES_INFO, STAT_INFO } from '../config/species'
 import { monsterLook, type MonsterRow } from '../lib/api'
 import { callCare } from '../lib/careApi'
+import { IS_DEV_MOCK } from '../lib/devMode'
 import {
   clearTowerSession,
   clearTrainingSession,
@@ -210,6 +211,12 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
   // 타워 탐사 시작
   function handleStartExplore() {
     if (tooTired || busy || towerSession) return
+    // 타워 보상은 아직 서버에 연결되지 않았다(2단계). 새로고침하면 사라지는 가짜 보상을 막기 위해 실제 서비스에서는 잠가 둔다.
+    if (!IS_DEV_MOCK) {
+      setToast('🏰 디저트 타워는 서버에 연결하는 중이라 곧 열려요!')
+      setTimeout(() => setToast(null), 3500)
+      return
+    }
     const sess = startTowerExpedition(monster.id, towerFloor, battlePower, 3)
     setTowerSession(sess)
     triggerAsmr('kataifi-crunch')
@@ -220,6 +227,12 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
   // 타워 탐사 완료 및 전리품 일괄 수령
   async function finishExplore() {
     if (!towerSession) return
+    // 서버에 연결되기 전(2단계)에 남은 로컬 탐험 기록은 보상 없이 정리한다
+    if (!IS_DEV_MOCK) {
+      clearTowerSession(monster.id)
+      setTowerSession(null)
+      return
+    }
     const syn = syncTowerProgress(towerSession)
     const floorsCleared = Math.max(1, syn.floorsCleared)
     const newFloor = towerSession.startFloor + floorsCleared

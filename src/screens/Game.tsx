@@ -3,6 +3,7 @@ import { callEgg, issueNewTestEgg, saveLocalMonsters, serverNow, type EggRow, ty
 import { PLAZA_SHOWCASE_FRIENDS, type PlazaFriendEntry } from '../lib/battleEngine'
 import { callCare } from '../lib/careApi'
 import { getSpeciesSoundKind, playDessertAsmr } from '../lib/sound'
+import { IS_DEV_MOCK } from '../lib/devMode'
 import { supabase, type Player } from '../lib/supabase'
 import Loading from '../ui/Loading'
 import AsmrBattleArena from './AsmrBattleArena'
@@ -35,7 +36,7 @@ type MonsterSubView = 'home' | 'detail' | 'care' | 'train' | 'skills' | 'plaza' 
 export default function Game({ player }: { player: Player }) {
   const [egg, setEgg] = useState<EggRow | null>(null)
   const [monsters, setMonsters] = useState<MonsterRow[]>([])
-  const [coins, setCoins] = useState<number>(Math.max(player.coins, 200))
+  const [coins, setCoins] = useState<number>(IS_DEV_MOCK ? Math.max(player.coins, 200) : player.coins)
   const [foodBag, setFoodBag] = useState<Record<string, number>>({
     '기본 슈가파우더': 3,
     '생딸기 슈가시럽': 1,
@@ -94,6 +95,12 @@ export default function Game({ player }: { player: Player }) {
   }
 
   const logout = () => supabase.auth.signOut()
+
+  // 미션·광장·대전의 코인 보상은 아직 서버에 연결되지 않았다 (3~4단계).
+  // 실제 서비스에서는 화면에서만 코인을 늘리지 않는다: 새로고침하면 사라지는 가짜 코인을 막기 위해서다.
+  const earnLocalCoins = (delta: number) => {
+    if (IS_DEV_MOCK) setCoins((c) => c + delta)
+  }
 
   async function care(action: 'pet' | 'warm') {
     if (!egg || busy) return
@@ -154,8 +161,10 @@ export default function Game({ player }: { player: Player }) {
         return null
       }
     } catch {
-      // 로컬 테스트 몬스터인 경우 아래 로컬 저장으로 안전 처리
+      // 개발용 로컬 모드에서는 아래 로컬 저장으로 처리한다
     }
+    // 실제 서비스에서는 서버에 저장되지 않았으면 실패로 알린다 (이름은 한 번 정하면 바꿀 수 없다)
+    if (!IS_DEV_MOCK) return '이름을 저장하지 못했어요. 한글·영문·숫자 1~10자인지 확인하고 다시 시도해 주세요.'
     setMonsters((list) => {
       const next = list.map((m) => (m.id === monster.id ? namedMonster : m))
       saveLocalMonsters(next)
@@ -195,7 +204,8 @@ export default function Game({ player }: { player: Player }) {
         return next
       })
       setCoins(nextCoins)
-      setFoodBag(nextBag)
+      // 가방 정보 없이 호출되는 경우(타워 보상 등)에는 기존 가방을 그대로 둔다
+      setFoodBag((cur) => (Object.keys(nextBag).length > 0 ? nextBag : cur))
     }
 
     if (subView === 'detail') {
@@ -264,7 +274,7 @@ export default function Game({ player }: { player: Player }) {
           myMonster={monster}
           myNickname={player.nickname}
           coins={coins}
-          onEarnCoins={(delta) => setCoins((c) => c + delta)}
+          onEarnCoins={earnLocalCoins}
           onChallenge={(friend) => {
             setBattleTarget(friend)
             setSubView('battle')
@@ -280,7 +290,7 @@ export default function Game({ player }: { player: Player }) {
           challenger={monster}
           defender={battleTarget.monster}
           defenderOwnerName={battleTarget.ownerNickname}
-          onRewardClaimed={(coinsEarned) => setCoins((c) => c + coinsEarned)}
+          onRewardClaimed={earnLocalCoins}
           onBack={() => setSubView('plaza')}
         />
       )
@@ -300,16 +310,21 @@ export default function Game({ player }: { player: Player }) {
       return (
         <DessertPokedexScreen
           currentMonsterId={monster.id}
-          onSwitchPet={(newPet) => {
-            const switchedMonster: MonsterRow = {
-              ...monster,
-              species: newPet.species,
-              name: newPet.name,
-              element: newPet.element,
-            }
-            setMonsters([switchedMonster])
-            saveLocalMonsters([switchedMonster])
-          }}
+          // 도감에서 펫을 바꿔 보는 기능은 개발용 로컬 모드에서만 연다 (실제 서비스에서는 서버의 몬스터만 쓴다)
+          onSwitchPet={
+            IS_DEV_MOCK
+              ? (newPet) => {
+                  const switchedMonster: MonsterRow = {
+                    ...monster,
+                    species: newPet.species,
+                    name: newPet.name,
+                    element: newPet.element,
+                  }
+                  setMonsters([switchedMonster])
+                  saveLocalMonsters([switchedMonster])
+                }
+              : undefined
+          }
           onBack={() => setSubView('home')}
         />
       )
@@ -328,13 +343,17 @@ export default function Game({ player }: { player: Player }) {
         onOpenDex={() => setSubView('pokedex')}
         onOpenMyRoom={() => setSubView('myroom')}
         onOpenBoutique={() => setSubView('boutique')}
-        onRewardCoins={(amt) => setCoins((c) => c + amt)}
-        onResetTestEgg={() => {
-          const newEgg = issueNewTestEgg('common')
-          setMonsters([])
-          setEgg(newEgg)
-          setSubView('home')
-        }}
+        onRewardCoins={earnLocalCoins}
+        onResetTestEgg={
+          IS_DEV_MOCK
+            ? () => {
+                const newEgg = issueNewTestEgg('common')
+                setMonsters([])
+                setEgg(newEgg)
+                setSubView('home')
+              }
+            : undefined
+        }
         onLogout={logout}
       />
     )

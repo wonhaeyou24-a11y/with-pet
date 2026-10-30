@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "sound:lab": "node scripts/sound-lab.mjs"
+    "sound:lab": "node scripts/sound-lab.mjs",
+    "test:care": "node scripts/test-care.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",

@@ -4,7 +4,8 @@
 
 import { DESSERT_FOODS, expForNextLevel, TRAINING_COURSES, type TrainingId } from '../config/care'
 import { serverNow, type MonsterRow, type Stats } from './api'
-import { SERVER_TIMEOUT_MS, withTimeout } from './net'
+import { IS_DEV_MOCK } from './devMode'
+import { NETWORK_MESSAGE, readFunctionError, SERVER_TIMEOUT_MS, withTimeout } from './net'
 import { supabase } from './supabase'
 
 export interface CareResponse {
@@ -357,11 +358,12 @@ export async function callCare(
   action: 'sync' | 'feed' | 'care_action' | 'train' | 'buy_food',
   params: { foodId?: string; kind?: 'play' | 'clean' | 'rest'; courseId?: TrainingId; grade?: 'normal' | 'great' | 'perfect' } = {},
 ): Promise<CareResponse> {
-  // 개발용 프리뷰 모드(가짜 ID m1, m2 등)에서는 즉시 로컬 엔진 실행
-  if (baseMonster.id.length < 10) {
+  // 개발용 로컬 모드(?dev=true)와 가짜 ID 프리뷰(m1, m2 등)에서만 로컬 엔진을 쓴다
+  if (IS_DEV_MOCK || baseMonster.id.length < 10) {
     return runLocalCareFallback(baseMonster, initialCoins, action, params)
   }
 
+  // 실제 서비스: 돌보기·훈련·상점은 서버(care 함수)만 결정한다. 서버가 안 되면 로컬에서 대신 계산하지 않고 오류를 알린다.
   try {
     const { data, error } = await withTimeout(
       supabase.functions.invoke('care', {
@@ -369,13 +371,11 @@ export async function callCare(
       }),
       SERVER_TIMEOUT_MS,
     )
-    if (!error && data && typeof data === 'object' && 'ok' in data) {
-      return data as CareResponse
-    }
+    if (error) return { ok: false, code: 'server', message: await readFunctionError(error) }
+    if (data && typeof data === 'object' && 'ok' in data) return data as CareResponse
+    return { ok: false, code: 'network', message: NETWORK_MESSAGE }
   } catch {
-    // 서버 함수 미배포 또는 네트워크 지연 시 로컬 자가 복구 폴백 실행
+    return { ok: false, code: 'network', message: NETWORK_MESSAGE }
   }
-
-  return runLocalCareFallback(baseMonster, initialCoins, action, params)
 }
 

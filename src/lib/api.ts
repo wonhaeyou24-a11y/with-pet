@@ -1,7 +1,8 @@
 import { defaultDessertBase } from '../config/species'
 import { loadMallangCustom } from '../monsters/MallangChameleon'
 import type { BodyType, Element, Expression, MonsterLook } from '../monsters/types'
-import { SERVER_TIMEOUT_MS, withTimeout } from './net'
+import { IS_DEV_MOCK } from './devMode'
+import { NETWORK_MESSAGE, readFunctionError, SERVER_TIMEOUT_MS, withTimeout } from './net'
 import { supabase } from './supabase'
 
 export type Rarity = 'common' | 'rare' | 'legendary'
@@ -276,7 +277,28 @@ function rollDessertMonster(rarity: Rarity, petCount: number, warmCount: number)
   }
 }
 
-export async function callEgg(action: 'sync' | 'pet' | 'warm' | 'hatch', params: { eggId?: string } = {}): Promise<EggResponse> {
+type EggAction = 'sync' | 'pet' | 'warm' | 'hatch'
+
+// 실제 서비스: 알·부화는 서버(egg 함수)만 결정한다. 서버가 안 되면 로컬에서 대신 굴리지 않고 오류를 그대로 알린다.
+async function callEggOnServer(action: EggAction, params: { eggId?: string }): Promise<EggResponse> {
+  try {
+    const { data, error } = await withTimeout(supabase.functions.invoke('egg', { body: { action, ...params } }), SERVER_TIMEOUT_MS)
+    if (error) return { ok: false, code: 'server', message: await readFunctionError(error) }
+    if (!data) return { ok: false, code: 'network', message: NETWORK_MESSAGE }
+    const res = data as EggResponse
+    if (res.now) serverOffsetMs = Date.parse(res.now) - Date.now()
+    return res
+  } catch {
+    return { ok: false, code: 'network', message: NETWORK_MESSAGE }
+  }
+}
+
+export function callEgg(action: EggAction, params: { eggId?: string } = {}): Promise<EggResponse> {
+  return IS_DEV_MOCK ? callEggDevMock(action, params) : callEggOnServer(action, params)
+}
+
+// 개발용 로컬 모드(?dev=true)에서만 쓰는 기존 로직: 서버 없이 1분 부화·로컬 몬스터 생성
+async function callEggDevMock(action: EggAction, params: { eggId?: string }): Promise<EggResponse> {
   const localMonsters = loadLocalMonsters()
   const localEgg = loadLocalEgg()
 
