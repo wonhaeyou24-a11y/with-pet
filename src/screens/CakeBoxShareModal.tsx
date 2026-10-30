@@ -63,11 +63,12 @@ export default function CakeBoxShareModal({ monster, ownerNickname, onClose }: P
         style={{
           width: '100%',
           maxWidth: 340,
+          maxHeight: '92dvh',
           background: 'linear-gradient(180deg, #FFFDF8 0%, #FFF5EC 100%)',
           borderRadius: 24,
           border: '3px solid #F472B6',
           boxShadow: '0 20px 48px rgba(0,0,0,0.35)',
-          overflow: 'hidden',
+          overflowY: 'auto',
           display: 'flex',
           flexDirection: 'column',
           position: 'relative',

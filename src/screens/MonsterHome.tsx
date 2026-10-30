@@ -9,6 +9,8 @@ import {
   dismissPetSuggestion,
   getActiveTowerSession,
   getActiveTrainingSession,
+  requestNotificationPermission,
+  scheduleTestIdleNotification,
   type PetAutonomousSuggestion,
   type TowerExpeditionSession,
   type TrainingSession,
@@ -60,6 +62,11 @@ export default function MonsterHome({
   const [showMissions, setShowMissions] = useState<boolean>(false)
   const [showCakeBox, setShowCakeBox] = useState<boolean>(false)
   const [showShowroom, setShowShowroom] = useState<boolean>(false)
+  const [showNotifModal, setShowNotifModal] = useState<boolean>(false)
+  const [notifStatus, setNotifStatus] = useState<string>(() =>
+    typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'unsupported',
+  )
+  const [notifScheduled, setNotifScheduled] = useState<boolean>(false)
   const [claimableMissions, setClaimableMissions] = useState<number>(() => getClaimableMissionsCount())
   const look = monsterLook(monster)
   const activeSpecies = look.mallang?.morphForm ?? monster.species
@@ -226,6 +233,25 @@ export default function MonsterHome({
                   {claimableMissions}
                 </span>
               )}
+            </button>
+            <button
+              className="chip"
+              onClick={() => {
+                setShowNotifModal(true)
+                playDessertAsmr('cookie-crisp')
+              }}
+              style={{
+                cursor: 'pointer',
+                border: '1px solid #BBDEFB',
+                fontWeight: 900,
+                fontSize: 12,
+                background: '#E3F2FD',
+                color: '#1565C0',
+                padding: '2px 7px',
+              }}
+              title="백그라운드 알림 상태 확인 및 테스트"
+            >
+              🔔 알림
             </button>
             <button
               className="chip"
@@ -675,6 +701,161 @@ export default function MonsterHome({
           onClose={() => setShowShowroom(false)}
           onNavigateToBoutique={onOpenBoutique}
         />
+      )}
+
+      {/* 🔔 백그라운드 알림 확인 및 테스트 모달 */}
+      {showNotifModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.65)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+          }}
+          onClick={() => setShowNotifModal(false)}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: 320,
+              background: '#FFFDF9',
+              borderRadius: 20,
+              border: '2px solid #64B5F6',
+              boxShadow: '0 16px 36px rgba(0,0,0,0.35)',
+              padding: '16px 14px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 24 }}>🔔</span>
+              <div>
+                <h3 style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#0D47A1' }}>
+                  백그라운드 알림 센터
+                </h3>
+                <p style={{ margin: 0, fontSize: 10, color: '#546E7A' }}>
+                  앱을 닫고 있어도 훈련·탐험 완료 시 시스템 알림 수신
+                </p>
+              </div>
+            </div>
+
+            {/* 현재 권한 상태 안내 박스 */}
+            <div
+              style={{
+                padding: '10px 12px',
+                borderRadius: 12,
+                background: notifStatus === 'granted' ? '#E8F5E9' : '#FFF3E0',
+                border: notifStatus === 'granted' ? '1.5px solid #81C784' : '1.5px solid #FFB74D',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <span style={{ fontSize: 11, fontWeight: 800, color: '#37474F' }}>
+                기기 알림 권한 상태:
+              </span>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 900,
+                  color: notifStatus === 'granted' ? '#2E7D32' : '#E65100',
+                  padding: '2px 8px',
+                  borderRadius: 6,
+                  background: '#FFFFFF',
+                }}
+              >
+                {notifStatus === 'granted'
+                  ? '✅ 수신 가능 (허용됨)'
+                  : notifStatus === 'denied'
+                    ? '❌ 차단됨 (설정 필요)'
+                    : '⚠️ 미설정'}
+              </span>
+            </div>
+
+            {notifStatus !== 'granted' && (
+              <button
+                onClick={async () => {
+                  const ok = await requestNotificationPermission()
+                  setNotifStatus(ok ? 'granted' : 'denied')
+                  if (ok) playDessertAsmr('sugar-crack')
+                }}
+                style={{
+                  padding: '9px 0',
+                  borderRadius: 12,
+                  border: 'none',
+                  background: 'linear-gradient(90deg, #1976D2, #1565C0)',
+                  color: '#FFFFFF',
+                  fontWeight: 900,
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(25,118,210,0.3)',
+                }}
+              >
+                🔔 알림 권한 켜기
+              </button>
+            )}
+
+            {/* 백그라운드 3초 후 테스트 알림 발송 버튼 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{ fontSize: 10, color: '#546E7A', lineHeight: 1.35 }}>
+                💡 <b>테스트 방법</b>: 아래 버튼을 누른 즉시 <b>홈 버튼을 눌러 앱 밖으로 나가보세요!</b> 3초 뒤 상단에 푸시 알림이 도착합니다.
+              </div>
+              <button
+                disabled={notifScheduled}
+                onClick={async () => {
+                  if (notifStatus !== 'granted') {
+                    const ok = await requestNotificationPermission()
+                    setNotifStatus(ok ? 'granted' : 'denied')
+                    if (!ok) return
+                  }
+                  setNotifScheduled(true)
+                  scheduleTestIdleNotification(monster.name ?? '디저트', 3)
+                  playDessertAsmr('cookie-crisp')
+                  setTimeout(() => setNotifScheduled(false), 4000)
+                }}
+                style={{
+                  padding: '10px 0',
+                  borderRadius: 12,
+                  border: 'none',
+                  background: notifScheduled
+                    ? '#B0BEC5'
+                    : 'linear-gradient(90deg, #FF7043, #E64A19)',
+                  color: '#FFFFFF',
+                  fontWeight: 900,
+                  fontSize: 12,
+                  cursor: notifScheduled ? 'default' : 'pointer',
+                  boxShadow: '0 3px 8px rgba(230,74,25,0.3)',
+                }}
+              >
+                {notifScheduled ? '⏳ 3초 카운트다운 중! (앱 밖으로 나가세요)' : '🚀 3초 후 백그라운드 테스트 알림 받기'}
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowNotifModal(false)}
+              style={{
+                padding: '8px 0',
+                borderRadius: 10,
+                border: '1px solid #CFD8DC',
+                background: '#ECEFF1',
+                color: '#455A64',
+                fontWeight: 800,
+                fontSize: 11,
+                cursor: 'pointer',
+                marginTop: 4,
+              }}
+            >
+              닫기
+            </button>
+          </div>
+        </div>
       )}
     </main>
   )

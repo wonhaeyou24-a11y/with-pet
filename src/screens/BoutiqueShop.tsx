@@ -798,26 +798,32 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
         </button>
       </div>
 
-      {/* 토스트 알림 */}
+      {/* 상단 알림창 박스 (Notification Banner) */}
       {toast && (
         <div
           style={{
-            position: 'absolute',
-            bottom: 60,
+            position: 'fixed',
+            top: 14,
             left: '50%',
             transform: 'translateX(-50%)',
-            background: 'rgba(30, 41, 59, 0.95)',
+            background: 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)',
             color: '#FFFFFF',
-            padding: '7px 14px',
-            borderRadius: 20,
+            padding: '8px 16px',
+            borderRadius: 16,
+            border: '1.5px solid #F472B6',
             fontSize: 12,
             fontWeight: 800,
-            boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
-            zIndex: 100,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+            zIndex: 9999,
             whiteSpace: 'nowrap',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            animation: 'fadeIn 0.2s ease-out',
           }}
         >
-          {toast}
+          <span>🔔</span>
+          <span>{toast}</span>
         </div>
       )}
 

@@ -34,7 +34,6 @@ export default function AsmrBattleArena({
   const [seed, setSeed] = useState<number>(() => initialSeed ?? Math.floor(100000 + Math.random() * 899999))
   const [stepIdx, setStepIdx] = useState<number>(0)
   const [playing, setPlaying] = useState<boolean>(true)
-  const [speed, setSpeed] = useState<1 | 2>(1)
   const [rewarded, setRewarded] = useState<boolean>(false)
 
   // 관전 중 실시간 터치 응원 손맛 상태
@@ -60,7 +59,7 @@ export default function AsmrBattleArena({
   useEffect(() => {
     if (!playing || isFinished) return
 
-    const turnInterval = speed === 2 ? 800 : 1400
+    const turnInterval = 1200
 
     // 1단계: 턴 개시 및 돌진 모션
     const t1 = setTimeout(() => {
@@ -103,7 +102,7 @@ export default function AsmrBattleArena({
       clearTimeout(t3)
       clearTimeout(t4)
     }
-  }, [playing, isFinished, stepIdx, speed])
+  }, [playing, isFinished, stepIdx])
 
   // 플레이어 실시간 터치 응원 (유대감 및 손맛 피드백)
   function handleCheer() {
@@ -128,21 +127,6 @@ export default function AsmrBattleArena({
     setSeed(Math.floor(100000 + Math.random() * 899999))
     setStepIdx(0)
     setPlaying(true)
-  }
-
-  function handleSkipToEnd() {
-    const last = sim.turns[sim.turns.length - 1]
-    if (last) playDessertAsmr(last.asmr, 3)
-    setStepIdx(sim.turns.length)
-    setPlaying(false)
-    if (!rewarded) {
-      setRewarded(true)
-      const isWin = sim.winner === 'challenger'
-      onRewardClaimed?.(isWin ? 30 : 15)
-      addRibbonCoins(isWin ? 30 : 10, '친선 대전 보상')
-      recordMissionAction('d-battle', 1)
-      if (isWin) recordMissionAction('w-battle-win', 1)
-    }
   }
 
   // 양측 애니메이션 트랜스폼 계산 (돌진, 도약, 회피 점프, 가드, 피격 반동)
@@ -706,58 +690,32 @@ export default function AsmrBattleArena({
           </div>
         )}
 
-        {/* 조작 버튼 그룹 */}
-        <div className="row between" style={{ gap: 5 }}>
-          {!isFinished ? (
-            <>
-              <button
-                className="chip coral"
-                onClick={() => setPlaying((p) => !p)}
-                style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 11, flex: 1, padding: '5px 0' }}
-              >
-                {playing ? '⏸️ 정지' : '▶️ 재생'}
-              </button>
-              <button
-                className="chip honey"
-                onClick={() => setSpeed((s) => (s === 1 ? 2 : 1))}
-                style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 11, flex: 1, padding: '5px 0' }}
-              >
-                ⚡ 배속 {speed}x
-              </button>
-              <button
-                className="chip"
-                onClick={handleSkipToEnd}
-                style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 11, flex: 1, padding: '5px 0' }}
-              >
-                ⏩ 스킵
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                className="chip coral"
-                onClick={handleReplaySameSeed}
-                style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 11, flex: 1, padding: '6px 0' }}
-              >
-                🔄 다시 보기
-              </button>
-              <button
-                className="chip honey"
-                onClick={handleRematchNewSeed}
-                style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 11, flex: 1, padding: '6px 0' }}
-              >
-                🎲 새 대결
-              </button>
-              <button
-                className="chip"
-                onClick={onBack}
-                style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 11, flex: 1, padding: '6px 0', background: '#5D4037', color: '#FFFFFF' }}
-              >
-                🚪 대전 종료
-              </button>
-            </>
-          )}
-        </div>
+        {/* 조작 버튼 그룹: 대전 종료 시에만 결과 액션 버튼 표시 (정지, 배속, 스킵 삭제) */}
+        {isFinished && (
+          <div className="row between" style={{ gap: 5 }}>
+            <button
+              className="chip coral"
+              onClick={handleReplaySameSeed}
+              style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 11, flex: 1, padding: '6px 0' }}
+            >
+              🔄 다시 보기
+            </button>
+            <button
+              className="chip honey"
+              onClick={handleRematchNewSeed}
+              style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 11, flex: 1, padding: '6px 0' }}
+            >
+              🎲 새 대결
+            </button>
+            <button
+              className="chip"
+              onClick={onBack}
+              style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 11, flex: 1, padding: '6px 0', background: '#5D4037', color: '#FFFFFF' }}
+            >
+              🚪 대전 종료
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 대전 종료 결과 팝업 & 광장 복귀 모달 */}

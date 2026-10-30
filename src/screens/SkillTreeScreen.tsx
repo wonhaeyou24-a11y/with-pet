@@ -595,7 +595,7 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
             })}
           </svg>
 
-          {/* 중앙 코어 허브: 내 디저트 몬스터 (공간 대폭 확장) */}
+          {/* 중앙 코어 허브: 내 실제 3D 디저트 몬스터 (디자인 일치 & 공간 대폭 확장) */}
           <div
             onClick={() => {
               setPan({ x: 0, y: 0 })
@@ -604,10 +604,10 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
             }}
             style={{
               position: 'absolute',
-              left: CENTER - 62,
-              top: CENTER - 62,
-              width: 124,
-              height: 124,
+              left: CENTER - 65,
+              top: CENTER - 65,
+              width: 130,
+              height: 130,
               borderRadius: '50%',
               background: 'radial-gradient(circle, #FFF8EA 0%, #FFE0B2 100%)',
               border: '4px solid #FFB74D',
@@ -622,11 +622,13 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
               padding: 4,
             }}
           >
-            <MonsterView look={look} size={70} prefer2D={true} title={monster.name ?? undefined} />
+            <div style={{ position: 'relative', width: 78, height: 78 }}>
+              <MonsterView look={look} size={78} prefer2D={false} title={monster.name ?? undefined} />
+            </div>
             <strong style={{ fontSize: 12, color: '#3E2723', marginTop: 1, whiteSpace: 'nowrap' }}>
               {monster.name ?? speciesInfo?.name ?? '디저트'}
             </strong>
-            <span style={{ fontSize: 10, fontWeight: 900, color: '#D85A3A' }}>
+            <span style={{ fontSize: 10, fontWeight: 900, color: '#D84315' }}>
               ✨ {activeLearnedCount}개 스킬 누적
             </span>
           </div>

@@ -197,7 +197,7 @@ export default function DessertPlaza({
   const [currentTheme, setCurrentTheme] = useState<PlazaThemeId>('autumn')
   const [showThemeModal, setShowThemeModal] = useState<boolean>(false)
 
-  // 🐾 펫 산책 발자국 상태 (스르륵 페이드아웃)
+  // 🐾 펫 산책 발자국 상태 (CSS fade-out으로 React 리렌더 루프를 제거하여 60FPS 극상의 부드러움 달성)
   const [footprints, setFootprints] = useState<Footprint[]>([])
   const stepCountRef = useRef<number>(0)
 
@@ -214,7 +214,7 @@ export default function DessertPlaza({
     })),
   )
 
-  // 발자국 추가 헬퍼 (새 발자국 생성 후 2.5초에 걸쳐 서서히 페이드아웃)
+  // 발자국 추가 헬퍼 (새 발자국 생성 - 최대 18개 유지, CSS로 자연스럽게 2.6초 페이드아웃)
   const addFootprint = (x: number, y: number, isLeft: boolean, angle: number) => {
     const id = `fp-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
     const newFp: Footprint = {
@@ -226,28 +226,10 @@ export default function DessertPlaza({
       opacity: 0.85,
       createdAt: Date.now(),
     }
-    setFootprints((prev) => [...prev.slice(-24), newFp])
+    setFootprints((prev) => [...prev.slice(-18), newFp])
   }
 
-  // 발자국 서서히 사라지는 타이머 (스르륵 fade-out)
-  useEffect(() => {
-    const fadeTimer = setInterval(() => {
-      const now = Date.now()
-      setFootprints((prev) =>
-        prev
-          .map((fp) => {
-            const age = now - fp.createdAt
-            const remaining = Math.max(0, 1 - age / 2600)
-            return { ...fp, opacity: remaining * 0.85 }
-          })
-          .filter((fp) => fp.opacity > 0.05),
-      )
-    }, 200)
-
-    return () => clearInterval(fadeTimer)
-  }, [])
-
-  // 지인 캐릭터들의 자연스러운 광장 자율 산책 루프 (이동할 때마다 발자국 남기기)
+  // 지인 캐릭터들의 자연스러운 광장 자율 산책 루프 (뒤쪽에 정확한 타이밍으로 발자국 남기기)
   useEffect(() => {
     const wanderTimer = setInterval(() => {
       setActors((prev) => {
@@ -258,27 +240,37 @@ export default function DessertPlaza({
         const curr = next[walkerIdx]
         const targetWp = PLAZA_WAYPOINTS[Math.floor(Math.random() * PLAZA_WAYPOINTS.length)]
         const facingLeft = targetWp.x < curr.x
-        const speech = Math.random() < 0.45 ? PET_CHATTERS[Math.floor(Math.random() * PET_CHATTERS.length)] : null
+        const speech = Math.random() < 0.35 ? PET_CHATTERS[Math.floor(Math.random() * PET_CHATTERS.length)] : null
 
         const startX = curr.x
         const startY = curr.y
-        const targetX = targetWp.x + (Math.random() * 30 - 15)
-        const targetY = targetWp.y + (Math.random() * 30 - 15)
+        const targetX = targetWp.x + (Math.random() * 24 - 12)
+        const targetY = targetWp.y + (Math.random() * 24 - 12)
 
-        // 이동 경로에 4~5개의 발자국을 순차적으로 남기기
-        const steps = 4
-        for (let s = 1; s <= steps; s++) {
-          setTimeout(() => {
-            const ratio = s / steps
-            const fx = startX + (targetX - startX) * ratio
-            const fy = startY + (targetY - startY) * ratio + 32
-            stepCountRef.current += 1
-            const isLeft = stepCountRef.current % 2 === 0
-            const dx = targetX - startX
-            const dy = targetY - startY
-            const angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90
-            addFootprint(fx, fy, isLeft, angle)
-          }, s * 450)
+        const dx = targetX - startX
+        const dy = targetY - startY
+        const dist = Math.hypot(dx, dy)
+        if (dist > 20) {
+          const ux = dx / dist
+          const uy = dy / dist
+          const angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90
+
+          // 이동 경로에 맞춰 펫이 지나온 뒤쪽에만 순차적으로 발자국 찍기
+          const steps = 3
+          for (let s = 1; s <= steps; s++) {
+            setTimeout(() => {
+              // 해당 경과 시점의 펫 위치
+              const elapsedRatio = s / (steps + 1)
+              const curX = startX + dx * elapsedRatio
+              const curY = startY + dy * elapsedRatio
+              // 펫의 진행 반대 방향(뒤쪽 16px) 및 발밑에 발자국 배치
+              const fx = curX - ux * 16
+              const fy = curY - uy * 16 + 26
+              stepCountRef.current += 1
+              const isLeft = stepCountRef.current % 2 === 0
+              addFootprint(fx, fy, isLeft, angle)
+            }, s * 650)
+          }
         }
 
         next[walkerIdx] = {

@@ -986,8 +986,8 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
         {/* ======================================================== */}
         {activeTab === 'courses' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, justifyContent: 'space-between' }}>
-            {/* 5대 코스 선택 바 */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 4 }}>
+            {/* 5대 코스 선택 바: 조금 더 크고 두 줄 중앙 배치로 시인성 극대화 */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 5 }}>
               {TRAINING_COURSES.map((course) => {
                 const isSelected = selectedCourse.id === course.id
                 return (
@@ -1000,73 +1000,137 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                       }
                     }}
                     style={{
-                      padding: '6px 2px',
-                      borderRadius: 10,
+                      padding: '8px 2px',
+                      minHeight: 58,
+                      borderRadius: 12,
                       border: isSelected ? '2px solid #FF7A59' : '1.5px solid #F0DFB8',
-                      background: isSelected ? '#FFF2EC' : '#FFFFFF',
+                      background: isSelected
+                        ? 'linear-gradient(180deg, #FFF0E6 0%, #FFE0CC 100%)'
+                        : '#FFFFFF',
+                      boxShadow: isSelected ? '0 2px 8px rgba(255,122,89,0.3)' : '0 1px 3px rgba(0,0,0,0.04)',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
+                      justifyContent: 'center',
                       gap: 2,
                       cursor: trainSession ? 'default' : 'pointer',
+                      transform: isSelected ? 'translateY(-2px)' : 'none',
+                      transition: 'all 0.15s ease',
                     }}
                   >
                     <span style={{ fontSize: 20 }}>{course.icon}</span>
-                    <span style={{ fontSize: 11, fontWeight: 900, color: '#3B2F2F' }}>
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 900,
+                        color: isSelected ? '#BF360C' : '#3E2723',
+                        lineHeight: 1.1,
+                        textAlign: 'center',
+                      }}
+                    >
                       {statNameMap[course.mainStat]}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 9,
+                        fontWeight: 800,
+                        color: isSelected ? '#D84315' : '#8D6E63',
+                        lineHeight: 1,
+                        textAlign: 'center',
+                      }}
+                    >
+                      +{course.mainGain} 단련
                     </span>
                   </button>
                 )
               })}
             </div>
 
-            {/* 선택된 훈련 코스 알찬 상세 정보 & 쾌속 토글 */}
+            {/* 선택된 훈련 코스 알찬 상세 정보 & 쾌속 토글 & 공간 활용 능력치 프리뷰 */}
             <div
               style={{
-                padding: '8px 10px',
-                borderRadius: 12,
+                padding: '9px 12px',
+                borderRadius: 14,
                 border: '1.5px solid #FFCC80',
-                background: '#FFF8F4',
+                background: 'linear-gradient(180deg, #FFF9F5 0%, #FFF3EC 100%)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 5,
+                gap: 6,
+                boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
               }}
             >
               <div className="row between" style={{ alignItems: 'center' }}>
-                <div className="row" style={{ gap: 6, alignItems: 'center' }}>
-                  <span style={{ fontSize: 20 }}>{selectedCourse.icon}</span>
+                <div className="row" style={{ gap: 8, alignItems: 'center' }}>
+                  <div
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 10,
+                      background: '#FFFFFF',
+                      border: '1px solid #FFE0B2',
+                      display: 'grid',
+                      placeItems: 'center',
+                      fontSize: 20,
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                    }}
+                  >
+                    {selectedCourse.icon}
+                  </div>
                   <div>
-                    <div style={{ fontSize: 12, fontWeight: 900, color: '#3E2723' }}>
+                    <div style={{ fontSize: 13, fontWeight: 900, color: '#3E2723' }}>
                       {selectedCourse.name}
                     </div>
-                    <div style={{ fontSize: 10, color: '#D84315', fontWeight: 800 }}>
+                    <div style={{ fontSize: 10, color: '#D84315', fontWeight: 800, marginTop: 1 }}>
                       {statNameMap[selectedCourse.mainStat]} +{selectedCourse.mainGain} · {selectedCourse.personalityLabel}
                     </div>
                   </div>
                 </div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 3, cursor: 'pointer', fontWeight: 800, fontSize: 10, background: '#FFFFFF', padding: '2px 6px', borderRadius: 8, border: '1px solid #FFE0B2' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', fontWeight: 800, fontSize: 11, background: '#FFFFFF', padding: '3px 8px', borderRadius: 8, border: '1px solid #FFE0B2', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
                   <input type="checkbox" checked={fastMode} onChange={(e) => setFastMode(e.target.checked)} />
                   ⚡ 쾌속 10초
                 </label>
               </div>
 
+              {/* 훈련 효과 및 현재 vs 달성 예측 능력치 프리뷰 */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  background: '#FFFFFF',
+                  padding: '5px 10px',
+                  borderRadius: 10,
+                  border: '1px solid #FFE0B2',
+                  fontSize: 10,
+                  fontWeight: 800,
+                }}
+              >
+                <span style={{ color: '#5D4037' }}>
+                  현재 {statNameMap[selectedCourse.mainStat]} <b>{monster.stats[selectedCourse.mainStat]}</b>
+                </span>
+                <span style={{ color: '#FF7043', fontWeight: 900 }}>➔ 훈련 후</span>
+                <span style={{ color: '#2E7D32', fontWeight: 900 }}>
+                  <b>{monster.stats[selectedCourse.mainStat] + selectedCourse.mainGain}</b> (+{selectedCourse.mainGain}) ✨
+                </span>
+              </div>
+
               {/* 훈련 효과 뱃지 4종 그리드 (빈 공간 없이 꽉 찬 정보 제공) */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4 }}>
-                <div style={{ background: '#FFFFFF', padding: '3px 2px', borderRadius: 8, textAlign: 'center', border: '1px solid #FFE0B2' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 5 }}>
+                <div style={{ background: '#FFFFFF', padding: '4px 2px', borderRadius: 8, textAlign: 'center', border: '1px solid #FFE0B2' }}>
                   <div style={{ fontSize: 8, color: '#795548', fontWeight: 700 }}>상승 능력치</div>
-                  <div style={{ fontSize: 10, fontWeight: 900, color: '#D84315' }}>+{selectedCourse.mainGain}</div>
+                  <div style={{ fontSize: 11, fontWeight: 900, color: '#D84315' }}>+{selectedCourse.mainGain}</div>
                 </div>
-                <div style={{ background: '#FFFFFF', padding: '3px 2px', borderRadius: 8, textAlign: 'center', border: '1px solid #FFE0B2' }}>
+                <div style={{ background: '#FFFFFF', padding: '4px 2px', borderRadius: 8, textAlign: 'center', border: '1px solid #FFE0B2' }}>
                   <div style={{ fontSize: 8, color: '#795548', fontWeight: 700 }}>성장 경험치</div>
-                  <div style={{ fontSize: 10, fontWeight: 900, color: '#FF7043' }}>+40 EXP</div>
+                  <div style={{ fontSize: 11, fontWeight: 900, color: '#FF7043' }}>+40 EXP</div>
                 </div>
-                <div style={{ background: '#FFFFFF', padding: '3px 2px', borderRadius: 8, textAlign: 'center', border: '1px solid #FFE0B2' }}>
+                <div style={{ background: '#FFFFFF', padding: '4px 2px', borderRadius: 8, textAlign: 'center', border: '1px solid #FFE0B2' }}>
                   <div style={{ fontSize: 8, color: '#795548', fontWeight: 700 }}>소모 노곤함</div>
-                  <div style={{ fontSize: 10, fontWeight: 900, color: '#7E57C2' }}>+15 피로</div>
+                  <div style={{ fontSize: 11, fontWeight: 900, color: '#7E57C2' }}>+15 피로</div>
                 </div>
-                <div style={{ background: '#FFFFFF', padding: '3px 2px', borderRadius: 8, textAlign: 'center', border: '1px solid #FFE0B2' }}>
+                <div style={{ background: '#FFFFFF', padding: '4px 2px', borderRadius: 8, textAlign: 'center', border: '1px solid #FFE0B2' }}>
                   <div style={{ fontSize: 8, color: '#795548', fontWeight: 700 }}>소요 시간</div>
-                  <div style={{ fontSize: 10, fontWeight: 900, color: '#2E7D32' }}>{fastMode ? '10초' : '2분 30초'}</div>
+                  <div style={{ fontSize: 11, fontWeight: 900, color: '#2E7D32' }}>{fastMode ? '10초' : '2분 30초'}</div>
                 </div>
               </div>
             </div>

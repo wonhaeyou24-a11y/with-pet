@@ -1,7 +1,7 @@
 // 🏰 싸이월드 감성 파티세리 마이룸(쇼룸): 나만의 공간 꾸미기 & 가구 상호작용 & 방명록
 // 100dvh 모바일 무스크롤 덱, Zero-Crash 무결성, 100% 한글 주석
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   addGuestBookEntry,
   addRibbonCoins,
@@ -19,6 +19,7 @@ import {
 } from '../config/boutique'
 import { recordMissionAction } from '../config/missions'
 import { monsterLook, type MonsterRow } from '../lib/api'
+import { miniRoomBgm } from '../lib/bgmPlayer'
 import { playDessertAsmr } from '../lib/sound'
 import Monster3DView from '../monsters/Monster3DView'
 import { BackIcon } from '../ui/Icons'
@@ -39,6 +40,24 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
   const [newComment, setNewComment] = useState<string>('')
   const [petActionState, setPetActionState] = useState<string>('방 안을 총총 거닐며 디저트 향기를 맡고 있어요 🌸')
   const [bouncePet, setBouncePet] = useState<boolean>(false)
+  const [bgmPlaying, setBgmPlaying] = useState<boolean>(() => miniRoomBgm.getStatus())
+
+  // 화면 나갈 때 BGM 정리
+  useEffect(() => {
+    return () => {
+      miniRoomBgm.stop()
+    }
+  }, [])
+
+  const handleToggleBgm = () => {
+    const nextState = miniRoomBgm.toggle()
+    setBgmPlaying(nextState)
+    if (nextState) {
+      showToast('🎵 달콤 파티세리의 오후 햇살 왈츠 BGM을 재생합니다!')
+    } else {
+      showToast('⏸️ BGM을 일시 정지했습니다.')
+    }
+  }
 
   const currentTheme: RoomThemeDef = ROOM_THEMES.find((t) => t.id === room.themeId) ?? ROOM_THEMES[0]
   const look = monsterLook(monster)
@@ -240,10 +259,25 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
           flexShrink: 0,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#831843', fontWeight: 700 }}>
-          <span>🎵 BGM:</span>
-          <span style={{ color: '#BE185D' }}>달콤 파티세리의 오후 햇살 왈츠.mp3</span>
-        </div>
+        <button
+          onClick={handleToggleBgm}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 5,
+            background: bgmPlaying ? '#FCE7F3' : '#FFFFFF',
+            border: '1px solid #F472B6',
+            borderRadius: 8,
+            padding: '2px 8px',
+            color: '#831843',
+            fontWeight: 800,
+            fontSize: 10,
+            cursor: 'pointer',
+          }}
+        >
+          <span>{bgmPlaying ? '🔊 BGM ON' : '🔈 BGM OFF'}</span>
+          <span style={{ color: '#BE185D' }}>오후 햇살 왈츠 ♬</span>
+        </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <button
             onClick={() => setIsEditing(!isEditing)}
@@ -653,7 +687,7 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
               <span style={{ fontSize: 10, color: '#6B7280' }}>총 {guestBook.length}개</span>
             </div>
 
-            {/* 방명록 입력창 */}
+            {/* 방명록 입력창 (모바일 자동 줌 방지 fontSize: 16px 적용) */}
             <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
               <input
                 type="text"
@@ -662,12 +696,13 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
                 placeholder="친구에게 따뜻한 한마디를 남겨보세요! (+10 🎀)"
                 style={{
                   flex: 1,
-                  padding: '6px 10px',
-                  borderRadius: 8,
-                  border: '1px solid #FBCFE8',
-                  fontSize: 11,
+                  padding: '7px 12px',
+                  borderRadius: 10,
+                  border: '1.5px solid #FBCFE8',
+                  fontSize: 16,
                   outline: 'none',
-                  background: '#FFF5F7',
+                  background: '#FFFFFF',
+                  color: '#4A2E2B',
                 }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleAddComment()
@@ -676,45 +711,48 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
               <button
                 onClick={handleAddComment}
                 style={{
-                  padding: '6px 10px',
-                  borderRadius: 8,
+                  padding: '7px 12px',
+                  borderRadius: 10,
                   border: 'none',
-                  background: '#EC4899',
+                  background: 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)',
                   color: '#FFFFFF',
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: 900,
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
+                  boxShadow: '0 2px 6px rgba(219,39,119,0.25)',
                 }}
               >
                 남기기
               </button>
             </div>
 
-            {/* 방명록 목록 (스크롤) */}
-            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {/* 방명록 목록 (시원한 폰트 크기 및 스크롤) */}
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 5 }}>
               {guestBook.map((entry) => (
                 <div
                   key={entry.id}
                   style={{
-                    padding: '6px 8px',
-                    borderRadius: 8,
-                    background: '#FDF2F8',
+                    padding: '8px 10px',
+                    borderRadius: 10,
+                    background: '#FFFFFF',
                     border: '1px solid #FCE7F3',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 6,
+                    gap: 8,
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
                   }}
                 >
-                  <span style={{ fontSize: 14 }}>{entry.icon}</span>
+                  <span style={{ fontSize: 18 }}>{entry.icon}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <span style={{ fontSize: 11, fontWeight: 900, color: '#9D174D' }}>{entry.author}</span>
-                      <span style={{ fontSize: 9, color: '#9CA3AF' }}>{entry.createdAt}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
+                      <span style={{ fontSize: 12, fontWeight: 900, color: '#9D174D' }}>{entry.author}</span>
+                      <span style={{ fontSize: 10, color: '#9CA3AF' }}>{entry.createdAt}</span>
                     </div>
                     <div
                       style={{
-                        fontSize: 10,
+                        fontSize: 12,
+                        fontWeight: 600,
                         color: '#4E342E',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
@@ -731,26 +769,32 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
         )}
       </div>
 
-      {/* 토스트 알림 */}
+      {/* 상단 알림창 박스 (Notification Banner) */}
       {toast && (
         <div
           style={{
-            position: 'absolute',
-            bottom: 20,
+            position: 'fixed',
+            top: 14,
             left: '50%',
             transform: 'translateX(-50%)',
-            background: 'rgba(30, 41, 59, 0.95)',
+            background: 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)',
             color: '#FFFFFF',
-            padding: '7px 14px',
-            borderRadius: 20,
+            padding: '8px 16px',
+            borderRadius: 16,
+            border: '1.5px solid #F472B6',
             fontSize: 12,
             fontWeight: 800,
-            boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
-            zIndex: 100,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+            zIndex: 9999,
             whiteSpace: 'nowrap',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            animation: 'fadeIn 0.2s ease-out',
           }}
         >
-          {toast}
+          <span>🔔</span>
+          <span>{toast}</span>
         </div>
       )}
     </div>

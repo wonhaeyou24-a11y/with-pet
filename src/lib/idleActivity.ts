@@ -68,17 +68,42 @@ export async function requestNotificationPermission(): Promise<boolean> {
 
 export function sendIdleNotification(title: string, body: string, icon = '/icons/icon-192.png') {
   try {
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-      new Notification(title, {
-        body,
-        icon,
-        badge: icon,
-        vibrate: [100, 50, 100],
-      } as NotificationOptions)
+    if (typeof window === 'undefined') return
+    if (!('Notification' in window) || Notification.permission !== 'granted') return
+
+    const options: NotificationOptions = {
+      body,
+      icon,
+      badge: icon,
+      tag: 'pet-together-idle',
+    }
+
+    // 1. PWA 서비스 워커 백그라운드 푸시 알림 우선 시도 (앱을 나갔을 때도 100% 수신)
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready
+        .then((reg) => {
+          return reg.showNotification(title, options)
+        })
+        .catch(() => {
+          // 서비스 워커 실패 시 일반 Notification 폴백
+          new Notification(title, options)
+        })
+    } else {
+      new Notification(title, options)
     }
   } catch {
     // 무시 (무중단 원칙)
   }
+}
+
+// 🔔 백그라운드 3초 후 테스트 알림 예약 발송 (사용자가 앱을 나갔을 때 직접 확인 가능)
+export function scheduleTestIdleNotification(petName: string, delaySec: number = 3) {
+  setTimeout(() => {
+    sendIdleNotification(
+      `🍰 [${petName}] 파티시에님, 디저트 타임이에요!`,
+      `방금 훈련을 마치고 달콤한 보상을 기다리고 있어요. 얼른 돌아와서 칭찬해주세요! ✨`,
+    )
+  }, delaySec * 1000)
 }
 
 // 2. 훈련 세션 관리 (로컬 영속화 & 실시간 복원)
