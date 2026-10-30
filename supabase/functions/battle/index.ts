@@ -1,9 +1,12 @@
-// M3 3a단계 서버 (Edge Function: battle)
-// 친선 대전(시드·결과·보상·전적)과 한입 투표를 서버가 판정한다. 폰이 보낸 능력치·결과는 믿지 않는다.
+// M3 3a·3b단계 서버 (Edge Function: battle)
+// 친선 대전(시드·결과·보상·전적), 한입 투표, 스킬 올리기·전투 성향·진화를 서버가 판정한다. 폰이 보낸 능력치·결과는 믿지 않는다.
 // 전투 계산은 engine.ts(순수 코드)이고 화면도 같은 파일을 쓴다. 같은 시드면 항상 같은 리플레이가 나온다.
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { BATTLE } from './config.ts'
 import { simulateAsmrBattle } from './engine.ts'
+import { checkEvolutionEligibility, computeEvolution } from './evolution.ts'
+import { planSkillUpgrade } from './skillLevels.ts'
+import { BATTLE_STANCES } from './skills.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -169,6 +172,52 @@ Deno.serve(async (req) => {
         }
       }
       return json({ ok: true, likes, coins: newCoins, reward })
+    }
+
+    // ── 성장: 스킬 올리기·전투 성향·진화 (내 몬스터만)
+    if (action === 'skill_upgrade' || action === 'set_stance' || action === 'evolve') {
+      const { data: mon } = await admin.from('monsters').select('*').eq('id', String(body.monsterId ?? '')).eq('owner', uid).maybeSingle()
+      if (!mon) return json({ ok: false, code: 'no_monster', message: '내 몬스터를 찾지 못했어요.' }, 404)
+
+      if (action === 'skill_upgrade') {
+        const plan = planSkillUpgrade(mon, String(body.skillId ?? ''))
+        if (!plan.ok) return json({ ok: false, code: plan.code, message: plan.message })
+        // 읽은 SP와 같을 때만 저장한다 (연타해도 한 번만 차감)
+        const { data: up } = await admin
+          .from('monsters')
+          .update({ skill_levels: plan.nextLevels, sp: Number(mon.sp ?? 0) - plan.cost })
+          .eq('id', mon.id)
+          .eq('sp', Number(mon.sp ?? 0))
+          .select('*')
+          .maybeSingle()
+        if (!up) return json(BUSY)
+        await admin.from('care_logs').insert({ owner: uid, monster_id: mon.id, action: 'skill_up', detail: plan.node.id })
+        return json({ ok: true, monster: up, skillId: plan.node.id, skillLevel: plan.nextLevel, spent: plan.cost })
+      }
+
+      if (action === 'set_stance') {
+        const stance = String(body.stance ?? '')
+        if (!BATTLE_STANCES.some((s) => s.id === stance)) return json({ ok: false, code: 'bad_stance', message: '알 수 없는 전투 성향이에요.' }, 400)
+        const { data: up } = await admin.from('monsters').update({ battle_stance: stance }).eq('id', mon.id).select('*').maybeSingle()
+        if (!up) return json(BUSY)
+        return json({ ok: true, monster: up })
+      }
+
+      // evolve
+      const elig = checkEvolutionEligibility(mon)
+      if (!elig.canEvolve) return json({ ok: false, code: 'not_ready', message: elig.missingReason ?? '아직 진화 조건을 충족하지 못했어요.' })
+      const evo = computeEvolution(mon, body.branch ? String(body.branch) : elig.recommendedBranch)
+      // 같은 진화 단계일 때만 저장한다 (연타해도 한 번만 진화)
+      const { data: up } = await admin
+        .from('monsters')
+        .update({ evo_stage: evo.nextStage, evo_branch: evo.branch, stats: evo.newStats, sp: evo.newSp })
+        .eq('id', mon.id)
+        .eq('evo_stage', Number(mon.evo_stage ?? 1))
+        .select('*')
+        .maybeSingle()
+      if (!up) return json(BUSY)
+      await admin.from('care_logs').insert({ owner: uid, monster_id: mon.id, action: 'evolve', detail: `${evo.nextStage}:${evo.branch}` })
+      return json({ ok: true, monster: up, newStage: evo.nextStage, branch: evo.branch, statBoost: evo.statBoost, bonusSp: evo.bonusSp })
     }
 
     return json({ ok: false, code: 'bad_action', message: '알 수 없는 요청이에요.' }, 400)

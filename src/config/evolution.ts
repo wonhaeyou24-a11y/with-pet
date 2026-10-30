@@ -3,8 +3,9 @@
 
 import type { Stats } from '../lib/api'
 import type { DessertSoundKind } from '../lib/sound'
+import { EVO_FAVORED_STATS, EVO_REQUIRED_LEVEL, type EvoBranchId } from '../../supabase/functions/battle/evolution.ts'
 
-export type EvoBranchId = 'sweet-melty' | 'crispy-crunch' | 'royal-chef' | 'gourmet-rainbow'
+export type { EvoBranchId }
 
 export interface EvoBranchInfo {
   id: EvoBranchId
@@ -28,7 +29,7 @@ export const EVO_BRANCHES: Record<EvoBranchId, EvoBranchInfo> = {
     color: '#FF4081',
     auraColor: '#FF80AB',
     desc: '당충전과 달콤함을 듬뿍 받고 자라난 부드럽고 사랑스러운 디저트 계통입니다.',
-    favoredStats: ['hp', 'cha'],
+    favoredStats: EVO_FAVORED_STATS['sweet-melty'],
     conditionHint: '달콤함 80 이상 유지 & 달콤 토핑 위주 급여 & 응석 성향',
     asmr: 'syrup-drizzle',
   },
@@ -40,7 +41,7 @@ export const EVO_BRANCHES: Record<EvoBranchId, EvoBranchInfo> = {
     color: '#FF9800',
     auraColor: '#FFB74D',
     desc: '혹독한 토핑 다지기 훈련과 디저트 타워를 돌파하며 단단한 크런치 껍질을 다진 계통입니다.',
-    favoredStats: ['atk', 'def'],
+    favoredStats: EVO_FAVORED_STATS['crispy-crunch'],
     conditionHint: '근력/방어 훈련 집중 & 디저트 타워 3층 이상 돌파 & 활발 성향',
     asmr: 'kataifi-crunch',
   },
@@ -52,7 +53,7 @@ export const EVO_BRANCHES: Record<EvoBranchId, EvoBranchInfo> = {
     color: '#7C4DFF',
     auraColor: '#B388FF',
     desc: '비밀 파티세리 레시피를 연구하고 지능을 갈고닦아 궁극의 조화로운 맛을 빚는 계통입니다.',
-    favoredStats: ['int', 'spd'],
+    favoredStats: EVO_FAVORED_STATS['royal-chef'],
     conditionHint: '시크릿 레시피 훈련 집중 & 지능 40 이상 & 차분 성향',
     asmr: 'sugar-crack',
   },
@@ -64,7 +65,7 @@ export const EVO_BRANCHES: Record<EvoBranchId, EvoBranchInfo> = {
     color: '#00B0FF',
     auraColor: '#80D8FF',
     desc: '모든 영양소와 토핑을 골고루 맛보고 6대 능력치가 균형 있게 성장한 전설의 미식 계통입니다.',
-    favoredStats: ['hp', 'atk', 'def', 'spd', 'int', 'cha'],
+    favoredStats: EVO_FAVORED_STATS['gourmet-rainbow'],
     conditionHint: '골고루 토핑 3종 급여 & 전 능력치 편차 10 이내',
     asmr: 'wax-pop',
   },
@@ -388,7 +389,7 @@ export const SPECIES_EVOLUTIONS: Record<string, SpeciesEvoData> = {
 // 진화 단계별 요구 레벨 및 스탯 성장치
 export const EVO_STAGE_REQUIREMENTS = {
   1: { level: 1, label: '베이비' },
-  2: { level: 8, label: '파티세리' }, // 1차 진화: 8레벨 달성 시
-  3: { level: 15, label: '로얄 마스터' }, // 2차 최종 진화: 15레벨 달성 시
+  2: { level: EVO_REQUIRED_LEVEL[2], label: '파티세리' }, // 1차 진화
+  3: { level: EVO_REQUIRED_LEVEL[3], label: '로얄 마스터' }, // 2차 최종 진화
 } as const
 

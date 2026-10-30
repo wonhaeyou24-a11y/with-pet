@@ -122,3 +122,21 @@ export function getSkillLockReason(
   return null
 }
 
+
+export type SkillUpgradePlan =
+  | { ok: true; nextLevels: Record<string, number>; cost: number; nextLevel: number; node: SkillNodeDef }
+  | { ok: false; code: string; message: string }
+
+// 스킬 한 단계 올리기 계산 (서버가 검사하고, 화면도 같은 규칙으로 미리 안내한다)
+export function planSkillUpgrade(m: SkillMonster & { level: number; sp?: number | null }, skillId: string): SkillUpgradePlan {
+  const node = ALL_SKILL_NODES.find((n) => n.id === skillId)
+  if (!node) return { ok: false, code: 'bad_skill', message: '알 수 없는 스킬이에요.' }
+  const levels = getSkillLevels(m)
+  const curLv = levels[node.id] ?? 0
+  if (curLv >= getSkillMaxLevel(node)) return { ok: false, code: 'max', message: `👑 [${node.name}]은(는) 이미 최고 레벨(MAX)입니다!` }
+  const lock = getSkillLockReason(node, levels, m.level ?? 1)
+  if (lock) return { ok: false, code: 'locked', message: `🔒 ${lock}` }
+  const cost = getSkillUpgradeCost(node, curLv)
+  if ((m.sp ?? 0) < cost) return { ok: false, code: 'no_sp', message: `⭐ SP가 부족해요! (필요: ${cost} SP) 파티세리 훈련으로 SP를 획득하세요.` }
+  return { ok: true, nextLevels: { ...levels, [node.id]: curLv + 1 }, cost, nextLevel: curLv + 1, node }
+}

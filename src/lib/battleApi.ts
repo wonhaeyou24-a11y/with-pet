@@ -1,7 +1,7 @@
 // 3a단계: 친선 대전·한입 투표 서버 호출 (실제 서비스 전용). 시드·결과·보상은 모두 서버가 정한다.
 
 import type { BattleSimulationResult } from './battleEngine'
-import { syncServerTime } from './api'
+import { syncServerTime, type MonsterRow, type Stats } from './api'
 import { NETWORK_MESSAGE, readFunctionError, SERVER_TIMEOUT_MS, withTimeout } from './net'
 import { supabase } from './supabase'
 
@@ -17,6 +17,12 @@ export interface BattleResponse {
   likes?: number
   votedIds?: string[]
   votesRewardLeft?: number
+  monster?: MonsterRow
+  skillLevel?: number
+  newStage?: number
+  branch?: string
+  statBoost?: Stats
+  bonusSp?: number
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -25,8 +31,8 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 export const isRealMonsterId = (id: string) => UUID.test(id)
 
 export async function callBattle(
-  action: 'status' | 'fight' | 'vote',
-  params: { monsterId?: string; defenderId?: string } = {},
+  action: 'status' | 'fight' | 'vote' | 'skill_upgrade' | 'set_stance' | 'evolve',
+  params: { monsterId?: string; defenderId?: string; skillId?: string; stance?: string; branch?: string } = {},
 ): Promise<BattleResponse> {
   try {
     // 대전은 계산이 길 수 있어 조금 더 기다린다

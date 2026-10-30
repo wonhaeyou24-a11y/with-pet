@@ -5,6 +5,8 @@ import { readFileSync } from 'node:fs'
 import { BATTLE } from '../supabase/functions/battle/config.ts'
 import { simulateAsmrBattle } from '../supabase/functions/battle/engine.ts'
 import { SPECIES_NAMES } from '../supabase/functions/battle/speciesNames.ts'
+import { checkEvolutionEligibility, computeEvolution, EVO_FAVORED_STATS } from '../supabase/functions/battle/evolution.ts'
+import { planSkillUpgrade } from '../supabase/functions/battle/skillLevels.ts'
 
 const mon = (over = {}) => ({
   name: '테스트',
@@ -89,6 +91,68 @@ test('서버의 종족 이름 표가 화면의 SPECIES_INFO 이름과 같다', (
 test('보상 수치: 이기면 지는 것보다 많고, 하루 상한이 있다', () => {
   assert.ok(BATTLE.rewardWin > BATTLE.rewardLose && BATTLE.rewardLose > 0)
   assert.ok(BATTLE.rewardedPerDay >= 1 && BATTLE.votesRewardedPerDay >= 1)
+})
+
+console.log('스킬 올리기 (서버가 검사하는 규칙)')
+const sm = (over = {}) => ({ ...mon(), level: 5, sp: 3, ...over })
+test('SP가 충분하면 한 단계 오르고 비용이 계산된다', () => {
+  const r = planSkillUpgrade(sm(), 'cookie-flurry')
+  assert.equal(r.ok, true)
+  assert.equal(r.nextLevel, 1)
+  assert.equal(r.cost, 1)
+  assert.equal(r.nextLevels['cookie-flurry'], 1)
+})
+test('SP가 모자라면 거절한다 (SP는 서버 값만 믿는다)', () => {
+  assert.equal(planSkillUpgrade(sm({ sp: 0 }), 'cookie-flurry').code, 'no_sp')
+})
+test('2단계 스킬은 Lv.8 전에는 잠겨 있다, 없는 스킬은 거절', () => {
+  assert.equal(planSkillUpgrade(sm({ level: 7 }), 't2-kataifi-cyclone').code, 'locked')
+  assert.equal(planSkillUpgrade(sm(), '없는스킬').code, 'bad_skill')
+})
+test('최고 레벨에서는 더 올릴 수 없다', () => {
+  const r = planSkillUpgrade(sm({ skill_levels: { 'cookie-flurry': 5 }, sp: 9 }), 'cookie-flurry')
+  assert.equal(r.code, 'max')
+})
+test('올릴수록 비용이 조금씩 늘어난다', () => {
+  const a = planSkillUpgrade(sm({ skill_levels: { 'cookie-flurry': 1 }, sp: 9 }), 'cookie-flurry')
+  const b = planSkillUpgrade(sm({ skill_levels: { 'cookie-flurry': 4 }, sp: 9 }), 'cookie-flurry')
+  assert.ok(b.cost > a.cost)
+})
+
+console.log('진화 (서버가 판정하는 규칙)')
+const em = (over = {}) => ({ level: 8, stats: { hp: 60, atk: 40, def: 40, spd: 40, int: 40, cha: 40 }, sp: 2, evo_stage: 1, evo_branch: null, hunger: 60, ...over })
+test('Lv.8 미만이면 1→2단계 진화 불가, Lv.8이면 가능', () => {
+  assert.equal(checkEvolutionEligibility(em({ level: 7 })).canEvolve, false)
+  assert.equal(checkEvolutionEligibility(em()).canEvolve, true)
+})
+test('2→3단계는 Lv.15, 3단계는 더 진화할 수 없다', () => {
+  assert.equal(checkEvolutionEligibility(em({ evo_stage: 2, level: 14 })).canEvolve, false)
+  assert.equal(checkEvolutionEligibility(em({ evo_stage: 2, level: 15 })).canEvolve, true)
+  assert.equal(checkEvolutionEligibility(em({ evo_stage: 3, level: 30 })).canEvolve, false)
+})
+test('진화하면 모든 능력치가 오르고 보너스 SP가 붙는다 (능력치가 깎이지 않는다)', () => {
+  const r = computeEvolution(em(), 'crispy-crunch')
+  for (const k of Object.keys(r.newStats)) assert.ok(r.newStats[k] > em().stats[k])
+  assert.equal(r.bonusSp, 3)
+  assert.equal(r.newSp, 5)
+  assert.equal(computeEvolution(em({ evo_stage: 2, evo_branch: 'crispy-crunch', level: 15 })).bonusSp, 5)
+})
+test('갈래 특화 능력치가 더 크게 오른다', () => {
+  const r = computeEvolution(em(), 'crispy-crunch')
+  assert.ok(r.statBoost.atk > r.statBoost.cha)
+})
+test('2→3단계에서는 이미 정해진 갈래를 그대로 이어 간다 (폰이 바꿔 보내도 소용없다)', () => {
+  const r = computeEvolution(em({ evo_stage: 2, evo_branch: 'royal-chef', level: 15 }), 'sweet-melty')
+  assert.equal(r.branch, 'royal-chef')
+})
+test('알 수 없는 갈래를 보내면 무시한다', () => {
+  const r = computeEvolution(em(), '해킹')
+  assert.ok(Object.keys(EVO_FAVORED_STATS).includes(r.branch))
+})
+test('화면의 진화 갈래·요구 레벨 표가 서버와 같은 파일을 쓴다', () => {
+  const cfg = readFileSync('src/config/evolution.ts', 'utf8')
+  assert.ok(cfg.includes('supabase/functions/battle/evolution.ts'))
+  assert.ok(readFileSync('src/lib/evolutionEngine.ts', 'utf8').includes('supabase/functions/battle/evolution.ts'))
 })
 
 console.log(`\n${passed}개 통과`)

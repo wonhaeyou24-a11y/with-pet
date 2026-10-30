@@ -6,8 +6,9 @@ import { useMemo, useState } from 'react'
 import { EVO_BRANCHES, SPECIES_EVOLUTIONS, type EvoBranchId } from '../config/evolution'
 import type { MonsterRow, Stats } from '../lib/api'
 import { checkEvolutionEligibility, executeEvolution, type EvolutionResult } from '../lib/evolutionEngine'
+import { callBattle } from '../lib/battleApi'
+import { IS_DEV_MOCK } from '../lib/devMode'
 import { playDessertAsmr } from '../lib/sound'
-import { supabase } from '../lib/supabase'
 import Monster3DView from '../monsters/Monster3DView'
 import type { MonsterLook } from '../monsters/types'
 import { BackIcon } from '../ui/Icons'
@@ -73,27 +74,23 @@ export default function EvolutionRevealScreen({ monster, onUpdateMonster, onBack
     playDessertAsmr('sugar-crack', 2)
 
     // 1.8초 동안 긴장감 넘치는 각성 3D 슬로우모션 연출
+    // 실제 서비스: 서버에 진화를 요청하는 동안 연출을 보여 주고, 서버가 진화시킨 결과를 그대로 쓴다.
+    const serverCall = IS_DEV_MOCK ? null : callBattle('evolve', { monsterId: monster.id, branch: selectedBranch })
     setTimeout(async () => {
       try {
-        const result = executeEvolution(monster, selectedBranch)
+        let serverMonster: MonsterRow | undefined
+        if (serverCall) {
+          const res = await serverCall
+          if (!res.ok || !res.monster) {
+            setIsEvolving(false)
+            showToast(res.message ?? '진화를 마치지 못했어요. 잠시 후 다시 시도해 주세요.')
+            return
+          }
+          serverMonster = res.monster
+        }
+        const result = executeEvolution(monster, selectedBranch, serverMonster)
         setEvoResult(result)
         onUpdateMonster(result.updatedMonster)
-
-        // Supabase / 로컬 스토리지에 동기화
-        try {
-          await supabase
-            .from('monsters')
-            .update({
-              evo_stage: result.newStage,
-              evo_branch: result.branch,
-              stats: result.updatedMonster.stats,
-              sp: result.updatedMonster.sp,
-              title: result.newSpeciesTitle,
-            })
-            .eq('id', monster.id)
-        } catch {
-          // 오프라인 폴백 세이프가드
-        }
 
         setIsEvolving(false)
         playDessertAsmr('mochi-squish', 3)

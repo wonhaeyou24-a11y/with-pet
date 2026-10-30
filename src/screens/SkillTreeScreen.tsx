@@ -22,6 +22,8 @@ import {
 } from '../config/skills'
 import { SPECIES_INFO } from '../config/species'
 import { monsterLook, type MonsterRow } from '../lib/api'
+import { callBattle } from '../lib/battleApi'
+import { IS_DEV_MOCK } from '../lib/devMode'
 import { playDessertAsmr } from '../lib/sound'
 import { supabase } from '../lib/supabase'
 import MonsterView from '../monsters/MonsterView'
@@ -51,7 +53,9 @@ const CENTER = CANVAS_SIZE / 2
 export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Props) {
   const [skillLevels, setSkillLevels] = useState<Record<string, number>>(() => getSkillLevels(monster))
   const [stance, setStance] = useState<BattleStanceId>(() => monster.battle_stance ?? 'balanced')
-  const [sp, setSp] = useState<number>(() => Math.max(monster.sp ?? 3, 3))
+  // 개발용 로컬 모드에서만 SP를 최소 3으로 보여 준다. 실제 서비스는 서버의 SP 그대로.
+  const [sp, setSp] = useState<number>(() => (IS_DEV_MOCK ? Math.max(monster.sp ?? 3, 3) : (monster.sp ?? 0)))
+  const [saving, setSaving] = useState(false)
   const [selectedId, setSelectedId] = useState<string>(ALL_SKILL_NODES[0].id)
   const [toast, setToast] = useState<string | null>(null)
   const [showBonusModal, setShowBonusModal] = useState<boolean>(false)
@@ -217,13 +221,36 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
     const nextLv = curLv + 1
     const nextLevels = { ...skillLevels, [node.id]: nextLv }
     const nextSp = sp - cost
+    const statLabel = BRANCH_STAT_LABEL[node.branch]
+
+    // 실제 서비스: SP 차감과 레벨은 서버가 정하고 저장한다. 응답을 받으면 서버 값으로 화면을 맞춘다.
+    if (!IS_DEV_MOCK) {
+      if (saving) return
+      setSaving(true)
+      playDessertAsmr(node.asmr, 2)
+      void callBattle('skill_upgrade', { monsterId: monster.id, skillId: node.id }).then((res) => {
+        setSaving(false)
+        if (!res.ok || !res.monster) {
+          showToastMsg(res.message ?? '잠시 후 다시 시도해 주세요.')
+          return
+        }
+        setSkillLevels(getSkillLevels(res.monster))
+        setSp(res.monster.sp ?? 0)
+        onUpdateMonster(res.monster)
+        showToastMsg(
+          curLv === 0
+            ? `✨ [${node.name}] 스킬 습득 완료! (${statLabel} 영구 강화 적용)`
+            : `🔥 [${node.name}] Lv.${nextLv} 레벨업! (${statLabel} 및 위력 대폭 강화)`,
+        )
+      })
+      return
+    }
 
     playDessertAsmr(node.asmr, 2)
     setSkillLevels(nextLevels)
     setSp(nextSp)
     void persistChanges(nextLevels, nextSp, stance)
 
-    const statLabel = BRANCH_STAT_LABEL[node.branch]
     showToastMsg(
       curLv === 0
         ? `✨ [${node.name}] 스킬 습득 완료! (${statLabel} 영구 강화 적용)`
@@ -236,6 +263,21 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
     const idx = BATTLE_STANCES.findIndex((s) => s.id === stance)
     const next = BATTLE_STANCES[(idx + 1) % BATTLE_STANCES.length]
     playDessertAsmr('syrup-drizzle')
+    if (!IS_DEV_MOCK) {
+      if (saving) return
+      setSaving(true)
+      void callBattle('set_stance', { monsterId: monster.id, stance: next.id }).then((res) => {
+        setSaving(false)
+        if (!res.ok || !res.monster) {
+          showToastMsg(res.message ?? '잠시 후 다시 시도해 주세요.')
+          return
+        }
+        setStance(next.id)
+        onUpdateMonster(res.monster)
+        showToastMsg(`${next.icon} 대전 성향: ${next.name}`)
+      })
+      return
+    }
     setStance(next.id)
     void persistChanges(skillLevels, sp, next.id)
     showToastMsg(`${next.icon} 대전 성향: ${next.name}`)
