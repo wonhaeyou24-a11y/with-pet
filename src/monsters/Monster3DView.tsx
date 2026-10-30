@@ -1264,9 +1264,9 @@ export default function Monster3DView({
     const envTex = createPatisserieEnvMap(renderer)
     scene.environment = envTex
 
-    const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 30)
-    camera.position.set(0, 0.42, 4.85)
-    camera.lookAt(0, -0.1, 0)
+    const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 30)
+    camera.position.set(0, 0.26, 5.2)
+    camera.lookAt(0, -0.22, 0)
 
     // 따뜻한 파티세리 3점 조명
     const ambient = new THREE.AmbientLight('#FFF5E8', 0.78)

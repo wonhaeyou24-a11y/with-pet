@@ -525,11 +525,12 @@ export default function MonsterHome({
             position: 'relative',
             width: '100%',
             flex: 1,
-            minHeight: 140,
+            minHeight: 190,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
+            overflow: 'visible',
           }}
           onClick={handleTouchMonster}
           title="터치하면 오감 식감 ASMR 소리·진동·파편이 터져요!"
@@ -647,10 +648,10 @@ export default function MonsterHome({
           <div
             key={`home-react-${burstKey}`}
             className={burstKey > 0 ? getSensoryReactionClass(soundKind) : ''}
-            style={{ position: 'relative', zIndex: 1, marginTop: 4 }}
+            style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
-            {/* 🌟 메인 디저트 펫 강조: 145px ➔ 200px 대폭 확대 */}
-            <MonsterView look={look} size={200} title={info?.name} />
+            {/* 🌟 메인 디저트 펫 강조: 145px ➔ 210px 짤림 없이 시원하게 표시 */}
+            <MonsterView look={look} size={210} title={info?.name} />
           </div>
         </div>
 
