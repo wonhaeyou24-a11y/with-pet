@@ -20,6 +20,7 @@ import MonsterView from '../monsters/MonsterView'
 import CakeBoxShareModal from './CakeBoxShareModal'
 import MissionModal from './MissionModal'
 import DessertShowroomModal from './DessertShowroomModal'
+import DessertSoundStudioModal from './DessertSoundStudioModal'
 import { ChevronIcon, ElementIcon, SparkleIcon } from '../ui/Icons'
 import { StatBars, totalStats } from '../ui/parts'
 import { getSensoryReactionClass, SensoryBurst } from '../ui/SensoryFx'
@@ -64,6 +65,7 @@ export default function MonsterHome({
   const [showShowroom, setShowShowroom] = useState<boolean>(false)
   const [showNotifModal, setShowNotifModal] = useState<boolean>(false)
   const [showMoreMenu, setShowMoreMenu] = useState<boolean>(false)
+  const [showSoundStudio, setShowSoundStudio] = useState<boolean>(false)
   const [notifStatus, setNotifStatus] = useState<string>(() =>
     typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'unsupported',
   )
@@ -1060,6 +1062,35 @@ export default function MonsterHome({
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginTop: 4 }}>
+              {/* 🎧 펫 ASMR 사운드 스튜디오 (15종 청음실) */}
+              <button
+                onClick={() => {
+                  setShowMoreMenu(false)
+                  setShowSoundStudio(true)
+                  playDessertAsmr('kataifi-crunch')
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '10px 12px',
+                  borderRadius: 12,
+                  border: '2px solid #FF9800',
+                  background: 'linear-gradient(90deg, #FFF3E0, #FFE0B2)',
+                  color: '#E65100',
+                  fontWeight: 900,
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(255,152,0,0.25)',
+                }}
+              >
+                <span style={{ fontSize: 18 }}>🎧</span>
+                <div style={{ textAlign: 'left' }}>
+                  <div style={{ lineHeight: 1.1 }}>펫 ASMR 사운드 스튜디오</div>
+                  <div style={{ fontSize: 9, color: '#D84315', fontWeight: 800 }}>15종 전 종족 리얼 식감 청음실</div>
+                </div>
+              </button>
+
               <button
                 onClick={() => {
                   setShowMoreMenu(false)
@@ -1178,6 +1209,9 @@ export default function MonsterHome({
           </div>
         </div>
       )}
+
+      {/* 6. 🎧 디저트 펫 ASMR 사운드 스튜디오 (전 종족 청음실) 모달 */}
+      {showSoundStudio && <DessertSoundStudioModal onClose={() => setShowSoundStudio(false)} />}
     </main>
   )
 }

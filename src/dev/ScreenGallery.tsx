@@ -7,6 +7,7 @@ import CakeBoxShareModal from '../screens/CakeBoxShareModal'
 import CarePantry from '../screens/CarePantry'
 import DessertPokedexScreen from '../screens/DessertPokedex'
 import DessertPlaza from '../screens/DessertPlaza'
+import DessertSoundStudioModal from '../screens/DessertSoundStudioModal'
 import EggHome from '../screens/EggHome'
 import EvolutionRevealScreen from '../screens/EvolutionReveal'
 import HatchReveal from '../screens/HatchReveal'
@@ -180,6 +181,7 @@ const SCREENS: Record<string, () => ReactNode> = {
       onClose={noop}
     />
   ),
+  '펫 ASMR 사운드 스튜디오': () => <DessertSoundStudioModal onClose={noop} />,
 }
 
 export default function ScreenGallery() {
