@@ -41,6 +41,7 @@ type Props = {
   onOpenMyRoom?: () => void
   onOpenBoutique?: () => void
   onOpenGear?: () => void
+  onOpenExplore?: () => void
   onRewardCoins?: (amount: number) => void
   // 실제 서비스: 서버가 알려 준 코인 총액 (미션 보상)
   onCoins?: (coins: number) => void
@@ -145,6 +146,7 @@ export default function MonsterHome({
   onOpenMyRoom,
   onOpenBoutique,
   onOpenGear,
+  onOpenExplore,
   onRewardCoins,
   onCoins,
   onResetTestEgg,
@@ -783,8 +785,9 @@ export default function MonsterHome({
           onClick={onOpenEvolution}
         />
         <MenuTile icon="📖" title="디저트 도감" sub="모아보기" from="#34D399" to="#059669" rim="#047857" onClick={onOpenDex} />
+        <MenuTile icon="🥄" title="장비 · 강화" sub="능력치 UP" from="#64B5F6" to="#1976D2" rim="#0D47A1" onClick={onOpenGear} />
         <div style={{ gridColumn: '1 / -1', display: 'grid' }}>
-          <MenuTile icon="🥄" title="장비 · 강화" sub="무기·방어구·장신구로 능력치 UP" from="#64B5F6" to="#1976D2" rim="#0D47A1" onClick={onOpenGear} />
+          <MenuTile icon="🧭" title="탐험" sub="보내 놓고 기다리면 보상이 가득" from="#81C784" to="#388E3C" rim="#1B5E20" onClick={onOpenExplore} />
         </div>
       </div>
 

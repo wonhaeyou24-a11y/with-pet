@@ -9,6 +9,7 @@ import DessertPokedexScreen from '../screens/DessertPokedex'
 import DessertPlaza from '../screens/DessertPlaza'
 import DessertSoundStudioModal from '../screens/DessertSoundStudioModal'
 import EggHome from '../screens/EggHome'
+import ExploreScreen from '../screens/ExploreScreen'
 import GearScreen from '../screens/GearScreen'
 import EvolutionRevealScreen from '../screens/EvolutionReveal'
 import HatchReveal from '../screens/HatchReveal'
@@ -124,6 +125,7 @@ const SCREENS: Record<string, () => ReactNode> = {
       onBack={noop}
     />
   ),
+  '탐험(M5)': () => <ExploreScreen monster={{ ...shiny, name: '두바이쫀득', level: 8, evo_stage: 2 }} coins={320} onUpdate={noop} onGoRest={noop} onBack={noop} />,
   '장비·강화(M5)': () => <GearGallery monster={{ ...shiny, name: '두바이쫀득', level: 8 }} />,
   '식감 스킬트리(M3)': () => (
     <SkillTreeScreen

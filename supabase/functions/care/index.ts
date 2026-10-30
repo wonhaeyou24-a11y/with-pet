@@ -12,6 +12,7 @@ import {
   towerFloorsCleared,
   towerSecPerFloor,
 } from './activity.ts'
+import { applyTripClaim, checkTripStart, effectivePower, regionById, resolveTrip, tripSeconds } from './explore.ts'
 import {
   applyCareAction,
   applyFeed,
@@ -206,6 +207,23 @@ Deno.serve(async (req) => {
     }
     const newSeed = () => Math.floor(Math.random() * 2_000_000_000)
 
+    // 탐험: 한 몬스터는 한 번에 한 곳만 갈 수 있고, 다녀오는 동안 훈련·타워는 할 수 없다
+    const getTrip = async () => {
+      const { data } = await admin.from('explore_trips').select('*').eq('monster_id', monster.id).eq('status', 'active').maybeSingle()
+      return data
+    }
+    const tripOut = (row: Record<string, unknown>) => ({
+      id: row.id,
+      region: row.region,
+      zone: row.zone,
+      hours: row.hours,
+      power: row.power,
+      startedAt: row.started_at,
+      finishAt: row.finish_at,
+    })
+    const exploring = { ok: false, code: 'exploring', message: '🧭 탐험을 다녀오는 중이라 지금은 할 수 없어요!' }
+    const progress = (typeof monster.explore_progress === 'object' && monster.explore_progress ? monster.explore_progress : {}) as Record<string, number>
+
     // 진행 중인 훈련·타워와 타워 현황 (다른 기기에서 시작한 것도 이어서 볼 수 있다)
     if (action === 'activity') {
       const [train, tower] = await Promise.all([getActive('train'), getActive('tower')])
@@ -220,6 +238,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'train_start') {
+      if (await getTrip()) return json(exploring)
       const courseId = String(body.courseId ?? '')
       const seconds = ACTIVITY.trainSeconds[courseId]
       if (!seconds || !TRAININGS[courseId]) return json({ ok: false, code: 'bad_course', message: '알 수 없는 훈련 코스예요.' }, 400)
@@ -275,6 +294,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'tower_start') {
+      if (await getTrip()) return json(exploring)
       if (state.fatigue >= ACTIVITY.tower.fatigueBlock) {
         return json({ ok: false, code: 'too_tired', message: '💤 노곤함이 높아 탐험할 수 없어요! 먼저 쉬게 해 주세요.' })
       }
@@ -369,6 +389,115 @@ Deno.serve(async (req) => {
         expGain: result.expGain,
         coinsGain: result.coinsGain,
         gearDrops: gearDrops ?? [],
+      })
+    }
+
+    // ── 탐험 (보내 놓고 기다리기)
+    if (action === 'explore_state') {
+      const [trip, { data: journal }] = await Promise.all([
+        getTrip(),
+        admin.from('explore_trips').select('id, region, zone, hours, claimed_at, result').eq('monster_id', monster.id).eq('status', 'claimed').order('claimed_at', { ascending: false }).limit(8),
+      ])
+      return json({ ok: true, progress, trip: trip ? tripOut(trip) : null, journal: journal ?? [], fatigue: state.fatigue })
+    }
+
+    if (action === 'explore_start') {
+      if (await getTrip()) return json({ ok: false, code: 'already', message: '이미 탐험을 떠난 상태예요.' })
+      if (await getActive('train')) return json({ ok: false, code: 'busy_train', message: '훈련을 마친 뒤에 떠날 수 있어요.' })
+      if (await getActive('tower')) return json({ ok: false, code: 'busy_tower', message: '타워에서 돌아온 뒤에 떠날 수 있어요.' })
+      const regionId = String(body.region ?? '')
+      const zone = Number(body.zone ?? 0)
+      const hours = Number(body.hours ?? 0)
+      const check = checkTripStart({ level: state.level, evoStage: Number(monster.evo_stage ?? 1), progress, fatigue: state.fatigue }, regionId, zone, hours)
+      if (!check.ok) return json({ ok: false, code: check.code, message: check.message })
+
+      const { data: gearBonus } = await admin.rpc('gear_bonus', { p_monster: monster.id })
+      const gb = (gearBonus ?? {}) as Partial<Stats>
+      const geared: Stats = {
+        hp: state.stats.hp + (gb.hp ?? 0),
+        atk: state.stats.atk + (gb.atk ?? 0),
+        def: state.stats.def + (gb.def ?? 0),
+        spd: state.stats.spd + (gb.spd ?? 0),
+        int: state.stats.int + (gb.int ?? 0),
+        cha: state.stats.cha + (gb.cha ?? 0),
+      }
+      const power = effectivePower(regionById(regionId)!, geared, String(monster.element ?? ''))
+      const { data: created, error } = await admin
+        .from('explore_trips')
+        .insert({
+          owner: uid,
+          monster_id: monster.id,
+          region: regionId,
+          zone,
+          hours,
+          power,
+          seed: newSeed(),
+          started_at: now.toISOString(),
+          finish_at: new Date(now.getTime() + tripSeconds(hours) * 1000).toISOString(),
+        })
+        .select('*')
+        .single()
+      if (error || !created) return json(BUSY)
+      return json({ ok: true, trip: tripOut(created) })
+    }
+
+    if (action === 'explore_finish') {
+      const trip = await getTrip()
+      if (!trip) return json({ ok: false, code: 'no_trip', message: '탐험 중이 아니에요.' })
+      const left = remainingSeconds(trip.finish_at, now)
+      if (left > 0) return json({ ok: false, code: 'not_yet', message: `⏳ 아직 탐험 중이에요! ${left}초 뒤에 돌아와요.`, remaining: left })
+
+      const clearedBefore = Number(progress[trip.region] ?? 0)
+      const res = resolveTrip({
+        regionId: trip.region,
+        zone: Number(trip.zone),
+        hours: Number(trip.hours),
+        power: Number(trip.power),
+        seed: Number(trip.seed),
+        firstClear: Number(trip.zone) > clearedBefore,
+        coinRoom: coinRoomToday(earnedToday),
+      })
+
+      // 보상을 주기 전에 기록을 먼저 '받음'으로 바꾼다 (연타해도 한 번만 지급)
+      const { data: claimed } = await admin
+        .from('explore_trips')
+        .update({ status: 'claimed', claimed_at: now.toISOString(), result: res })
+        .eq('id', trip.id)
+        .eq('status', 'active')
+        .select('id')
+        .maybeSingle()
+      if (!claimed) return json(BUSY)
+
+      const claim = applyTripClaim(state, res)
+      const nextProgress = { ...progress }
+      if (res.cleared && Number(trip.zone) > clearedBefore) nextProgress[trip.region] = Number(trip.zone)
+      const updated = await saveMonster(claim.state, { explore_progress: nextProgress })
+      if (!updated) {
+        await admin.from('explore_trips').update({ status: 'active', claimed_at: null, result: null }).eq('id', trip.id)
+        return json(BUSY)
+      }
+      foodBag = claim.state.foodBag
+      await saveEarnings(claim.state.coins, res.coins)
+
+      let gearDef: string | null = null
+      if (res.gearGrade) {
+        const { data: got } = await admin.rpc('gear_grant', { p_owner: uid, p_grade: res.gearGrade, p_source: 'explore' })
+        gearDef = (got as string | null) ?? null
+      }
+      if (res.shards > 0) {
+        await admin.from('players').update({ star_shards: Number(player.star_shards ?? 0) + res.shards }).eq('id', uid).eq('star_shards', Number(player.star_shards ?? 0))
+      }
+      if (gearDef) await admin.from('explore_trips').update({ result: { ...res, gearDef } }).eq('id', trip.id)
+      await admin.from('care_logs').insert({ owner: uid, monster_id: monster.id, action: 'explore', detail: `${trip.region}-${trip.zone}:${res.tier}` })
+      return json({
+        ok: true,
+        monster: updated,
+        coins: claim.state.coins,
+        foodBag,
+        leveledUp: claim.leveledUp,
+        progress: nextProgress,
+        result: { ...res, gearDef },
+        trip: { region: trip.region, zone: trip.zone, hours: trip.hours },
       })
     }
 
