@@ -525,7 +525,7 @@ export default function AsmrBattleArena({
                 animation: 'cutinVignette 0.75s ease forwards',
               }}
             />
-            {/* 번쩍이는 대각선 슬라이드 배너 (화면 밖 짤림 방지 및 중앙 정렬) */}
+            {/* 번쩍이는 대각선 슬라이드 배너 (글박스 짤림 완전 방지 & 중앙 정렬) */}
             <div
               style={{
                 position: 'relative',
@@ -537,7 +537,7 @@ export default function AsmrBattleArena({
                   cutin.actor === 'challenger'
                     ? 'linear-gradient(90deg, #D84315 0%, #FF6F00 50%, #FFB300 100%)'
                     : 'linear-gradient(90deg, #6A1B9A 0%, #AD1457 50%, #E91E63 100%)',
-                padding: '12px 18px',
+                padding: '10px 14px',
                 borderRadius: 16,
                 boxShadow: '0 8px 24px rgba(0,0,0,0.6), inset 0 2px 0 rgba(255,255,255,0.4)',
                 textAlign: 'center',
@@ -545,13 +545,13 @@ export default function AsmrBattleArena({
                 border: '2.5px solid #FFF',
               }}
             >
-              <div style={{ fontSize: 11, fontWeight: 900, color: '#FFEB3B', letterSpacing: '1px', textShadow: '0 2px 4px #000' }}>
+              <div style={{ fontSize: 11, fontWeight: 900, color: '#FFEB3B', letterSpacing: '0.5px', textShadow: '0 2px 4px #000' }}>
                 {cutin.title}
               </div>
-              <div style={{ fontSize: 18, fontWeight: 900, color: '#FFFFFF', textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>
+              <div style={{ fontSize: 17, fontWeight: 900, color: '#FFFFFF', textShadow: '0 2px 8px rgba(0,0,0,0.8)', margin: '2px 0' }}>
                 {cutin.icon} {cutin.name}
               </div>
-              <div style={{ fontSize: 10, fontWeight: 800, color: '#FFF8E1', marginTop: 2, textShadow: '0 1px 3px #000' }}>
+              <div style={{ fontSize: 10.5, fontWeight: 800, color: '#FFF8E1', textShadow: '0 1px 3px #000', wordBreak: 'keep-all', lineHeight: 1.3 }}>
                 "{cutin.quote}"
               </div>
             </div>
@@ -611,7 +611,7 @@ export default function AsmrBattleArena({
             }}
           />
 
-          {/* ⚡ 치명타 / 스킬 발동 시 다이내믹 컷인 배너 */}
+          {/* ⚡ 치명타 / 스킬 발동 시 다이내믹 컷인 배너 (글박스 짤림 방지) */}
           {currentTurn && (currentTurn.isCrit || currentTurn.skillName) && actionPhase === 'strike' && (
             <div
               key={`cutin-${stepIdx}`}
@@ -624,20 +624,22 @@ export default function AsmrBattleArena({
                 pointerEvents: 'none',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 8,
+                gap: 6,
                 background: currentTurn.isCrit
                   ? 'linear-gradient(90deg, rgba(216, 27, 96, 0.95), rgba(255, 87, 34, 0.95))'
                   : 'linear-gradient(90deg, rgba(255, 152, 0, 0.95), rgba(255, 193, 7, 0.95))',
-                padding: '8px 24px',
+                padding: '6px 18px',
                 borderRadius: 999,
                 boxShadow: '0 4px 20px rgba(0,0,0,0.35), 0 0 15px rgba(255,215,0,0.6)',
                 border: '2px solid #FFFFFF',
                 animation: 'cutinBanner 0.75s ease-out both',
+                maxWidth: '92%',
+                boxSizing: 'border-box',
                 whiteSpace: 'nowrap',
               }}
             >
-              <span style={{ fontSize: 22 }}>{currentTurn.isCrit ? '💥' : '✨'}</span>
-              <span style={{ fontSize: 14, fontWeight: 900, color: '#FFFFFF', letterSpacing: '0.5px' }}>
+              <span style={{ fontSize: 20 }}>{currentTurn.isCrit ? '💥' : '✨'}</span>
+              <span style={{ fontSize: 13, fontWeight: 900, color: '#FFFFFF', letterSpacing: '0.5px' }}>
                 {currentTurn.isCrit ? '🔥 치명타 식감 버스트!' : `⚡ ${currentTurn.skillName || '필살 스킬'}!`}
               </span>
             </div>
@@ -840,17 +842,17 @@ export default function AsmrBattleArena({
           </div>
         </div>
 
-        {/* 1줄 미니멀 실시간 ASMR 사운드 뱃지 (장황한 설명글 대신 사운드와 의성어만 간결하게) */}
+        {/* 1줄 미니멀 실시간 ASMR 사운드 뱃지 (화면 밖 짤림 완전 방지) */}
         <div
           style={{
             position: 'absolute',
             bottom: 6,
             left: '50%',
             transform: 'translateX(-50%)',
-            background: 'rgba(255, 255, 255, 0.94)',
+            background: 'rgba(255, 255, 255, 0.95)',
             border: '1px solid #FFE082',
             borderRadius: 999,
-            padding: '2px 10px',
+            padding: '3px 10px',
             display: 'flex',
             alignItems: 'center',
             gap: 5,
@@ -858,7 +860,11 @@ export default function AsmrBattleArena({
             fontWeight: 800,
             color: '#795548',
             boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
+            maxWidth: '92%',
+            boxSizing: 'border-box',
             whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
             zIndex: 10,
           }}
         >

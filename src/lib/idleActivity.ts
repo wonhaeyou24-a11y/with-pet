@@ -72,12 +72,12 @@ export function sendIdleNotification(title: string, body: string, icon = '/icons
     if (typeof window === 'undefined') return
     if (!('Notification' in window) || Notification.permission !== 'granted') return
 
-    const options: NotificationOptions = {
+    const options = {
       body,
       icon,
       badge: icon,
       tag: 'pet-together-idle',
-    }
+    } as NotificationOptions
 
     // 1. PWA 서비스 워커 백그라운드 푸시 알림 우선 시도 (앱을 나갔을 때도 100% 수신)
     if ('serviceWorker' in navigator) {
@@ -94,6 +94,47 @@ export function sendIdleNotification(title: string, body: string, icon = '/icons
     }
   } catch {
     // 무시 (무중단 원칙)
+  }
+}
+
+// 🔔 진행 중인 훈련 및 타워 탐험 완료 시점을 계산하여 백그라운드 자동 시스템 알림 스케줄링 (100% 자동 동작 보장)
+export function scheduleAutoIdleNotifications(monsterId: string, monsterName: string) {
+  try {
+    if (typeof window === 'undefined' || !('Notification' in window) || Notification.permission !== 'granted') {
+      return
+    }
+
+    // 1. 훈련 세션 완료 자동 알림
+    const train = getActiveTrainingSession(monsterId)
+    if (train && !train.claimed) {
+      const remainingMs = train.finishAt - Date.now()
+      if (remainingMs > 0) {
+        setTimeout(() => {
+          sendIdleNotification(
+            `🧁 [${monsterName}] 훈련 완료 소식!`,
+            `디저트 친구가 "${train.courseName}" 훈련을 무사히 마쳤어요! 얼른 돌아와서 능력치 보상을 획득하세요! ✨`,
+          )
+        }, remainingMs)
+      }
+    }
+
+    // 2. 디저트 타워 탐험 완료 자동 알림
+    const tower = getActiveTowerSession(monsterId)
+    if (tower && !tower.claimed) {
+      const totalSec = tower.secPerFloor * tower.maxFloors
+      const elapsedSec = Math.max(0, Math.floor((Date.now() - tower.startedAt) / 1000))
+      const remainingSec = Math.max(0, totalSec - elapsedSec)
+      if (remainingSec > 0) {
+        setTimeout(() => {
+          sendIdleNotification(
+            `🏰 [${monsterName}] 디저트 타워 탐험 완료!`,
+            `타워 ${tower.startFloor}층부터 ${tower.targetFloor}층까지 전 층을 돌파했습니다! 풍성한 전리품을 수령하세요! 🎁`,
+          )
+        }, remainingSec * 1000)
+      }
+    }
+  } catch {
+    // 무중단
   }
 }
 
@@ -168,6 +209,15 @@ export function saveServerTrainingSession(monsterId: string, course: TrainingCou
   }
   try {
     localStorage.setItem(`${TRAINING_KEY_PREFIX}${monsterId}`, JSON.stringify(sess))
+    const remainMs = finishAt - Date.now()
+    if (remainMs > 0 && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      setTimeout(() => {
+        sendIdleNotification(
+          '🧁 [펫과함께] 훈련 완료 소식!',
+          `디저트 친구가 "${course.name}" 훈련을 무사히 마쳤어요! 능력치가 쑥쑥 자라났습니다.`,
+        )
+      }, remainMs)
+    }
   } catch {
     // 무시
   }
@@ -230,6 +280,15 @@ export function startTowerExpedition(
   }
   try {
     localStorage.setItem(`${TOWER_KEY_PREFIX}${monsterId}`, JSON.stringify(sess))
+    const totalSec = secPerFloor * maxFloors
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      setTimeout(() => {
+        sendIdleNotification(
+          '🏰 [펫과함께] 디저트 타워 탐험 완료!',
+          `타워 ${startFloor}층부터 ${targetFloor}층까지 돌파를 마쳤습니다! 전리품을 수령하세요! 🎁`,
+        )
+      }, totalSec * 1000)
+    }
   } catch {
     // 무시
   }
@@ -285,6 +344,15 @@ export function saveServerTowerSession(
   }
   try {
     localStorage.setItem(`${TOWER_KEY_PREFIX}${monsterId}`, JSON.stringify(sess))
+    const totalSec = s.secPerFloor * s.maxFloors
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      setTimeout(() => {
+        sendIdleNotification(
+          '🏰 [펫과함께] 디저트 타워 탐험 완료!',
+          `타워 ${s.startFloor}층부터 ${s.startFloor + s.maxFloors}층까지 돌파를 마쳤습니다! 전리품을 수령하세요! 🎁`,
+        )
+      }, totalSec * 1000)
+    }
   } catch {
     // 무시
   }

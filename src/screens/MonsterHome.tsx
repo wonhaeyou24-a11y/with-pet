@@ -10,6 +10,7 @@ import {
   getActiveTowerSession,
   getActiveTrainingSession,
   requestNotificationPermission,
+  scheduleAutoIdleNotifications,
   scheduleTestIdleNotification,
   type PetAutonomousSuggestion,
   type TowerExpeditionSession,
@@ -166,6 +167,11 @@ export default function MonsterHome({
   const look = monsterLook(monster)
   const activeSpecies = look.mallang?.morphForm ?? monster.species
   const info = SPECIES_INFO[activeSpecies] ?? SPECIES_INFO[monster.species]
+
+  // 🔔 마운트 시 진행 중인 훈련 및 타워 탐험 자동 백그라운드 알림 예약
+  useEffect(() => {
+    scheduleAutoIdleNotifications(monster.id, monster.name || info?.name || '디저트')
+  }, [monster.id, monster.name, info?.name])
   const [asmrBubble, setAsmrBubble] = useState<string | null>(null)
   const [burstKey, setBurstKey] = useState<number>(0)
   const [combo, setCombo] = useState<number>(1)
@@ -648,7 +654,7 @@ export default function MonsterHome({
           <div
             key={`home-react-${burstKey}`}
             className={burstKey > 0 ? getSensoryReactionClass(soundKind) : ''}
-            style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 10 }}
           >
             {/* 🌟 메인 디저트 펫 강조: 145px ➔ 210px 짤림 없이 시원하게 표시 */}
             <MonsterView look={look} size={210} title={info?.name} />

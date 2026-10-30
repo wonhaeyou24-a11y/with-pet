@@ -430,8 +430,8 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
         height: '100dvh',
         maxHeight: '100dvh',
         overflow: 'hidden',
-        padding: '8px 12px calc(8px + env(safe-area-inset-bottom, 0px))',
-        gap: 6,
+        padding: '4px 10px calc(6px + env(safe-area-inset-bottom, 0px))',
+        gap: 4,
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
@@ -522,14 +522,14 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
           </span>
         </div>
 
-        {/* 🎬 3D 펫 실시간 훈련 액션 & 횡스크롤 탐험 대형 스테이지 (아래로 대폭 확장하여 펫 강조) */}
+        {/* 🎬 3D 펫 실시간 훈련 액션 & 횡스크롤 탐험 대형 스테이지 (공간 극대화) */}
         <div
           className="stage"
           style={{
             alignItems: 'center',
             position: 'relative',
-            height: 'clamp(210px, 34dvh, 320px)',
-            minHeight: 210,
+            height: 'clamp(240px, 38dvh, 360px)',
+            minHeight: 240,
             padding: 0,
             cursor: 'pointer',
             borderRadius: 14,
@@ -676,7 +676,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                   >
                     {liveActionPhase % 2 === 0 ? '🪙 +12 코인!' : '✨ EXP +35!'}
                   </div>
-                  <MonsterView look={look} size={195} title={info?.name} />
+                  <MonsterView look={look} size={200} title={info?.name} />
                   <div
                     style={{
                       width: 80,
@@ -983,7 +983,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                   </div>
                 )}
 
-                <MonsterView look={look} size={195} title={info?.name} />
+                <MonsterView look={look} size={200} title={info?.name} />
 
                 {/* 발밑 도마/반죽 섀도우 */}
                 <div
@@ -1071,11 +1071,11 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
       <div
         className="card"
         style={{
-          padding: '8px 10px',
-          gap: 6,
+          padding: '6px 8px',
+          gap: 4,
           background: '#FFFDF9',
           border: '1.5px solid #F0DFB8',
-          borderRadius: 16,
+          borderRadius: 14,
           flex: 1,
           minHeight: 0,
           overflowY: 'auto',
@@ -1086,7 +1086,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
         }}
       >
         {/* 상단 탭 3버튼 (슬림 컴팩트) */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, flexShrink: 0, paddingBottom: 2 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5, flexShrink: 0, paddingBottom: 1 }}>
           <button
             onClick={() => setActiveTab('courses')}
             style={{
@@ -1419,70 +1419,71 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
         )}
 
         {/* ======================================================== */}
-        {/* 탭 2: 🏰 디저트 타워 (가로 층 이동 지도 & 자율 탐사) */}
+        {/* 탭 2: 🏰 디저트 타워 (여유공간에 맞게 가로지도 확대 & 자율 탐사) */}
         {/* ======================================================== */}
         {activeTab === 'tower' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, justifyContent: 'space-between' }}>
-            {/* 가로 진행 지도 (슬림화) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, justifyContent: 'space-between' }}>
+            {/* 가로 진행 지도 (여유 공간에 맞게 시원하게 확대) */}
             <div
               style={{
                 position: 'relative',
-                height: 38,
+                height: 60,
                 background: 'linear-gradient(180deg, #F3E8FF 0%, #EDE7F6 100%)',
-                borderRadius: 10,
-                border: '1px solid #C084FC',
-                padding: '0 10px',
+                borderRadius: 12,
+                border: '1.5px solid #C084FC',
+                padding: '0 14px',
                 display: 'flex',
                 alignItems: 'center',
+                boxShadow: '0 2px 6px rgba(124,77,255,0.08)',
               }}
             >
               {/* 레일 바 */}
-              <div style={{ position: 'absolute', left: 12, right: 12, height: 4, background: '#D1C4E9', borderRadius: 999 }} />
+              <div style={{ position: 'absolute', left: 16, right: 16, height: 6, background: '#D1C4E9', borderRadius: 999 }} />
               {/* 진행률 궤적 */}
               <div
                 style={{
                   position: 'absolute',
-                  left: 12,
+                  left: 16,
                   width: towerSession
                     ? `${Math.min(92, Math.max(8, Math.round(((towerSession.currentFloor - towerSession.startFloor) / (towerSession.targetFloor - towerSession.startFloor || 1)) * 100)))}%`
                     : '10%',
-                  height: 4,
+                  height: 6,
                   background: 'linear-gradient(90deg, #FFB300, #7E57C2)',
                   borderRadius: 999,
                   transition: 'width 0.4s ease',
                 }}
               />
 
-              {/* 체크포인트 마커 */}
+              {/* 체크포인트 마커 (시원한 크기) */}
               <div style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'space-between', zIndex: 2 }}>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 9 }}>🚩</div>
-                  <div style={{ fontSize: 7, fontWeight: 800, color: '#5E35B1' }}>{baseFloor}F</div>
+                  <div style={{ fontSize: 16, lineHeight: 1.1 }}>🚩</div>
+                  <div style={{ fontSize: 10, fontWeight: 900, color: '#5E35B1', marginTop: 2 }}>{baseFloor}F</div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 9 }}>🍬</div>
-                  <div style={{ fontSize: 7, fontWeight: 700, color: '#7E57C2' }}>젤리</div>
+                  <div style={{ fontSize: 16, lineHeight: 1.1 }}>🍬</div>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: '#7E57C2', marginTop: 2 }}>젤리존</div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 9 }}>🎁</div>
-                  <div style={{ fontSize: 7, fontWeight: 700, color: '#7E57C2' }}>보물</div>
+                  <div style={{ fontSize: 16, lineHeight: 1.1 }}>🎁</div>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: '#7E57C2', marginTop: 2 }}>보물방</div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 9 }}>👹</div>
-                  <div style={{ fontSize: 7, fontWeight: 700, color: '#7E57C2' }}>수호자</div>
+                  <div style={{ fontSize: 16, lineHeight: 1.1 }}>👹</div>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: '#7E57C2', marginTop: 2 }}>수호자</div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 9 }}>🏁</div>
-                  <div style={{ fontSize: 7, fontWeight: 900, color: '#4527A0' }}>{baseFloor + 3}F</div>
+                  <div style={{ fontSize: 16, lineHeight: 1.1 }}>🏁</div>
+                  <div style={{ fontSize: 10, fontWeight: 900, color: '#4527A0', marginTop: 2 }}>{baseFloor + 3}F</div>
                 </div>
               </div>
             </div>
 
-            {/* 타워 층 정보 요약 카드 (슬림화) */}
+            {/* 타워 층 정보 요약 카드 (여유 공간에 맞춰 정갈한 패딩) */}
             <div
               style={{
-                padding: '4px 8px',
-                borderRadius: 8,
+                padding: '6px 10px',
+                borderRadius: 10,
                 background: currentFloorInfo.isBoss ? '#FFF0EE' : '#F9F5FF',
                 border: currentFloorInfo.isBoss ? '1.5px solid #FF8A80' : '1px solid #D1C4E9',
                 display: 'flex',
@@ -1491,23 +1492,23 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
               }}
             >
               <div>
-                <span style={{ fontSize: 10, fontWeight: 900, color: '#3E2723' }}>
+                <span style={{ fontSize: 11, fontWeight: 900, color: '#3E2723' }}>
                   {towerSession
                     ? towerDone
                       ? `🏁 ${towerSession.maxFloors}개 층 돌파 완료! 전리품 수령`
                       : `🏃 ${towerSession.startFloor}층 진격 · ${towerFloorsDone}/${towerSession.maxFloors}층 돌파 (${towerNextIn}초)`
                     : `수호자: ${currentFloorInfo.enemy}`}
                 </span>
-                <div style={{ fontSize: 9, color: '#7E57C2', fontWeight: 800 }}>
+                <div style={{ fontSize: 10, color: '#7E57C2', fontWeight: 800, marginTop: 1 }}>
                   권장 ⚔️ {currentFloorInfo.reqCp} · 보상 +{currentFloorInfo.rewardExp} EXP
                 </div>
               </div>
-              <span className="chip honey" style={{ fontSize: 9, fontWeight: 900, padding: '2px 5px' }}>
+              <span className="chip honey" style={{ fontSize: 10, fontWeight: 900, padding: '3px 7px' }}>
                 🪙 +{currentFloorInfo.rewardCoins}
               </span>
             </div>
 
-            {/* 타워 출발 / 복귀 버튼 (슬림화) */}
+            {/* 타워 출발 / 복귀 버튼 */}
             {towerSession ? (
               <button
                 disabled={busy}
@@ -1516,15 +1517,15 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                   position: 'sticky',
                   bottom: 0,
                   zIndex: 6,
-                  minHeight: 44,
-                  padding: '9px 0',
+                  minHeight: 46,
+                  padding: '10px 0',
                   width: '100%',
                   borderRadius: 12,
                   border: 'none',
                   background: 'linear-gradient(180deg, #9575FF 0%, #6A3DF0 100%)',
                   color: '#FFFFFF',
                   fontWeight: 900,
-                  fontSize: 14,
+                  fontSize: 14.5,
                   cursor: 'pointer',
                   boxShadow: '0 3px 0 #4527A0, 0 4px 8px rgba(106,61,240,0.25)',
                   touchAction: 'manipulation',
@@ -1533,7 +1534,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                 {busy ? '⏳ 전리품 받는 중…' : towerDone ? '🏁 탐험 완료 & 전리품 수령!' : towerFloorsDone >= 1 ? `↩️ 지금 돌아가기 (${towerFloorsDone}개 층 전리품)` : '⏳ 진격 중…'}
               </button>
             ) : tooTired ? (
-              <div className="row between" style={{ background: '#FFF0EE', padding: '4px 6px', borderRadius: 8, border: '1px dashed #D9534F' }}>
+              <div className="row between" style={{ background: '#FFF0EE', padding: '5px 8px', borderRadius: 8, border: '1px dashed #D9534F' }}>
                 <span style={{ fontSize: 10, fontWeight: 800, color: '#D9534F' }}>💤 노곤함이 높아 탐험 불가!</span>
                 <button onClick={onGoRest} style={{ padding: '3px 6px', fontSize: 10, borderRadius: 6, border: 'none', background: '#00897B', color: '#FFFFFF', fontWeight: 900, cursor: 'pointer' }}>
                   🌙 휴식하기
@@ -1547,15 +1548,15 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                   position: 'sticky',
                   bottom: 0,
                   zIndex: 6,
-                  minHeight: 44,
-                  padding: '9px 8px',
+                  minHeight: 46,
+                  padding: '10px 8px',
                   width: '100%',
                   borderRadius: 12,
                   border: 'none',
                   background: 'linear-gradient(180deg, #9575FF 0%, #6A3DF0 100%)',
                   color: '#FFFFFF',
                   fontWeight: 900,
-                  fontSize: 14,
+                  fontSize: 14.5,
                   cursor: 'pointer',
                   boxShadow: '0 3px 0 #4527A0, 0 5px 10px rgba(106,61,240,0.25)',
                   touchAction: 'manipulation',

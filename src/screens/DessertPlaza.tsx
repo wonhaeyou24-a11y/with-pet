@@ -39,6 +39,28 @@ const CENTER_Y = CANVAS_H / 2
 // 4계절 및 이벤트 테마 설정
 export type PlazaThemeId = 'autumn' | 'spring' | 'summer' | 'winter' | 'halloween' | 'christmas'
 
+// 🌍 현실 계절(봄·여름·가을·겨울) 및 실제 이벤트 날짜(할로윈·크리스마스) 기반 실시간 자동 테마 결정
+export function getAutoPlazaTheme(): PlazaThemeId {
+  const now = new Date()
+  const month = now.getMonth() + 1 // 1 ~ 12
+  const day = now.getDate()
+
+  // 🎃 이벤트 1: 할로윈 축제 시즌 (10월 20일 ~ 11월 2일)
+  if ((month === 10 && day >= 20) || (month === 11 && day <= 2)) {
+    return 'halloween'
+  }
+  // 🎄 이벤트 2: 크리스마스 & 연말 축제 시즌 (12월 15일 ~ 12월 31일)
+  if (month === 12 && day >= 15) {
+    return 'christmas'
+  }
+
+  // 🌸 사계절: 한국 표준 기상 시즌
+  if (month >= 3 && month <= 5) return 'spring'
+  if (month >= 6 && month <= 8) return 'summer'
+  if (month >= 9 && month <= 11) return 'autumn'
+  return 'winter'
+}
+
 export interface PlazaThemeConfig {
   id: PlazaThemeId
   name: string
@@ -213,7 +235,7 @@ export default function DessertPlaza({
   const [selectedIdx, setSelectedIdx] = useState<number>(0)
   const [likedIds, setLikedIds] = useState<Record<string, boolean>>({})
   const [toast, setToast] = useState<string | null>(null)
-  const [currentTheme, setCurrentTheme] = useState<PlazaThemeId>('autumn')
+  const [currentTheme, setCurrentTheme] = useState<PlazaThemeId>(() => getAutoPlazaTheme())
   const [showThemeModal, setShowThemeModal] = useState<boolean>(false)
 
   // 🐾 펫 산책 발자국 상태 (CSS fade-out으로 React 리렌더 루프를 제거하여 60FPS 극상의 부드러움 달성)
@@ -1152,8 +1174,39 @@ export default function DessertPlaza({
               🍂 사계절 & 이벤트 광장 테마
             </h3>
             <div style={{ fontSize: 11, color: '#8D6E63' }}>
-              계절의 변화와 다채로운 축제 공간으로 광장을 언제든 꾸며보세요!
+              현실 날짜와 계절에 맞춰 광장이 자동으로 변합니다!
             </div>
+
+            {/* 🌿 현실 계절 & 이벤트 실시간 자동 맞춤 버튼 */}
+            <button
+              onClick={() => {
+                const autoTheme = getAutoPlazaTheme()
+                playDessertAsmr('acorn-snap')
+                setCurrentTheme(autoTheme)
+                setShowThemeModal(false)
+                showToast(`🌿 현재 실제 날짜에 맞춰 [${PLAZA_THEMES[autoTheme].name}]으로 자동 동기화되었습니다!`)
+              }}
+              style={{
+                padding: '8px 10px',
+                borderRadius: 12,
+                border: '1.5px solid #4CAF50',
+                background: 'linear-gradient(90deg, #E8F5E9 0%, #C8E6C9 100%)',
+                color: '#1B5E20',
+                fontWeight: 900,
+                fontSize: 12,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                cursor: 'pointer',
+                boxShadow: '0 2px 4px rgba(76,175,80,0.2)',
+              }}
+            >
+              <span>🌿 현실 계절·이벤트 자동 맞춤</span>
+              <span className="chip" style={{ fontSize: 10, padding: '1px 6px', background: '#FFF' }}>
+                {PLAZA_THEMES[getAutoPlazaTheme()].icon} 추천
+              </span>
+            </button>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginTop: 4 }}>
               {(Object.keys(PLAZA_THEMES) as PlazaThemeId[]).map((tid) => {

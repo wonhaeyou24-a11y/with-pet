@@ -1265,8 +1265,8 @@ export default function Monster3DView({
     scene.environment = envTex
 
     const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 30)
-    camera.position.set(0, 0.26, 5.2)
-    camera.lookAt(0, -0.22, 0)
+    camera.position.set(0, 0.22, 5.25)
+    camera.lookAt(0, -0.28, 0)
 
     // 따뜻한 파티세리 3점 조명
     const ambient = new THREE.AmbientLight('#FFF5E8', 0.78)
@@ -1284,8 +1284,9 @@ export default function Monster3DView({
     bottomBounce.position.set(0, -3.0, 2.0)
     scene.add(bottomBounce)
 
-    // 3D 플레이팅 받침대 + 3D 디저트 캐릭터 조립
+    // 3D 플레이팅 받침대 + 3D 디저트 캐릭터 조립 (위쪽 짤림 방지: 살짝 아래로 내려 넉넉한 헤드룸 확보)
     const stageGroup = new THREE.Group()
+    stageGroup.position.y = -0.16
     scene.add(stageGroup)
 
     const baseGroup = build3DDessertBase(dessertBase)
