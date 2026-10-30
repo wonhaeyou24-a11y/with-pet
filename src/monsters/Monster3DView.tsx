@@ -47,7 +47,7 @@ function getPhysicsProfile(species: string): {
 }
 
 // 스튜디오 반사광용 절차적 환경맵 생성 (유리알 탕후루·왁싱볼·푸딩·젤리의 영롱한 하이라이트용)
-function createPatisserieEnvMap(renderer: THREE.WebGLRenderer): THREE.Texture {
+export function createPatisserieEnvMap(renderer: THREE.WebGLRenderer): THREE.Texture {
   const pmrem = new THREE.PMREMGenerator(renderer)
   const envScene = new THREE.Scene()
   envScene.background = new THREE.Color('#FFF6E8')
@@ -82,7 +82,7 @@ function createPatisserieEnvMap(renderer: THREE.WebGLRenderer): THREE.Texture {
 }
 
 // 3D 케이크·쿠키·푸딩·파르페 받침대 생성
-function build3DDessertBase(baseId: DessertBaseId): THREE.Group {
+export function build3DDessertBase(baseId: DessertBaseId): THREE.Group {
   const group = new THREE.Group()
   group.position.y = -0.92
 
@@ -228,7 +228,7 @@ function build3DDessertBase(baseId: DessertBaseId): THREE.Group {
 }
 
 // 종족별 3D 디저트 캐릭터 메쉬 조립
-function build3DCharacterMesh(
+export function build3DCharacterMesh(
   species: string,
   look: MonsterLook & { mallang?: MallangCustom },
 ): { root: THREE.Group; bodyGroup: THREE.Group; innerLiquid?: THREE.Object3D } {

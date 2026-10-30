@@ -12,6 +12,7 @@ import { PLAZA_SHOWCASE_FRIENDS, type PlazaFriendEntry } from '../lib/battleEngi
 import { playDessertAsmr } from '../lib/sound'
 import { supabase } from '../lib/supabase'
 import MonsterView from '../monsters/MonsterView'
+import MonsterSnapshot from '../monsters/MonsterSnapshot'
 import { BackIcon, ElementIcon } from '../ui/Icons'
 
 interface Props {
@@ -742,12 +743,7 @@ export default function DessertPlaza({
                     }}
                   />
                   <div style={{ position: 'relative', zIndex: 3 }}>
-                    <MonsterView
-                      look={myLook}
-                      size={92}
-                      prefer2D
-                      title={myMonster.name ?? undefined}
-                    />
+                    <MonsterSnapshot look={myLook} size={92} title={myMonster.name ?? undefined} />
                   </div>
                 </div>
 
@@ -891,12 +887,7 @@ export default function DessertPlaza({
                   )}
                   {/* 실제 Three.js 3D 몬스터 (prefer2D: false) */}
                   <div style={{ position: 'relative', zIndex: 3 }}>
-                    <MonsterView
-                      look={fLook}
-                      size={90}
-                      prefer2D
-                      title={friend.monster.name ?? undefined}
-                    />
+                    <MonsterSnapshot look={fLook} size={90} title={friend.monster.name ?? undefined} />
                   </div>
                 </div>
 
