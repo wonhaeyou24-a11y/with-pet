@@ -15,6 +15,8 @@ import EggHome, { type CareFx } from './EggHome'
 import EvolutionRevealScreen from './EvolutionReveal'
 import HatchReveal from './HatchReveal'
 import MonsterDetail from './MonsterDetail'
+import ServerBattle from './ServerBattle'
+import { isRealMonsterId } from '../lib/battleApi'
 import MonsterHome from './MonsterHome'
 import MyRoomScreen from './MyRoomScreen'
 import Naming from './Naming'
@@ -275,6 +277,7 @@ export default function Game({ player }: { player: Player }) {
           myNickname={player.nickname}
           coins={coins}
           onEarnCoins={earnLocalCoins}
+          onCoins={setCoins}
           onChallenge={(friend) => {
             setBattleTarget(friend)
             setSubView('battle')
@@ -285,6 +288,18 @@ export default function Game({ player }: { player: Player }) {
       )
     }
     if (subView === 'battle') {
+      // 실제 서비스에서 실제 지인과의 대전은 서버가 시드·결과·보상을 정한다. 연습 상대(NPC)는 화면에서만 재생한다.
+      if (!IS_DEV_MOCK && isRealMonsterId(battleTarget.monster.id)) {
+        return (
+          <ServerBattle
+            challenger={monster}
+            defender={battleTarget.monster}
+            defenderOwnerName={battleTarget.ownerNickname}
+            onCoins={setCoins}
+            onBack={() => setSubView('plaza')}
+          />
+        )
+      }
       return (
         <AsmrBattleArena
           challenger={monster}

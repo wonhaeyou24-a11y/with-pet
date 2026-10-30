@@ -8,7 +8,7 @@ import { addRibbonCoins } from '../config/boutique'
 import { recordMissionAction } from '../config/missions'
 import { SPECIES_INFO } from '../config/species'
 import { monsterLook, type MonsterRow } from '../lib/api'
-import { simulateAsmrBattle } from '../lib/battleEngine'
+import { simulateAsmrBattle, type BattleSimulationResult } from '../lib/battleEngine'
 import { playDessertAsmr } from '../lib/sound'
 import MonsterView from '../monsters/MonsterView'
 import { BackIcon, ElementIcon } from '../ui/Icons'
@@ -19,6 +19,9 @@ interface Props {
   defender: MonsterRow
   defenderOwnerName: string
   initialSeed?: number
+  // 실제 서비스: 서버가 정한 결과(시드·턴 기록)를 그대로 재생한다
+  precomputed?: BattleSimulationResult
+  onRematch?: () => void
   onRewardClaimed?: (coinsEarned: number) => void
   onBack: () => void
 }
@@ -28,6 +31,8 @@ export default function AsmrBattleArena({
   defender,
   defenderOwnerName,
   initialSeed,
+  precomputed,
+  onRematch,
   onRewardClaimed,
   onBack,
 }: Props) {
@@ -53,7 +58,7 @@ export default function AsmrBattleArena({
   const [showHighlightModal, setShowHighlightModal] = useState<boolean>(false)
   const [copiedClipToast, setCopiedClipToast] = useState<boolean>(false)
 
-  const sim = useMemo(() => simulateAsmrBattle(challenger, defender, seed), [challenger, defender, seed])
+  const sim = useMemo(() => precomputed ?? simulateAsmrBattle(challenger, defender, seed), [precomputed, challenger, defender, seed])
   const currentTurn = stepIdx > 0 ? sim.turns[stepIdx - 1] : null
   const isFinished = stepIdx >= sim.turns.length
 
@@ -129,7 +134,8 @@ export default function AsmrBattleArena({
       if (nextStep >= sim.turns.length && !rewarded) {
         setRewarded(true)
         const isWin = sim.winner === 'challenger'
-        onRewardClaimed?.(isWin ? 30 : 15)
+        // 서버 결과를 보는 중이면 코인은 서버가 이미 지급했다
+        if (!precomputed) onRewardClaimed?.(isWin ? 30 : 15)
         addRibbonCoins(isWin ? 30 : 10, '친선 대전 보상')
         recordMissionAction('d-battle', 1)
         if (isWin) recordMissionAction('w-battle-win', 1)
@@ -170,6 +176,10 @@ export default function AsmrBattleArena({
   }
 
   function handleRematchNewSeed() {
+    if (precomputed && onRematch) {
+      onRematch()
+      return
+    }
     setSeed(Math.floor(100000 + Math.random() * 899999))
     setStepIdx(0)
     setPlaying(true)

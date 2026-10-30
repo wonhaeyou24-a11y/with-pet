@@ -12,6 +12,8 @@ import { PLAZA_SHOWCASE_FRIENDS, type PlazaFriendEntry } from '../lib/battleEngi
 import { playDessertAsmr } from '../lib/sound'
 import { supabase } from '../lib/supabase'
 import MonsterView from '../monsters/MonsterView'
+import { callBattle, isRealMonsterId } from '../lib/battleApi'
+import { IS_DEV_MOCK } from '../lib/devMode'
 import MonsterSnapshot from '../monsters/MonsterSnapshot'
 import { BackIcon, ElementIcon } from '../ui/Icons'
 
@@ -20,6 +22,8 @@ interface Props {
   myNickname: string
   coins: number
   onEarnCoins: (delta: number) => void
+  // 서버가 알려 준 코인 총액 (한입 투표 보상)
+  onCoins?: (coins: number) => void
   onChallenge: (friend: PlazaFriendEntry) => void
   onOpenSkillTree: () => void
   onBack: () => void
@@ -188,6 +192,7 @@ export default function DessertPlaza({
   myMonster,
   coins,
   onEarnCoins,
+  onCoins,
   onChallenge,
   onBack,
 }: Props) {
@@ -330,6 +335,19 @@ export default function DessertPlaza({
   const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map())
   const pinchDistRef = useRef<number | null>(null)
 
+  // 실제 서비스: 오늘 이미 투표한 지인은 서버 기준으로 표시한다
+  useEffect(() => {
+    if (IS_DEV_MOCK) return
+    let cancelled = false
+    callBattle('status').then((res) => {
+      if (cancelled || !res.ok || !res.votedIds) return
+      setLikedIds(Object.fromEntries(res.votedIds.map((id) => [id, true])))
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   // DB에 등록된 지인들의 몬스터 불러오기
   useEffect(() => {
     let cancelled = false
@@ -391,10 +409,31 @@ export default function DessertPlaza({
     })
   }
 
-  function handleVote(friend: PlazaFriendEntry) {
+  async function handleVote(friend: PlazaFriendEntry) {
     const fid = friend.monster.id
     if (likedIds[fid]) {
       showToast('이미 오늘 한입 투표를 보냈어요!')
+      return
+    }
+    if (!IS_DEV_MOCK) {
+      playDessertAsmr('mochi-squish', 2)
+      // 연습 상대(NPC)는 서버에 없는 캐릭터라 보상·기록 없이 응원만 한다
+      if (!isRealMonsterId(fid)) {
+        setLikedIds((prev) => ({ ...prev, [fid]: true }))
+        setEntries((list) => list.map((it) => (it.monster.id === fid ? { ...it, likes: it.likes + 1 } : it)))
+        showToast('🥄 연습 상대에게 응원을 보냈어요! (코인 보상은 실제 지인에게만 있어요)')
+        return
+      }
+      setLikedIds((prev) => ({ ...prev, [fid]: true }))
+      const res = await callBattle('vote', { monsterId: fid })
+      if (!res.ok) {
+        if (res.code !== 'voted') setLikedIds((prev) => ({ ...prev, [fid]: false }))
+        showToast(res.message ?? '잠시 후 다시 시도해 주세요.')
+        return
+      }
+      setEntries((list) => list.map((it) => (it.monster.id === fid ? { ...it, likes: res.likes ?? it.likes + 1 } : it)))
+      if (res.coins !== undefined) onCoins?.(res.coins)
+      showToast(`🥄 [${friend.ownerNickname}]님에게 달콤한 한입 응원 전달!${res.reward ? ` (+${res.reward} 코인)` : ''}`)
       return
     }
     playDessertAsmr('mochi-squish', 2)

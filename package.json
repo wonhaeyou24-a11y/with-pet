@@ -9,7 +9,8 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "sound:lab": "node scripts/sound-lab.mjs",
-    "test:care": "node scripts/test-care.mjs"
+    "test:care": "node scripts/test-care.mjs",
+    "test:battle": "node scripts/test-battle.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",
