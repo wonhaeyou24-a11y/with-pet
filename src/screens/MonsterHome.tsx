@@ -43,6 +43,89 @@ type Props = {
   onLogout?: () => void
 }
 
+// 하단 메뉴용 입체 타일: 모든 메뉴가 같은 높이·모서리·그림자를 쓴다
+function MenuTile({
+  icon,
+  title,
+  sub,
+  from,
+  to,
+  rim,
+  badge,
+  onClick,
+}: {
+  icon: string
+  title: string
+  sub: string
+  from: string
+  to: string
+  rim: string
+  badge?: string
+  onClick?: () => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        minHeight: 50,
+        padding: '6px 10px',
+        borderRadius: 16,
+        border: 'none',
+        background: `linear-gradient(180deg, ${from} 0%, ${to} 100%)`,
+        boxShadow: `0 4px 0 ${rim}, 0 7px 12px rgba(0,0,0,0.14)`,
+        color: '#FFFFFF',
+        cursor: 'pointer',
+        textAlign: 'left',
+        touchAction: 'manipulation',
+        minWidth: 0,
+      }}
+    >
+      <span
+        style={{
+          width: 34,
+          height: 34,
+          flexShrink: 0,
+          display: 'grid',
+          placeItems: 'center',
+          borderRadius: '50%',
+          background: 'rgba(255,255,255,0.88)',
+          boxShadow: 'inset 0 -2px 0 rgba(0,0,0,0.08)',
+          fontSize: 19,
+          lineHeight: 1,
+        }}
+      >
+        {icon}
+      </span>
+      <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0, lineHeight: 1.15 }}>
+        <span style={{ fontSize: 14, fontWeight: 900, whiteSpace: 'nowrap', textShadow: '0 1px 0 rgba(0,0,0,0.18)' }}>{title}</span>
+        <span style={{ fontSize: 10, fontWeight: 800, opacity: 0.92, whiteSpace: 'nowrap' }}>{sub}</span>
+      </span>
+      {badge && (
+        <span
+          style={{
+            position: 'absolute',
+            top: -6,
+            right: -4,
+            background: '#FF1744',
+            color: '#FFFFFF',
+            fontSize: 10,
+            fontWeight: 900,
+            padding: '2px 7px',
+            borderRadius: 999,
+            boxShadow: '0 2px 0 #B71C1C',
+          }}
+        >
+          {badge}
+        </span>
+      )}
+    </button>
+  )
+}
+
 export default function MonsterHome({
   nickname,
   monster,
@@ -642,225 +725,25 @@ export default function MonsterHome({
         <StatBars stats={monster.stats} compact />
       </div>
 
-      {/* 4-1. 싸이월드 감성 마이룸 & 부티크 프리미엄 빌리지 바 (임팩트 업그레이드) */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 6, flexShrink: 0 }}>
-        <button
-          onClick={onOpenMyRoom}
-          style={{
-            padding: '10px 12px',
-            borderRadius: 14,
-            border: '2px solid #F472B6',
-            background: 'linear-gradient(135deg, #FFF0F5 0%, #FCE7F3 60%, #FBCFE8 100%)',
-            color: '#831843',
-            fontSize: 13,
-            fontWeight: 900,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            boxShadow: '0 3px 0 #F472B6, 0 4px 10px rgba(244,114,182,0.25)',
-            transition: 'transform 0.1s ease',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 20 }}>🏰</span>
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ lineHeight: 1.1 }}>나만의 미니룸</div>
-              <div style={{ fontSize: 9, color: '#DB2777', fontWeight: 800 }}>싸이월드 감성·방명록</div>
-            </div>
-          </div>
-          <span style={{ fontSize: 11, background: '#FFFFFF', padding: '2px 6px', borderRadius: 8, color: '#BE185D', fontWeight: 900 }}>
-            GO
-          </span>
-        </button>
-
-        <button
-          onClick={onOpenBoutique}
-          style={{
-            padding: '10px 12px',
-            borderRadius: 14,
-            border: '2px solid #FB7185',
-            background: 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 60%, #FECDD3 100%)',
-            color: '#881337',
-            fontSize: 13,
-            fontWeight: 900,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            boxShadow: '0 3px 0 #FB7185, 0 4px 10px rgba(251,113,133,0.25)',
-            transition: 'transform 0.1s ease',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 20 }}>🛍️</span>
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ lineHeight: 1.1 }}>부티크 상점</div>
-              <div style={{ fontSize: 9, color: '#E11D48', fontWeight: 800 }}>3D 피팅룸</div>
-            </div>
-          </div>
-          <span style={{ fontSize: 10, background: '#FFFFFF', padding: '2px 5px', borderRadius: 8, color: '#9F1239', fontWeight: 900, whiteSpace: 'nowrap' }}>
-            SHOP
-          </span>
-        </button>
-      </div>
-
-      {/* 4-2. 진화의 전당 & 디저트 도감 슬림 바 */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, flexShrink: 0 }}>
-        <button
+      {/* 4. 하단 메뉴 8개: 모두 같은 입체 타일 (아이콘 원 + 제목 + 보조 글) */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7, flexShrink: 0 }}>
+        <MenuTile icon="🍓" title="토핑 · 돌보기" sub="밥·놀기·씻기" from="#FF8A65" to="#E64A19" rim="#BF360C" onClick={onOpenCare} />
+        <MenuTile icon="🧁" title="파티세리 훈련" sub="능력치 UP·타워" from="#4DB6AC" to="#00897B" rim="#00695C" onClick={onOpenTrain} />
+        <MenuTile icon="🌈" title="식감 스킬트리" sub="스킬 배우기" from="#9575CD" to="#673AB7" rim="#4527A0" onClick={onOpenSkills} />
+        <MenuTile icon="🏆" title="광장 · 대전" sub="지인 구경·친선전" from="#FFB74D" to="#F57C00" rim="#E65100" onClick={onOpenPlaza} />
+        <MenuTile icon="🏰" title="나만의 미니룸" sub="방명록·꾸미기" from="#F472B6" to="#DB2777" rim="#9D174D" onClick={onOpenMyRoom} />
+        <MenuTile icon="🛍️" title="부티크 상점" sub="3D 피팅룸" from="#FB7185" to="#E11D48" rim="#9F1239" onClick={onOpenBoutique} />
+        <MenuTile
+          icon="✨"
+          title={evoEligibility.canEvolve ? '진화 가능!' : '진화의 전당'}
+          sub={`${monster.evo_stage ?? 1}단계`}
+          badge={evoEligibility.canEvolve ? 'UP!' : undefined}
+          from="#FBBF24"
+          to="#F59E0B"
+          rim="#B45309"
           onClick={onOpenEvolution}
-          style={{
-            padding: '10px 12px',
-            borderRadius: 14,
-            border: '2px solid #FBBF24',
-            background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 60%, #FDE68A 100%)',
-            color: '#78350F',
-            fontSize: 13,
-            fontWeight: 900,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            boxShadow: '0 3px 0 #FBBF24, 0 4px 10px rgba(251,191,36,0.25)',
-            transition: 'transform 0.1s ease',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-            <span style={{ fontSize: 20 }}>✨</span>
-            <div style={{ textAlign: 'left', whiteSpace: 'nowrap' }}>
-              <div style={{ lineHeight: 1.1 }}>{evoEligibility.canEvolve ? '진화 가능!' : '진화의 전당'}</div>
-              <div style={{ fontSize: 9, color: '#B45309', fontWeight: 800 }}>{monster.evo_stage ?? 1}단계</div>
-            </div>
-          </div>
-          <span style={{ fontSize: 10, background: '#FFFFFF', padding: '2px 5px', borderRadius: 8, color: '#B45309', fontWeight: 900, whiteSpace: 'nowrap' }}>
-            {evoEligibility.canEvolve ? 'UP!' : 'EVO'}
-          </span>
-        </button>
-
-        <button
-          onClick={onOpenDex}
-          style={{
-            padding: '10px 12px',
-            borderRadius: 14,
-            border: '2px solid #34D399',
-            background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 60%, #A7F3D0 100%)',
-            color: '#064E3B',
-            fontSize: 13,
-            fontWeight: 900,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            boxShadow: '0 3px 0 #34D399, 0 4px 10px rgba(52,211,153,0.25)',
-            transition: 'transform 0.1s ease',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-            <span style={{ fontSize: 20 }}>📖</span>
-            <div style={{ textAlign: 'left', whiteSpace: 'nowrap' }}>
-              <div style={{ lineHeight: 1.1 }}>디저트 도감</div>
-              <div style={{ fontSize: 9, color: '#047857', fontWeight: 800 }}>모아보기</div>
-            </div>
-          </div>
-          <span style={{ fontSize: 10, background: '#FFFFFF', padding: '2px 5px', borderRadius: 8, color: '#047857', fontWeight: 900, whiteSpace: 'nowrap' }}>
-            DEX
-          </span>
-        </button>
-      </div>
-
-      {/* 5. 하단 4대 핵심 액션 버튼 (쫀득한 3D 입체 젤리 푸시 버튼) */}
-      <div className="grid-2" style={{ gap: 7, flexShrink: 0 }}>
-        <button
-          onClick={onOpenCare}
-          style={{
-            padding: '11px 8px',
-            borderRadius: 14,
-            border: '2px solid #FF8A65',
-            background: 'linear-gradient(180deg, #FF7043 0%, #D84315 100%)',
-            color: '#FFFFFF',
-            fontSize: 13,
-            fontWeight: 900,
-            cursor: 'pointer',
-            boxShadow: '0 4px 0 #BF360C, 0 6px 14px rgba(216,67,21,0.3)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 5,
-            minHeight: 48,
-          }}
-        >
-          <span style={{ fontSize: 18 }}>🍓</span>
-          <span>토핑 · 돌보기</span>
-        </button>
-
-        <button
-          onClick={onOpenTrain}
-          style={{
-            padding: '11px 8px',
-            borderRadius: 14,
-            border: '2px solid #4DB6AC',
-            background: 'linear-gradient(180deg, #26A69A 0%, #00897B 100%)',
-            color: '#FFFFFF',
-            fontSize: 13,
-            fontWeight: 900,
-            cursor: 'pointer',
-            boxShadow: '0 4px 0 #00695C, 0 6px 14px rgba(0,137,123,0.3)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 5,
-            minHeight: 48,
-          }}
-        >
-          <span style={{ fontSize: 18 }}>🧁</span>
-          <span>파티세리 훈련</span>
-        </button>
-
-        <button
-          onClick={onOpenSkills}
-          style={{
-            padding: '11px 8px',
-            borderRadius: 14,
-            border: '2px solid #B388FF',
-            background: 'linear-gradient(180deg, #9575CD 0%, #673AB7 100%)',
-            color: '#FFFFFF',
-            fontSize: 13,
-            fontWeight: 900,
-            cursor: 'pointer',
-            boxShadow: '0 4px 0 #4527A0, 0 6px 14px rgba(103,58,183,0.3)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 5,
-            minHeight: 48,
-          }}
-        >
-          <span style={{ fontSize: 18 }}>🌈</span>
-          <span>식감 스킬트리</span>
-        </button>
-
-        <button
-          onClick={onOpenPlaza}
-          style={{
-            padding: '11px 8px',
-            borderRadius: 14,
-            border: '2px solid #FFB74D',
-            background: 'linear-gradient(180deg, #FFA726 0%, #FB8C00 100%)',
-            color: '#FFFFFF',
-            fontSize: 13,
-            fontWeight: 900,
-            cursor: 'pointer',
-            boxShadow: '0 4px 0 #E65100, 0 6px 14px rgba(251,140,0,0.35)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 5,
-            minHeight: 48,
-          }}
-        >
-          <span style={{ fontSize: 18 }}>🏆</span>
-          <span>광장 · ASMR 대전</span>
-        </button>
+        />
+        <MenuTile icon="📖" title="디저트 도감" sub="모아보기" from="#34D399" to="#059669" rim="#047857" onClick={onOpenDex} />
       </div>
 
       {/* 미션 모달 */}

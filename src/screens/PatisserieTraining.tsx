@@ -29,7 +29,7 @@ import {
 import { playDessertAsmr, type DessertSoundKind } from '../lib/sound'
 import MonsterView from '../monsters/MonsterView'
 import { BackIcon } from '../ui/Icons'
-import { StatBars, totalStats } from '../ui/parts'
+import { StatBars } from '../ui/parts'
 
 interface Props {
   monster: MonsterRow
@@ -88,6 +88,8 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
     return Math.max(0, Math.ceil((sess.finishAt - serverNow()) / 1000))
   })
   const trainTimerRef = useRef<number | null>(null)
+  const claimingRef = useRef(false)
+  const lastTouchClaimRef = useRef(0)
   const [liveActionPhase, setLiveActionPhase] = useState<number>(0)
 
   // 2. 디저트 타워 무한 탐험 상태
@@ -247,8 +249,19 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
   }
 
   // 훈련 완료 및 보상 수령
+  // 손가락이 닿는 순간 바로 실행한다 (클릭 이벤트를 기다리지 않는다). 연타해도 한 번만 처리한다.
   async function finishTraining() {
-    if (!trainSession || busy) return
+    if (claimingRef.current) return
+    claimingRef.current = true
+    try {
+      await finishTrainingInner()
+    } finally {
+      claimingRef.current = false
+    }
+  }
+
+  async function finishTrainingInner() {
+    if (!trainSession) return
     setBusy(true)
     setToast('🎁 보상을 받아오는 중이에요…')
     // 서버 응답을 기다리는 동안에도 누른 느낌이 바로 나도록 소리부터 낸다
@@ -1058,33 +1071,41 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
         }}
       >
         {/* 상단 탭 3버튼 */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5, flexShrink: 0 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, flexShrink: 0, paddingBottom: 3 }}>
           <button
             onClick={() => setActiveTab('courses')}
             style={{
-              padding: '6px 4px',
-              borderRadius: 10,
-              border: activeTab === 'courses' ? '2px solid #FF7A59' : '1.5px solid #F0DFB8',
-              background: activeTab === 'courses' ? '#FFF2EC' : '#FFFFFF',
-              fontSize: 11,
+              padding: '12px 2px',
+              minHeight: 50,
+              borderRadius: 14,
+              border: 'none',
+              background: activeTab === 'courses' ? 'linear-gradient(180deg, #FF8A65 0%, #F4511E 100%)' : '#FFFFFF',
+              boxShadow: activeTab === 'courses' ? '0 4px 0 #BF360C, 0 6px 10px rgba(244,81,30,0.25)' : '0 3px 0 #E8D6B0',
+              transform: activeTab === 'courses' ? 'translateY(-1px)' : 'none',
+              fontSize: 13,
               fontWeight: 900,
-              color: activeTab === 'courses' ? '#D84315' : '#3B2F2F',
+              color: activeTab === 'courses' ? '#FFFFFF' : '#3B2F2F',
               cursor: 'pointer',
+              touchAction: 'manipulation',
             }}
           >
-            🧁 5대 훈련 코스
+            🧁 훈련 코스
           </button>
           <button
             onClick={() => setActiveTab('tower')}
             style={{
-              padding: '6px 4px',
-              borderRadius: 10,
-              border: activeTab === 'tower' ? '2px solid #7C4DFF' : '1.5px solid #F0DFB8',
-              background: activeTab === 'tower' ? '#F3E8FF' : '#FFFFFF',
-              fontSize: 11,
+              padding: '12px 2px',
+              minHeight: 50,
+              borderRadius: 14,
+              border: 'none',
+              background: activeTab === 'tower' ? 'linear-gradient(180deg, #9575FF 0%, #6A3DF0 100%)' : '#FFFFFF',
+              boxShadow: activeTab === 'tower' ? '0 4px 0 #4527A0, 0 6px 10px rgba(106,61,240,0.25)' : '0 3px 0 #E8D6B0',
+              transform: activeTab === 'tower' ? 'translateY(-1px)' : 'none',
+              fontSize: 13,
               fontWeight: 900,
-              color: activeTab === 'tower' ? '#5E35B1' : '#3B2F2F',
+              color: activeTab === 'tower' ? '#FFFFFF' : '#3B2F2F',
               cursor: 'pointer',
+              touchAction: 'manipulation',
             }}
           >
             🏰 디저트 타워
@@ -1092,17 +1113,21 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
           <button
             onClick={() => setActiveTab('stats')}
             style={{
-              padding: '6px 4px',
-              borderRadius: 10,
-              border: activeTab === 'stats' ? '2px solid #FF7A59' : '1.5px solid #F0DFB8',
-              background: activeTab === 'stats' ? '#FFF2EC' : '#FFFFFF',
-              fontSize: 11,
+              padding: '12px 2px',
+              minHeight: 50,
+              borderRadius: 14,
+              border: 'none',
+              background: activeTab === 'stats' ? 'linear-gradient(180deg, #4DB6AC 0%, #00897B 100%)' : '#FFFFFF',
+              boxShadow: activeTab === 'stats' ? '0 4px 0 #00695C, 0 6px 10px rgba(0,137,123,0.25)' : '0 3px 0 #E8D6B0',
+              transform: activeTab === 'stats' ? 'translateY(-1px)' : 'none',
+              fontSize: 13,
               fontWeight: 900,
-              color: activeTab === 'stats' ? '#D84315' : '#3B2F2F',
+              color: activeTab === 'stats' ? '#FFFFFF' : '#3B2F2F',
               cursor: 'pointer',
+              touchAction: 'manipulation',
             }}
           >
-            📊 능력치 ({totalStats(monster.stats)})
+            📊 능력치
           </button>
         </div>
 
@@ -1112,7 +1137,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
         {activeTab === 'courses' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, justifyContent: 'space-between' }}>
             {/* 5대 코스 선택 바: 조금 더 크고 두 줄 중앙 배치로 시인성 극대화 */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 5 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6, paddingBottom: 4 }}>
               {TRAINING_COURSES.map((course) => {
                 const isSelected = selectedCourse.id === course.id
                 return (
@@ -1125,14 +1150,15 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                       }
                     }}
                     style={{
-                      padding: '8px 2px',
-                      minHeight: 58,
-                      borderRadius: 12,
-                      border: isSelected ? '2px solid #FF7A59' : '1.5px solid #F0DFB8',
+                      padding: '10px 2px',
+                      minHeight: 84,
+                      borderRadius: 16,
+                      border: isSelected ? '2.5px solid #FF7A59' : '1.5px solid #F0DFB8',
                       background: isSelected
-                        ? 'linear-gradient(180deg, #FFF0E6 0%, #FFE0CC 100%)'
+                        ? 'linear-gradient(180deg, #FFF0E6 0%, #FFD2B8 100%)'
                         : '#FFFFFF',
-                      boxShadow: isSelected ? '0 2px 8px rgba(255,122,89,0.3)' : '0 1px 3px rgba(0,0,0,0.04)',
+                      boxShadow: isSelected ? '0 4px 0 #F4511E, 0 6px 12px rgba(255,122,89,0.3)' : '0 3px 0 #E8D6B0',
+                      touchAction: 'manipulation',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
@@ -1143,10 +1169,10 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                       transition: 'all 0.15s ease',
                     }}
                   >
-                    <span style={{ fontSize: 20 }}>{course.icon}</span>
+                    <span style={{ fontSize: 30, lineHeight: 1 }}>{course.icon}</span>
                     <span
                       style={{
-                        fontSize: 11,
+                        fontSize: 14,
                         fontWeight: 900,
                         color: isSelected ? '#BF360C' : '#3E2723',
                         lineHeight: 1.1,
@@ -1157,7 +1183,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                     </span>
                     <span
                       style={{
-                        fontSize: 9,
+                        fontSize: 11,
                         fontWeight: 800,
                         color: isSelected ? '#D84315' : '#8D6E63',
                         lineHeight: 1,
@@ -1285,7 +1311,16 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
               ) : (
                 <button
                   disabled={busy}
-                  onClick={finishTraining}
+                  onPointerDown={(e) => {
+                    if (e.pointerType === 'mouse') return
+                    lastTouchClaimRef.current = Date.now()
+                    void finishTraining()
+                  }}
+                  onClick={() => {
+                    // 방금 터치로 이미 실행했다면 뒤따라오는 클릭은 무시한다
+                    if (Date.now() - lastTouchClaimRef.current < 800) return
+                    void finishTraining()
+                  }}
                   style={{
                     minHeight: 54,
                     padding: '14px 0',
@@ -1318,16 +1353,18 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                 disabled={busy}
                 onClick={handleStartTraining}
                 style={{
-                  padding: '9px 0',
+                  minHeight: 58,
+                  padding: '14px 0',
                   width: '100%',
-                  borderRadius: 12,
+                  borderRadius: 18,
                   border: 'none',
-                  background: 'linear-gradient(90deg, #FF7043, #FF5722)',
+                  background: 'linear-gradient(180deg, #FF8A65 0%, #F4511E 100%)',
                   color: '#FFFFFF',
                   fontWeight: 900,
-                  fontSize: 13,
+                  fontSize: 16,
                   cursor: 'pointer',
-                  boxShadow: '0 3px 8px rgba(255,87,34,0.3)',
+                  boxShadow: '0 5px 0 #BF360C, 0 8px 14px rgba(244,81,30,0.3)',
+                  touchAction: 'manipulation',
                 }}
               >
                 ⚡ {selectedCourse.name} 훈련 출발 ({fastMode ? '10초' : durationLabel(COURSE_DURATIONS[selectedCourse.id] ?? 150)})
@@ -1427,16 +1464,18 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                 disabled={busy}
                 onClick={finishExplore}
                 style={{
-                  padding: '9px 0',
+                  minHeight: 58,
+                  padding: '14px 0',
                   width: '100%',
-                  borderRadius: 12,
+                  borderRadius: 18,
                   border: 'none',
-                  background: 'linear-gradient(90deg, #7C4DFF, #536DFE)',
+                  background: 'linear-gradient(180deg, #9575FF 0%, #6A3DF0 100%)',
                   color: '#FFFFFF',
                   fontWeight: 900,
-                  fontSize: 13,
+                  fontSize: 16,
                   cursor: 'pointer',
-                  boxShadow: '0 3px 8px rgba(124,77,255,0.3)',
+                  boxShadow: '0 5px 0 #4527A0, 0 8px 14px rgba(106,61,240,0.3)',
+                  touchAction: 'manipulation',
                 }}
               >
                 {busy ? '⏳ 전리품 받는 중…' : '🏁 탐험 완료 & 전리품 수령하기!'}
@@ -1453,16 +1492,18 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                 disabled={busy}
                 onClick={handleStartExplore}
                 style={{
-                  padding: '9px 0',
+                  minHeight: 58,
+                  padding: '14px 8px',
                   width: '100%',
-                  borderRadius: 12,
+                  borderRadius: 18,
                   border: 'none',
-                  background: 'linear-gradient(90deg, #7C4DFF, #651FFF)',
+                  background: 'linear-gradient(180deg, #9575FF 0%, #6A3DF0 100%)',
                   color: '#FFFFFF',
                   fontWeight: 900,
-                  fontSize: 13,
+                  fontSize: 15,
                   cursor: 'pointer',
-                  boxShadow: '0 3px 8px rgba(124,77,255,0.3)',
+                  boxShadow: '0 5px 0 #4527A0, 0 8px 14px rgba(106,61,240,0.3)',
+                  touchAction: 'manipulation',
                 }}
               >
                 🏰 디저트 타워 {towerFloor}층~{towerFloor + 3}층 자율 탐험 출발!{towerEntriesLeft !== null ? ` (오늘 ${towerEntriesLeft}회 남음)` : ''}

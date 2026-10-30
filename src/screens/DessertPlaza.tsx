@@ -503,6 +503,9 @@ export default function DessertPlaza({
         background: '#FFF8E7',
         userSelect: 'none',
         position: 'relative',
+        padding: 0,
+        gap: 0,
+        maxWidth: 'none',
       }}
     >
       {/* 1. 상단 미니멀 바 (계절/이벤트 테마 뱃지 & 코인) */}
@@ -524,9 +527,6 @@ export default function DessertPlaza({
             <h1 className="title" style={{ fontSize: 15, margin: 0 }}>
               {themeObj.icon} {themeObj.name}
             </h1>
-            <div style={{ fontSize: 10, color: '#8D6E63' }}>
-              👆 드래그 탐색 · 🤏 줌인 확대 · 캐릭터 터치
-            </div>
           </div>
         </div>
 
@@ -574,77 +574,6 @@ export default function DessertPlaza({
         onPointerCancel={handlePointerUp}
         onWheel={handleWheel}
       >
-        {/* 우측 상단 줌/초기화 플로팅 컨트롤 */}
-        <div
-          onPointerDown={(e) => e.stopPropagation()}
-          style={{
-            position: 'absolute',
-            right: 10,
-            top: 10,
-            zIndex: 25,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 4,
-          }}
-        >
-          <button
-            onClick={() => setZoom((z) => Math.min(1.85, Number((z + 0.2).toFixed(2))))}
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 10,
-              border: '1.5px solid rgba(0,0,0,0.15)',
-              background: 'rgba(255,255,255,0.92)',
-              color: '#3E2723',
-              fontSize: 18,
-              fontWeight: 900,
-              cursor: 'pointer',
-              boxShadow: '0 3px 8px rgba(0,0,0,0.12)',
-            }}
-          >
-            ＋
-          </button>
-          <button
-            onClick={() => {
-              setZoom(0.85)
-              setPan({ x: 0, y: 0 })
-            }}
-            style={{
-              width: 36,
-              height: 28,
-              padding: 0,
-              whiteSpace: 'nowrap',
-              borderRadius: 8,
-              border: '1.5px solid rgba(0,0,0,0.15)',
-              background: 'rgba(255,255,255,0.92)',
-              color: '#E65100',
-              fontSize: 10,
-              fontWeight: 900,
-              cursor: 'pointer',
-              boxShadow: '0 3px 8px rgba(0,0,0,0.12)',
-            }}
-          >
-            {Math.round(zoom * 100)}%
-          </button>
-          <button
-            onClick={() => setZoom((z) => Math.max(0.65, Number((z - 0.2).toFixed(2))))}
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 10,
-              border: '1.5px solid rgba(0,0,0,0.15)',
-              background: 'rgba(255,255,255,0.92)',
-              color: '#3E2723',
-              fontSize: 18,
-              fontWeight: 900,
-              cursor: 'pointer',
-              boxShadow: '0 3px 8px rgba(0,0,0,0.12)',
-            }}
-          >
-            －
-          </button>
-        </div>
-
         {/* 860x720 대형 2.5D 광장 캔버스 (가을 낙엽 바닥 & 발자국 모션 월드) */}
         <div
           ref={canvasRef}
@@ -956,14 +885,18 @@ export default function DessertPlaza({
 
       {/* 3. 하단 선택된 지인 디저트 프로필 카드 (친선전 & 한입 투표 & 100dvh 무스크롤 안전 여백) */}
       <div
-        className="card tight"
         style={{
           flexShrink: 0,
+          display: 'flex',
+          flexDirection: 'column',
           background: '#FFFDF9',
+          border: 'none',
           borderTop: '2px solid #FFB74D',
-          padding: '8px 12px calc(10px + env(safe-area-inset-bottom, 0px))',
-          gap: 5,
-          boxShadow: '0 -4px 16px rgba(0,0,0,0.06)',
+          borderRadius: '22px 22px 0 0',
+          marginTop: -14,
+          padding: '12px 14px calc(12px + env(safe-area-inset-bottom, 0px))',
+          gap: 8,
+          boxShadow: '0 -6px 18px rgba(0,0,0,0.10)',
           zIndex: 20,
         }}
       >
@@ -1008,12 +941,12 @@ export default function DessertPlaza({
           <button
             onClick={() => handleVote(selectedFriend)}
             style={{
-              padding: '5px 8px',
-              borderRadius: 10,
+              padding: '9px 12px',
+              borderRadius: 12,
               border: '1.5px solid #FF80AB',
               background: likedIds[selectedFriend.monster.id] ? '#FF80AB' : '#FFF0F5',
               color: likedIds[selectedFriend.monster.id] ? '#FFFFFF' : '#C2185B',
-              fontSize: 10,
+              fontSize: 12,
               fontWeight: 900,
               cursor: 'pointer',
               flexShrink: 0,
@@ -1029,8 +962,8 @@ export default function DessertPlaza({
             className="btn"
             onClick={() => onChallenge(selectedFriend)}
             style={{
-              padding: '8px 6px',
-              fontSize: 12,
+              padding: '12px 6px',
+              fontSize: 14,
               fontWeight: 900,
               background: 'linear-gradient(90deg, #FF7A59 0%, #FF9800 100%)',
               color: '#FFFFFF',
@@ -1049,8 +982,8 @@ export default function DessertPlaza({
               setTimeout(() => setToast(null), 3000)
             }}
             style={{
-              padding: '8px 6px',
-              fontSize: 12,
+              padding: '12px 6px',
+              fontSize: 14,
               fontWeight: 900,
               background: 'linear-gradient(90deg, #EC4899 0%, #DB2777 100%)',
               color: '#FFFFFF',
