@@ -4,6 +4,7 @@
 import { useEffect, useState } from 'react'
 import {
   BOUTIQUE_FASHION_ITEMS,
+  BOUTIQUE_PLATING_ITEMS,
   getOwnedBoutiqueItems,
   getRibbonCoins,
   purchaseBoutiqueItem,
@@ -17,13 +18,13 @@ import { monsterLook, type MonsterRow } from '../lib/api'
 import { IS_DEV_MOCK } from '../lib/devMode'
 import { refreshAccount } from '../lib/shopApi'
 import { playDessertAsmr } from '../lib/sound'
-import { loadMallangCustom, saveMallangCustom } from '../monsters/MallangChameleon'
+import { loadMallangCustom, saveMallangCustom, type DessertBaseId } from '../monsters/MallangChameleon'
 import Monster3DView from '../monsters/Monster3DView'
 import type { MonsterDecorations } from '../monsters/types'
 import { BackIcon } from '../ui/Icons'
 import DessertShowroomModal from './DessertShowroomModal'
 
-type BoutiqueTab = 'fashion' | 'interior'
+type BoutiqueTab = 'fashion' | 'plating' | 'interior'
 
 interface Props {
   monster: MonsterRow
@@ -63,8 +64,10 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
     },
   )
   const [selectedFashionItem, setSelectedFashionItem] = useState<BoutiqueItem>(BOUTIQUE_FASHION_ITEMS[0])
+  const [selectedPlatingItem, setSelectedPlatingItem] = useState<BoutiqueItem>(BOUTIQUE_PLATING_ITEMS[0])
   const [selectedTheme, setSelectedTheme] = useState<RoomThemeDef>(ROOM_THEMES[0])
   const [selectedFurniture, setSelectedFurniture] = useState<RoomFurnitureDef | null>(ROOM_FURNITURE_CATALOG[0])
+  const [currentBase, setCurrentBase] = useState<DessertBaseId>(() => savedCustom?.dessertBase ?? 'nest')
 
   const look = monsterLook(monster)
   const previewLook = {
@@ -73,12 +76,50 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
     mallang: {
       ...look.mallang,
       decorations: previewDeco,
+      dessertBase: currentBase,
     },
   }
 
   const showToast = (msg: string) => {
     setToast(msg)
     window.setTimeout(() => setToast(null), 3000)
+  }
+
+  // 플레이팅 받침대 선택 및 착용/해제 토글
+  const handleSelectPlatingItem = (item: BoutiqueItem) => {
+    setSelectedPlatingItem(item)
+    playDessertAsmr(item.soundKind)
+
+    if (item.baseId && (ownedItems.has(item.id) || item.price === 0)) {
+      const isEquipped = currentBase === item.baseId
+      const nextBase: DessertBaseId = isEquipped && item.baseId !== 'nest' ? 'nest' : item.baseId
+      setCurrentBase(nextBase)
+      const currentCustom = loadMallangCustom(monster.id) ?? {}
+      saveMallangCustom(monster.id, { ...currentCustom, dessertBase: nextBase })
+      showToast(isEquipped ? '🪹 기본 둥지로 변경되었습니다.' : `✨ ${item.name}을(를) 착용했습니다!`)
+    }
+  }
+
+  // 플레이팅 받침대 구매
+  const handlePurchasePlating = async (item: BoutiqueItem) => {
+    if (buying) return
+    setBuying(true)
+    const res = await purchaseBoutiqueItem(item.id, item.price)
+    setBuying(false)
+    if (res.success) {
+      playDessertAsmr('sugar-crack')
+      setCoinsState(getRibbonCoins())
+      setOwnedItems(new Set(getOwnedBoutiqueItems()))
+      showToast(`🎉 ${item.name}을(를) 구매했습니다!`)
+
+      if (item.baseId) {
+        setCurrentBase(item.baseId)
+        const currentCustom = loadMallangCustom(monster.id) ?? {}
+        saveMallangCustom(monster.id, { ...currentCustom, dessertBase: item.baseId })
+      }
+    } else {
+      showToast(res.message)
+    }
   }
 
   // 패션 아이템 미리보기 피팅 및 선택 시 착용/해제 토글
@@ -272,13 +313,13 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
         </div>
       </div>
 
-      {/* 2. 메인 탭 전환: 패션 vs 룸 인테리어 */}
+      {/* 2. 메인 탭 전환: 패션 vs 받침대 vs 룸 인테리어 (3열 덱) */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
+          gridTemplateColumns: 'repeat(3, 1fr)',
           padding: '6px 12px 2px',
-          gap: 6,
+          gap: 5,
           background: '#FFF5F7',
           flexShrink: 0,
         }}
@@ -295,12 +336,31 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
             background: tab === 'fashion' ? 'linear-gradient(180deg, #FDF2F8 0%, #FCE7F3 100%)' : '#FFFFFF',
             color: tab === 'fashion' ? '#BE185D' : '#64748B',
             fontWeight: 900,
-            fontSize: 12,
+            fontSize: 11,
             cursor: 'pointer',
             boxShadow: tab === 'fashion' ? '0 2px 6px rgba(236,72,153,0.2)' : 'none',
           }}
         >
-          👗 패션 장신구 피팅룸
+          👗 7칸 패션
+        </button>
+        <button
+          onClick={() => {
+            setTab('plating')
+            playDessertAsmr('sugar-crack')
+          }}
+          style={{
+            padding: '7px 0',
+            borderRadius: 10,
+            border: tab === 'plating' ? '2px solid #EC4899' : '1px solid #FBCFE8',
+            background: tab === 'plating' ? 'linear-gradient(180deg, #FDF2F8 0%, #FCE7F3 100%)' : '#FFFFFF',
+            color: tab === 'plating' ? '#BE185D' : '#64748B',
+            fontWeight: 900,
+            fontSize: 11,
+            cursor: 'pointer',
+            boxShadow: tab === 'plating' ? '0 2px 6px rgba(236,72,153,0.2)' : 'none',
+          }}
+        >
+          🎂 받침대 플레이팅
         </button>
         <button
           onClick={() => {
@@ -314,12 +374,12 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
             background: tab === 'interior' ? 'linear-gradient(180deg, #FDF2F8 0%, #FCE7F3 100%)' : '#FFFFFF',
             color: tab === 'interior' ? '#BE185D' : '#64748B',
             fontWeight: 900,
-            fontSize: 12,
+            fontSize: 11,
             cursor: 'pointer',
             boxShadow: tab === 'interior' ? '0 2px 6px rgba(236,72,153,0.2)' : 'none',
           }}
         >
-          🛋️ 마이룸 가구·테마
+          🛋️ 룸 인테리어
         </button>
       </div>
 
@@ -332,7 +392,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
           position: 'relative',
           margin: '4px 12px',
           borderRadius: 18,
-          background: tab === 'fashion'
+          background: tab !== 'interior'
             ? 'radial-gradient(circle, #FFF1F2 0%, #FFE4E6 100%)'
             : selectedTheme.wallBg,
           border: '1.5px solid #FBCFE8',
@@ -344,7 +404,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
           flexShrink: 0,
         }}
       >
-        {tab === 'fashion' ? (
+        {tab !== 'interior' ? (
           <>
             <div style={{ width: '100%', height: '100%' }}>
               <Monster3DView look={previewLook} size={230} fluid interactive />
@@ -480,12 +540,16 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
             <span style={{ fontSize: 16 }}>
               {tab === 'fashion'
                 ? selectedFashionItem.icon
-                : selectedFurniture?.icon ?? selectedTheme.icon}
+                : tab === 'plating'
+                  ? selectedPlatingItem.icon
+                  : selectedFurniture?.icon ?? selectedTheme.icon}
             </span>
             <span style={{ fontSize: 13, fontWeight: 900, color: '#9D174D', whiteSpace: 'nowrap' }}>
               {tab === 'fashion'
                 ? selectedFashionItem.name
-                : selectedFurniture?.name ?? selectedTheme.name}
+                : tab === 'plating'
+                  ? selectedPlatingItem.name
+                  : selectedFurniture?.name ?? selectedTheme.name}
             </span>
             <span
               style={{
@@ -500,7 +564,9 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
               매력 +
               {tab === 'fashion'
                 ? selectedFashionItem.charm
-                : selectedFurniture?.charm ?? selectedTheme.charm}
+                : tab === 'plating'
+                  ? selectedPlatingItem.charm
+                  : selectedFurniture?.charm ?? selectedTheme.charm}
             </span>
           </div>
           <p
@@ -515,7 +581,9 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
           >
             {tab === 'fashion'
               ? selectedFashionItem.desc
-              : selectedFurniture?.desc ?? selectedTheme.desc}
+              : tab === 'plating'
+                ? selectedPlatingItem.desc
+                : selectedFurniture?.desc ?? selectedTheme.desc}
           </p>
         </div>
 
@@ -565,6 +633,53 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
                 <span>구매</span>
                 <span style={{ fontSize: 11, background: 'rgba(0,0,0,0.15)', padding: '1px 5px', borderRadius: 6 }}>
                   🎀 {selectedFashionItem.price}
+                </span>
+              </button>
+            )
+          ) : tab === 'plating' ? (
+            ownedItems.has(selectedPlatingItem.id) || selectedPlatingItem.price === 0 ? (
+              <button
+                onClick={() => handleSelectPlatingItem(selectedPlatingItem)}
+                style={{
+                  padding: '7px 14px',
+                  borderRadius: 10,
+                  border: 'none',
+                  background:
+                    currentBase === selectedPlatingItem.baseId
+                      ? '#E11D48'
+                      : 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)',
+                  color: '#FFFFFF',
+                  fontWeight: 900,
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(219,39,119,0.3)',
+                }}
+              >
+                {currentBase === selectedPlatingItem.baseId
+                  ? '착용 해제 (기본 둥지)'
+                  : '✨ 받침대 착용'}
+              </button>
+            ) : (
+              <button
+                onClick={() => handlePurchasePlating(selectedPlatingItem)}
+                style={{
+                  padding: '7px 12px',
+                  borderRadius: 10,
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #F43F5E 0%, #E11D48 100%)',
+                  color: '#FFFFFF',
+                  fontWeight: 900,
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(225,29,72,0.35)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
+              >
+                <span>구매</span>
+                <span style={{ fontSize: 11, background: 'rgba(0,0,0,0.15)', padding: '1px 5px', borderRadius: 6 }}>
+                  🎀 {selectedPlatingItem.price}
                 </span>
               </button>
             )
@@ -732,6 +847,72 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
                   <div style={{ marginTop: 2 }}>
                     {isOwned ? (
                       <span style={{ fontSize: 9, color: '#059669', fontWeight: 800 }}>소유완료</span>
+                    ) : (
+                      <span style={{ fontSize: 10, color: '#BE185D', fontWeight: 800 }}>🎀 {item.price}</span>
+                    )}
+                  </div>
+                </div>
+              )
+            })
+          : tab === 'plating'
+          ? BOUTIQUE_PLATING_ITEMS.map((item) => {
+              const isOwned = ownedItems.has(item.id) || item.price === 0
+              const isSelected = selectedPlatingItem.id === item.id
+              const isEquipped = currentBase === item.baseId
+
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => handleSelectPlatingItem(item)}
+                  style={{
+                    padding: '8px 6px',
+                    borderRadius: 12,
+                    background: isSelected ? '#FDF2F8' : '#FFFFFF',
+                    border: isSelected ? '2px solid #EC4899' : '1px solid #FCE7F3',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    position: 'relative',
+                    boxShadow: isSelected ? '0 2px 6px rgba(236,72,153,0.2)' : 'none',
+                  }}
+                >
+                  {isEquipped && (
+                    <span
+                      style={{
+                        position: 'absolute',
+                        top: 4,
+                        right: 4,
+                        fontSize: 9,
+                        fontWeight: 900,
+                        background: '#10B981',
+                        color: '#FFFFFF',
+                        padding: '1px 4px',
+                        borderRadius: 6,
+                      }}
+                    >
+                      착용중
+                    </span>
+                  )}
+                  <span style={{ fontSize: 28, margin: '2px 0' }}>{item.icon}</span>
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 800,
+                      color: '#4E342E',
+                      textAlign: 'center',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      width: '100%',
+                    }}
+                  >
+                    {item.name}
+                  </span>
+                  <div style={{ marginTop: 2 }}>
+                    {isOwned ? (
+                      <span style={{ fontSize: 9, color: '#059669', fontWeight: 800 }}>{item.price === 0 ? '기본 제공' : '소유완료'}</span>
                     ) : (
                       <span style={{ fontSize: 10, color: '#BE185D', fontWeight: 800 }}>🎀 {item.price}</span>
                     )}

@@ -3,6 +3,7 @@
 
 import type { DecoSlot } from '../monsters/Decorations'
 import type { DessertSoundKind } from '../lib/sound'
+import type { DessertBaseId, SyrupId } from '../monsters/MallangChameleon'
 import { IS_DEV_MOCK } from '../lib/devMode'
 import { buyItem, getAccount } from '../lib/shopApi'
 
@@ -77,6 +78,8 @@ const DEFAULT_OWNED_ITEMS = [
   'bell-ribbon', // 기본 리본
   'room-patisserie', // 기본 파티세리 룸 테마
   'sofa-macaron', // 기본 마카롱 소파
+  'nest', // 기본 포근 나무 둥지 받침대
+  'base-nest', // 기본 둥지 받침대
 ]
 
 export function getOwnedBoutiqueItems(): Set<string> {
@@ -123,8 +126,10 @@ export async function purchaseBoutiqueItem(itemId: string, price: number): Promi
 export interface BoutiqueItem {
   id: string
   name: string
-  category: 'fashion' | 'interior'
+  category: 'fashion' | 'interior' | 'plating'
   slot?: DecoSlot
+  baseId?: DessertBaseId
+  syrupId?: SyrupId
   roomCategory?: 'theme' | 'furniture'
   price: number
   rarity: 'common' | 'rare' | 'legendary'
@@ -133,6 +138,82 @@ export interface BoutiqueItem {
   desc: string
   soundKind: DessertSoundKind
 }
+
+// 🎂 디저트 펫 플레이팅 받침대 6종 (공방에서 부티크 상점으로 정식 이전)
+export const BOUTIQUE_PLATING_ITEMS: BoutiqueItem[] = [
+  {
+    id: 'base-nest',
+    name: '포근 나무 둥지',
+    category: 'plating',
+    baseId: 'nest',
+    price: 0,
+    rarity: 'common',
+    charm: 10,
+    icon: '🪹',
+    desc: '기본으로 제공되는 따뜻하고 포근한 나뭇가지 둥지 받침대',
+    soundKind: 'smore-sizzle',
+  },
+  {
+    id: 'base-strawberry-cake',
+    name: '생딸기 홀케이크',
+    category: 'plating',
+    baseId: 'strawberry-cake',
+    price: 45,
+    rarity: 'rare',
+    charm: 25,
+    icon: '🎂',
+    desc: '폭신한 우유 생크림과 달콤한 통딸기가 풍성하게 얹힌 프리미엄 케이크',
+    soundKind: 'cotton-puff',
+  },
+  {
+    id: 'base-choco-cookie',
+    name: '오독 초코칩 쿠키',
+    category: 'plating',
+    baseId: 'choco-cookie',
+    price: 35,
+    rarity: 'common',
+    charm: 20,
+    icon: '🍪',
+    desc: '노릇노릇 바삭하게 구워진 황금 버터 쿠키와 진한 다크초코칩',
+    soundKind: 'cookie-crisp',
+  },
+  {
+    id: 'base-custard-pudding',
+    name: '탱글 커스터드 푸딩',
+    category: 'plating',
+    baseId: 'custard-pudding',
+    price: 35,
+    rarity: 'common',
+    charm: 20,
+    icon: '🍮',
+    desc: '달콤 쌉싸름한 카라멜 시럽이 주르륵 흐르는 촉촉한 푸딩 접시',
+    soundKind: 'pudding-jiggle',
+  },
+  {
+    id: 'base-macaron-cushion',
+    name: '파스텔 마카롱 방석',
+    category: 'plating',
+    baseId: 'macaron-cushion',
+    price: 50,
+    rarity: 'rare',
+    charm: 25,
+    icon: '🧁',
+    desc: '쫀득한 꼬끄와 달콤한 바닐라 가나슈 필링이 듬뿍 찬 마카롱 받침',
+    soundKind: 'mochi-squish',
+  },
+  {
+    id: 'base-parfait-cup',
+    name: '베리 파르페 유리컵',
+    category: 'plating',
+    baseId: 'parfait-cup',
+    price: 70,
+    rarity: 'legendary',
+    charm: 35,
+    icon: '🍨',
+    desc: '그릭 요거트와 신선한 베리, 웨이퍼가 층층이 쌓인 크리스탈 파르페 잔',
+    soundKind: 'sugar-crack',
+  },
+]
 
 export const BOUTIQUE_FASHION_ITEMS: BoutiqueItem[] = [
   // 머리 (head)

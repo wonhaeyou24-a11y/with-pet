@@ -746,8 +746,8 @@ export default function MonsterHome({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 20 }}>🍰</span>
-          <span style={{ letterSpacing: '0.2px' }}>플레이팅 변신공방 · 펫 상세정보</span>
+          <span style={{ fontSize: 20 }}>🧁</span>
+          <span style={{ letterSpacing: '0.2px' }}>펫 상세 프로필 · 육성 기록</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(255,255,255,0.25)', padding: '3px 8px', borderRadius: 8, fontSize: 11, fontWeight: 900 }}>
           <span>전투력 ⚔️ {totalStats(monster.stats)}</span>
