@@ -163,6 +163,16 @@ const PET_CHATTERS = [
   '한입 투표 고마워요 🥄',
 ]
 
+// 🍂 계절별 실시간 공중 흩날림 앰비언트 파티클 아이콘 (가을=낙엽, 겨울=눈송이, 봄=벚꽃잎)
+const SEASON_DRIFT_ICONS: Record<PlazaThemeId, string[]> = {
+  autumn: ['🍁', '🍂', '🌰', '🍃', '🍁', '🍂', '🍁', '🍃'],
+  winter: ['❄️', '🌨️', '✨', '❄️', '☃️', '❄️', '✨', '🌨️'],
+  spring: ['🌸', '🌺', '🌷', '🍃', '🌸', '🌺', '🌸', '🍃'],
+  summer: ['🫧', '💧', '✨', '🫧', '💧', '🫧', '✨', '💧'],
+  halloween: ['🎃', '🍬', '🦇', '✨', '🎃', '🍬', '✨', '🦇'],
+  christmas: ['❄️', '🔔', '🎄', '✨', '❄️', '⭐', '🎄', '🔔'],
+}
+
 // 소복이 깔린 고정 바닥 낙엽 조경 좌표들 (건물 없이 바닥에 아름답게 흩뿌려진 단풍잎)
 const STATIC_LEAVES = [
   { x: 120, y: 110, icon: '🍁', rot: 25, size: 26, op: 0.8 },
@@ -559,6 +569,24 @@ export default function DessertPlaza({
         maxWidth: 'none',
       }}
     >
+      <style>{`
+        @keyframes driftFall {
+          0% {
+            transform: translate3d(0, -50px, 0) rotate(0deg);
+            opacity: 0;
+          }
+          15% {
+            opacity: 0.85;
+          }
+          85% {
+            opacity: 0.85;
+          }
+          100% {
+            transform: translate3d(140px, 860px, 0) rotate(360deg);
+            opacity: 0;
+          }
+        }
+      `}</style>
       {/* 1. 상단 미니멀 바 (계절/이벤트 테마 뱃지 & 코인) */}
       <div
         className="row between"
@@ -674,6 +702,34 @@ export default function DessertPlaza({
                 : themeObj.leafIcons[li % themeObj.leafIcons.length]}
             </div>
           ))}
+
+          {/* 🍃 계절별 실시간 공중 흩날림 파티클 레이어 (가을=낙엽, 겨울=눈, 봄=꽃잎) */}
+          {Array.from({ length: 12 }).map((_, di) => {
+            const icons = SEASON_DRIFT_ICONS[currentTheme] ?? SEASON_DRIFT_ICONS.autumn
+            const icon = icons[di % icons.length]
+            const startX = 40 + di * 60 + ((di * 37) % 50)
+            const duration = 6.5 + (di % 5) * 1.4
+            const delay = (di * 0.85) % 6
+            const size = 18 + (di % 4) * 3
+            return (
+              <div
+                key={`drift-${di}`}
+                style={{
+                  position: 'absolute',
+                  left: startX,
+                  top: 0,
+                  fontSize: size,
+                  pointerEvents: 'none',
+                  zIndex: 25,
+                  animation: `driftFall ${duration}s infinite linear ${delay}s`,
+                  filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.18))',
+                  willChange: 'transform, opacity',
+                }}
+              >
+                {icon}
+              </div>
+            )
+          })}
 
           {/* 🐾 펫 이동 시 실시간으로 찍히고 스르륵 사라지는 발자국 레이어 (Fade-out 애니메이션) */}
           {footprints.map((fp) => (
@@ -982,8 +1038,11 @@ export default function DessertPlaza({
                   {ELEMENT_INFO[selectedFriend.monster.element].label}
                 </span>
               </div>
-              <div style={{ fontSize: 10, color: '#8D6E63', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                파티시에: <strong>{selectedFriend.ownerNickname}</strong> · {selectedFriend.bio}
+              <div style={{ fontSize: 10, color: '#8D6E63', marginTop: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <span>파티시에: <strong style={{ color: '#5D4037' }}>{selectedFriend.ownerNickname}</strong></span>
+                <span style={{ color: '#6D4C41', fontSize: 10, lineHeight: 1.25, wordBreak: 'keep-all' }}>
+                  {selectedFriend.bio}
+                </span>
               </div>
             </div>
           </div>

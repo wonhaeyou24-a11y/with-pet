@@ -94,9 +94,28 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
   const [bouncePet, setBouncePet] = useState<boolean>(false)
   const [bgmPlaying, setBgmPlaying] = useState<boolean>(() => miniRoomBgm.getStatus())
 
-  // 화면 나갈 때 BGM 정리
+  // 🎵 미니룸 입장 시 힐링 BGM 자동 재생 & 화면 나갈 때 정리
   useEffect(() => {
+    const startBgm = () => {
+      try {
+        miniRoomBgm.start()
+        setBgmPlaying(miniRoomBgm.getStatus())
+      } catch {}
+    }
+
+    // 진입 즉시 재생 시도
+    startBgm()
+
+    // 브라우저 Autoplay 차단 정책 대응: 사용자 첫 터치 시 즉시 재생 활성화
+    const handleFirstInteract = () => {
+      if (!miniRoomBgm.getStatus()) {
+        startBgm()
+      }
+    }
+    window.addEventListener('pointerdown', handleFirstInteract, { once: true })
+
     return () => {
+      window.removeEventListener('pointerdown', handleFirstInteract)
       miniRoomBgm.stop()
     }
   }, [])
@@ -494,22 +513,20 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
         </div>
       </div>
 
-      {/* 3. 싸이월드 감성 룸 캔버스 스테이지 */}
+      {/* 3. 🌟 전체화면으로 꽉 채운 감성 미니룸 캔버스 스테이지 */}
       <div
         style={{
-          height: 250,
-          minHeight: 250,
-          maxHeight: 250,
+          flex: 1,
+          minHeight: 320,
           position: 'relative',
-          margin: '4px 12px',
-          borderRadius: 16,
+          margin: '4px 8px',
+          borderRadius: 20,
           background: currentTheme.wallBg,
-          border: '2px solid #FBCFE8',
-          boxShadow: 'inset 0 4px 12px rgba(0,0,0,0.06), 0 4px 14px rgba(244,114,182,0.15)',
+          border: '2.5px solid #FBCFE8',
+          boxShadow: 'inset 0 4px 16px rgba(0,0,0,0.06), 0 8px 24px rgba(244,114,182,0.18)',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
-          flexShrink: 0,
         }}
       >
         {/* 상단 벽면 (감성 레이스 창문 & 파티세리 벽면 선반 & 네온 레터링) */}
@@ -646,12 +663,12 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
               left: '50%',
               transform: `translateX(-50%) ${bouncePet ? 'translateY(-14px) scale(1.08)' : 'translateY(0)'}`,
               transition: 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
-              width: 170,
-              height: 170,
+              width: 'clamp(180px, 30vh, 230px)',
+              height: 'clamp(180px, 30vh, 230px)',
               zIndex: 3,
             }}
           >
-            <Monster3DView look={look} size={170} fluid interactive />
+            <Monster3DView look={look} size={210} fluid interactive />
           </div>
         </div>
 
@@ -746,11 +763,12 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
         </span>
       </div>
 
-      {/* 5. 룸 꾸미기 편집 패널 or 방명록 (탭 형태) */}
+      {/* 5. 룸 꾸미기 편집 패널 or 방명록 (슬림 서랍형 수납) */}
       <div
         style={{
-          flex: 1,
-          margin: '0 12px 8px',
+          maxHeight: 180,
+          minHeight: 130,
+          margin: '0 8px 6px',
           borderRadius: 14,
           background: '#FFFFFF',
           border: '1.5px solid #FBCFE8',
@@ -758,6 +776,7 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
+          flexShrink: 0,
         }}
       >
         {isEditing ? (

@@ -97,6 +97,10 @@ class MiniRoomBgmEngine {
     }
   }
 
+  public play() {
+    this.start()
+  }
+
   public start() {
     if (this.isPlaying) return
     const ctx = this.getAudioContext()

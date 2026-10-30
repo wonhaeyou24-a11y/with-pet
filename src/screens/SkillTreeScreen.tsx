@@ -834,28 +834,55 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
           )}
         </div>
 
-        {/* 효과 설명 한 줄 (콤팩트) */}
-        <div className="row between" style={{ alignItems: 'center', gap: 6, fontSize: 11, color: '#5D4037', marginTop: 1 }}>
-          <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {selNode.effectText}
-            {selLevel > 1 && ` (현재 위력 ×${getSkillPowerMult(selLevel).toFixed(2)})`}
-          </span>
-          <button
-            onClick={() => playDessertAsmr(selNode.asmr)}
+        {/* 효과 설명 및 레벨업 증가치 박스 (글자 짤림 방지 및 가독성 극대화) */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 2 }}>
+          <div className="row between" style={{ alignItems: 'flex-start', gap: 6 }}>
+            <span style={{ flex: 1, fontSize: 11, color: '#4E342E', fontWeight: 700, lineHeight: 1.35, wordBreak: 'keep-all' }}>
+              {selNode.effectText}
+            </span>
+            <button
+              onClick={() => playDessertAsmr(selNode.asmr)}
+              style={{
+                padding: '2px 7px',
+                borderRadius: 6,
+                border: '1px solid #FFAB91',
+                background: '#FFF',
+                color: '#D84315',
+                fontSize: 10,
+                fontWeight: 800,
+                cursor: 'pointer',
+                flexShrink: 0,
+              }}
+            >
+              🔊 사운드
+            </button>
+          </div>
+
+          {/* 스킬 레벨별 위력 증가 혜택 뱃지 */}
+          <div
             style={{
-              padding: '1px 6px',
-              borderRadius: 6,
-              border: '1px solid #FFAB91',
-              background: '#FFF',
-              color: '#D84315',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              background: '#FFF3E0',
+              border: '1px solid #FFE0B2',
+              borderRadius: 8,
+              padding: '3px 8px',
               fontSize: 10,
               fontWeight: 800,
-              cursor: 'pointer',
-              flexShrink: 0,
+              color: '#D84315',
             }}
           >
-            🔊 사운드
-          </button>
+            <span>⚡ 레벨업 효과:</span>
+            <span style={{ color: '#E65100' }}>
+              {selLevel === 0
+                ? `습득 시 위력 ×${getSkillPowerMult(1).toFixed(2)} 발동`
+                : `현재 위력 ×${getSkillPowerMult(selLevel).toFixed(2)} ➔ 강화 후 ×${getSkillPowerMult(selLevel + 1).toFixed(2)}`}
+            </span>
+            <span style={{ marginLeft: 'auto', color: '#795548', fontSize: 9 }}>
+              (최대 Lv.{getSkillMaxLevel(selNode)})
+            </span>
+          </div>
         </div>
       </div>
 

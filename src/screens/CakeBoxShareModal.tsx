@@ -62,12 +62,12 @@ export default function CakeBoxShareModal({ monster, ownerNickname, onClose }: P
       <div
         style={{
           width: '100%',
-          maxWidth: 340,
-          maxHeight: '92dvh',
+          maxWidth: 324,
+          maxHeight: '94dvh',
           background: 'linear-gradient(180deg, #FFFDF8 0%, #FFF5EC 100%)',
-          borderRadius: 24,
-          border: '3px solid #F472B6',
-          boxShadow: '0 20px 48px rgba(0,0,0,0.35)',
+          borderRadius: 22,
+          border: '2.5px solid #F472B6',
+          boxShadow: '0 16px 40px rgba(0,0,0,0.35)',
           overflowY: 'auto',
           display: 'flex',
           flexDirection: 'column',
@@ -117,9 +117,9 @@ export default function CakeBoxShareModal({ monster, ownerNickname, onClose }: P
         {/* 중앙 투명 쇼윈도 케이크 상자 뷰어 */}
         <div
           style={{
-            margin: '10px 14px',
-            height: 180,
-            borderRadius: 18,
+            margin: '8px 12px',
+            height: 'clamp(130px, 20vh, 160px)',
+            borderRadius: 16,
             background: 'radial-gradient(circle, #FFF1F2 0%, #FFE4E6 100%)',
             border: '2px solid #FBCFE8',
             boxShadow: 'inset 0 2px 12px rgba(244,114,182,0.12)',

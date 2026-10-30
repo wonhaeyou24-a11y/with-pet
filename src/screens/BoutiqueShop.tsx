@@ -81,16 +81,23 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
     window.setTimeout(() => setToast(null), 3000)
   }
 
-  // 패션 아이템 미리보기 피팅
+  // 패션 아이템 미리보기 피팅 및 선택 시 착용/해제 토글
   const handleSelectFashionItem = (item: BoutiqueItem) => {
     setSelectedFashionItem(item)
     playDessertAsmr(item.soundKind)
 
     if (item.slot) {
-      setPreviewDeco((prev) => ({
-        ...prev,
-        [item.slot!]: item.id,
-      }))
+      setPreviewDeco((prev) => {
+        // 이미 착용 중인 아이템을 다시 선택하면 착용 해제(null), 아니면 장착!
+        const isEquipped = prev[item.slot!] === item.id
+        const nextDeco = {
+          ...prev,
+          [item.slot!]: isEquipped ? null : item.id,
+        }
+        const currentCustom = loadMallangCustom(monster.id) ?? {}
+        saveMallangCustom(monster.id, { ...currentCustom, decorations: nextDeco })
+        return nextDeco
+      })
     }
   }
 

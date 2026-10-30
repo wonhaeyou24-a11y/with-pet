@@ -359,10 +359,10 @@ export default function AsmrBattleArena({
         @keyframes fxFlash { 0% { opacity: 0.85; } 100% { opacity: 0; } }
         @keyframes fxRays { 0% { opacity: 1; transform: scale(0.7); } 100% { opacity: 0; transform: scale(1.25); } }
         @keyframes cutinBanner {
-          0% { transform: translate(-50%, -50%) scale(0.7) skewX(-8deg); opacity: 0; }
-          20% { transform: translate(-50%, -50%) scale(1.05) skewX(-8deg); opacity: 1; }
-          80% { transform: translate(-50%, -50%) scale(1) skewX(-8deg); opacity: 1; }
-          100% { transform: translate(-50%, -50%) scale(1.15) skewX(-8deg); opacity: 0; }
+          0% { transform: scale(0.7) skewX(-4deg); opacity: 0; }
+          20% { transform: scale(1.03) skewX(-4deg); opacity: 1; }
+          80% { transform: scale(1) skewX(-4deg); opacity: 1; }
+          100% { transform: scale(1.08) skewX(-4deg); opacity: 0; }
         }
         @keyframes stageShake { 0%,100% { transform: translate(0,0); } 15% { transform: translate(-7px, 4px); } 30% { transform: translate(6px, -5px); } 45% { transform: translate(-5px, -3px); } 60% { transform: translate(4px, 3px); } 80% { transform: translate(-2px, 1px); } }
         @keyframes stageShakeSoft { 0%,100% { transform: translate(0,0); } 25% { transform: translate(-3px, 2px); } 50% { transform: translate(3px, -2px); } 75% { transform: translate(-1px, 1px); } }
@@ -525,22 +525,24 @@ export default function AsmrBattleArena({
                 animation: 'cutinVignette 0.75s ease forwards',
               }}
             />
-            {/* 번쩍이는 대각선 슬라이드 배너 */}
+            {/* 번쩍이는 대각선 슬라이드 배너 (화면 밖 짤림 방지 및 중앙 정렬) */}
             <div
               style={{
                 position: 'relative',
                 zIndex: 40,
-                width: '115%',
+                width: '92%',
+                maxWidth: 420,
+                boxSizing: 'border-box',
                 background:
                   cutin.actor === 'challenger'
                     ? 'linear-gradient(90deg, #D84315 0%, #FF6F00 50%, #FFB300 100%)'
                     : 'linear-gradient(90deg, #6A1B9A 0%, #AD1457 50%, #E91E63 100%)',
-                padding: '10px 20px',
+                padding: '12px 18px',
+                borderRadius: 16,
                 boxShadow: '0 8px 24px rgba(0,0,0,0.6), inset 0 2px 0 rgba(255,255,255,0.4)',
                 textAlign: 'center',
                 animation: 'cutinBanner 0.75s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards',
-                borderTop: '2px solid #FFF',
-                borderBottom: '2px solid #FFF',
+                border: '2.5px solid #FFF',
               }}
             >
               <div style={{ fontSize: 11, fontWeight: 900, color: '#FFEB3B', letterSpacing: '1px', textShadow: '0 2px 4px #000' }}>
