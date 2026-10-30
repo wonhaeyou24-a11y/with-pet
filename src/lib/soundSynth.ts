@@ -506,23 +506,22 @@ const RECIPES: Record<SynthKind, { total: number; finish: FinishOpts; build: Rec
     },
   },
 
-  // 🫧 왁뿌볼 선택음: 얇고 단단한 왁스 껍질이 "바사삭" 여러 조각으로 깨지고, 말랑한 속이 "찌걱" 눌린다 (0.5초)
+  // 🫧 왁뿌볼 선택음: 단단한 왁스 껍질이 "딱! 뿌직" 묵직하게 갈라지고, 굵은 조각이 후드득 떨어진 뒤 말랑한 속이 "찌걱" 눌린다 (0.5초)
   'wax-tap': {
     total: 0.5,
-    finish: { reverb: 0.08, level: 0.78, highCut: 12000 },
+    finish: { reverb: 0.06, level: 0.8, highCut: 9000 },
     build: (m) => {
-      tick(m, 0, jit(m, 3200), 1, 0.25, -0.2)
-      // 1) 첫 균열: 크고 날카로운 파편 묶음
-      crackCluster(m, 0.004, { n: 34, spanMs: 40, fLo: jit(m, 2200), fHi: jit(m, 7200), dLo: 0.8, dHi: 3.5, amp: 1, ampDecay: 1.4, noiseMix: 0.35, panSpread: 0.5 })
-      // 2) 이어서 번지는 잔 파편들 (껍질이 우수수 부서지는 느낌)
-      crackCluster(m, 0.045, { n: 44, spanMs: 150, fLo: jit(m, 2800), fHi: jit(m, 8200), dLo: 0.7, dHi: 3, amp: 0.7, ampDecay: 2.4, noiseMix: 0.3, panSpread: 0.6 })
-      // 3) 껍질이 뭉개지는 둔탁한 몸통
-      crackCluster(m, 0.01, { n: 10, spanMs: 34, fLo: 900, fHi: 2000, dLo: 3, dHi: 8, amp: 0.55, ampDecay: 1.6, noiseMix: 0.5 })
-      thump(m, 0.008, jit(m, 190), 95, 30, 0.34)
+      // 1) 딱: 단단한 껍질이 갈라지는 날카로운 첫 타격
+      tick(m, 0, jit(m, 2200), 1, 0.3, -0.15)
+      crackCluster(m, 0.002, { n: 16, spanMs: 16, fLo: jit(m, 1400), fHi: jit(m, 4200), dLo: 1.2, dHi: 5, amp: 1, ampDecay: 1.2, noiseMix: 0.25, panSpread: 0.35 })
+      // 2) 뿌직: 굵은 균열이 이어지며 뼈 부러지듯 갈라지는 몸통 (낮은 대역)
+      crackCluster(m, 0.014, { n: 18, spanMs: 70, fLo: jit(m, 700), fHi: jit(m, 2400), dLo: 3, dHi: 11, amp: 0.85, ampDecay: 1.5, noiseMix: 0.45, panSpread: 0.4 })
+      thump(m, 0.004, jit(m, 170), 90, 34, 0.5)
+      // 3) 굵은 조각들이 후드득 떨어지는 소리
+      crackCluster(m, 0.07, { n: 14, spanMs: 120, fLo: jit(m, 1600), fHi: jit(m, 5200), dLo: 1.5, dHi: 6, amp: 0.45, ampDecay: 2.2, noiseMix: 0.3, panSpread: 0.6 })
       // 4) 속의 말랑이가 눌리며 나는 촉촉한 찌걱
-      swell(m, 0.07, 0.2, { type: 'bp', f0: 320, f1: 900, q: 3, attackMs: 25, releaseMs: 110, amp: 0.13, color: 'pink' })
-      bubble(m, 0.09, 420 + m.rand() * 260, 1.5, 24, 0.24, 0.12)
-      bubble(m, 0.15, 650 + m.rand() * 300, 1.6, 20, 0.16, 0.2)
+      swell(m, 0.09, 0.22, { type: 'bp', f0: 300, f1: 850, q: 3, attackMs: 25, releaseMs: 110, amp: 0.12, color: 'pink' })
+      bubble(m, 0.11, 400 + m.rand() * 240, 1.5, 24, 0.22, 0.12)
     },
   },
 
