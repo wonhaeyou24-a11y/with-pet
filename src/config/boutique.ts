@@ -642,13 +642,22 @@ export function saveRoomCustom(data: RoomCustom): void {
   }
 }
 
-// 6. 싸이월드 감성 방명록(일촌평/방문 한마디) 시스템
+// 6. 싸이월드 감성 방명록(일촌평/방문 한마디 & 답글) 시스템
+export interface GuestBookReply {
+  id: string
+  author: string
+  message: string
+  createdAt: string
+  icon?: string
+}
+
 export interface GuestBookEntry {
   id: string
   author: string
   message: string
   createdAt: string
   icon: string
+  replies?: GuestBookReply[]
 }
 
 export const INITIAL_GUESTBOOK: GuestBookEntry[] = [
@@ -658,6 +667,15 @@ export const INITIAL_GUESTBOOK: GuestBookEntry[] = [
     message: '어머! 룸 테마랑 베레모 코디가 너무 귀여워요~ 방명록 도장 쾅! 🐾❤️',
     createdAt: '1시간 전',
     icon: '🍪',
+    replies: [
+      {
+        id: 'r-1',
+        author: '두바이집사',
+        message: '쿠키맘님 감사해요! 쿠키 베레모랑 찰떡이죠? 또 놀러오세요 🍓✨',
+        createdAt: '30분 전',
+        icon: '🍰',
+      },
+    ],
   },
   {
     id: 'g-2',
@@ -665,6 +683,7 @@ export const INITIAL_GUESTBOOK: GuestBookEntry[] = [
     message: '친선 대전 너무 재밌었습니다! 나중에 또 한판 떠요 ⚔️✨',
     createdAt: '3시간 전',
     icon: '🌱',
+    replies: [],
   },
   {
     id: 'g-3',
@@ -672,6 +691,7 @@ export const INITIAL_GUESTBOOK: GuestBookEntry[] = [
     message: '마카롱 소파에서 꿀잠 자는 모습에 반하고 갑니다 ㅎㅎㅎ',
     createdAt: '어제',
     icon: '🧁',
+    replies: [],
   },
 ]
 
@@ -694,8 +714,42 @@ export function addGuestBookEntry(author: string, message: string): GuestBookEnt
       message: message.trim(),
       createdAt: '방금 전',
       icon: '✨',
+      replies: [],
     }
     const updated = [newEntry, ...current].slice(0, 20)
+    localStorage.setItem(GUESTBOOK_STORAGE_KEY, JSON.stringify(updated))
+    return updated
+  } catch {
+    return INITIAL_GUESTBOOK
+  }
+}
+
+// 방명록 친구 간 답글(대댓글) 등록 함수
+export function addGuestBookReply(entryId: string, author: string, message: string): GuestBookEntry[] {
+  try {
+    const current = loadGuestBook()
+    const sanitizedMsg = message.trim()
+    if (!sanitizedMsg) return current
+
+    const newReply: GuestBookReply = {
+      id: `r-${Date.now()}`,
+      author: author.trim() || '방 주인 파티시에',
+      message: sanitizedMsg,
+      createdAt: '방금 전',
+      icon: '🍰',
+    }
+
+    const updated = current.map((entry) => {
+      if (entry.id === entryId) {
+        const existingReplies = entry.replies ?? []
+        return {
+          ...entry,
+          replies: [...existingReplies, newReply].slice(-10), // 최대 10개까지 보관
+        }
+      }
+      return entry
+    })
+
     localStorage.setItem(GUESTBOOK_STORAGE_KEY, JSON.stringify(updated))
     return updated
   } catch {

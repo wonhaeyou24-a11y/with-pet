@@ -4,6 +4,7 @@
 import { useEffect, useState } from 'react'
 import {
   addGuestBookEntry,
+  addGuestBookReply,
   addRibbonCoins,
   getOwnedBoutiqueItems,
   getRibbonCoins,
@@ -38,6 +39,8 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
   const [ownedItems] = useState<Set<string>>(() => getOwnedBoutiqueItems())
   const [toast, setToast] = useState<string | null>(null)
   const [newComment, setNewComment] = useState<string>('')
+  const [replyingToId, setReplyingToId] = useState<string | null>(null)
+  const [replyText, setReplyText] = useState<string>('')
   const [petActionState, setPetActionState] = useState<string>('방 안을 총총 거닐며 디저트 향기를 맡고 있어요 🌸')
   const [bouncePet, setBouncePet] = useState<boolean>(false)
   const [bgmPlaying, setBgmPlaying] = useState<boolean>(() => miniRoomBgm.getStatus())
@@ -149,6 +152,21 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
     setCoinsState(earned)
     recordMissionAction('w-social', 1)
     showToast('📝 방명록을 남겼습니다! (+10 🎀 리본 코인 획득)')
+  }
+
+  // 방명록 답글(대댓글) 등록
+  const handleAddReply = (entryId: string) => {
+    const text = replyText.trim()
+    if (!text) return
+    playDessertAsmr('mochi-squish')
+    const myName = monster.name ? `${monster.name} 집사` : '방 주인 파티시에'
+    const updated = addGuestBookReply(entryId, myName, text)
+    setGuestBook(updated)
+    setReplyText('')
+    setReplyingToId(null)
+    const earned = addRibbonCoins(5, '방명록 답글')
+    setCoinsState(earned)
+    showToast('💌 친구의 방명록에 답글을 남겼습니다! (+5 🎀 리본 코인 획득)')
   }
 
   return (
@@ -727,43 +745,173 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
               </button>
             </div>
 
-            {/* 방명록 목록 (시원한 폰트 크기 및 스크롤) */}
-            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 5 }}>
-              {guestBook.map((entry) => (
-                <div
-                  key={entry.id}
-                  style={{
-                    padding: '8px 10px',
-                    borderRadius: 10,
-                    background: '#FFFFFF',
-                    border: '1px solid #FCE7F3',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-                  }}
-                >
-                  <span style={{ fontSize: 18 }}>{entry.icon}</span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
-                      <span style={{ fontSize: 12, fontWeight: 900, color: '#9D174D' }}>{entry.author}</span>
-                      <span style={{ fontSize: 10, color: '#9CA3AF' }}>{entry.createdAt}</span>
+            {/* 방명록 목록 (시원한 폰트 크기 및 스크롤 & 답글(대댓글) 지원) */}
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 7 }}>
+              {guestBook.map((entry) => {
+                const isReplying = replyingToId === entry.id
+                const replyCount = entry.replies?.length ?? 0
+
+                return (
+                  <div
+                    key={entry.id}
+                    style={{
+                      padding: '9px 11px',
+                      borderRadius: 12,
+                      background: '#FFFFFF',
+                      border: '1px solid #FCE7F3',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 6,
+                      boxShadow: '0 1px 4px rgba(244,114,182,0.06)',
+                    }}
+                  >
+                    {/* 상단: 작성자 및 시간 */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                      <span style={{ fontSize: 18 }}>{entry.icon}</span>
+                      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: 12, fontWeight: 900, color: '#9D174D' }}>{entry.author}</span>
+                        <span style={{ fontSize: 10, color: '#9CA3AF' }}>{entry.createdAt}</span>
+                      </div>
                     </div>
+
+                    {/* 본문 메시지 */}
                     <div
                       style={{
                         fontSize: 12,
                         fontWeight: 600,
                         color: '#4E342E',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
+                        lineHeight: 1.35,
+                        paddingLeft: 25,
+                        wordBreak: 'break-word',
                       }}
                     >
                       {entry.message}
                     </div>
+
+                    {/* 답글 토글 버튼 바 */}
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', paddingLeft: 25 }}>
+                      <button
+                        onClick={() => {
+                          if (isReplying) {
+                            setReplyingToId(null)
+                            setReplyText('')
+                          } else {
+                            setReplyingToId(entry.id)
+                            setReplyText('')
+                            playDessertAsmr('mochi-squish')
+                          }
+                        }}
+                        style={{
+                          background: isReplying ? '#FDF2F8' : '#FFF0F5',
+                          border: isReplying ? '1px solid #EC4899' : '1px solid #FBCFE8',
+                          borderRadius: 8,
+                          padding: '3px 8px',
+                          fontSize: 10,
+                          fontWeight: 800,
+                          color: '#BE185D',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 3,
+                        }}
+                      >
+                        <span>💬</span>
+                        <span>{isReplying ? '답글 닫기' : replyCount > 0 ? `답글 ${replyCount}개` : '답글 달기'}</span>
+                      </button>
+                    </div>
+
+                    {/* 대댓글(답글) 목록 */}
+                    {replyCount > 0 && (
+                      <div
+                        style={{
+                          marginLeft: 18,
+                          borderLeft: '2px solid #F472B6',
+                          paddingLeft: 8,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 4,
+                          marginTop: 2,
+                        }}
+                      >
+                        {entry.replies?.map((rep) => (
+                          <div
+                            key={rep.id}
+                            style={{
+                              background: '#FFF8F9',
+                              padding: '5px 8px',
+                              borderRadius: 8,
+                              border: '1px solid #FCE7F3',
+                              fontSize: 11,
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
+                              <span style={{ fontWeight: 900, color: '#BE185D', display: 'flex', alignItems: 'center', gap: 3 }}>
+                                <span>↳</span>
+                                <span>{rep.icon || '🍰'}</span>
+                                <span>{rep.author}</span>
+                              </span>
+                              <span style={{ fontSize: 9, color: '#9CA3AF' }}>{rep.createdAt}</span>
+                            </div>
+                            <div style={{ color: '#4E342E', fontWeight: 600, paddingLeft: 14, wordBreak: 'break-word' }}>
+                              {rep.message}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* 인라인 답글 입력창 (토글 시 출현) */}
+                    {isReplying && (
+                      <div
+                        style={{
+                          marginLeft: 18,
+                          marginTop: 4,
+                          display: 'flex',
+                          gap: 4,
+                          animation: 'fadeIn 0.2s ease',
+                        }}
+                      >
+                        <input
+                          type="text"
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          placeholder="친구에게 답글 남기기... (+5 🎀)"
+                          style={{
+                            flex: 1,
+                            padding: '6px 10px',
+                            borderRadius: 8,
+                            border: '1.5px solid #EC4899',
+                            fontSize: 16, // 모바일 자동 줌인 방지
+                            outline: 'none',
+                            background: '#FFFFFF',
+                            color: '#4A2E2B',
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleAddReply(entry.id)
+                          }}
+                          autoFocus
+                        />
+                        <button
+                          onClick={() => handleAddReply(entry.id)}
+                          style={{
+                            padding: '6px 10px',
+                            borderRadius: 8,
+                            border: 'none',
+                            background: 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)',
+                            color: '#FFFFFF',
+                            fontSize: 11,
+                            fontWeight: 900,
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          답글
+                        </button>
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         )}
