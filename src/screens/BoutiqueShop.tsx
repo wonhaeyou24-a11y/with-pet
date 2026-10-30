@@ -296,12 +296,12 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
         </button>
       </div>
 
-      {/* 3. 중앙 3D 실시간 피팅룸 스테이지 (충분한 높이 확보로 펫 & 장신구 잘림 완전 방지) */}
+      {/* 3. 중앙 3D 실시간 피팅룸 스테이지 (하단 버튼 짤림 방지: 컴팩트 180px) */}
       <div
         style={{
-          height: 245,
-          minHeight: 235,
-          maxHeight: 260,
+          height: 180,
+          minHeight: 170,
+          maxHeight: 185,
           position: 'relative',
           margin: '4px 12px',
           borderRadius: 18,
@@ -320,7 +320,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
         {tab === 'fashion' ? (
           <>
             <div style={{ width: '100%', height: '100%' }}>
-              <Monster3DView look={previewLook} size={210} fluid interactive />
+              <Monster3DView look={previewLook} size={165} fluid interactive />
             </div>
             {/* 전체 해제 버튼 & 360도 회전 힌트 뱃지 */}
             <button
@@ -764,33 +764,36 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
         </div>
       </div>
 
-      {/* 6. 하단 마이룸 바로가기 액션 바 */}
+      {/* 6. 하단 마이룸 바로가기 액션 바 (화면 짤림 원천 차단) */}
       <div
         style={{
-          padding: '8px 12px',
+          padding: '10px 14px calc(10px + env(safe-area-inset-bottom, 0px))',
           background: '#FFFFFF',
-          borderTop: '1px solid #FCE7F3',
+          borderTop: '1.5px solid #FCE7F3',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           flexShrink: 0,
+          boxShadow: '0 -2px 10px rgba(0,0,0,0.04)',
+          zIndex: 20,
         }}
       >
-        <div style={{ fontSize: 11, color: '#831843', fontWeight: 700 }}>
-          💡 <b>슈가 리본 코인 모으는 법</b>: 대전 승리(+30🎀), 타워 탐사(+20🎀), 쓰담쓰담(+5🎀)
+        <div style={{ fontSize: 10, color: '#831843', fontWeight: 700, lineHeight: 1.3 }}>
+          💡 <b>슈가 리본 코인 모으는 법</b><br />
+          대전 승리(+30🎀) · 타워 탐사(+20🎀) · 쓰담쓰담(+5🎀)
         </div>
         <button
           onClick={onOpenMyRoom}
           style={{
-            padding: '7px 12px',
-            borderRadius: 10,
+            padding: '8px 14px',
+            borderRadius: 12,
             border: 'none',
-            background: 'linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)',
+            background: 'linear-gradient(135deg, #EC4899 0%, #BE185D 100%)',
             color: '#FFFFFF',
             fontWeight: 900,
             fontSize: 12,
             cursor: 'pointer',
-            boxShadow: '0 2px 6px rgba(109,40,217,0.3)',
+            boxShadow: '0 3px 10px rgba(236,72,153,0.3)',
             whiteSpace: 'nowrap',
           }}
         >

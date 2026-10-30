@@ -1042,19 +1042,20 @@ function add3DDecorations(
   }
 
   // 4. 등 장식 & 만능 날개 (back / wingKind) - 대형 날개 연출
-  const activeWing = deco?.back === 'meteor-wings' ? 'angel' : wingKind
+  const activeWing = deco?.back === 'meteor-wings' ? 'angel' : deco?.back === 'syrup-glider-blades' ? 'syrup-glider' : wingKind
   if (activeWing && activeWing !== 'none') {
+    const isSyrupGlider = activeWing === 'syrup-glider'
     const wingMat = new THREE.MeshPhysicalMaterial({
-      color: activeWing.includes('devil') ? '#311B92' : activeWing.includes('crystal') ? '#00E5FF' : '#FFF9C4',
+      color: isSyrupGlider ? '#FFA000' : activeWing.includes('devil') ? '#311B92' : activeWing.includes('crystal') ? '#00E5FF' : '#FFF9C4',
       roughness: 0.1,
-      transmission: 0.7,
+      transmission: 0.65,
       thickness: 1.2,
       clearcoat: 1.0,
-      emissive: activeWing.includes('crystal') ? '#00B0FF' : '#FFF59D',
-      emissiveIntensity: 0.2,
+      emissive: isSyrupGlider ? '#FF8F00' : activeWing.includes('crystal') ? '#00B0FF' : '#FFF59D',
+      emissiveIntensity: 0.35,
     })
     ;[-1, 1].forEach((side) => {
-      const wing = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.75, 0.08), wingMat)
+      const wing = new THREE.Mesh(new THREE.BoxGeometry(1.3, isSyrupGlider ? 0.45 : 0.75, 0.08), wingMat)
       wing.position.set(side * 1.25, 0.35, -0.55)
       wing.rotation.y = side * 0.4
       wing.rotation.z = side * 0.28
@@ -1069,8 +1070,59 @@ function add3DDecorations(
     bodyGroup.add(pack)
   }
 
-  // 5. 손 장식 (hand) - 큼직한 무기/지팡이
-  if (deco?.hand === 'lantern-staff' || deco?.hand === 'star-wand' || deco?.hand === 'lollipop-wand') {
+  // 5. 손 장식 (hand) - 큼직한 무기/지팡이/마도서/방패
+  if (deco?.hand === 'golden-recipe-grimoire') {
+    // 📖 황금 레시피 마도서 3D
+    const bookGroup = new THREE.Group()
+    bookGroup.position.set(1.1, -0.05, 0.7)
+    bookGroup.rotation.y = -0.35
+    // 표지
+    const cover = new THREE.Mesh(
+      new THREE.BoxGeometry(0.75, 0.95, 0.16),
+      new THREE.MeshPhysicalMaterial({ color: '#FFB300', metalness: 0.85, roughness: 0.2, clearcoat: 0.9 }),
+    )
+    bookGroup.add(cover)
+    // 책 속지
+    const pages = new THREE.Mesh(
+      new THREE.BoxGeometry(0.68, 0.88, 0.13),
+      new THREE.MeshPhysicalMaterial({ color: '#FFFDF0', roughness: 0.7 }),
+    )
+    pages.position.set(0.04, 0, 0)
+    bookGroup.add(pages)
+    // 표지 황금 룬 보석
+    const rune = new THREE.Mesh(
+      new THREE.OctahedronGeometry(0.14, 0),
+      new THREE.MeshPhysicalMaterial({ color: '#E91E63', emissive: '#FF4081', emissiveIntensity: 0.6 }),
+    )
+    rune.position.set(0, 0, 0.1)
+    bookGroup.add(rune)
+    bodyGroup.add(bookGroup)
+  } else if (deco?.hand === 'crystal-sugar-shield') {
+    // 🛡️ 슈가 크리스탈 방패 3D
+    const shieldGroup = new THREE.Group()
+    shieldGroup.position.set(1.15, -0.05, 0.75)
+    shieldGroup.rotation.y = -0.2
+    const shieldMat = new THREE.MeshPhysicalMaterial({
+      color: '#80DEEA',
+      roughness: 0.05,
+      transmission: 0.75,
+      thickness: 1.0,
+      clearcoat: 1.0,
+      emissive: '#00E5FF',
+      emissiveIntensity: 0.3,
+    })
+    const shield = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.5, 0.1, 6), shieldMat)
+    shield.rotation.x = Math.PI / 2
+    shieldGroup.add(shield)
+    // 방패 중앙 엠블럼
+    const emblem = new THREE.Mesh(
+      new THREE.OctahedronGeometry(0.18, 0),
+      new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.95, roughness: 0.1 }),
+    )
+    emblem.position.set(0, 0, 0.08)
+    shieldGroup.add(emblem)
+    bodyGroup.add(shieldGroup)
+  } else if (deco?.hand === 'lantern-staff' || deco?.hand === 'star-wand' || deco?.hand === 'lollipop-wand') {
     const handGroup = new THREE.Group()
     handGroup.position.set(1.15, -0.05, 0.75)
     // 지팡이 자루

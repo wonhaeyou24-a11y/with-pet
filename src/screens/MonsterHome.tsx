@@ -21,7 +21,7 @@ import CakeBoxShareModal from './CakeBoxShareModal'
 import MissionModal from './MissionModal'
 import DessertShowroomModal from './DessertShowroomModal'
 import { ChevronIcon, ElementIcon, SparkleIcon } from '../ui/Icons'
-import { StatBars, TopBar, totalStats } from '../ui/parts'
+import { StatBars, totalStats } from '../ui/parts'
 import { getSensoryReactionClass, SensoryBurst } from '../ui/SensoryFx'
 
 type Props = {
@@ -162,62 +162,109 @@ export default function MonsterHome({
         gap: 6,
       }}
     >
-      {/* 1. 상단 바 & 코인·알 리셋 */}
+      {/* 1. 심플 & 임팩트 상단 스마트 HUD (코인·리본·퀵 액션 바) */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
-        <TopBar nickname={nickname} onLogout={onLogout} />
-        <div className="row wrap between" style={{ gap: 4 }}>
-          <div className="row" style={{ gap: 4 }}>
-            {monster.is_shiny && (
-              <span className="chip honey" style={{ fontSize: 12, padding: '2px 7px' }}>
-                <SparkleIcon size={13} /> 빛나는
-              </span>
-            )}
-            <span className="chip honey" style={{ fontSize: 12, fontWeight: 800, padding: '2px 7px' }}>
-              🪙 {coins} 코인
-            </span>
-            <span
-              onClick={onOpenBoutique}
-              className="chip"
+        {/* 상단 1열: 닉네임, 재화 2종, 퀵 액션 아이콘 그룹 */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '6px 10px',
+            borderRadius: 16,
+            background: '#FFFFFF',
+            border: '1.5px solid #F0DFB8',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+          }}
+        >
+          {/* 프로필 & 닉네임 & 빛나는 뱃지 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 18 }}>🍰</span>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ fontSize: 13, fontWeight: 900, color: '#3E2723', lineHeight: 1.1 }}>
+                  {nickname}
+                </span>
+                {monster.is_shiny && (
+                  <span style={{ color: '#F59E0B', display: 'flex', alignItems: 'center' }} title="빛나는 디저트">
+                    <SparkleIcon size={12} />
+                  </span>
+                )}
+              </div>
+              <div style={{ fontSize: 9, fontWeight: 800, color: '#FF7043' }}>
+                수석 파티시에 · Lv.{monster.level}
+              </div>
+            </div>
+          </div>
+
+          {/* 재화 & 4대 퀵 도구 아이콘 버튼 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <div
               style={{
-                fontSize: 12,
-                fontWeight: 800,
-                padding: '2px 7px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: '3px 8px',
+                borderRadius: 12,
+                background: '#FFF8E1',
+                border: '1px solid #FFE082',
+                fontSize: 11,
+                fontWeight: 900,
+                color: '#E65100',
+              }}
+            >
+              <span>🪙</span>
+              <span>{coins}</span>
+            </div>
+
+            <div
+              onClick={onOpenBoutique}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 3,
+                padding: '3px 8px',
+                borderRadius: 12,
                 background: '#FDF2F8',
                 border: '1px solid #F472B6',
+                fontSize: 11,
+                fontWeight: 900,
                 color: '#BE185D',
                 cursor: 'pointer',
               }}
               title="부티크 상점 가기"
             >
-              🎀 {getRibbonCoins()}
-            </span>
-          </div>
-          <div className="row" style={{ gap: 4 }}>
+              <span>🎀</span>
+              <span>{getRibbonCoins()}</span>
+            </div>
+
+            {/* 4대 퀵 아이콘 뱃지 */}
             <button
-              className="chip"
               onClick={() => {
                 setShowMissions(true)
                 playDessertAsmr('mochi-squish')
               }}
               style={{
+                width: 30,
+                height: 30,
+                borderRadius: 10,
+                border: claimableMissions > 0 ? '1.5px solid #FF9800' : '1px solid #E0D3C5',
+                background: claimableMissions > 0 ? '#FFF8E1' : '#FFFDF9',
+                display: 'grid',
+                placeItems: 'center',
+                fontSize: 14,
                 cursor: 'pointer',
-                border: claimableMissions > 0 ? '1.5px solid #FF9800' : 'none',
-                fontWeight: 800,
-                fontSize: 12,
-                background: claimableMissions > 0 ? '#FFF8E1' : '#FFF9F0',
-                color: '#E65100',
-                padding: '2px 7px',
                 position: 'relative',
               }}
               title="일일 & 주간 파티세리 미션"
             >
-              📜 미션
+              📜
               {claimableMissions > 0 && (
                 <span
                   style={{
                     position: 'absolute',
-                    top: -4,
-                    right: -4,
+                    top: -3,
+                    right: -3,
                     background: '#E11D48',
                     color: '#FFFFFF',
                     borderRadius: '50%',
@@ -225,116 +272,182 @@ export default function MonsterHome({
                     height: 14,
                     fontSize: 9,
                     fontWeight: 900,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    display: 'grid',
+                    placeItems: 'center',
                   }}
                 >
                   {claimableMissions}
                 </span>
               )}
             </button>
+
             <button
-              className="chip"
               onClick={() => {
                 setShowNotifModal(true)
                 playDessertAsmr('cookie-crisp')
               }}
               style={{
-                cursor: 'pointer',
+                width: 30,
+                height: 30,
+                borderRadius: 10,
                 border: '1px solid #BBDEFB',
-                fontWeight: 900,
-                fontSize: 12,
                 background: '#E3F2FD',
-                color: '#1565C0',
-                padding: '2px 7px',
+                display: 'grid',
+                placeItems: 'center',
+                fontSize: 13,
+                cursor: 'pointer',
               }}
-              title="백그라운드 알림 상태 확인 및 테스트"
+              title="백그라운드 알림 센터"
             >
-              🔔 알림
+              🔔
             </button>
+
             <button
-              className="chip"
               onClick={() => {
                 setShowShowroom(true)
                 playDessertAsmr('sugar-crack')
               }}
               style={{
-                cursor: 'pointer',
-                border: '1px solid #FFD54F',
-                fontWeight: 900,
-                fontSize: 12,
+                width: 30,
+                height: 30,
+                borderRadius: 10,
+                border: '1.5px solid #FFD54F',
                 background: 'linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%)',
-                color: '#E65100',
-                padding: '2px 8px',
-                boxShadow: '0 2px 6px rgba(255, 179, 0, 0.25)',
+                display: 'grid',
+                placeItems: 'center',
+                fontSize: 13,
+                cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(255,179,0,0.2)',
               }}
-              title="Stitch 고품질 디저트 비주얼 에셋 키트 쇼룸"
+              title="Stitch 디저트 비주얼 쇼룸"
             >
-              ✨ 쇼룸
+              ✨
             </button>
+
             <button
-              className="chip"
               onClick={() => {
                 setShowCakeBox(true)
                 playDessertAsmr('sugar-crack')
               }}
               style={{
-                cursor: 'pointer',
+                width: 30,
+                height: 30,
+                borderRadius: 10,
                 border: '1px solid #FBCFE8',
-                fontWeight: 800,
-                fontSize: 12,
                 background: '#FFF5F7',
-                color: '#BE185D',
-                padding: '2px 7px',
+                display: 'grid',
+                placeItems: 'center',
+                fontSize: 13,
+                cursor: 'pointer',
               }}
-              title="파티세리 케이크 상자 포장 카드 자랑"
+              title="케이크 상자 포장 카드 자랑"
             >
-              🎁 포장 자랑
+              🎁
             </button>
-            <button
-              className="chip"
-              onClick={handleTouchMonster}
-              style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 12, background: '#FFF2EC', color: '#D85A3A', padding: '2px 7px' }}
-            >
-              🎧 ASMR
-            </button>
+
             {onResetTestEgg && (
               <button
-                className="chip"
                 onClick={onResetTestEgg}
-                style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 12, background: '#EBF8FF', color: '#1976D2', padding: '2px 8px' }}
-                title="테스트용 새 1분 디저트 알을 다시 받습니다"
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: 10,
+                  border: '1px solid #BBDEFB',
+                  background: '#EBF8FF',
+                  display: 'grid',
+                  placeItems: 'center',
+                  fontSize: 13,
+                  cursor: 'pointer',
+                }}
+                title="테스트용 1분 디저트 알 리셋"
               >
-                🥚 1분 알
+                🥚
+              </button>
+            )}
+
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: 10,
+                  border: '1px solid #CFD8DC',
+                  background: '#ECEFF1',
+                  display: 'grid',
+                  placeItems: 'center',
+                  fontSize: 12,
+                  cursor: 'pointer',
+                }}
+                title="로그아웃"
+              >
+                🚪
               </button>
             )}
           </div>
         </div>
-      </div>
 
-      {/* 2. 4대 디저트 컨디션 게이지 카드 */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 5, flexShrink: 0 }}>
-        <div style={{ padding: '5px 4px', borderRadius: 12, background: '#FFF8F2', border: '1px solid #F0DFB8', textAlign: 'center' }}>
-          <div style={{ fontSize: 12, fontWeight: 800, color: '#3B2F2F', whiteSpace: 'nowrap' }}>🍓 당충전 {hunger}</div>
-        </div>
-        <div style={{ padding: '5px 4px', borderRadius: 12, background: '#FFF8F2', border: '1px solid #F0DFB8', textAlign: 'center' }}>
-          <div style={{ fontSize: 12, fontWeight: 800, color: '#3B2F2F', whiteSpace: 'nowrap' }}>💖 달콤함 {mood}</div>
-        </div>
-        <div
-          style={{
-            padding: '5px 4px',
-            borderRadius: 12,
-            background: fatigue >= 80 ? '#FFF0EE' : '#FFF8F2',
-            border: fatigue >= 80 ? '1.5px solid #D9534F' : '1px solid #F0DFB8',
-            textAlign: 'center',
-            color: fatigue >= 80 ? '#D9534F' : '#3B2F2F',
-          }}
-        >
-          <div style={{ fontSize: 12, fontWeight: 800, whiteSpace: 'nowrap' }}>💤 노곤함 {fatigue}</div>
-        </div>
-        <div style={{ padding: '5px 4px', borderRadius: 12, background: '#FFF8F2', border: '1px solid #F0DFB8', textAlign: 'center' }}>
-          <div style={{ fontSize: 12, fontWeight: 800, color: '#3B2F2F', whiteSpace: 'nowrap' }}>✨ 윤기 {cleanliness}</div>
+        {/* 상단 2열: 슬림 4대 디저트 컨디션 캡슐 (세로 공간 대폭 절약) */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 5 }}>
+          <div
+            style={{
+              padding: '4px 6px',
+              borderRadius: 10,
+              background: '#FFFFFF',
+              border: '1px solid #F0DFB8',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <span style={{ fontSize: 10, color: '#795548', fontWeight: 800 }}>🍓 당충전</span>
+            <span style={{ fontSize: 11, fontWeight: 900, color: '#D84315' }}>{hunger}%</span>
+          </div>
+
+          <div
+            style={{
+              padding: '4px 6px',
+              borderRadius: 10,
+              background: '#FFFFFF',
+              border: '1px solid #F0DFB8',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <span style={{ fontSize: 10, color: '#795548', fontWeight: 800 }}>💖 달콤</span>
+            <span style={{ fontSize: 11, fontWeight: 900, color: '#AD1457' }}>{mood}%</span>
+          </div>
+
+          <div
+            style={{
+              padding: '4px 6px',
+              borderRadius: 10,
+              background: fatigue >= 80 ? '#FFEBEE' : '#FFFFFF',
+              border: fatigue >= 80 ? '1.5px solid #E53935' : '1px solid #F0DFB8',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <span style={{ fontSize: 10, color: fatigue >= 80 ? '#D32F2F' : '#795548', fontWeight: 800 }}>💤 노곤</span>
+            <span style={{ fontSize: 11, fontWeight: 900, color: fatigue >= 80 ? '#D32F2F' : '#5E35B1' }}>{fatigue}%</span>
+          </div>
+
+          <div
+            style={{
+              padding: '4px 6px',
+              borderRadius: 10,
+              background: '#FFFFFF',
+              border: '1px solid #F0DFB8',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <span style={{ fontSize: 10, color: '#795548', fontWeight: 800 }}>✨ 윤기</span>
+            <span style={{ fontSize: 11, fontWeight: 900, color: '#00897B' }}>{cleanliness}%</span>
+          </div>
         </div>
       </div>
 
@@ -553,66 +666,82 @@ export default function MonsterHome({
         <StatBars stats={monster.stats} compact />
       </div>
 
-      {/* 4-1. 싸이월드 감성 마이룸 & 부티크 상점 서브 네비게이션 */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, flexShrink: 0 }}>
+      {/* 4-1. 싸이월드 감성 마이룸 & 부티크 프리미엄 빌리지 바 (임팩트 업그레이드) */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 6, flexShrink: 0 }}>
         <button
           onClick={onOpenMyRoom}
           style={{
-            padding: '7px 8px',
-            borderRadius: 12,
-            border: '1.5px solid #F472B6',
-            background: 'linear-gradient(90deg, #FDF2F8 0%, #FCE7F3 100%)',
-            color: '#BE185D',
-            fontSize: 12,
+            padding: '10px 12px',
+            borderRadius: 14,
+            border: '2px solid #F472B6',
+            background: 'linear-gradient(135deg, #FFF0F5 0%, #FCE7F3 60%, #FBCFE8 100%)',
+            color: '#831843',
+            fontSize: 13,
             fontWeight: 900,
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            gap: 4,
-            boxShadow: '0 2px 6px rgba(244,114,182,0.15)',
+            justifyContent: 'space-between',
+            boxShadow: '0 3px 0 #F472B6, 0 4px 10px rgba(244,114,182,0.25)',
+            transition: 'transform 0.1s ease',
           }}
         >
-          <span>🏰 나만의 미니룸</span>
-          <span style={{ fontSize: 10, color: '#DB2777' }}>방명록</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 20 }}>🏰</span>
+            <div style={{ textAlign: 'left' }}>
+              <div style={{ lineHeight: 1.1 }}>나만의 미니룸</div>
+              <div style={{ fontSize: 9, color: '#DB2777', fontWeight: 800 }}>싸이월드 감성·방명록</div>
+            </div>
+          </div>
+          <span style={{ fontSize: 11, background: '#FFFFFF', padding: '2px 6px', borderRadius: 8, color: '#BE185D', fontWeight: 900 }}>
+            GO
+          </span>
         </button>
 
         <button
           onClick={onOpenBoutique}
           style={{
-            padding: '7px 8px',
-            borderRadius: 12,
-            border: '1.5px solid #F472B6',
-            background: 'linear-gradient(90deg, #FFF1F2 0%, #FFE4E6 100%)',
-            color: '#9D174D',
-            fontSize: 12,
+            padding: '10px 12px',
+            borderRadius: 14,
+            border: '2px solid #FB7185',
+            background: 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 60%, #FECDD3 100%)',
+            color: '#881337',
+            fontSize: 13,
             fontWeight: 900,
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            gap: 4,
-            boxShadow: '0 2px 6px rgba(244,114,182,0.15)',
+            justifyContent: 'space-between',
+            boxShadow: '0 3px 0 #FB7185, 0 4px 10px rgba(251,113,133,0.25)',
+            transition: 'transform 0.1s ease',
           }}
         >
-          <span>🛍️ 부티크 상점</span>
-          <span style={{ fontSize: 10, color: '#E11D48' }}>피팅룸</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 20 }}>🛍️</span>
+            <div style={{ textAlign: 'left' }}>
+              <div style={{ lineHeight: 1.1 }}>부티크 상점</div>
+              <div style={{ fontSize: 9, color: '#E11D48', fontWeight: 800 }}>3D 피팅룸</div>
+            </div>
+          </div>
+          <span style={{ fontSize: 11, background: '#FFFFFF', padding: '2px 6px', borderRadius: 8, color: '#9F1239', fontWeight: 900 }}>
+            SHOP
+          </span>
         </button>
       </div>
 
-      {/* 4-2. M4 진화의 전당 & 디저트 도감 서브 네비게이션 */}
+      {/* 4-2. 진화의 전당 & 디저트 도감 슬림 바 */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, flexShrink: 0 }}>
         <button
           onClick={onOpenEvolution}
           style={{
-            padding: '7px 8px',
-            borderRadius: 12,
-            border: evoEligibility.canEvolve ? '1.5px solid #FFD700' : '1px solid #E0D3C5',
+            padding: '6px 10px',
+            borderRadius: 10,
+            border: evoEligibility.canEvolve ? '1.5px solid #FFB300' : '1px solid #E0D3C5',
             background: evoEligibility.canEvolve
               ? 'linear-gradient(90deg, #FFF8E1 0%, #FFE082 100%)'
               : '#FFF8F2',
             color: evoEligibility.canEvolve ? '#E65100' : '#4E342E',
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: 900,
             cursor: 'pointer',
             display: 'flex',
@@ -622,7 +751,7 @@ export default function MonsterHome({
           }}
         >
           <span>✨ {evoEligibility.canEvolve ? '진화 가능!' : '진화의 전당'}</span>
-          <span style={{ fontSize: 10, color: evoEligibility.canEvolve ? '#D84315' : '#8D6E63' }}>
+          <span style={{ fontSize: 9, color: evoEligibility.canEvolve ? '#D84315' : '#8D6E63' }}>
             ({monster.evo_stage ?? 1}단계)
           </span>
         </button>
@@ -630,12 +759,12 @@ export default function MonsterHome({
         <button
           onClick={onOpenDex}
           style={{
-            padding: '7px 8px',
-            borderRadius: 12,
+            padding: '6px 10px',
+            borderRadius: 10,
             border: '1px solid #E0D3C5',
             background: '#FFF8F2',
             color: '#4E342E',
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: 800,
             cursor: 'pointer',
             display: 'flex',
@@ -648,27 +777,98 @@ export default function MonsterHome({
         </button>
       </div>
 
-      {/* 5. 하단 4대 네비게이션 버튼 (2×2 그리드) */}
-      <div className="grid-2" style={{ gap: 6, flexShrink: 0 }}>
-        <button className="btn" onClick={onOpenCare} style={{ padding: '10px 8px', fontSize: 13, minHeight: 46 }}>
-          <span>🍓 토핑·돌보기</span>
-        </button>
-        <button className="btn mint" onClick={onOpenTrain} style={{ padding: '10px 8px', fontSize: 13, minHeight: 46 }}>
-          <span>🧁 파티세리 훈련</span>
-        </button>
+      {/* 5. 하단 4대 핵심 액션 버튼 (쫀득한 3D 입체 젤리 푸시 버튼) */}
+      <div className="grid-2" style={{ gap: 7, flexShrink: 0 }}>
         <button
-          className="btn"
+          onClick={onOpenCare}
+          style={{
+            padding: '11px 8px',
+            borderRadius: 14,
+            border: '2px solid #FF8A65',
+            background: 'linear-gradient(180deg, #FF7043 0%, #D84315 100%)',
+            color: '#FFFFFF',
+            fontSize: 13,
+            fontWeight: 900,
+            cursor: 'pointer',
+            boxShadow: '0 4px 0 #BF360C, 0 6px 14px rgba(216,67,21,0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 5,
+            minHeight: 48,
+          }}
+        >
+          <span style={{ fontSize: 18 }}>🍓</span>
+          <span>토핑 · 돌보기</span>
+        </button>
+
+        <button
+          onClick={onOpenTrain}
+          style={{
+            padding: '11px 8px',
+            borderRadius: 14,
+            border: '2px solid #4DB6AC',
+            background: 'linear-gradient(180deg, #26A69A 0%, #00897B 100%)',
+            color: '#FFFFFF',
+            fontSize: 13,
+            fontWeight: 900,
+            cursor: 'pointer',
+            boxShadow: '0 4px 0 #00695C, 0 6px 14px rgba(0,137,123,0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 5,
+            minHeight: 48,
+          }}
+        >
+          <span style={{ fontSize: 18 }}>🧁</span>
+          <span>파티세리 훈련</span>
+        </button>
+
+        <button
           onClick={onOpenSkills}
-          style={{ padding: '10px 8px', fontSize: 13, minHeight: 46, background: 'linear-gradient(180deg, #9C6ADE 0%, #7C4DFF 100%)', boxShadow: '0 4px 0 #5E35B1' }}
+          style={{
+            padding: '11px 8px',
+            borderRadius: 14,
+            border: '2px solid #B388FF',
+            background: 'linear-gradient(180deg, #9575CD 0%, #673AB7 100%)',
+            color: '#FFFFFF',
+            fontSize: 13,
+            fontWeight: 900,
+            cursor: 'pointer',
+            boxShadow: '0 4px 0 #4527A0, 0 6px 14px rgba(103,58,183,0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 5,
+            minHeight: 48,
+          }}
         >
-          <span>🌈 식감 스킬트리</span>
+          <span style={{ fontSize: 18 }}>🌈</span>
+          <span>식감 스킬트리</span>
         </button>
+
         <button
-          className="btn"
           onClick={onOpenPlaza}
-          style={{ padding: '10px 8px', fontSize: 13, minHeight: 46, background: 'linear-gradient(180deg, #FFB74D 0%, #F57C00 100%)', boxShadow: '0 4px 0 #E65100' }}
+          style={{
+            padding: '11px 8px',
+            borderRadius: 14,
+            border: '2px solid #FFB74D',
+            background: 'linear-gradient(180deg, #FFA726 0%, #FB8C00 100%)',
+            color: '#FFFFFF',
+            fontSize: 13,
+            fontWeight: 900,
+            cursor: 'pointer',
+            boxShadow: '0 4px 0 #E65100, 0 6px 14px rgba(251,140,0,0.35)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 5,
+            minHeight: 48,
+          }}
         >
-          <span>🏆 광장 · ASMR 대전</span>
+          <span style={{ fontSize: 18 }}>🏆</span>
+          <span>광장 · ASMR 대전</span>
         </button>
       </div>
 
