@@ -1,7 +1,8 @@
-// M3 화면 2: ⚔️🎧 리얼 액션 턴제 식감 ASMR 대전 아레나 (원스크린 100dvh 레이아웃)
-// - 상태바를 상단 헤더 뒤쪽으로 슬림하게 배치하여 3D 몬스터 모션 공간을 극대화했습니다.
-// - 글 설명 대신 펫 주변에 플로팅 대미지/힐/치명타/회피 텍스트가 솟아오르며 스르륵 사라지는 직관적 RPG 방식을 적용했습니다.
-// - 하단 공간을 심플하고 직관적인 컨트롤 위주로 정돈하여 화면 밖 잘림을 100% 방지했습니다.
+// M3 화면 2: ⚔️🎧 리얼 액션 턴제 식감 ASMR 대전 아레나 (포켓몬고 2·3번 씬 스타일 전면 업그레이드)
+// - [거대 보스 3D 원근 로우앵글]: 압도적인 크기의 보스를 올려다보는 깊이감 있는 3D 로우앵글 투시
+// - [다이맥스 거대화 연출]: 보스 머리 위의 3단 다이맥스 회전 구름 링(Dynamax Clouds) 및 맥스 번개 아우라
+// - [4인 협력 레이드 파티 구도]: 전면에 내 펫과 3인의 아군 파티원(몽실이, 콩콩이, 별비늘)이 포위 대치
+// - [DESSERT MAX 게이지 & 필살기]: 공방 및 터치 응원으로 100% 충전 시 [⚡ 거대 디저트 MAX 스트라이크!!] 협력 총공격
 
 import { useEffect, useMemo, useState } from 'react'
 import { addRibbonCoins } from '../config/boutique'
@@ -15,6 +16,7 @@ import BattleFx from '../ui/BattleFx'
 import MonsterView from '../monsters/MonsterView'
 import { BackIcon, ElementIcon } from '../ui/Icons'
 import { getSensoryReactionClass, SensoryBurst } from '../ui/SensoryFx'
+import type { MonsterLook } from '../monsters/types'
 
 interface Props {
   challenger: MonsterRow
@@ -43,10 +45,20 @@ export default function AsmrBattleArena({
   const [playing, setPlaying] = useState<boolean>(true)
   const [rewarded, setRewarded] = useState<boolean>(false)
 
+  // 👑 거대 보스 맥스 배틀 vs 1:1 클래식 배틀 모드 토글 (기본값: 거대 맥스 레이드 모드)
+  const [battleViewMode, setBattleViewMode] = useState<'raid-max' | 'classic'>('raid-max')
+
+  // ⚡ DESSERT MAX 게이지 (0% ~ 100%) & 맥스 스트라이크 보너스 대미지
+  const [maxGauge, setMaxGauge] = useState<number>(35)
+  const [maxStrikeActive, setMaxStrikeActive] = useState<boolean>(false)
+  const [bossBonusDamage, setBossBonusDamage] = useState<number>(0)
+  const [maxStrikeFloating, setMaxStrikeFloating] = useState<boolean>(false)
+
   // 관전 중 실시간 터치 응원 손맛 상태
   const [cheerCount, setCheerCount] = useState<number>(0)
   const [cheerToast, setCheerToast] = useState<string | null>(null)
   const [actionPhase, setActionPhase] = useState<'idle' | 'windup' | 'strike' | 'reaction'>('idle')
+
   // 🔥 필살기 컷인 배너 상태 (슬로우 모션 & 극적 연출)
   const [cutin, setCutin] = useState<{
     actor: 'challenger' | 'defender'
@@ -64,7 +76,7 @@ export default function AsmrBattleArena({
   const currentTurn = stepIdx > 0 ? sim.turns[stepIdx - 1] : null
   const isFinished = stepIdx >= sim.turns.length
 
-  // 대전 중 가장 극적이었던 하이라이트 턴 산출 (최대 대미지 또는 치명타 씬)
+  // 대전 중 가장 극적이었던 하이라이트 턴 산출
   const bestHighlight = useMemo(() => {
     if (!sim.turns || sim.turns.length === 0) return null
     let maxDmgTurn = sim.turns[0]
@@ -81,20 +93,67 @@ export default function AsmrBattleArena({
   const cInfo = SPECIES_INFO[cLook.mallang?.morphForm ?? challenger.species] ?? SPECIES_INFO[challenger.species]
   const dInfo = SPECIES_INFO[dLook.mallang?.morphForm ?? defender.species] ?? SPECIES_INFO[defender.species]
 
+  // 🛡️ 3인의 아군 레이드 협력 파티원 룩 생성 (몽실이, 콩콩이, 별비늘)
+  const allyMongsil: MonsterLook = useMemo(() => ({
+    species: 'mongsil',
+    palette: 1,
+    bodyType: 'normal',
+    scale: 0.9,
+    ears: 0,
+    tail: 0,
+    top: 0,
+    expression: 'round',
+    patternSeed: 12,
+    shiny: false,
+    evoStage: 2,
+    evoBranch: 'sweet-melty',
+  }), [])
+
+  const allyKongkong: MonsterLook = useMemo(() => ({
+    species: 'kongkong',
+    palette: 2,
+    bodyType: 'normal',
+    scale: 0.9,
+    ears: 1,
+    tail: 1,
+    top: 0,
+    expression: 'sharp',
+    patternSeed: 44,
+    shiny: false,
+    evoStage: 2,
+    evoBranch: 'crispy-crunch',
+  }), [])
+
+  const allyByeolbineul: MonsterLook = useMemo(() => ({
+    species: 'byeolbineul',
+    palette: 3,
+    bodyType: 'normal',
+    scale: 0.85,
+    ears: 0,
+    tail: 0,
+    top: 1,
+    expression: 'round',
+    patternSeed: 88,
+    shiny: false,
+    evoStage: 2,
+    evoBranch: 'gourmet-rainbow',
+  }), [])
+
   const cHp = currentTurn ? currentTurn.challengerHp : sim.challengerMaxHp
-  const dHp = currentTurn ? currentTurn.defenderHp : sim.defenderMaxHp
+  const rawDHp = currentTurn ? currentTurn.defenderHp : sim.defenderMaxHp
+  const dHp = Math.max(0, rawDHp - bossBonusDamage)
   const cPct = Math.max(0, Math.min(100, Math.round((cHp / sim.challengerMaxHp) * 100)))
   const dPct = Math.max(0, Math.min(100, Math.round((dHp / sim.defenderMaxHp) * 100)))
 
-  // 자동 턴제 공방 루프 (마운트 즉시 0.4초 후 자동 시작)
+  // 자동 턴제 공방 루프
   useEffect(() => {
     if (!playing || isFinished) return
 
     const nextTurn = sim.turns[stepIdx]
     const isSpecialTurn = nextTurn && (nextTurn.isCrit || nextTurn.damage >= 24)
-    const turnInterval = isSpecialTurn ? 1650 : 1200 // 필살기일 때 슬로우 모션 연출
+    const turnInterval = isSpecialTurn ? 1650 : 1200
 
-    // 0단계: 필살기/치명타 컷인 배너 트리거 (스페셜 턴인 경우)
+    // 0단계: 필살기/치명타 컷인 배너 트리거
     let tCutin: any = null
     if (isSpecialTurn) {
       const isChallenger = nextTurn.actor === 'challenger'
@@ -118,13 +177,15 @@ export default function AsmrBattleArena({
       setActionPhase('windup')
     }, isSpecialTurn ? 350 : 50)
 
-    // 2단계: 타격 & ASMR 사운드 폭발
+    // 2단계: 타격 & ASMR 사운드 폭발 및 MAX 게이지 충전
     const t2 = setTimeout(() => {
       setActionPhase('strike')
       const nextStep = stepIdx + 1
       const turn = sim.turns[nextStep - 1]
       if (turn) {
         playDessertAsmr(turn.asmr, turn.hitCount ?? (turn.isCrit ? 4 : 1))
+        // 매 턴 MAX 게이지 자동 충전 (치명타 시 보너스)
+        setMaxGauge((g) => Math.min(100, g + (turn.isCrit ? 22 : 14)))
       }
     }, turnInterval * 0.42)
 
@@ -135,10 +196,9 @@ export default function AsmrBattleArena({
       setStepIdx(nextStep)
       if (nextStep >= sim.turns.length && !rewarded) {
         setRewarded(true)
-        const isWin = sim.winner === 'challenger'
-        // 서버 결과를 보는 중이면 코인은 서버가 이미 지급했다
-        if (!precomputed) onRewardClaimed?.(isWin ? 30 : 15)
-        addRibbonCoins(isWin ? 30 : 10, '친선 대전 보상')
+        const isWin = sim.winner === 'challenger' || dHp <= 0
+        if (!precomputed) onRewardClaimed?.(isWin ? 35 : 15)
+        addRibbonCoins(isWin ? 35 : 12, '거대 맥스 보스 대전 보상')
         recordMissionAction('d-battle', 1)
         if (isWin) recordMissionAction('w-battle-win', 1)
       }
@@ -158,23 +218,48 @@ export default function AsmrBattleArena({
     }
   }, [playing, isFinished, stepIdx])
 
-  // 플레이어 실시간 터치 응원 (유대감 및 손맛 피드백)
+  // 플레이어 실시간 터치 응원 (유대감 및 MAX 게이지 충전)
   function handleCheer() {
     setCheerCount((c) => c + 1)
     playDessertAsmr('sugar-crack', 2)
+    setMaxGauge((g) => Math.min(100, g + 12))
     const cheers = [
-      '💖 힘내라 힘! 기세가 솟아나요!',
-      '⚡ 식감 버스트 파워 업!',
-      '🍓 달콤한 응원이 닿았어요!',
-      '✨ 완벽한 타이밍 응원!',
+      '💖 파티원 전체 응원! MAX 게이지 +12% 충전!',
+      '⚡ 식감 버스트 파워 업! MAX 게이지 충전!',
+      '🍓 달콤한 협력 응원이 닿았어요!',
+      '✨ 완벽한 타이밍 응원! 기세 폭발!',
     ]
     setCheerToast(cheers[cheerCount % cheers.length])
     setTimeout(() => setCheerToast(null), 1200)
   }
 
+  // ⚡ 거대 디저트 MAX 스트라이크 발동 (100% 게이지 전원 협력 필살기)
+  function handleTriggerMaxStrike() {
+    if (maxGauge < 100 || isFinished) return
+
+    setMaxStrikeActive(true)
+    setMaxGauge(0)
+    playDessertAsmr('sugar-crack', 4)
+
+    // 보스에게 협력 보너스 대미지 폭격 (-120 HP)
+    setBossBonusDamage((prev) => prev + 120)
+    setMaxStrikeFloating(true)
+
+    setTimeout(() => {
+      playDessertAsmr('mochi-squish', 3)
+    }, 450)
+
+    setTimeout(() => {
+      setMaxStrikeActive(false)
+      setMaxStrikeFloating(false)
+    }, 1400)
+  }
+
   function handleReplaySameSeed() {
     setStepIdx(0)
     setPlaying(true)
+    setBossBonusDamage(0)
+    setMaxGauge(35)
   }
 
   function handleRematchNewSeed() {
@@ -185,44 +270,48 @@ export default function AsmrBattleArena({
     setSeed(Math.floor(100000 + Math.random() * 899999))
     setStepIdx(0)
     setPlaying(true)
+    setBossBonusDamage(0)
+    setMaxGauge(35)
   }
 
-  // 양측 애니메이션 계산. 준비·돌진 중에는 stepIdx 가 아직 안 올라갔으므로 "이번에 행동할 턴"을 따로 본다
+  // 애니메이션 계산
   const actTurn = actionPhase === 'reaction' ? currentTurn : (sim.turns[stepIdx] ?? null)
   const isChallengerActor = actTurn?.actor === 'challenger'
   const isDefenderActor = actTurn?.actor === 'defender'
   const isCrit = actTurn?.isCrit
   const isMultiHit = (actTurn?.hitCount ?? 0) >= 2
-  const dir = isChallengerActor ? 1 : -1 // 공격자가 달려가는 방향
+  const dir = isChallengerActor ? 1 : -1
 
   const REST: Pose = { transform: 'translateX(0) translateY(0) scale(1)', ms: 420, ease: 'cubic-bezier(0.2, 1.6, 0.4, 1)' }
   let cPose: Pose = REST
   let dPose: Pose = REST
   const DASH = 'cubic-bezier(0.1, 0.9, 0.2, 1)'
+
   const attackerPose = (): Pose => {
     if (actionPhase === 'windup') {
-      return { transform: `translateX(${-22 * dir}px) translateY(6px) scale(0.88, 0.94) rotate(${-8 * dir}deg)`, ms: 240, ease: 'ease-out' }
+      return { transform: `translateX(${-18 * dir}px) translateY(8px) scale(0.9, 0.95) rotate(${-6 * dir}deg)`, ms: 240, ease: 'ease-out' }
     }
     if (isCrit) {
-      return { transform: `translateY(-38px) translateX(${76 * dir}px) scale(1.4) rotate(${16 * dir}deg)`, ms: 150, ease: DASH }
+      return { transform: `translateY(-36px) translateX(${64 * dir}px) scale(1.35) rotate(${14 * dir}deg)`, ms: 150, ease: DASH }
     }
     if (isMultiHit) {
-      return { transform: `translateX(${70 * dir}px) scale(1.26) rotate(${360 * dir}deg)`, ms: 190, ease: DASH }
+      return { transform: `translateX(${58 * dir}px) scale(1.22) rotate(${360 * dir}deg)`, ms: 190, ease: DASH }
     }
-    return { transform: `translateX(${66 * dir}px) scale(1.22, 1.1)`, ms: 130, ease: DASH }
+    return { transform: `translateX(${52 * dir}px) scale(1.18, 1.08)`, ms: 130, ease: DASH }
   }
+
   const victimPose = (): Pose => {
-    if (actTurn?.isDodge) return { transform: `translateY(-44px) translateX(${-16 * dir}px) scale(1.12) rotate(${12 * dir}deg)`, ms: 200, ease: 'cubic-bezier(0.2, 0.9, 0.3, 1.2)' }
-    if (actTurn?.isBlock) return { transform: `translateX(${12 * dir}px) scale(0.86, 1.16)`, ms: 110, ease: 'ease-out' }
-    if (isCrit) return { transform: `translateX(${52 * dir}px) translateY(-14px) scale(1.34, 0.7) rotate(${26 * dir}deg)`, ms: 100, ease: DASH }
-    return { transform: `translateX(${34 * dir}px) scale(1.12, 0.86) rotate(${9 * dir}deg)`, ms: 100, ease: DASH }
+    if (actTurn?.isDodge) return { transform: `translateY(-38px) translateX(${-14 * dir}px) scale(1.1) rotate(${10 * dir}deg)`, ms: 200, ease: 'cubic-bezier(0.2, 0.9, 0.3, 1.2)' }
+    if (actTurn?.isBlock) return { transform: `translateX(${10 * dir}px) scale(0.88, 1.14)`, ms: 110, ease: 'ease-out' }
+    if (isCrit) return { transform: `translateX(${44 * dir}px) translateY(-10px) scale(1.28, 0.75) rotate(${22 * dir}deg)`, ms: 100, ease: DASH }
+    return { transform: `translateX(${28 * dir}px) scale(1.1, 0.88) rotate(${8 * dir}deg)`, ms: 100, ease: DASH }
   }
+
   if (actionPhase === 'windup' || actionPhase === 'strike') {
     if (isChallengerActor) cPose = attackerPose()
     if (isDefenderActor) dPose = attackerPose()
   } else if (actionPhase === 'reaction') {
-    // 맞은 쪽만 밀려나고, 공격자는 돌진한 자리에서 잠깐 버틴다
-    const holdPose: Pose = { transform: `translateX(${30 * dir}px) scale(1.1)`, ms: 160, ease: 'ease-out' }
+    const holdPose: Pose = { transform: `translateX(${24 * dir}px) scale(1.08)`, ms: 160, ease: 'ease-out' }
     if (isChallengerActor) {
       cPose = holdPose
       dPose = victimPose()
@@ -232,6 +321,7 @@ export default function AsmrBattleArena({
       cPose = victimPose()
     }
   }
+
   const isHitMoment =
     actionPhase === 'reaction' && !!actTurn && !actTurn.isDodge && !actTurn.isBlock && (actTurn.damage ?? 0) > 0
   const fxTint = (() => {
@@ -251,17 +341,15 @@ export default function AsmrBattleArena({
       ? getSensoryReactionClass(currentTurn?.asmr ?? 'sugar-crack')
       : ''
 
-  // 턴마다 등장하는 플로팅 전투 텍스트 데이터 산출
+  // 플로팅 전투 텍스트
   const challengerFloating = useMemo(() => {
     if (!currentTurn) return null
-    // 내가 피격당했을 때
     if (currentTurn.actor === 'defender') {
       if (currentTurn.isDodge) return { type: 'dodge', text: '💨 MISS!', sub: '회피 성공' }
       if (currentTurn.isBlock) return { type: 'block', text: `🛡️ GUARD! -${currentTurn.damage}`, sub: '가드 방어' }
       if (currentTurn.isCrit) return { type: 'crit', text: `💥 -${currentTurn.damage}`, sub: '치명타 (CRITICAL)!' }
       if (currentTurn.damage > 0) return { type: 'dmg', text: `-${currentTurn.damage}` }
     }
-    // 내가 공격자이면서 회복/스킬 시전했을 때
     if (currentTurn.actor === 'challenger') {
       if (currentTurn.heal > 0) return { type: 'heal', text: `+${currentTurn.heal} 💖`, sub: '체력 회복' }
       if (currentTurn.shield > 0) return { type: 'shield', text: `+${currentTurn.shield} 🛡️`, sub: '보호막 생성' }
@@ -271,30 +359,33 @@ export default function AsmrBattleArena({
   }, [currentTurn, stepIdx])
 
   const defenderFloating = useMemo(() => {
+    if (maxStrikeFloating) {
+      return { type: 'crit', text: '💥 MAX STRIKE! -120', sub: '⚡ 거대 디저트 맥스 결정타!' }
+    }
     if (!currentTurn) return null
-    // 상대가 피격당했을 때
     if (currentTurn.actor === 'challenger') {
       if (currentTurn.isDodge) return { type: 'dodge', text: '💨 MISS!', sub: '회피 성공' }
       if (currentTurn.isBlock) return { type: 'block', text: `🛡️ GUARD! -${currentTurn.damage}`, sub: '가드 방어' }
       if (currentTurn.isCrit) return { type: 'crit', text: `💥 -${currentTurn.damage}`, sub: '치명타 (CRITICAL)!' }
       if (currentTurn.damage > 0) return { type: 'dmg', text: `-${currentTurn.damage}` }
     }
-    // 상대가 공격자이면서 회복/스킬 시전했을 때
     if (currentTurn.actor === 'defender') {
       if (currentTurn.heal > 0) return { type: 'heal', text: `+${currentTurn.heal} 💖`, sub: '체력 회복' }
       if (currentTurn.shield > 0) return { type: 'shield', text: `+${currentTurn.shield} 🛡️`, sub: '보호막 생성' }
       return { type: 'skill', text: `${currentTurn.skillIcon} ${currentTurn.skillName}` }
     }
     return null
-  }, [currentTurn, stepIdx])
+  }, [currentTurn, stepIdx, maxStrikeFloating])
+
+  const isRaid = battleViewMode === 'raid-max'
 
   return (
     <main
       className="screen"
       style={{
-        padding: '8px 12px calc(8px + env(safe-area-inset-bottom, 0px))',
-        gap: 6,
-        background: '#FAF6EE',
+        padding: '6px 10px calc(6px + env(safe-area-inset-bottom, 0px))',
+        gap: 5,
+        background: isRaid ? 'linear-gradient(180deg, #160826 0%, #25103A 40%, #150921 100%)' : '#FAF6EE',
         height: '100dvh',
         maxHeight: '100dvh',
         overflow: 'hidden',
@@ -302,117 +393,154 @@ export default function AsmrBattleArena({
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
+        color: isRaid ? '#FFF8F0' : '#3E2723',
       }}
     >
       <style>{`
         @keyframes floatCombatNum {
-          0% {
-            opacity: 0;
-            transform: translateY(14px) scale(0.75);
-          }
-          18% {
-            opacity: 1;
-            transform: translateY(-8px) scale(1.15);
-          }
-          75% {
-            opacity: 0.95;
-            transform: translateY(-26px) scale(1);
-          }
-          100% {
-            opacity: 0;
-            transform: translateY(-48px) scale(0.9);
-          }
+          0% { opacity: 0; transform: translateY(14px) scale(0.75); }
+          18% { opacity: 1; transform: translateY(-8px) scale(1.15); }
+          75% { opacity: 0.95; transform: translateY(-26px) scale(1); }
+          100% { opacity: 0; transform: translateY(-48px) scale(0.9); }
         }
-        @keyframes pulseGlow {
-          0%, 100% { transform: scale(1); opacity: 0.85; }
-          50% { transform: scale(1.08); opacity: 1; }
+        @keyframes dynamaxCloudSpin {
+          0% { transform: rotate(0deg) scale(1); }
+          50% { transform: rotate(180deg) scale(1.06); }
+          100% { transform: rotate(360deg) scale(1); }
+        }
+        @keyframes dynamaxAuraPulse {
+          0%, 100% { opacity: 0.8; filter: drop-shadow(0 0 15px rgba(233, 30, 99, 0.7)); }
+          50% { opacity: 1; filter: drop-shadow(0 0 32px rgba(255, 64, 129, 1)); }
+        }
+        @keyframes partyCheerBounce {
+          0%, 100% { transform: translateY(0) scale(1); }
+          50% { transform: translateY(-7px) scale(1.05); }
+        }
+        @keyframes maxGaugeGlow {
+          0%, 100% { box-shadow: 0 0 10px rgba(255, 64, 129, 0.6), inset 0 0 6px #FF80AB; }
+          50% { box-shadow: 0 0 22px rgba(255, 215, 0, 0.9), inset 0 0 10px #FFD700; }
+        }
+        @keyframes maxStrikeVignette {
+          0% { opacity: 0; transform: scale(1.2); }
+          30% { opacity: 0.85; transform: scale(1); }
+          70% { opacity: 0.85; transform: scale(1); }
+          100% { opacity: 0; transform: scale(0.9); }
         }
         @keyframes cutinBanner {
-          0% {
-            opacity: 0;
-            transform: scale(0.85) skewX(-12deg) translateY(-20px);
-          }
-          20% {
-            opacity: 1;
-            transform: scale(1.04) skewX(-12deg) translateY(0);
-          }
-          80% {
-            opacity: 1;
-            transform: scale(1) skewX(-12deg) translateY(0);
-          }
-          100% {
-            opacity: 0;
-            transform: scale(1.08) skewX(-12deg) translateY(15px);
-          }
-        }
-        @keyframes cutinVignette {
-          0% { opacity: 0; }
-          25% { opacity: 0.75; }
-          80% { opacity: 0.75; }
-          100% { opacity: 0; }
-        }
-        @keyframes fxRing { 0% { transform: translate(-50%, -50%) rotateX(60deg) scale(0.2); opacity: 1; } 100% { transform: translate(-50%, -50%) rotateX(60deg) scale(1.8); opacity: 0; } }
-        @keyframes fxBurst { 0% { transform: translate(-50%, -50%) scale(0.3) rotate(-20deg); opacity: 1; } 40% { transform: translate(-50%, -50%) scale(1.35) rotate(8deg); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1.6) rotate(0); opacity: 0; } }
-        @keyframes fxSlash { 0% { transform: rotate(var(--a)) translateX(10px); opacity: 1; } 100% { transform: rotate(var(--a)) translateX(var(--d)); opacity: 0; } }
-        @keyframes fxSpeed { 0% { transform: translateX(var(--from)); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateX(var(--to)); opacity: 0; } }
-        @keyframes fxDust { 0% { transform: translate(0, 0) scale(0.4); opacity: 0.9; } 100% { transform: translate(var(--dx), var(--dy)) scale(1.5); opacity: 0; } }
-        @keyframes fxFlash { 0% { opacity: 0.85; } 100% { opacity: 0; } }
-        @keyframes fxRays { 0% { opacity: 1; transform: scale(0.7); } 100% { opacity: 0; transform: scale(1.25); } }
-        @keyframes cutinBanner {
-          0% { transform: scale(0.7) skewX(-4deg); opacity: 0; }
-          20% { transform: scale(1.03) skewX(-4deg); opacity: 1; }
-          80% { transform: scale(1) skewX(-4deg); opacity: 1; }
-          100% { transform: scale(1.08) skewX(-4deg); opacity: 0; }
+          0% { opacity: 0; transform: scale(0.85) skewX(-8deg) translateY(-20px); }
+          20% { opacity: 1; transform: scale(1.04) skewX(-8deg) translateY(0); }
+          80% { opacity: 1; transform: scale(1) skewX(-8deg) translateY(0); }
+          100% { opacity: 0; transform: scale(1.08) skewX(-8deg) translateY(15px); }
         }
         @keyframes stageShake { 0%,100% { transform: translate(0,0); } 15% { transform: translate(-7px, 4px); } 30% { transform: translate(6px, -5px); } 45% { transform: translate(-5px, -3px); } 60% { transform: translate(4px, 3px); } 80% { transform: translate(-2px, 1px); } }
         @keyframes stageShakeSoft { 0%,100% { transform: translate(0,0); } 25% { transform: translate(-3px, 2px); } 50% { transform: translate(3px, -2px); } 75% { transform: translate(-1px, 1px); } }
-        @media (prefers-reduced-motion: reduce) { .battle-stage { animation: none !important; } }
-        @keyframes screenShake {
-          0% { transform: translate(0, 0); }
-          20% { transform: translate(-4px, 3px); }
-          40% { transform: translate(4px, -3px); }
-          60% { transform: translate(-3px, -2px); }
-          80% { transform: translate(2px, 3px); }
-          100% { transform: translate(0, 0); }
-        }
       `}</style>
 
-      {/* 상단 헤더 */}
-      <div className="row between" style={{ flexShrink: 0 }}>
-        <button className="btn-round" onClick={onBack} aria-label="뒤로" style={{ width: 34, height: 34 }}>
-          <BackIcon />
+      {/* 1. 상단 네비게이션 & 모드 토글 헤더 */}
+      <div className="row between" style={{ flexShrink: 0, alignItems: 'center' }}>
+        <button
+          className="btn-round"
+          onClick={onBack}
+          aria-label="뒤로"
+          style={{
+            width: 32,
+            height: 32,
+            background: isRaid ? 'rgba(255,255,255,0.15)' : '#FFF',
+            color: isRaid ? '#FFF' : '#3E2723',
+            border: isRaid ? '1px solid rgba(255,255,255,0.2)' : '1px solid #E0E0E0',
+          }}
+        >
+          <BackIcon size={16} />
         </button>
-        <h1 className="title" style={{ fontSize: 15, margin: 0 }}>⚔️ 실시간 턴제 식감 대전</h1>
-        <span className="chip" style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px' }}>
+
+        {/* 뷰 모드 토글 (거대 보스 맥스 배틀 vs 1:1 클래식) */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            background: isRaid ? 'rgba(0,0,0,0.5)' : '#EFEBE9',
+            borderRadius: 999,
+            padding: '2px',
+            border: isRaid ? '1.5px solid #FF4081' : '1px solid #D7CCC8',
+          }}
+        >
+          <button
+            onClick={() => setBattleViewMode('raid-max')}
+            style={{
+              padding: '3px 8px',
+              borderRadius: 999,
+              border: 'none',
+              background: isRaid ? 'linear-gradient(90deg, #E91E63, #FF4081)' : 'transparent',
+              color: isRaid ? '#FFFFFF' : '#8D6E63',
+              fontSize: 10,
+              fontWeight: 900,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 3,
+            }}
+          >
+            👑 거대 맥스 로우앵글
+          </button>
+          <button
+            onClick={() => setBattleViewMode('classic')}
+            style={{
+              padding: '3px 8px',
+              borderRadius: 999,
+              border: 'none',
+              background: !isRaid ? '#5D4037' : 'transparent',
+              color: !isRaid ? '#FFFFFF' : '#B39DDB',
+              fontSize: 10,
+              fontWeight: 900,
+              cursor: 'pointer',
+            }}
+          >
+            ⚔️ 1:1 클래식
+          </button>
+        </div>
+
+        <span
+          className="chip"
+          style={{
+            fontSize: 9.5,
+            fontWeight: 800,
+            padding: '2px 6px',
+            background: isRaid ? 'rgba(255,255,255,0.1)' : '#FFF8E1',
+            color: isRaid ? '#FFE082' : '#795548',
+          }}
+        >
           #{seed}
         </span>
       </div>
 
-      {/* 🛡️ 상단 뒤쪽 배치: 슬림 통합 대전 상태바 (HUD) */}
+      {/* 2. 상단 HUD: 4인 파티 vs 거대 보스 체력 상태바 */}
       <div
         style={{
           width: '100%',
-          background: '#FFFDF9',
+          background: isRaid ? 'rgba(25, 12, 38, 0.85)' : '#FFFDF9',
           borderRadius: 14,
-          border: '1.5px solid #F0DFB8',
-          padding: '6px 10px',
+          border: isRaid ? '1.5px solid #AB47BC' : '1.5px solid #F0DFB8',
+          padding: '5px 10px',
           display: 'flex',
           alignItems: 'center',
           gap: 8,
-          boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+          backdropFilter: 'blur(6px)',
           flexShrink: 0,
         }}
       >
-        {/* 왼쪽: 내 펫 정보 & 체력 게이지 */}
+        {/* 왼쪽: 내 레이드 파티 대표 체력 */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <div className="row between" style={{ fontSize: 11, fontWeight: 900 }}>
-            <span style={{ color: '#3B2F2F', display: 'flex', alignItems: 'center', gap: 3, maxWidth: 95, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              <ElementIcon element={challenger.element} size={12} />
+          <div className="row between" style={{ fontSize: 10.5, fontWeight: 900 }}>
+            <span style={{ color: isRaid ? '#FFF8E1' : '#3B2F2F', display: 'flex', alignItems: 'center', gap: 3, maxWidth: 95, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <ElementIcon element={challenger.element} size={11} />
               {challenger.name || cInfo?.name}
             </span>
-            <span style={{ color: '#D84315', fontSize: 10 }}>나 · Lv.{challenger.level}</span>
+            <span style={{ color: isRaid ? '#FFD54F' : '#D84315', fontSize: 9.5 }}>
+              {isRaid ? '4인 파티 리더' : `나 · Lv.${challenger.level}`}
+            </span>
           </div>
-          <div style={{ height: 7, borderRadius: 999, background: '#F5E8C9', overflow: 'hidden' }}>
+          <div style={{ height: 6, borderRadius: 999, background: isRaid ? 'rgba(255,255,255,0.12)' : '#F5E8C9', overflow: 'hidden' }}>
             <div
               style={{
                 width: `${cPct}%`,
@@ -423,62 +551,66 @@ export default function AsmrBattleArena({
               }}
             />
           </div>
-          <div style={{ fontSize: 9, fontWeight: 800, color: '#7A6A60', textAlign: 'right' }}>
+          <div style={{ fontSize: 8.5, fontWeight: 800, color: isRaid ? '#CE93D8' : '#7A6A60', textAlign: 'right' }}>
             {cHp}/{sim.challengerMaxHp}
           </div>
         </div>
 
-        {/* 중앙: VS 엠블럼 */}
+        {/* 중앙: VS / 맥스 레이드 엠블럼 */}
         <div
           style={{
-            padding: '3px 7px',
+            padding: '2px 6px',
             borderRadius: 999,
-            background: 'linear-gradient(135deg, #FF7043, #D84315)',
+            background: isRaid ? 'linear-gradient(135deg, #FF1744, #D50000)' : 'linear-gradient(135deg, #FF7043, #D84315)',
             color: '#FFFFFF',
-            fontSize: 10,
+            fontSize: 9,
             fontWeight: 900,
             letterSpacing: '0.5px',
-            boxShadow: '0 2px 5px rgba(216,67,21,0.25)',
+            boxShadow: '0 2px 6px rgba(213,0,0,0.4)',
             flexShrink: 0,
           }}
         >
-          VS
+          {isRaid ? 'MAX RAID' : 'VS'}
         </div>
 
-        {/* 오른쪽: 상대 펫 정보 & 체력 게이지 */}
+        {/* 오른쪽: 거대 맥스 보스 체력 */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <div className="row between" style={{ fontSize: 11, fontWeight: 900 }}>
-            <span style={{ color: '#E65100', fontSize: 10 }}>Lv.{defender.level} · {defenderOwnerName}</span>
-            <span style={{ color: '#3B2F2F', display: 'flex', alignItems: 'center', gap: 3, maxWidth: 85, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div className="row between" style={{ fontSize: 10.5, fontWeight: 900 }}>
+            <span style={{ color: isRaid ? '#FF80AB' : '#E65100', fontSize: 9.5 }}>
+              {isRaid ? `👑 거대 보스 · ${defenderOwnerName}` : `Lv.${defender.level} · ${defenderOwnerName}`}
+            </span>
+            <span style={{ color: isRaid ? '#FFF8E1' : '#3B2F2F', display: 'flex', alignItems: 'center', gap: 3, maxWidth: 90, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {defender.name || dInfo?.name}
-              <ElementIcon element={defender.element} size={12} />
+              <ElementIcon element={defender.element} size={11} />
             </span>
           </div>
-          <div style={{ height: 7, borderRadius: 999, background: '#F5E8C9', overflow: 'hidden' }}>
+          <div style={{ height: 6, borderRadius: 999, background: isRaid ? 'rgba(255,255,255,0.12)' : '#F5E8C9', overflow: 'hidden' }}>
             <div
               style={{
                 width: `${dPct}%`,
                 height: '100%',
                 borderRadius: 999,
-                background: dPct > 30 ? 'linear-gradient(90deg, #FFA726, #FB8C00)' : '#E53935',
+                background: dPct > 30 ? 'linear-gradient(90deg, #E91E63, #C2185B)' : '#E53935',
                 transition: 'width 0.3s ease',
                 marginLeft: 'auto',
               }}
             />
           </div>
-          <div style={{ fontSize: 9, fontWeight: 800, color: '#7A6A60', textAlign: 'left' }}>
+          <div style={{ fontSize: 8.5, fontWeight: 800, color: isRaid ? '#FF80AB' : '#7A6A60', textAlign: 'left' }}>
             {dHp}/{sim.defenderMaxHp}
           </div>
         </div>
       </div>
 
-      {/* 🎮 3D 캐릭터 실시간 전투 액션 대치 스테이지 (글 상자 없이 펫 공간 극대화) */}
+      {/* 3. 🎮 3D 원근 로우앵글 배틀 스테이지 (포켓몬고 2·3번 씬) */}
       <div
         className="card battle-stage"
         style={{
           animation: isHitMoment ? (isCrit ? 'stageShake 0.42s ease-out' : 'stageShakeSoft 0.26s ease-out') : undefined,
-          background: 'radial-gradient(ellipse at 50% 60%, #FFF9EC 0%, #FFF3E0 60%, #FFE0B2 100%)',
-          padding: '8px 10px',
+          background: isRaid
+            ? 'radial-gradient(ellipse at 50% 25%, #2B0E44 0%, #170726 50%, #0D0317 100%)'
+            : 'radial-gradient(ellipse at 50% 60%, #FFF9EC 0%, #FFF3E0 60%, #FFE0B2 100%)',
+          padding: '6px 8px',
           position: 'relative',
           overflow: 'hidden',
           flex: 1,
@@ -486,8 +618,9 @@ export default function AsmrBattleArena({
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
-          border: '1.5px solid #FFE082',
+          border: isRaid ? '1.5px solid #BA68C8' : '1.5px solid #FFE082',
           borderRadius: 16,
+          boxShadow: isRaid ? '0 8px 30px rgba(0,0,0,0.6), inset 0 0 35px rgba(171,71,188,0.2)' : 'none',
         }}
       >
         <BattleFx
@@ -502,7 +635,47 @@ export default function AsmrBattleArena({
           tint={fxTint}
         />
 
-        {/* 🔥 필살기 / 치명타 극적 컷인 배너 연출 (대각선 번쩍임 & 슬로우 모션) */}
+        {/* ⚡ MAX 스트라이크 발동 시 다이맥스 번개 뇌우 비네트 연출 */}
+        {maxStrikeActive && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: 45,
+              background: 'radial-gradient(ellipse at center, rgba(233,30,99,0.3) 0%, rgba(136,14,79,0.95) 100%)',
+              animation: 'maxStrikeVignette 1.4s ease forwards',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              pointerEvents: 'none',
+            }}
+          >
+            <div
+              style={{
+                background: 'linear-gradient(90deg, #FF1744 0%, #FFD700 50%, #FF1744 100%)',
+                padding: '10px 20px',
+                borderRadius: 18,
+                border: '3px solid #FFFFFF',
+                boxShadow: '0 0 40px #FFD700, 0 8px 32px #000',
+                textAlign: 'center',
+                animation: 'cutinBanner 1.4s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards',
+              }}
+            >
+              <div style={{ fontSize: 13, fontWeight: 900, color: '#21081A', letterSpacing: '0.5px' }}>
+                ⚡ DESSERT MAX STRIKE ⚡
+              </div>
+              <div style={{ fontSize: 20, fontWeight: 900, color: '#FFFFFF', textShadow: '0 2px 10px #000' }}>
+                💥 거대 디저트 맥스 스트라이크!! 💥
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 800, color: '#FFF8E1', textShadow: '0 1px 4px #000' }}>
+                4인 전원 협력 ASMR 식감 총공격! -120 HP 초토화!
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 컷인 배너 연출 */}
         {cutin && (
           <div
             style={{
@@ -516,49 +689,37 @@ export default function AsmrBattleArena({
               pointerEvents: 'none',
             }}
           >
-            {/* 배경 암전 비네트 */}
-            <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.85) 100%)',
-                animation: 'cutinVignette 0.75s ease forwards',
-              }}
-            />
-            {/* 번쩍이는 대각선 슬라이드 배너 (글박스 짤림 완전 방지 & 중앙 정렬) */}
             <div
               style={{
                 position: 'relative',
                 zIndex: 40,
                 width: '92%',
-                maxWidth: 420,
+                maxWidth: 400,
                 boxSizing: 'border-box',
                 background:
                   cutin.actor === 'challenger'
                     ? 'linear-gradient(90deg, #D84315 0%, #FF6F00 50%, #FFB300 100%)'
                     : 'linear-gradient(90deg, #6A1B9A 0%, #AD1457 50%, #E91E63 100%)',
-                padding: '10px 14px',
-                borderRadius: 16,
-                boxShadow: '0 8px 24px rgba(0,0,0,0.6), inset 0 2px 0 rgba(255,255,255,0.4)',
+                padding: '8px 12px',
+                borderRadius: 14,
+                boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
                 textAlign: 'center',
                 animation: 'cutinBanner 0.75s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards',
-                border: '2.5px solid #FFF',
+                border: '2px solid #FFF',
               }}
             >
-              <div style={{ fontSize: 11, fontWeight: 900, color: '#FFEB3B', letterSpacing: '0.5px', textShadow: '0 2px 4px #000' }}>
-                {cutin.title}
-              </div>
-              <div style={{ fontSize: 17, fontWeight: 900, color: '#FFFFFF', textShadow: '0 2px 8px rgba(0,0,0,0.8)', margin: '2px 0' }}>
+              <div style={{ fontSize: 10.5, fontWeight: 900, color: '#FFEB3B' }}>{cutin.title}</div>
+              <div style={{ fontSize: 15.5, fontWeight: 900, color: '#FFFFFF', margin: '2px 0' }}>
                 {cutin.icon} {cutin.name}
               </div>
-              <div style={{ fontSize: 10.5, fontWeight: 800, color: '#FFF8E1', textShadow: '0 1px 3px #000', wordBreak: 'keep-all', lineHeight: 1.3 }}>
+              <div style={{ fontSize: 10, fontWeight: 800, color: '#FFF8E1', wordBreak: 'keep-all', lineHeight: 1.3 }}>
                 "{cutin.quote}"
               </div>
             </div>
           </div>
         )}
 
-        {/* 현재 턴 ASMR 파편 & 의성어 버스트 이펙트 */}
+        {/* ASMR 파편 & 의성어 버스트 이펙트 */}
         {currentTurn && (
           <SensoryBurst
             kind={currentTurn.asmr}
@@ -568,7 +729,7 @@ export default function AsmrBattleArena({
           />
         )}
 
-        {/* 🌟 포켓몬고 스타일 전/후 원근감 3D 배틀 필드 & 플로팅 대미지/힐 텍스트 */}
+        {/* 🌟 3D 원근 로우앵글 배틀 필드 */}
         <div
           style={{
             position: 'relative',
@@ -577,192 +738,127 @@ export default function AsmrBattleArena({
             overflow: 'hidden',
           }}
         >
-          {/* 바닥 원근감 그리드 라인 & 타원형 배틀 플랫폼 (Pedestal) */}
-          {/* [후면 상단] 상대 펫 발판 */}
+          {/* 바닥 원근감 그리드 라인 */}
           <div
             style={{
               position: 'absolute',
-              top: '32%',
-              right: '18%',
-              width: 120,
-              height: 44,
-              borderRadius: '50%',
-              background: 'radial-gradient(ellipse, rgba(144, 202, 249, 0.45) 0%, rgba(227, 242, 253, 0.2) 65%, transparent 100%)',
-              border: '1.5px solid rgba(66, 165, 245, 0.45)',
-              transform: 'rotateX(55deg)',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: '80%',
+              perspective: '650px',
               pointerEvents: 'none',
-              zIndex: 3,
+              zIndex: 2,
             }}
-          />
-          {/* [전면 하단] 내 펫 발판 */}
-          <div
-            style={{
-              position: 'absolute',
-              bottom: '14%',
-              left: '16%',
-              width: 150,
-              height: 52,
-              borderRadius: '50%',
-              background: 'radial-gradient(ellipse, rgba(255, 183, 77, 0.5) 0%, rgba(255, 243, 224, 0.2) 65%, transparent 100%)',
-              border: '1.5px solid rgba(255, 167, 38, 0.5)',
-              transform: 'rotateX(55deg)',
-              pointerEvents: 'none',
-              zIndex: 3,
-            }}
-          />
-
-          {/* ⚡ 치명타 / 스킬 발동 시 다이내믹 컷인 배너 (글박스 짤림 방지) */}
-          {currentTurn && (currentTurn.isCrit || currentTurn.skillName) && actionPhase === 'strike' && (
+          >
             <div
-              key={`cutin-${stepIdx}`}
               style={{
-                position: 'absolute',
-                top: '46%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                zIndex: 30,
-                pointerEvents: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                background: currentTurn.isCrit
-                  ? 'linear-gradient(90deg, rgba(216, 27, 96, 0.95), rgba(255, 87, 34, 0.95))'
-                  : 'linear-gradient(90deg, rgba(255, 152, 0, 0.95), rgba(255, 193, 7, 0.95))',
-                padding: '6px 18px',
-                borderRadius: 999,
-                boxShadow: '0 4px 20px rgba(0,0,0,0.35), 0 0 15px rgba(255,215,0,0.6)',
-                border: '2px solid #FFFFFF',
-                animation: 'cutinBanner 0.75s ease-out both',
-                maxWidth: '92%',
-                boxSizing: 'border-box',
-                whiteSpace: 'nowrap',
+                width: '100%',
+                height: '100%',
+                transform: 'rotateX(58deg)',
+                background: isRaid
+                  ? 'radial-gradient(ellipse at 50% 50%, rgba(233, 30, 99, 0.22) 0%, rgba(156, 39, 176, 0.08) 60%, transparent 100%)'
+                  : 'radial-gradient(ellipse at 50% 50%, rgba(255, 183, 77, 0.25) 0%, transparent 80%)',
+                border: isRaid ? '1.5px solid rgba(233, 30, 99, 0.35)' : '1px solid rgba(255, 167, 38, 0.3)',
+                borderRadius: '50%',
               }}
-            >
-              <span style={{ fontSize: 20 }}>{currentTurn.isCrit ? '💥' : '✨'}</span>
-              <span style={{ fontSize: 13, fontWeight: 900, color: '#FFFFFF', letterSpacing: '0.5px' }}>
-                {currentTurn.isCrit ? '🔥 치명타 식감 버스트!' : `⚡ ${currentTurn.skillName || '필살 스킬'}!`}
-              </span>
-            </div>
-          )}
+            />
+          </div>
 
-          {/* [전면 좌하단] 내 디저트 몬스터 (전면이라 130px 크기로 위풍당당하게 배치) */}
+          {/* 👑 [상단 중앙] 거대 맥스 보스 디저트 (로우앵글로 올려다보는 압도적 위용) */}
           <div
             style={{
               position: 'absolute',
-              bottom: '15%',
-              left: '16%',
+              top: isRaid ? '6%' : '12%',
+              left: isRaid ? '50%' : 'auto',
+              right: isRaid ? 'auto' : '18%',
+              transform: isRaid ? 'translateX(-50%)' : 'none',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              zIndex: 15,
+              zIndex: 10,
             }}
           >
-            {/* 🌟 내 캐릭터 주변 플로팅 전투 텍스트 (Floating Combat Text) */}
-            {challengerFloating && (
+            {/* 붉은/보라색 3단 다이맥스 구름 링(Dynamax Clouds) */}
+            {isRaid && (
               <div
-                key={`c-float-${stepIdx}`}
                 style={{
                   position: 'absolute',
-                  top: '-32%',
-                  zIndex: 25,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  animation: 'floatCombatNum 1.25s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards',
+                  top: -20,
+                  width: 175,
+                  height: 48,
+                  zIndex: 2,
                   pointerEvents: 'none',
                 }}
               >
-                {challengerFloating.sub && (
-                  <div
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 900,
-                      color: '#FFFFFF',
-                      background:
-                        challengerFloating.type === 'crit'
-                          ? '#D81B60'
-                          : challengerFloating.type === 'dodge'
-                            ? '#1E88E5'
-                            : challengerFloating.type === 'block'
-                              ? '#FB8C00'
-                              : '#43A047',
-                      padding: '2px 8px',
-                      borderRadius: 999,
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
-                      marginBottom: 2,
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {challengerFloating.sub}
-                  </div>
-                )}
+                {/* 3단 회전 구름 오버레이 */}
                 <div
                   style={{
-                    fontSize:
-                      challengerFloating.type === 'crit'
-                        ? 26
-                        : challengerFloating.type === 'skill'
-                          ? 13
-                          : 22,
+                    position: 'absolute',
+                    inset: 0,
+                    borderRadius: '50%',
+                    border: '3px dashed #FF4081',
+                    animation: 'dynamaxCloudSpin 10s linear infinite',
+                    boxShadow: '0 0 20px #FF1744, inset 0 0 14px #E91E63',
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 4,
+                    borderRadius: '50%',
+                    border: '2px dotted #FFD54F',
+                    animation: 'dynamaxCloudSpin 6s linear infinite reverse',
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: -10,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: 'linear-gradient(90deg, #D50000, #C2185B)',
+                    color: '#FFE082',
+                    fontSize: 8.5,
                     fontWeight: 900,
-                    color:
-                      challengerFloating.type === 'crit'
-                        ? '#FF1744'
-                        : challengerFloating.type === 'heal'
-                          ? '#00E676'
-                          : challengerFloating.type === 'dodge'
-                            ? '#29B6F6'
-                            : challengerFloating.type === 'block'
-                              ? '#FFA726'
-                              : challengerFloating.type === 'skill'
-                                ? '#5D4037'
-                                : '#FF5252',
-                    textShadow:
-                      challengerFloating.type === 'skill'
-                        ? '0 1px 3px rgba(255,255,255,0.9)'
-                        : '0 2px 8px rgba(0,0,0,0.45), 0 0 5px #FFFFFF',
-                    letterSpacing: '-0.5px',
+                    padding: '1px 6px',
+                    borderRadius: 999,
                     whiteSpace: 'nowrap',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.5)',
                   }}
                 >
-                  {challengerFloating.text}
+                  ⚡ 거대 맥스 보스 ⚡
                 </div>
               </div>
             )}
 
-            {/* 3D 몬스터 뷰 & 물리 모션 트랜스폼 */}
-            <BattleFighter
-              look={cLook}
-              size={130}
-              title={challenger.name ?? cInfo?.name}
-              pose={cPose}
-              hitClass={cHitReaction || undefined}
-              hitKey={stepIdx}
-              flash={isHitMoment && isDefenderActor}
-              trail={actionPhase === 'strike' && isChallengerActor}
+            {/* 보스 발판 */}
+            <div
+              style={{
+                position: 'absolute',
+                bottom: 8,
+                width: isRaid ? 170 : 120,
+                height: isRaid ? 48 : 40,
+                borderRadius: '50%',
+                background: isRaid
+                  ? 'radial-gradient(ellipse, rgba(233, 30, 99, 0.6) 0%, rgba(136, 14, 79, 0.2) 65%, transparent 100%)'
+                  : 'radial-gradient(ellipse, rgba(144, 202, 249, 0.45) 0%, transparent 100%)',
+                border: isRaid ? '2px solid #FF4081' : '1.5px solid rgba(66, 165, 245, 0.45)',
+                transform: 'rotateX(55deg)',
+                pointerEvents: 'none',
+                zIndex: 3,
+                animation: isRaid ? 'dynamaxAuraPulse 2.4s ease-in-out infinite' : undefined,
+              }}
             />
-          </div>
 
-          {/* [후면 우상단] 지인 디저트 몬스터 (원근감으로 105px 크기로 뒤에 위치) */}
-          <div
-            style={{
-              position: 'absolute',
-              top: '12%',
-              right: '18%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              zIndex: 8,
-            }}
-          >
-            {/* 🌟 상대 캐릭터 주변 플로팅 전투 텍스트 (Floating Combat Text) */}
+            {/* 상대 보스 플로팅 전투 텍스트 */}
             {defenderFloating && (
               <div
-                key={`d-float-${stepIdx}`}
+                key={`d-float-${stepIdx}-${bossBonusDamage}`}
                 style={{
                   position: 'absolute',
                   top: '-32%',
-                  zIndex: 25,
+                  zIndex: 30,
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
@@ -773,7 +869,7 @@ export default function AsmrBattleArena({
                 {defenderFloating.sub && (
                   <div
                     style={{
-                      fontSize: 10,
+                      fontSize: 9.5,
                       fontWeight: 900,
                       color: '#FFFFFF',
                       background:
@@ -786,7 +882,7 @@ export default function AsmrBattleArena({
                               : '#43A047',
                       padding: '2px 8px',
                       borderRadius: 999,
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
                       marginBottom: 2,
                       whiteSpace: 'nowrap',
                     }}
@@ -810,16 +906,8 @@ export default function AsmrBattleArena({
                           ? '#00E676'
                           : defenderFloating.type === 'dodge'
                             ? '#29B6F6'
-                            : defenderFloating.type === 'block'
-                              ? '#FFA726'
-                              : defenderFloating.type === 'skill'
-                                ? '#5D4037'
-                                : '#FF5252',
-                    textShadow:
-                      defenderFloating.type === 'skill'
-                        ? '0 1px 3px rgba(255,255,255,0.9)'
-                        : '0 2px 8px rgba(0,0,0,0.45), 0 0 5px #FFFFFF',
-                    letterSpacing: '-0.5px',
+                            : '#FF5252',
+                    textShadow: '0 2px 8px rgba(0,0,0,0.6), 0 0 6px #FFFFFF',
                     whiteSpace: 'nowrap',
                   }}
                 >
@@ -828,101 +916,402 @@ export default function AsmrBattleArena({
               </div>
             )}
 
-            {/* 3D 몬스터 뷰 & 물리 모션 트랜스폼 */}
-            <BattleFighter
-              look={dLook}
-              size={105}
-              title={defender.name ?? dInfo?.name}
-              pose={dPose}
-              hitClass={dHitReaction || undefined}
-              hitKey={stepIdx}
-              flash={isHitMoment && isChallengerActor}
-              trail={actionPhase === 'strike' && isDefenderActor}
-            />
+            {/* 거대 맥스 보스 3D 뷰 */}
+            <div style={{ transform: isRaid ? 'scale(1.15)' : 'none', filter: isRaid ? 'drop-shadow(0 10px 24px rgba(233,30,99,0.5))' : undefined }}>
+              <BattleFighter
+                look={dLook}
+                size={isRaid ? 140 : 105}
+                title={defender.name ?? dInfo?.name}
+                pose={dPose}
+                hitClass={dHitReaction || undefined}
+                hitKey={stepIdx}
+                flash={isHitMoment && isChallengerActor}
+                trail={actionPhase === 'strike' && isDefenderActor}
+              />
+            </div>
           </div>
+
+          {/* 🛡️ [하단 전면] 4인 협력 레이드 파티 구도 (포켓몬고 3번 씬) */}
+          {isRaid ? (
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '10%',
+                left: 0,
+                right: 0,
+                height: 120,
+                zIndex: 20,
+                pointerEvents: 'none',
+              }}
+            >
+              {/* [좌측 파티원 1] 🍓 생크림 몽실이 (서포터) */}
+              <div
+                style={{
+                  position: 'absolute',
+                  left: '6%',
+                  bottom: '12%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  animation: 'partyCheerBounce 2.5s ease-in-out infinite',
+                }}
+              >
+                <div
+                  style={{
+                    background: 'rgba(0,0,0,0.6)',
+                    border: '1px solid #FF80AB',
+                    color: '#FFD1DC',
+                    fontSize: 8,
+                    fontWeight: 800,
+                    padding: '1px 5px',
+                    borderRadius: 999,
+                    marginBottom: 2,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  🍓 몽실 (서포터)
+                </div>
+                <MonsterView look={allyMongsil} size={66} />
+              </div>
+
+              {/* [중앙 전면 리더] 🌟 내 메인 펫 */}
+              <div
+                style={{
+                  position: 'absolute',
+                  left: '50%',
+                  bottom: '0%',
+                  transform: 'translateX(-50%)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  zIndex: 25,
+                }}
+              >
+                {/* 내 캐릭터 플로팅 전투 텍스트 */}
+                {challengerFloating && (
+                  <div
+                    key={`c-float-${stepIdx}`}
+                    style={{
+                      position: 'absolute',
+                      top: '-34%',
+                      zIndex: 35,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      animation: 'floatCombatNum 1.25s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards',
+                    }}
+                  >
+                    {challengerFloating.sub && (
+                      <div
+                        style={{
+                          fontSize: 9.5,
+                          fontWeight: 900,
+                          color: '#FFFFFF',
+                          background:
+                            challengerFloating.type === 'crit'
+                              ? '#D81B60'
+                              : challengerFloating.type === 'dodge'
+                                ? '#1E88E5'
+                                : '#43A047',
+                          padding: '2px 8px',
+                          borderRadius: 999,
+                          marginBottom: 2,
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {challengerFloating.sub}
+                      </div>
+                    )}
+                    <div
+                      style={{
+                        fontSize: challengerFloating.type === 'crit' ? 26 : 22,
+                        fontWeight: 900,
+                        color: challengerFloating.type === 'heal' ? '#00E676' : '#FF5252',
+                        textShadow: '0 2px 8px rgba(0,0,0,0.6), 0 0 6px #FFFFFF',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {challengerFloating.text}
+                    </div>
+                  </div>
+                )}
+
+                {/* 리더 발판 */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: 6,
+                    width: 140,
+                    height: 44,
+                    borderRadius: '50%',
+                    background: 'radial-gradient(ellipse, rgba(255, 183, 77, 0.5) 0%, transparent 100%)',
+                    border: '1.5px solid rgba(255, 167, 38, 0.5)',
+                    transform: 'rotateX(55deg)',
+                    pointerEvents: 'none',
+                    zIndex: 2,
+                  }}
+                />
+
+                <div
+                  style={{
+                    background: 'linear-gradient(90deg, #FF6F00, #FFA000)',
+                    color: '#210C1B',
+                    fontSize: 8.5,
+                    fontWeight: 900,
+                    padding: '1px 6px',
+                    borderRadius: 999,
+                    marginBottom: 2,
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  ⭐ 파티 리더
+                </div>
+
+                <BattleFighter
+                  look={cLook}
+                  size={120}
+                  title={challenger.name ?? cInfo?.name}
+                  pose={cPose}
+                  hitClass={cHitReaction || undefined}
+                  hitKey={stepIdx}
+                  flash={isHitMoment && isDefenderActor}
+                  trail={actionPhase === 'strike' && isChallengerActor}
+                />
+              </div>
+
+              {/* [우측 파티원 2] 🍪 두바이 콩콩이 (크런치 딜러) */}
+              <div
+                style={{
+                  position: 'absolute',
+                  right: '6%',
+                  bottom: '12%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  animation: 'partyCheerBounce 2.8s ease-in-out infinite',
+                }}
+              >
+                <div
+                  style={{
+                    background: 'rgba(0,0,0,0.6)',
+                    border: '1px solid #FFB74D',
+                    color: '#FFE0B2',
+                    fontSize: 8,
+                    fontWeight: 800,
+                    padding: '1px 5px',
+                    borderRadius: 999,
+                    marginBottom: 2,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  🍪 콩콩 (딜러)
+                </div>
+                <MonsterView look={allyKongkong} size={66} />
+              </div>
+
+              {/* [중앙 후방 파티원 3] ⭐ 별비늘 카멜레온 (가드 밸런서) */}
+              <div
+                style={{
+                  position: 'absolute',
+                  left: '26%',
+                  bottom: '22%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  opacity: 0.9,
+                  animation: 'partyCheerBounce 3.1s ease-in-out infinite',
+                }}
+              >
+                <div
+                  style={{
+                    background: 'rgba(0,0,0,0.6)',
+                    border: '1px solid #B388FF',
+                    color: '#EDE7F6',
+                    fontSize: 7.5,
+                    fontWeight: 800,
+                    padding: '1px 4px',
+                    borderRadius: 999,
+                    marginBottom: 1,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  ✨ 별비늘 (가드)
+                </div>
+                <MonsterView look={allyByeolbineul} size={56} />
+              </div>
+            </div>
+          ) : (
+            /* 클래식 1:1 전면 좌하단 배치 */
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '15%',
+                left: '16%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                zIndex: 15,
+              }}
+            >
+              <BattleFighter
+                look={cLook}
+                size={130}
+                title={challenger.name ?? cInfo?.name}
+                pose={cPose}
+                hitClass={cHitReaction || undefined}
+                hitKey={stepIdx}
+                flash={isHitMoment && isDefenderActor}
+                trail={actionPhase === 'strike' && isChallengerActor}
+              />
+            </div>
+          )}
         </div>
 
-        {/* 1줄 미니멀 실시간 ASMR 사운드 뱃지 (화면 밖 짤림 완전 방지) */}
+        {/* 1줄 미니멀 실시간 ASMR 사운드 뱃지 */}
         <div
           style={{
             position: 'absolute',
-            bottom: 6,
+            bottom: 4,
             left: '50%',
             transform: 'translateX(-50%)',
-            background: 'rgba(255, 255, 255, 0.95)',
-            border: '1px solid #FFE082',
+            background: isRaid ? 'rgba(25, 12, 38, 0.92)' : 'rgba(255, 255, 255, 0.95)',
+            border: isRaid ? '1px solid #BA68C8' : '1px solid #FFE082',
             borderRadius: 999,
-            padding: '3px 10px',
+            padding: '2px 9px',
             display: 'flex',
             alignItems: 'center',
             gap: 5,
-            fontSize: 10,
+            fontSize: 9.5,
             fontWeight: 800,
-            color: '#795548',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
+            color: isRaid ? '#FFE082' : '#795548',
             maxWidth: '92%',
             boxSizing: 'border-box',
             whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            zIndex: 10,
+            zIndex: 25,
           }}
         >
           {isFinished ? (
-            <span style={{ color: sim.winner === 'challenger' ? '#2E7D32' : '#C2185B' }}>
-              {sim.winner === 'challenger' ? '🏆 배틀 종료 · 승리!' : '👏 배틀 종료 · 멋진 승부!'}
+            <span style={{ color: sim.winner === 'challenger' || dHp <= 0 ? '#4CAF50' : '#FF4081' }}>
+              {sim.winner === 'challenger' || dHp <= 0 ? '🏆 거대 맥스 레이드 격파 승리!' : '👏 멋진 맥스 레이드 승부!'}
             </span>
           ) : currentTurn ? (
             <span>
               턴 {currentTurn.turn}/{sim.turns.length} · 🔊 {currentTurn.onomatopoeia}
             </span>
           ) : (
-            <span>🍮 달콤한 ASMR 대전 시작!</span>
+            <span>🍮 거대 맥스 보스 식감 대치 중!</span>
           )}
         </div>
       </div>
 
-      {/* 🎮 하단 직관적 게임 컨트롤 바 (심플 & 효율적인 공간 배치) */}
+      {/* 4. ⚡ DESSERT MAX 게이지 바 & 발동 컨트롤 */}
       <div
-        className="card"
         style={{
-          background: '#FFFDF9',
-          border: '1.5px solid #F0DFB8',
-          padding: '6px 8px',
-          gap: 6,
+          width: '100%',
+          background: isRaid ? 'rgba(30, 15, 45, 0.9)' : '#FFFDF9',
+          border: isRaid ? '1.5px solid #FF4081' : '1.5px solid #F0DFB8',
+          borderRadius: 14,
+          padding: '6px 10px',
+          boxShadow: maxGauge >= 100 ? '0 0 16px rgba(255,64,129,0.8)' : 'none',
+          animation: maxGauge >= 100 ? 'maxGaugeGlow 1.2s infinite alternate' : undefined,
           flexShrink: 0,
         }}
       >
-        {/* 실시간 관전 터치 응원 버튼 */}
+        <div className="row between" style={{ fontSize: 10, fontWeight: 900, marginBottom: 3 }}>
+          <span style={{ color: maxGauge >= 100 ? '#FFEB3B' : isRaid ? '#FF80AB' : '#D84315', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span>⚡ DESSERT MAX GAUGE</span>
+            {maxGauge >= 100 && <span style={{ color: '#FF1744' }}>(MAX READY!)</span>}
+          </span>
+          <span style={{ color: isRaid ? '#FFE082' : '#795548' }}>{Math.round(maxGauge)}% / 100%</span>
+        </div>
+
+        {/* 게이지 바 */}
+        <div style={{ height: 8, borderRadius: 999, background: isRaid ? 'rgba(0,0,0,0.4)' : '#F5E8C9', overflow: 'hidden' }}>
+          <div
+            style={{
+              width: `${Math.min(100, maxGauge)}%`,
+              height: '100%',
+              borderRadius: 999,
+              background:
+                maxGauge >= 100
+                  ? 'linear-gradient(90deg, #FF1744, #FFD700, #FF4081)'
+                  : 'linear-gradient(90deg, #FF7043, #E91E63)',
+              transition: 'width 0.3s ease',
+            }}
+          />
+        </div>
+      </div>
+
+      {/* 5. 🎮 하단 직관적 게임 컨트롤 바 */}
+      <div
+        className="card"
+        style={{
+          background: isRaid ? 'rgba(25, 12, 38, 0.85)' : '#FFFDF9',
+          border: isRaid ? '1.5px solid #AB47BC' : '1.5px solid #F0DFB8',
+          padding: '5px 8px',
+          gap: 5,
+          flexShrink: 0,
+        }}
+      >
+        {/* MAX 스트라이크 버튼 (100% 충전 시) or 터치 응원 버튼 */}
         {!isFinished && (
           <div className="row between" style={{ gap: 6 }}>
-            <button
-              onClick={handleCheer}
-              style={{
-                flex: 1,
-                cursor: 'pointer',
-                border: 'none',
-                borderRadius: 10,
-                fontWeight: 900,
-                fontSize: 11,
-                padding: '6px 10px',
-                background: 'linear-gradient(90deg, #FF7043, #FF5722)',
-                color: '#FFFFFF',
-                boxShadow: '0 2px 6px rgba(255,87,34,0.3)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 4,
-              }}
-            >
-              💖 펫 응원 터치! {cheerCount > 0 ? `(${cheerCount})` : ''}
-            </button>
+            {maxGauge >= 100 ? (
+              <button
+                onClick={handleTriggerMaxStrike}
+                style={{
+                  flex: 1,
+                  cursor: 'pointer',
+                  border: '2px solid #FFFFFF',
+                  borderRadius: 10,
+                  fontWeight: 900,
+                  fontSize: 12,
+                  padding: '7px 10px',
+                  background: 'linear-gradient(90deg, #FF1744, #FF4081, #FFD700)',
+                  color: '#FFFFFF',
+                  boxShadow: '0 4px 14px rgba(255,23,68,0.6)',
+                  animation: 'pulseGlow 0.6s infinite alternate',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 5,
+                }}
+              >
+                ⚡ 거대 디저트 MAX 스트라이크!! 💥 (협력 총공격)
+              </button>
+            ) : (
+              <button
+                onClick={handleCheer}
+                style={{
+                  flex: 1,
+                  cursor: 'pointer',
+                  border: 'none',
+                  borderRadius: 10,
+                  fontWeight: 900,
+                  fontSize: 10.5,
+                  padding: '6px 10px',
+                  background: isRaid
+                    ? 'linear-gradient(90deg, #9C27B0, #E91E63)'
+                    : 'linear-gradient(90deg, #FF7043, #FF5722)',
+                  color: '#FFFFFF',
+                  boxShadow: '0 2px 6px rgba(233,30,99,0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 4,
+                }}
+              >
+                💖 파티 응원 터치! (+12% MAX) {cheerCount > 0 ? `(${cheerCount})` : ''}
+              </button>
+            )}
+
             {cheerToast && (
               <span
                 style={{
-                  fontSize: 10,
+                  fontSize: 9.5,
                   fontWeight: 800,
-                  color: '#D84315',
+                  color: isRaid ? '#FF80AB' : '#D84315',
                   animation: 'pulseGlow 0.8s ease infinite',
                   whiteSpace: 'nowrap',
                 }}
@@ -933,27 +1322,36 @@ export default function AsmrBattleArena({
           </div>
         )}
 
-        {/* 조작 버튼 그룹: 대전 종료 시에만 결과 액션 버튼 표시 (정지, 배속, 스킵 삭제) */}
+        {/* 조작 버튼 그룹: 대전 종료 시 결과 액션 */}
         {isFinished && (
           <div className="row between" style={{ gap: 5 }}>
             <button
               className="chip coral"
               onClick={handleReplaySameSeed}
-              style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 11, flex: 1, padding: '6px 0' }}
+              style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 10.5, flex: 1, padding: '5px 0' }}
             >
               🔄 다시 보기
             </button>
             <button
               className="chip honey"
               onClick={handleRematchNewSeed}
-              style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 11, flex: 1, padding: '6px 0' }}
+              style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 10.5, flex: 1, padding: '5px 0' }}
             >
               🎲 새 대결
             </button>
             <button
               className="chip"
               onClick={onBack}
-              style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 11, flex: 1, padding: '6px 0', background: '#5D4037', color: '#FFFFFF' }}
+              style={{
+                cursor: 'pointer',
+                border: 'none',
+                fontWeight: 800,
+                fontSize: 10.5,
+                flex: 1,
+                padding: '5px 0',
+                background: isRaid ? '#7B1FA2' : '#5D4037',
+                color: '#FFFFFF',
+              }}
             >
               🚪 대전 종료
             </button>
@@ -968,8 +1366,8 @@ export default function AsmrBattleArena({
             position: 'absolute',
             inset: 0,
             zIndex: 50,
-            background: 'rgba(0,0,0,0.6)',
-            backdropFilter: 'blur(3px)',
+            background: 'rgba(0,0,0,0.65)',
+            backdropFilter: 'blur(4px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -992,20 +1390,20 @@ export default function AsmrBattleArena({
               gap: 10,
             }}
           >
-            <div style={{ fontSize: 36 }}>{sim.winner === 'challenger' ? '🎉🏆🎉' : '👏🍮✨'}</div>
-            <div style={{ fontSize: 16, fontWeight: 900, color: '#3E2723' }}>
-              {sim.winner === 'challenger'
-                ? `승리! [${challenger.name || cInfo?.name}] 압승!`
-                : `명승부! [${defender.name || dInfo?.name}] 대등한 접전!`}
+            <div style={{ fontSize: 36 }}>{sim.winner === 'challenger' || dHp <= 0 ? '🎉👑🏆' : '👏🍮✨'}</div>
+            <div style={{ fontSize: 15.5, fontWeight: 900, color: '#3E2723' }}>
+              {sim.winner === 'challenger' || dHp <= 0
+                ? `승리! [${challenger.name || cInfo?.name}] 거대 보스 토벌!`
+                : `명승부! [${defender.name || dInfo?.name}] 치열한 레이드 접전!`}
             </div>
-            <div style={{ fontSize: 12, color: '#795548', lineHeight: 1.4 }}>
-              달콤한 식감 ASMR 대전이 마무리되었습니다.<br />
+            <div style={{ fontSize: 11.5, color: '#795548', lineHeight: 1.4 }}>
+              달콤한 식감 ASMR 맥스 배틀이 마무리되었습니다.<br />
               <b style={{ color: '#E65100' }}>
-                {sim.winner === 'challenger' ? '보상: +30 리본코인 획득! 🎀' : '보상: +10 리본코인 획득! 🎀'}
+                {sim.winner === 'challenger' || dHp <= 0 ? '보상: +35 리본코인 획득! 🎀' : '보상: +12 리본코인 획득! 🎀'}
               </b>
             </div>
 
-            {/* 🎬 배틀 명장면 리플레이 짤 보기 & 공유 버튼 (임팩트 업그레이드) */}
+            {/* 명장면 리플레이 짤 버튼 */}
             <button
               onClick={() => {
                 setShowHighlightModal(true)
@@ -1013,22 +1411,21 @@ export default function AsmrBattleArena({
               }}
               style={{
                 width: '100%',
-                padding: '9px 12px',
+                padding: '8px 12px',
                 borderRadius: 14,
                 border: '2px solid #FF9800',
                 background: 'linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%)',
                 color: '#E65100',
                 fontWeight: 900,
-                fontSize: 12,
+                fontSize: 11.5,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 6,
-                boxShadow: '0 3px 8px rgba(255,152,0,0.25)',
+                gap: 5,
               }}
             >
-              <span style={{ fontSize: 16 }}>🎬</span>
+              <span>🎬</span>
               <span>배틀 명장면 리플레이 짤 보기 & 공유</span>
             </button>
 
@@ -1036,14 +1433,14 @@ export default function AsmrBattleArena({
               <button
                 className="chip coral"
                 onClick={handleReplaySameSeed}
-                style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 11, padding: '7px 12px' }}
+                style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 10.5, padding: '6px 10px' }}
               >
                 🔄 다시 감상
               </button>
               <button
                 className="chip honey"
                 onClick={handleRematchNewSeed}
-                style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 11, padding: '7px 12px' }}
+                style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 10.5, padding: '6px 10px' }}
               >
                 ⚔️ 새 시드 대결
               </button>
@@ -1052,10 +1449,10 @@ export default function AsmrBattleArena({
                 onClick={onBack}
                 style={{
                   width: '100%',
-                  marginTop: 4,
+                  marginTop: 3,
                   fontWeight: 900,
-                  fontSize: 13,
-                  padding: '9px 0',
+                  fontSize: 12.5,
+                  padding: '8px 0',
                   background: 'linear-gradient(135deg, #FF7043, #D84315)',
                   border: 'none',
                   borderRadius: 12,
@@ -1069,7 +1466,7 @@ export default function AsmrBattleArena({
         </div>
       )}
 
-      {/* 🎬 배틀 명장면 리플레이 짤 & 공유 전용 모달 */}
+      {/* 명장면 리플레이 짤 모달 */}
       {showHighlightModal && bestHighlight && (
         <div
           style={{
@@ -1094,142 +1491,92 @@ export default function AsmrBattleArena({
               borderRadius: 22,
               border: '2px solid #FFB74D',
               boxShadow: '0 16px 40px rgba(0,0,0,0.4)',
-              padding: '16px',
+              padding: '14px',
               textAlign: 'center',
               display: 'flex',
               flexDirection: 'column',
-              gap: 12,
+              gap: 10,
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="row between" style={{ alignItems: 'center' }}>
-              <span style={{ fontSize: 13, fontWeight: 900, color: '#E65100' }}>
+              <span style={{ fontSize: 12.5, fontWeight: 900, color: '#E65100' }}>
                 🎬 배틀 명장면 리플레이 짤
               </span>
               <button
                 onClick={() => setShowHighlightModal(false)}
-                style={{ border: 'none', background: 'none', fontSize: 14, cursor: 'pointer', color: '#8D6E63', fontWeight: 900 }}
+                style={{ border: 'none', background: 'none', fontSize: 13, cursor: 'pointer', color: '#8D6E63', fontWeight: 900 }}
               >
                 ✕
               </button>
             </div>
 
-            {/* 움직이는 짤(GIF 애니메이션 프레임) 캔버스 카드 */}
             <div
               style={{
                 position: 'relative',
-                borderRadius: 16,
+                borderRadius: 14,
                 background: 'radial-gradient(ellipse at center, #FFF8E1 0%, #FFE082 100%)',
                 border: '1.5px solid #FFD54F',
-                padding: '14px 10px',
+                padding: '12px 10px',
                 overflow: 'hidden',
-                boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.06)',
               }}
             >
-              {/* 상단 짤 배지 */}
               <div
                 style={{
-                  position: 'absolute',
-                  top: 8,
-                  left: 8,
-                  background: 'rgba(0,0,0,0.7)',
-                  color: '#FFEB3B',
-                  fontSize: 10,
-                  fontWeight: 900,
-                  padding: '2px 8px',
-                  borderRadius: 6,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                }}
-              >
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#FF1744', display: 'inline-block' }} />
-                GIF 리플레이 짤
-              </div>
-
-              {/* 3D 펫들의 결정타 도약 액션 짤 애니메이션 */}
-              <div
-                style={{
-                  height: 140,
+                  height: 120,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: 8,
-                  position: 'relative',
                 }}
               >
-                <div style={{ animation: 'bounce 0.8s infinite alternate ease-in-out' }}>
-                  <MonsterView look={cLook} size={90} title={challenger.name || cInfo?.name} />
-                </div>
-                <div style={{ fontSize: 24, animation: 'pulseGlow 0.5s infinite alternate' }}>💥</div>
-                <div style={{ animation: 'shake 0.8s infinite ease-in-out', opacity: 0.85 }}>
-                  <MonsterView look={dLook} size={75} title={defender.name || dInfo?.name} />
-                </div>
+                <MonsterView look={cLook} size={80} title={challenger.name || cInfo?.name} />
+                <div style={{ fontSize: 20 }}>💥</div>
+                <MonsterView look={dLook} size={70} title={defender.name || dInfo?.name} />
               </div>
 
-              {/* 하단 짤 정보 오버레이 */}
               <div
                 style={{
                   background: 'rgba(255,255,255,0.92)',
-                  borderRadius: 12,
-                  padding: '6px 10px',
+                  borderRadius: 10,
+                  padding: '5px 8px',
                   border: '1px solid #FFE082',
                 }}
               >
-                <div style={{ fontSize: 11, fontWeight: 900, color: '#D84315' }}>
+                <div style={{ fontSize: 10.5, fontWeight: 900, color: '#D84315' }}>
                   {bestHighlight.isCrit ? '🔥 [필살기 결정타] ' : '⚡ [최대 식감 타격] '}
                   {bestHighlight.skillIcon} {bestHighlight.skillName}
                 </div>
-                <div style={{ fontSize: 10, color: '#5D4037', fontWeight: 800, marginTop: 1 }}>
+                <div style={{ fontSize: 9.5, color: '#5D4037', fontWeight: 800, marginTop: 1 }}>
                   대미지 -{bestHighlight.damage} HP · ASMR {bestHighlight.onomatopoeia}
                 </div>
               </div>
             </div>
 
-            {/* 짤 공유 / 복사 버튼 */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <button
-                onClick={() => {
-                  try {
-                    navigator.clipboard.writeText(
-                      `[파티세리 디저트 대전] #${seed} 시드에서 ${challenger.name || cInfo?.name}의 ${bestHighlight.skillName} 필살기 명장면! 대미지 -${bestHighlight.damage} 폭발!`
-                    )
-                    setCopiedClipToast(true)
-                    setTimeout(() => setCopiedClipToast(false), 2500)
-                  } catch {}
-                  playDessertAsmr('cookie-crisp')
-                }}
-                style={{
-                  padding: '9px 0',
-                  borderRadius: 12,
-                  border: 'none',
-                  background: 'linear-gradient(90deg, #FF7043, #FF5722)',
-                  color: '#FFFFFF',
-                  fontWeight: 900,
-                  fontSize: 12,
-                  cursor: 'pointer',
-                  boxShadow: '0 3px 8px rgba(255,87,34,0.3)',
-                }}
-              >
-                {copiedClipToast ? '✅ 배틀 명장면 링크 복사 완료!' : '📸 배틀 명장면 짤 링크 복사 & 공유'}
-              </button>
-
-              <button
-                onClick={() => setShowHighlightModal(false)}
-                style={{
-                  padding: '8px 0',
-                  borderRadius: 10,
-                  border: '1px solid #CFD8DC',
-                  background: '#ECEFF1',
-                  color: '#455A64',
-                  fontWeight: 800,
-                  fontSize: 11,
-                  cursor: 'pointer',
-                }}
-              >
-                닫기
-              </button>
-            </div>
+            <button
+              onClick={() => {
+                try {
+                  navigator.clipboard.writeText(
+                    `[파티세리 디저트 대전] #${seed} 시드에서 ${challenger.name || cInfo?.name}의 ${bestHighlight.skillName} 필살기 명장면!`
+                  )
+                  setCopiedClipToast(true)
+                  setTimeout(() => setCopiedClipToast(false), 2500)
+                } catch {}
+                playDessertAsmr('cookie-crisp')
+              }}
+              style={{
+                padding: '8px 0',
+                borderRadius: 12,
+                border: 'none',
+                background: 'linear-gradient(90deg, #FF7043, #FF5722)',
+                color: '#FFFFFF',
+                fontWeight: 900,
+                fontSize: 11.5,
+                cursor: 'pointer',
+              }}
+            >
+              {copiedClipToast ? '✅ 명장면 링크 복사 완료!' : '📸 명장면 짤 링크 복사 & 공유'}
+            </button>
           </div>
         </div>
       )}
