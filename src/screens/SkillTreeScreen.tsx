@@ -317,7 +317,17 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
   const isSelEquipped = equipped.includes(selNode.id)
 
   return (
-    <main className="screen">
+    <main
+      className="screen"
+      style={{
+        height: '100dvh',
+        maxHeight: '100dvh',
+        overflow: 'hidden',
+        padding: '10px 12px calc(10px + env(safe-area-inset-bottom, 0px))',
+        gap: 6,
+        justifyContent: 'space-between',
+      }}
+    >
       {/* 1. 상단 헤더 바 */}
       <div className="row between" style={{ flexShrink: 0 }}>
         <button className="btn-round" onClick={onBack} aria-label="뒤로">

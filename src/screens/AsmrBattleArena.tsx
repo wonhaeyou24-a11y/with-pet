@@ -187,14 +187,24 @@ export default function AsmrBattleArena({
   const visibleLogs = sim.turns.slice(Math.max(0, stepIdx - 3), Math.max(1, stepIdx))
 
   return (
-    <main className="screen" style={{ justifyContent: 'space-between' }}>
+    <main
+      className="screen"
+      style={{
+        justifyContent: 'space-between',
+        height: '100dvh',
+        maxHeight: '100dvh',
+        overflow: 'hidden',
+        padding: '10px 12px calc(12px + env(safe-area-inset-bottom, 0px))',
+        gap: 6,
+      }}
+    >
       {/* 상단 헤더 */}
       <div className="row between" style={{ flexShrink: 0 }}>
         <button className="btn-round" onClick={onBack} aria-label="뒤로">
           <BackIcon />
         </button>
-        <h1 className="title" style={{ fontSize: 17 }}>⚔️ 실시간 턴제 식감 대전</h1>
-        <span className="chip" style={{ fontSize: 12, fontWeight: 800 }}>
+        <h1 className="title" style={{ fontSize: 16 }}>⚔️ 실시간 턴제 식감 대전</h1>
+        <span className="chip" style={{ fontSize: 11, fontWeight: 800 }}>
           시드 #{seed}
         </span>
       </div>
@@ -289,7 +299,7 @@ export default function AsmrBattleArena({
                   {currentTurn.bannerText}
                 </div>
               )}
-              <MonsterView look={cLook} size={105} title={challenger.name ?? cInfo?.name} />
+              <MonsterView look={cLook} size={92} title={challenger.name ?? cInfo?.name} />
             </div>
           </div>
 
@@ -355,7 +365,7 @@ export default function AsmrBattleArena({
                   {currentTurn.bannerText}
                 </div>
               )}
-              <MonsterView look={dLook} size={105} title={defender.name ?? dInfo?.name} />
+              <MonsterView look={dLook} size={92} title={defender.name ?? dInfo?.name} />
             </div>
           </div>
         </div>
@@ -470,7 +480,7 @@ export default function AsmrBattleArena({
       </div>
 
       {/* 하단 턴별 상세 식감 로그 덱 (컴팩트 높이로 모바일 화면 잘림 100% 방지) */}
-      <div className="card deck-card" style={{ padding: '6px 10px', gap: 3, flexShrink: 0, maxHeight: 98 }}>
+      <div className="card deck-card" style={{ padding: '4px 8px', gap: 2, flexShrink: 0, maxHeight: 80 }}>
         <div className="row between" style={{ flexShrink: 0 }}>
           <h2 className="title" style={{ fontSize: 13 }}>
             📜 배틀 액션 로그 ({Math.max(1, stepIdx)}/{sim.turns.length}턴)

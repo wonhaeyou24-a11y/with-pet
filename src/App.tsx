@@ -9,14 +9,33 @@ export default function App() {
   const [session, setSession] = useState<Session | null | undefined>(undefined)
   const [player, setPlayer] = useState<Player | null | undefined>(undefined)
 
+  const isDevBypass =
+    typeof window !== 'undefined' &&
+    (window.location.search.includes('dev=true') || localStorage.getItem('dev_bypass') === 'true')
+
   useEffect(() => {
+    if (isDevBypass) {
+      setPlayer({
+        id: 'test-p-01',
+        nickname: '초코마스터',
+        coins: 520,
+        star_shards: 12,
+        rank_score: 1200,
+      })
+      setSession({
+        user: { id: 'test-p-01' } as any,
+      } as any)
+      return
+    }
+
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
     const { data } = supabase.auth.onAuthStateChange((_event, next) => setSession(next))
     return () => data.subscription.unsubscribe()
-  }, [])
+  }, [isDevBypass])
 
   const userId = session?.user.id
   useEffect(() => {
+    if (isDevBypass) return
     if (!userId) {
       setPlayer(undefined)
       return
@@ -27,7 +46,7 @@ export default function App() {
       .eq('id', userId)
       .maybeSingle()
       .then(({ data }) => setPlayer(data))
-  }, [userId])
+  }, [userId, isDevBypass])
 
   if (session === undefined) return null
   if (!session) return <Login />

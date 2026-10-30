@@ -6,13 +6,15 @@ import { useMemo, useState } from 'react'
 import { EVO_BRANCHES, SPECIES_EVOLUTIONS, type EvoBranchId } from '../config/evolution'
 import { ELEMENT_INFO, SPECIES_INFO } from '../config/species'
 import { getDiscoveredDexEntries } from '../lib/evolutionEngine'
-import { playDessertAsmr } from '../lib/sound'
+import { getSpeciesSoundKind, playDessertAsmr } from '../lib/sound'
 import MonsterView from '../monsters/MonsterView'
 import type { MonsterLook } from '../monsters/types'
 import { BackIcon, ElementIcon } from '../ui/Icons'
 
 interface Props {
   onBack: () => void
+  currentMonsterId?: string
+  onSwitchPet?: (pet: { species: string; name: string; element: 'wind' | 'earth' | 'fire' | 'water' | 'grass' | 'electric' }) => void
 }
 
 interface DexFrameItem {
@@ -49,10 +51,11 @@ const SPECIES_DEFAULT_ELEMENT: Record<string, 'wind' | 'earth' | 'fire' | 'water
   smore: 'fire',
 }
 
-export default function DessertPokedexScreen({ onBack }: Props) {
+export default function DessertPokedexScreen({ onBack, onSwitchPet }: Props) {
   const [filterSpecies, setFilterSpecies] = useState<string>('all')
   const [filterUnlockedOnly, setFilterUnlockedOnly] = useState<boolean>(false)
   const [selectedItem, setSelectedItem] = useState<DexFrameItem | null>(null)
+  const [switchToast, setSwitchToast] = useState<string | null>(null)
   const discoveredSet = useMemo(() => getDiscoveredDexEntries(), [])
 
   // 전체 도감 액자 리스트 생성 (종족별 1단계 1종 + 2단계 4종 + 3단계 4종)
@@ -456,14 +459,16 @@ export default function DessertPokedexScreen({ onBack }: Props) {
             style={{
               width: '100%',
               maxWidth: 320,
+              maxHeight: '88dvh',
+              overflowY: 'auto',
               background: '#FFFDF9',
               borderRadius: 20,
               border: '2px solid #FFD54F',
-              padding: '18px 16px',
+              padding: '16px 14px',
               textAlign: 'center',
               display: 'flex',
               flexDirection: 'column',
-              gap: 10,
+              gap: 8,
               boxShadow: '0 12px 32px rgba(0,0,0,0.3)',
             }}
           >
@@ -525,34 +530,71 @@ export default function DessertPokedexScreen({ onBack }: Props) {
                 : '아직 발견되지 않은 신비한 디저트입니다. 파티세리 훈련과 타워 탐험을 통해 진화 조건을 충족해 보세요!'}
             </p>
 
-            {/* ASMR 소리 듣기 버튼 */}
+            {/* ASMR 소리 듣기 & 메인 대표 펫으로 이어 키우기 버튼 */}
             {selectedItem.isUnlocked && (
-              <button
-                onClick={() => playDessertAsmr('sugar-crack', 2)}
-                style={{
-                  padding: '9px',
-                  borderRadius: 12,
-                  border: '1.5px solid #FF8A65',
-                  background: '#FFF2EC',
-                  color: '#D85A3A',
-                  fontSize: 12,
-                  fontWeight: 900,
-                  cursor: 'pointer',
-                }}
-              >
-                🎧 식감 ASMR 사운드 듣기
-              </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <button
+                  onClick={() => {
+                    const sound = getSpeciesSoundKind(selectedItem.species)
+                    playDessertAsmr(sound, 2)
+                  }}
+                  style={{
+                    padding: '8px',
+                    borderRadius: 12,
+                    border: '1.5px solid #FF8A65',
+                    background: '#FFF2EC',
+                    color: '#D85A3A',
+                    fontSize: 12,
+                    fontWeight: 900,
+                    cursor: 'pointer',
+                  }}
+                >
+                  🎧 고유 식감 ASMR 사운드 듣기
+                </button>
+
+                {onSwitchPet && (
+                  <button
+                    onClick={() => {
+                      const sound = getSpeciesSoundKind(selectedItem.species)
+                      playDessertAsmr(sound, 3)
+                      onSwitchPet({
+                        species: selectedItem.species,
+                        name: selectedItem.name,
+                        element: selectedItem.element,
+                      })
+                      setSwitchToast(`🎉 [${selectedItem.name}]을(를) 파티세리 대표 펫으로 지정했습니다! 이어서 성장시켜 보세요.`)
+                      setTimeout(() => {
+                        setSelectedItem(null)
+                        onBack()
+                      }, 1100)
+                    }}
+                    style={{
+                      padding: '10px',
+                      borderRadius: 12,
+                      border: 'none',
+                      background: 'linear-gradient(90deg, #FF7A59 0%, #FF9800 100%)',
+                      color: '#FFFFFF',
+                      fontSize: 13,
+                      fontWeight: 900,
+                      cursor: 'pointer',
+                      boxShadow: '0 3px 8px rgba(255,122,89,0.3)',
+                    }}
+                  >
+                    🐾 이 디저트로 대표 펫 교체 &amp; 이어 키우기!
+                  </button>
+                )}
+              </div>
             )}
 
             <button
               onClick={() => setSelectedItem(null)}
               style={{
-                padding: '10px',
+                padding: '9px',
                 borderRadius: 12,
-                border: 'none',
-                background: '#4E342E',
-                color: '#FFFFFF',
-                fontSize: 13,
+                border: '1px solid #D7CCC8',
+                background: '#FFFFFF',
+                color: '#5D4037',
+                fontSize: 12,
                 fontWeight: 800,
                 cursor: 'pointer',
               }}
@@ -562,6 +604,8 @@ export default function DessertPokedexScreen({ onBack }: Props) {
           </div>
         </div>
       )}
+
+      {switchToast && <div className="toast">{switchToast}</div>}
     </main>
   )
 }

@@ -296,7 +296,22 @@ export default function Game({ player }: { player: Player }) {
       )
     }
     if (subView === 'pokedex') {
-      return <DessertPokedexScreen onBack={() => setSubView('home')} />
+      return (
+        <DessertPokedexScreen
+          currentMonsterId={monster.id}
+          onSwitchPet={(newPet) => {
+            const switchedMonster: MonsterRow = {
+              ...monster,
+              species: newPet.species,
+              name: newPet.name,
+              element: newPet.element,
+            }
+            setMonsters([switchedMonster])
+            saveLocalMonsters([switchedMonster])
+          }}
+          onBack={() => setSubView('home')}
+        />
+      )
     }
     return (
       <MonsterHome

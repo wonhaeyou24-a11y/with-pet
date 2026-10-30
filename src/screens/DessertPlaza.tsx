@@ -788,8 +788,8 @@ export default function DessertPlaza({
           flexShrink: 0,
           background: '#FFFDF9',
           borderTop: '2px solid #FFB74D',
-          padding: '10px 14px',
-          gap: 6,
+          padding: '8px 12px calc(10px + env(safe-area-inset-bottom, 0px))',
+          gap: 5,
           boxShadow: '0 -4px 16px rgba(0,0,0,0.06)',
           zIndex: 20,
         }}
@@ -798,8 +798,8 @@ export default function DessertPlaza({
           <div className="row" style={{ gap: 8, minWidth: 0, flex: 1 }}>
             <span
               style={{
-                width: 48,
-                height: 48,
+                width: 44,
+                height: 44,
                 borderRadius: 14,
                 background: '#FFF3E0',
                 border: '1.5px solid #FFB74D',
@@ -810,22 +810,22 @@ export default function DessertPlaza({
                 flexShrink: 0,
               }}
             >
-              <MonsterView look={selLook} size={44} prefer2D={true} title={selectedFriend.monster.name ?? undefined} />
+              <MonsterView look={selLook} size={40} prefer2D={true} title={selectedFriend.monster.name ?? undefined} />
             </span>
             <div style={{ minWidth: 0, flex: 1 }}>
               <div className="row" style={{ gap: 4 }}>
-                <strong style={{ fontSize: 14, color: '#3E2723' }}>
+                <strong style={{ fontSize: 13, color: '#3E2723' }}>
                   {selectedFriend.monster.name}
                 </strong>
-                <span className="chip honey" style={{ fontSize: 10, padding: '1px 5px' }}>
+                <span className="chip honey" style={{ fontSize: 9, padding: '1px 4px' }}>
                   Lv.{selectedFriend.monster.level}
                 </span>
-                <span className="chip" style={{ fontSize: 10, padding: '1px 5px' }}>
-                  <ElementIcon element={selectedFriend.monster.element} size={11} />
+                <span className="chip" style={{ fontSize: 9, padding: '1px 4px' }}>
+                  <ElementIcon element={selectedFriend.monster.element} size={10} />
                   {ELEMENT_INFO[selectedFriend.monster.element].label}
                 </span>
               </div>
-              <div style={{ fontSize: 11, color: '#8D6E63', marginTop: 1 }}>
+              <div style={{ fontSize: 10, color: '#8D6E63', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 파티시에: <strong>{selectedFriend.ownerNickname}</strong> · {selectedFriend.bio}
               </div>
             </div>
@@ -835,12 +835,12 @@ export default function DessertPlaza({
           <button
             onClick={() => handleVote(selectedFriend)}
             style={{
-              padding: '6px 10px',
+              padding: '5px 8px',
               borderRadius: 10,
               border: '1.5px solid #FF80AB',
               background: likedIds[selectedFriend.monster.id] ? '#FF80AB' : '#FFF0F5',
               color: likedIds[selectedFriend.monster.id] ? '#FFFFFF' : '#C2185B',
-              fontSize: 11,
+              fontSize: 10,
               fontWeight: 900,
               cursor: 'pointer',
               flexShrink: 0,
@@ -851,17 +851,17 @@ export default function DessertPlaza({
         </div>
 
         {/* 액션 버튼 바: 친선 대전 신청 & 미니룸 방문 */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginTop: 4 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginTop: 2 }}>
           <button
             className="btn"
             onClick={() => onChallenge(selectedFriend)}
             style={{
-              padding: '9px 6px',
+              padding: '8px 6px',
               fontSize: 12,
               fontWeight: 900,
               background: 'linear-gradient(90deg, #FF7A59 0%, #FF9800 100%)',
               color: '#FFFFFF',
-              boxShadow: '0 4px 10px rgba(255,122,89,0.3)',
+              boxShadow: '0 3px 8px rgba(255,122,89,0.3)',
             }}
           >
             ⚔️ 친선 대전 신청
@@ -876,12 +876,12 @@ export default function DessertPlaza({
               setTimeout(() => setToast(null), 3000)
             }}
             style={{
-              padding: '9px 6px',
+              padding: '8px 6px',
               fontSize: 12,
               fontWeight: 900,
               background: 'linear-gradient(90deg, #EC4899 0%, #DB2777 100%)',
               color: '#FFFFFF',
-              boxShadow: '0 4px 10px rgba(236,72,153,0.3)',
+              boxShadow: '0 3px 8px rgba(236,72,153,0.3)',
             }}
           >
             🏰 미니룸 방문·응원

@@ -127,7 +127,17 @@ export default function CarePantry({ monster, coins, foodBag, onUpdate, onBack }
   const expPct = Math.min(100, Math.round((curExp / nextExp) * 100))
 
   return (
-    <main className="screen">
+    <main
+      className="screen"
+      style={{
+        height: '100dvh',
+        maxHeight: '100dvh',
+        overflow: 'hidden',
+        padding: '10px 12px calc(10px + env(safe-area-inset-bottom, 0px))',
+        gap: 6,
+        justifyContent: 'space-between',
+      }}
+    >
       {/* 상단 헤더 */}
       <div className="row between" style={{ flexShrink: 0 }}>
         <button className="btn-round" onClick={onBack} aria-label="뒤로">

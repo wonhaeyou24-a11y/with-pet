@@ -8,9 +8,17 @@ export type DessertSoundKind =
   | 'wax-pop' // 🫧 톡톡 왁싱볼(히트캔디): 톡! 파삭~ 얇은 왁스 껍질이 깨지며 과즙 시럽이 쭈욱 터지는 소리
   | 'cookie-crisp' // 🍪 초코칩 쿠키 / 크로플: 오독오독 바삭한 버터 쿠키 베어무는 소리
   | 'sugar-crack' // 🍓 유리알 탕후루: 빠작! 톡! 얇고 투명한 설탕 코팅이 경쾌하게 깨지는 소리
-  | 'mochi-squish' // 🍡 찹쌀떡 모찌 / 말랑 카멜레온: 쫀득~ 말랑말랑 반죽이 눌렸다 떼어지는 힐링음
-  | 'pudding-jiggle' // 🍮 말랑 푸딩 / 쫀득 젤리: 탱글탱글~ 뽀용! 출렁이는 탄성 진동음
+  | 'mochi-squish' // 🍡 찹쌀떡 모찌: 쫀득~ 말랑말랑 찰떡 반죽이 늘어났다 떼어지는 소리
+  | 'pudding-jiggle' // 🍮 말랑 푸딩: 탱글탱글~ 뽀용! 부드럽게 출렁이는 탄성 진동음
+  | 'jelly-gummy' // 🐻 쫀득 젤리: 쫘압- 쫀득쫀득 고탄성 과일 구미 젤리 씹는 소리
   | 'choco-melt' // 🍫 달콤 퐁듀 초코: 사르르~ 꾸덕하고 따뜻한 가나슈·시럽 기포 소리
+  | 'cotton-puff' // ☁️ 몽실 솜사탕: 사르르~ 입안에서 보송보송 녹아내리는 극상의 에어리 사운드
+  | 'acorn-snap' // 🌰 콩콩 도토리: 또각- 딱! 고소하고 야무진 너츠 크래킹 소리
+  | 'soda-fizz' // ⚡ 번개꼬리 탄산 소다: 톡톡 파바박! 탄산 기포가 청량하게 터지는 스파클링 소리
+  | 'biscuit-armor' // 🛡️ 강철등 비스킷: 콰득- 단단한 통밀 비스킷 판갑이 묵직하게 부서지는 소리
+  | 'flambe-crackle' // 🔥 흑염 다크초코: 타닥타닥- 진한 다크초코 카라멜라이징 크림 브륄레 소리
+  | 'starlight-ting' // ✨ 별비늘 별사탕: 팅- 챠르릉! 투명한 설탕 결정체가 부딪치는 영롱한 크리스탈 소리
+  | 'chameleon-morph' // 🦎 말랑 카멜레온: 뽀요용~ 찰떡 반죽이 카멜레온처럼 변형되는 마법 모찌음
   | 'syrup-drizzle' // 🍒 시럽 & 스프링클 토핑: 쪼르륵~ 반짝반짝 토핑 구슬이 쏟아지는 소리
   | 'smore-sizzle' // 🔥 구운 스모어 마시멜로: 치익~ 노릇하게 구워진 마시멜로 껍질 바스락 & 폭신 사운드
 
@@ -60,10 +68,17 @@ export const DESSERT_SOUND_CATALOG: Record<DessertSoundKind, SoundMeta> = {
   },
   'pudding-jiggle': {
     kind: 'pudding-jiggle',
-    label: '탱글탱글 푸딩·젤리',
-    onomatopoeia: '탱글~ 출렁출렁 🍮🐻',
-    desc: '촉촉한 시럽이 발린 커스터드 푸딩과 젤리가 탱글탱글 탄성 있게 출렁이는 소리',
+    label: '탱글탱글 커스터드 푸딩',
+    onomatopoeia: '탱글~ 출렁출렁 🍮✨',
+    desc: '촉촉한 시럽이 발린 커스터드 푸딩이 탱글탱글 탄성 있게 출렁이는 소리',
     icon: '🍮',
+  },
+  'jelly-gummy': {
+    kind: 'jelly-gummy',
+    label: '쫘압 쫀득 구미젤리',
+    onomatopoeia: '쫘압~ 쫀득쫀득 🐻🍬',
+    desc: '영롱하고 찰진 과일 구미 젤리가 잇몸 사이에서 쫘압- 늘어나며 씹히는 고탄성 ASMR',
+    icon: '🐻',
   },
   'choco-melt': {
     kind: 'choco-melt',
@@ -71,6 +86,55 @@ export const DESSERT_SOUND_CATALOG: Record<DessertSoundKind, SoundMeta> = {
     onomatopoeia: '사르르~ 꾸덕꾸덕 🍫✨',
     desc: '따뜻하고 진한 가나슈 초콜릿 퐁듀가 꾸덕하게 섞이며 작은 기포가 톡톡 터지는 소리',
     icon: '🍫',
+  },
+  'cotton-puff': {
+    kind: 'cotton-puff',
+    label: '보송보송 구름 솜사탕',
+    onomatopoeia: '사르르~ 보송보송 ☁️🫧',
+    desc: '공기를 가득 머금은 솜사탕 양털이 입안에 닿자마자 미세 기포를 터뜨리며 사르르 녹는 소리',
+    icon: '☁️',
+  },
+  'acorn-snap': {
+    kind: 'acorn-snap',
+    label: '또각 딱 도토리 쿠키',
+    onomatopoeia: '또각-! 오독바삭 🌰🐿️',
+    desc: '햇살 가득 머금은 단단한 도토리 껍질이 딱! 갈라지며 고소한 너츠 쿠키가 씹히는 소리',
+    icon: '🌰',
+  },
+  'soda-fizz': {
+    kind: 'soda-fizz',
+    label: '톡톡 스파클링 소다',
+    onomatopoeia: '치이익~ 톡톡 파바박! ⚡🍋',
+    desc: '시원한 레몬 소다 속 탄산 기포 수천 개가 톡톡 튀며 청량하게 터지는 스파클링 사운드',
+    icon: '⚡',
+  },
+  'biscuit-armor': {
+    kind: 'biscuit-armor',
+    label: '묵직 바삭 강철 비스킷',
+    onomatopoeia: '콰득-! 단단바삭 🛡️🍪',
+    desc: '수백 겹으로 압착된 통밀 비스킷 판갑이 묵직한 힘으로 콰득! 부서지는 단단한 크런치음',
+    icon: '🛡️',
+  },
+  'flambe-crackle': {
+    kind: 'flambe-crackle',
+    label: '타닥타닥 다크초코 브륄레',
+    onomatopoeia: '타닥타닥~ 카라멜 파작! 🔥🍫',
+    desc: '푸른 불꽃으로 플람베된 다크초코 카라멜 막이 타닥타닥 타오르며 바삭하게 갈라지는 소리',
+    icon: '🔥',
+  },
+  'starlight-ting': {
+    kind: 'starlight-ting',
+    label: '팅 챠르릉 별사탕 크리스탈',
+    onomatopoeia: '팅-! 챠르르릉 ✨💎',
+    desc: '은하수 별자리 결정체인 별사탕들이 부딪치며 맑고 청아하게 울려 퍼지는 크리스탈 사운드',
+    icon: '✨',
+  },
+  'chameleon-morph': {
+    kind: 'chameleon-morph',
+    label: '뽀요용 무지개 모찌',
+    onomatopoeia: '뽀요용~ 말랑말랑 🦎🌈',
+    desc: '만능 찹쌀 반죽이 체형을 자유자재로 바꾸며 뽀용~ 쫀득하게 반응하는 마법 사운드',
+    icon: '🦎',
   },
   'syrup-drizzle': {
     kind: 'syrup-drizzle',
@@ -154,27 +218,48 @@ export function setAsmrMuted(muted: boolean): void {
   }
 }
 
-// 종족/변신 체형에 따른 기본 ASMR 사운드 매핑
+// 종족/변신 체형에 따른 1:1 고유 리얼 ASMR 사운드 매핑 (15종 전 종족 중복 배제)
 export function getSpeciesSoundKind(speciesId: string, dessertBase?: string): DessertSoundKind {
+  // 1. 15종 개별 고유 종족 매핑
   if (speciesId === 'dubai-cookie') return 'kataifi-crunch'
   if (speciesId === 'wax-ball') return 'wax-pop'
   if (speciesId === 'tanghulu') return 'sugar-crack'
   if (speciesId === 'smore') return 'smore-sizzle'
-  if (speciesId === 'pudding' || speciesId === 'jelly') return 'pudding-jiggle'
+  if (speciesId === 'pudding') return 'pudding-jiggle'
+  if (speciesId === 'jelly') return 'jelly-gummy'
   if (speciesId === 'choco') return 'choco-melt'
-  if (speciesId === 'mochi' || speciesId === 'mongsil') return 'mochi-squish'
-  if (speciesId === 'kongkong' || speciesId === 'gangcheoldeung') return 'cookie-crisp'
+  if (speciesId === 'mongsil') return 'cotton-puff'
+  if (speciesId === 'kongkong') return 'acorn-snap'
+  if (speciesId === 'beongaekkori') return 'soda-fizz'
+  if (speciesId === 'gangcheoldeung') return 'biscuit-armor'
+  if (speciesId === 'heugyeom') return 'flambe-crackle'
+  if (speciesId === 'byeolbineul') return 'starlight-ting'
+  if (speciesId === 'chameleon') return 'chameleon-morph'
+  if (speciesId === 'mochi') return 'mochi-squish'
+
+  // 2. 플레이팅 받침대 폴백
   if (dessertBase === 'choco-cookie') return 'cookie-crisp'
   if (dessertBase === 'custard-pudding') return 'pudding-jiggle'
+  if (dessertBase === 'parfait-cup') return 'soda-fizz'
+  if (dessertBase === 'macaron-cushion') return 'cotton-puff'
   return 'mochi-squish'
 }
 
 export type SensoryCategory = 'crispy' | 'chewy' | 'jiggly' | 'melty'
 
 export function getSensoryCategory(kind: DessertSoundKind): SensoryCategory {
-  if (kind === 'kataifi-crunch' || kind === 'wax-pop' || kind === 'cookie-crisp' || kind === 'sugar-crack') return 'crispy'
-  if (kind === 'pudding-jiggle') return 'jiggly'
-  if (kind === 'choco-melt' || kind === 'smore-sizzle') return 'melty'
+  if (
+    kind === 'kataifi-crunch' ||
+    kind === 'wax-pop' ||
+    kind === 'cookie-crisp' ||
+    kind === 'sugar-crack' ||
+    kind === 'acorn-snap' ||
+    kind === 'biscuit-armor' ||
+    kind === 'starlight-ting'
+  )
+    return 'crispy'
+  if (kind === 'pudding-jiggle' || kind === 'jelly-gummy') return 'jiggly'
+  if (kind === 'choco-melt' || kind === 'smore-sizzle' || kind === 'flambe-crackle') return 'melty'
   return 'chewy'
 }
 
@@ -185,7 +270,15 @@ const HAPTIC_PATTERNS: Record<DessertSoundKind, number | number[]> = {
   'sugar-crack': [30, 28, 14],
   'mochi-squish': [20, 48, 16],
   'pudding-jiggle': [12, 24, 12, 24, 12],
+  'jelly-gummy': [24, 38, 20, 42],
   'choco-melt': [38],
+  'cotton-puff': [10, 12, 10],
+  'acorn-snap': [32, 16],
+  'soda-fizz': [8, 12, 8, 14, 8, 12],
+  'biscuit-armor': [42, 26, 32],
+  'flambe-crackle': [16, 24, 18, 30],
+  'starlight-ting': [12, 35, 12],
+  'chameleon-morph': [18, 36, 18],
   'syrup-drizzle': [10, 14, 10, 14, 10],
   'smore-sizzle': [16, 22, 30],
 }
@@ -547,6 +640,148 @@ export function playDessertAsmr(kind: DessertSoundKind, comboStep = 0): SoundMet
         resonanceQ: 3.4,
         bubbleCount: 6,
         gain: 0.36,
+      })
+    } else if (kind === 'jelly-gummy') {
+      // 🐻 쫀득 구미 젤리: 찰지고 질긴 고탄성 젤리가 잇몸에서 쫘압- 쫀득하게 씹히는 묵직한 고무 탄성음
+      triggerSubBassTactilePulse(ctx, now, 0.32, 0.08)
+      playWetSquishFoley(ctx, now, 0.28, {
+        baseCutoff: 310,
+        peakCutoff: 880 * crispBoost,
+        resonanceQ: 5.8,
+        bubbleCount: 5,
+        wobbleHz: 16,
+        gain: 0.44,
+      })
+      playWetSquishFoley(ctx, now + 0.08, 0.22, {
+        baseCutoff: 440,
+        peakCutoff: 1250,
+        resonanceQ: 4.2,
+        bubbleCount: 7,
+        wobbleHz: 11,
+        gain: 0.38,
+      })
+    } else if (kind === 'cotton-puff') {
+      // ☁️ 몽실 솜사탕: 수백만 개의 미세 설탕 실타래가 닿자마자 보송보송 사르르 녹아내리는 에어리 사운드
+      playFractureCluster(ctx, now, 0.08, {
+        density: 160,
+        formantLow: 2200,
+        formantHigh: 6400 * crispBoost,
+        qLow: 0.8,
+        qHigh: 1.5,
+        gain: 0.24,
+      })
+      playWetSquishFoley(ctx, now + 0.02, 0.18, {
+        baseCutoff: 580,
+        peakCutoff: 1400,
+        resonanceQ: 2.1,
+        bubbleCount: 4,
+        gain: 0.22,
+      })
+    } else if (kind === 'acorn-snap') {
+      // 🌰 콩콩 도토리: 단단하고 오독한 견과류 껍질이 또각-! 딱 부러진 뒤 바삭하게 씹히는 고소한 너츠 사운드
+      playFractureCluster(ctx, now, 0.048, {
+        density: 380,
+        formantLow: 420,
+        formantHigh: 1650 * crispBoost,
+        qLow: 3.2,
+        qHigh: 5.0,
+        gain: 0.5,
+        woodyThump: 0.45,
+      })
+      playFractureCluster(ctx, now + 0.052, 0.065, {
+        density: 290,
+        formantLow: 750,
+        formantHigh: 2200,
+        qLow: 2.2,
+        qHigh: 3.4,
+        gain: 0.36,
+      })
+    } else if (kind === 'soda-fizz') {
+      // ⚡ 번개꼬리 탄산 소다: 청량한 탄산 기포 수천 개가 치이익- 톡톡 파바박! 터져 나오는 스파클링 사운드
+      triggerSubBassTactilePulse(ctx, now, 0.18, 0.05)
+      playFractureCluster(ctx, now, 0.14, {
+        density: 580,
+        formantLow: 2400,
+        formantHigh: 7200 * crispBoost,
+        qLow: 1.2,
+        qHigh: 2.8,
+        gain: 0.42,
+      })
+      playWetSquishFoley(ctx, now + 0.03, 0.22, {
+        baseCutoff: 650,
+        peakCutoff: 2100,
+        resonanceQ: 4.8,
+        bubbleCount: 14,
+        wobbleHz: 22,
+        gain: 0.36,
+      })
+    } else if (kind === 'biscuit-armor') {
+      // 🛡️ 강철등 통밀 비스킷: 단단하고 두꺼운 비스킷 판갑이 묵직하게 콰득! 깨지는 무거운 크런치음
+      triggerSubBassTactilePulse(ctx, now, 0.38, 0.09)
+      playFractureCluster(ctx, now, 0.09, {
+        density: 460,
+        formantLow: 320,
+        formantHigh: 1450 * crispBoost,
+        qLow: 2.8,
+        qHigh: 4.2,
+        gain: 0.52,
+        woodyThump: 0.48,
+      })
+      playFractureCluster(ctx, now + 0.07, 0.08, {
+        density: 320,
+        formantLow: 520,
+        formantHigh: 1800,
+        qLow: 2.0,
+        qHigh: 3.2,
+        gain: 0.38,
+      })
+    } else if (kind === 'flambe-crackle') {
+      // 🔥 흑염 다크초코 플람베: 카라멜라이징된 초코 표면이 타닥타닥 타오르며 파작 갈라지는 소리
+      triggerSubBassTactilePulse(ctx, now, 0.28, 0.08)
+      playFractureCluster(ctx, now, 0.065, {
+        density: 420,
+        formantLow: 850,
+        formantHigh: 2900 * crispBoost,
+        qLow: 2.4,
+        qHigh: 3.8,
+        gain: 0.44,
+        woodyThump: 0.32,
+      })
+      playWetSquishFoley(ctx, now + 0.04, 0.26, {
+        baseCutoff: 280,
+        peakCutoff: 920,
+        resonanceQ: 3.8,
+        bubbleCount: 8,
+        gain: 0.38,
+      })
+    } else if (kind === 'starlight-ting') {
+      // ✨ 별비늘 별사탕 크리스탈: 맑고 투명한 유리알 별사탕들이 부딪치며 팅-! 챠르릉 울리는 소리
+      playFractureCluster(ctx, now, 0.12, {
+        density: 220,
+        formantLow: 3200,
+        formantHigh: 8500 * crispBoost,
+        qLow: 4.5,
+        qHigh: 7.2,
+        gain: 0.46,
+      })
+      playFractureCluster(ctx, now + 0.04, 0.16, {
+        density: 180,
+        formantLow: 4200,
+        formantHigh: 9200,
+        qLow: 5.0,
+        qHigh: 8.0,
+        gain: 0.38,
+      })
+    } else if (kind === 'chameleon-morph') {
+      // 🦎 말랑 카멜레온: 모찌 반죽이 뽀요용~ 출렁이며 형태를 자유자재로 바꾸는 마법 점탄성 사운드
+      triggerSubBassTactilePulse(ctx, now, 0.3, 0.08)
+      playWetSquishFoley(ctx, now, 0.26, {
+        baseCutoff: 350,
+        peakCutoff: 1350 * crispBoost,
+        resonanceQ: 6.2,
+        bubbleCount: 8,
+        wobbleHz: 18,
+        gain: 0.46,
       })
     } else {
       // 🌈 시럽 & 스프링클 토핑: 진한 시럽이 쪼르륵 흐르고 설탕 스프링클 알갱이들이 케이크 위에 토독토독 쏟아지는 리얼 폴라 사운드

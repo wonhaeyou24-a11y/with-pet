@@ -142,7 +142,17 @@ export default function MonsterHome({
   }
 
   return (
-    <main className="screen" style={{ justifyContent: 'space-between' }}>
+    <main
+      className="screen"
+      style={{
+        justifyContent: 'space-between',
+        height: '100dvh',
+        maxHeight: '100dvh',
+        overflow: 'hidden',
+        padding: '12px 14px calc(12px + env(safe-area-inset-bottom, 0px))',
+        gap: 6,
+      }}
+    >
       {/* 1. 상단 바 & 코인·알 리셋 */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
         <TopBar nickname={nickname} onLogout={onLogout} />

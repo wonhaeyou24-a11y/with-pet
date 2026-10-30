@@ -15,6 +15,14 @@ const PARTICLE_ICONS: Record<DessertSoundKind, string[]> = {
   'choco-melt': ['🍫', '🍩', '✨', '🤎', '🍫', '🍯', '✨', '💛'],
   'smore-sizzle': ['🔥', '🐾', '🍪', '✨', '🔥', '🍫', '🏕️', '✨'],
   'syrup-drizzle': ['🌈', '🍒', '⭐', '💖', '🍬', '✨', '🍓', '🌈'],
+  'jelly-gummy': ['🍇', '🍓', '✨', '🍬', '🍇', '✨', '💧', '🍬'],
+  'cotton-puff': ['☁️', '🌸', '✨', '🍡', '☁️', '💖', '✨', '🤍'],
+  'acorn-snap': ['🌰', '🍪', '✨', '🥜', '🌰', '🍂', '✨', '🍪'],
+  'soda-fizz': ['🫧', '⚡', '✨', '🍋', '🫧', '💙', '⚡', '✨'],
+  'biscuit-armor': ['🍪', '🛡️', '✨', '🌾', '🍪', '⚙️', '✨', '🌾'],
+  'flambe-crackle': ['🔥', '🍫', '✨', '💥', '🔥', '🤎', '✨', '🍫'],
+  'starlight-ting': ['⭐', '✨', '🌌', '💫', '⭐', '💎', '✨', '🔮'],
+  'chameleon-morph': ['🌈', '🦎', '✨', '🎨', '🌈', '🌸', '✨', '💫'],
 }
 
 const PARTICLE_VECTORS: { tx: string; ty: string; rot: string; left: string; top: string; delay: string }[] = [
