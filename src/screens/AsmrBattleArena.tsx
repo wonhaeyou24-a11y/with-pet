@@ -351,13 +351,19 @@ export default function AsmrBattleArena({
           80% { opacity: 0.75; }
           100% { opacity: 0; }
         }
-        @keyframes fxRing { 0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; } }
-        @keyframes fxBurst { 0% { transform: translate(-50%, -50%) scale(0.3) rotate(-20deg); opacity: 1; } 40% { transform: translate(-50%, -50%) scale(1.25) rotate(8deg); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1.5) rotate(0); opacity: 0; } }
+        @keyframes fxRing { 0% { transform: translate(-50%, -50%) rotateX(60deg) scale(0.2); opacity: 1; } 100% { transform: translate(-50%, -50%) rotateX(60deg) scale(1.8); opacity: 0; } }
+        @keyframes fxBurst { 0% { transform: translate(-50%, -50%) scale(0.3) rotate(-20deg); opacity: 1; } 40% { transform: translate(-50%, -50%) scale(1.35) rotate(8deg); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1.6) rotate(0); opacity: 0; } }
         @keyframes fxSlash { 0% { transform: rotate(var(--a)) translateX(10px); opacity: 1; } 100% { transform: rotate(var(--a)) translateX(var(--d)); opacity: 0; } }
         @keyframes fxSpeed { 0% { transform: translateX(var(--from)); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateX(var(--to)); opacity: 0; } }
         @keyframes fxDust { 0% { transform: translate(0, 0) scale(0.4); opacity: 0.9; } 100% { transform: translate(var(--dx), var(--dy)) scale(1.5); opacity: 0; } }
         @keyframes fxFlash { 0% { opacity: 0.85; } 100% { opacity: 0; } }
         @keyframes fxRays { 0% { opacity: 1; transform: scale(0.7); } 100% { opacity: 0; transform: scale(1.25); } }
+        @keyframes cutinBanner {
+          0% { transform: translate(-50%, -50%) scale(0.7) skewX(-8deg); opacity: 0; }
+          20% { transform: translate(-50%, -50%) scale(1.05) skewX(-8deg); opacity: 1; }
+          80% { transform: translate(-50%, -50%) scale(1) skewX(-8deg); opacity: 1; }
+          100% { transform: translate(-50%, -50%) scale(1.15) skewX(-8deg); opacity: 0; }
+        }
         @keyframes stageShake { 0%,100% { transform: translate(0,0); } 15% { transform: translate(-7px, 4px); } 30% { transform: translate(6px, -5px); } 45% { transform: translate(-5px, -3px); } 60% { transform: translate(4px, 3px); } 80% { transform: translate(-2px, 1px); } }
         @keyframes stageShakeSoft { 0%,100% { transform: translate(0,0); } 25% { transform: translate(-3px, 2px); } 50% { transform: translate(3px, -2px); } 75% { transform: translate(-1px, 1px); } }
         @media (prefers-reduced-motion: reduce) { .battle-stage { animation: none !important; } }
@@ -560,27 +566,91 @@ export default function AsmrBattleArena({
           />
         )}
 
-        {/* 3D 캐릭터 2인 대치 캔버스 & 플로팅 대미지/힐 텍스트 */}
+        {/* 🌟 포켓몬고 스타일 전/후 원근감 3D 배틀 필드 & 플로팅 대미지/힐 텍스트 */}
         <div
           style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: 6,
+            position: 'relative',
             width: '100%',
             height: '100%',
-            alignItems: 'center',
-            position: 'relative',
+            overflow: 'hidden',
           }}
         >
-          {/* [왼쪽] 내 디저트 몬스터 */}
+          {/* 바닥 원근감 그리드 라인 & 타원형 배틀 플랫폼 (Pedestal) */}
+          {/* [후면 상단] 상대 펫 발판 */}
           <div
             style={{
+              position: 'absolute',
+              top: '32%',
+              right: '18%',
+              width: 120,
+              height: 44,
+              borderRadius: '50%',
+              background: 'radial-gradient(ellipse, rgba(144, 202, 249, 0.45) 0%, rgba(227, 242, 253, 0.2) 65%, transparent 100%)',
+              border: '1.5px solid rgba(66, 165, 245, 0.45)',
+              transform: 'rotateX(55deg)',
+              pointerEvents: 'none',
+              zIndex: 3,
+            }}
+          />
+          {/* [전면 하단] 내 펫 발판 */}
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '14%',
+              left: '16%',
+              width: 150,
+              height: 52,
+              borderRadius: '50%',
+              background: 'radial-gradient(ellipse, rgba(255, 183, 77, 0.5) 0%, rgba(255, 243, 224, 0.2) 65%, transparent 100%)',
+              border: '1.5px solid rgba(255, 167, 38, 0.5)',
+              transform: 'rotateX(55deg)',
+              pointerEvents: 'none',
+              zIndex: 3,
+            }}
+          />
+
+          {/* ⚡ 치명타 / 스킬 발동 시 다이내믹 컷인 배너 */}
+          {currentTurn && (currentTurn.isCrit || currentTurn.skillName) && actionPhase === 'strike' && (
+            <div
+              key={`cutin-${stepIdx}`}
+              style={{
+                position: 'absolute',
+                top: '46%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                zIndex: 30,
+                pointerEvents: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                background: currentTurn.isCrit
+                  ? 'linear-gradient(90deg, rgba(216, 27, 96, 0.95), rgba(255, 87, 34, 0.95))'
+                  : 'linear-gradient(90deg, rgba(255, 152, 0, 0.95), rgba(255, 193, 7, 0.95))',
+                padding: '8px 24px',
+                borderRadius: 999,
+                boxShadow: '0 4px 20px rgba(0,0,0,0.35), 0 0 15px rgba(255,215,0,0.6)',
+                border: '2px solid #FFFFFF',
+                animation: 'cutinBanner 0.75s ease-out both',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <span style={{ fontSize: 22 }}>{currentTurn.isCrit ? '💥' : '✨'}</span>
+              <span style={{ fontSize: 14, fontWeight: 900, color: '#FFFFFF', letterSpacing: '0.5px' }}>
+                {currentTurn.isCrit ? '🔥 치명타 식감 버스트!' : `⚡ ${currentTurn.skillName || '필살 스킬'}!`}
+              </span>
+            </div>
+          )}
+
+          {/* [전면 좌하단] 내 디저트 몬스터 (전면이라 130px 크기로 위풍당당하게 배치) */}
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '15%',
+              left: '16%',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              position: 'relative',
-              height: '100%',
-              justifyContent: 'center',
+              zIndex: 15,
             }}
           >
             {/* 🌟 내 캐릭터 주변 플로팅 전투 텍스트 (Floating Combat Text) */}
@@ -589,7 +659,7 @@ export default function AsmrBattleArena({
                 key={`c-float-${stepIdx}`}
                 style={{
                   position: 'absolute',
-                  top: '10%',
+                  top: '-32%',
                   zIndex: 25,
                   display: 'flex',
                   flexDirection: 'column',
@@ -659,7 +729,7 @@ export default function AsmrBattleArena({
             {/* 3D 몬스터 뷰 & 물리 모션 트랜스폼 */}
             <BattleFighter
               look={cLook}
-              size={120}
+              size={130}
               title={challenger.name ?? cInfo?.name}
               pose={cPose}
               hitClass={cHitReaction || undefined}
@@ -669,15 +739,16 @@ export default function AsmrBattleArena({
             />
           </div>
 
-          {/* [오른쪽] 지인 디저트 몬스터 */}
+          {/* [후면 우상단] 지인 디저트 몬스터 (원근감으로 105px 크기로 뒤에 위치) */}
           <div
             style={{
+              position: 'absolute',
+              top: '12%',
+              right: '18%',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              position: 'relative',
-              height: '100%',
-              justifyContent: 'center',
+              zIndex: 8,
             }}
           >
             {/* 🌟 상대 캐릭터 주변 플로팅 전투 텍스트 (Floating Combat Text) */}
@@ -686,7 +757,7 @@ export default function AsmrBattleArena({
                 key={`d-float-${stepIdx}`}
                 style={{
                   position: 'absolute',
-                  top: '10%',
+                  top: '-32%',
                   zIndex: 25,
                   display: 'flex',
                   flexDirection: 'column',
@@ -756,7 +827,7 @@ export default function AsmrBattleArena({
             {/* 3D 몬스터 뷰 & 물리 모션 트랜스폼 */}
             <BattleFighter
               look={dLook}
-              size={120}
+              size={105}
               title={defender.name ?? dInfo?.name}
               pose={dPose}
               hitClass={dHitReaction || undefined}

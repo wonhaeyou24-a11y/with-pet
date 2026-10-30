@@ -131,27 +131,27 @@ interface Footprint {
   createdAt: number
 }
 
-// 광장 내 캐릭터 초기 스폰 좌표 (넓고 자연스러운 분산 배치)
+// 광장 내 캐릭터 초기 스폰 좌표 (겹침 없는 시원한 360도 분산 배치)
 const PLAZA_COORDS = [
-  { x: CENTER_X - 160, y: CENTER_Y - 90, rank: 1, winRate: 88 },
-  { x: CENTER_X + 160, y: CENTER_Y - 90, rank: 2, winRate: 81 },
-  { x: CENTER_X - 180, y: CENTER_Y + 120, rank: 3, winRate: 74 },
-  { x: CENTER_X + 180, y: CENTER_Y + 120, rank: 4, winRate: 69 },
-  { x: CENTER_X, y: CENTER_Y + 150, rank: 5, winRate: 62 },
+  { x: CENTER_X - 220, y: CENTER_Y - 170, rank: 1, winRate: 88 }, // 좌상단
+  { x: CENTER_X + 220, y: CENTER_Y - 170, rank: 2, winRate: 81 }, // 우상단
+  { x: CENTER_X - 240, y: CENTER_Y + 160, rank: 3, winRate: 74 }, // 좌하단
+  { x: CENTER_X + 240, y: CENTER_Y + 160, rank: 4, winRate: 69 }, // 우하단
+  { x: CENTER_X, y: CENTER_Y + 240, rank: 5, winRate: 62 },       // 중앙 하단
 ]
 
-// 🐾 광장 내 자연스러운 산책 구역 핫스팟 목록
+// 🐾 광장 내 자연스러운 산책 구역 핫스팟 목록 (내 펫 중앙 반경 130px 침범 방지)
 const PLAZA_WAYPOINTS = [
-  { x: CENTER_X - 180, y: CENTER_Y - 110 },
-  { x: CENTER_X + 180, y: CENTER_Y - 110 },
-  { x: CENTER_X - 90, y: CENTER_Y - 160 },
-  { x: CENTER_X + 90, y: CENTER_Y - 160 },
-  { x: CENTER_X, y: CENTER_Y },
-  { x: CENTER_X - 220, y: CENTER_Y + 50 },
-  { x: CENTER_X + 220, y: CENTER_Y + 50 },
-  { x: CENTER_X - 140, y: CENTER_Y + 180 },
-  { x: CENTER_X + 140, y: CENTER_Y + 180 },
-  { x: CENTER_X, y: CENTER_Y + 210 },
+  { x: CENTER_X - 260, y: CENTER_Y - 130 },
+  { x: CENTER_X + 260, y: CENTER_Y - 130 },
+  { x: CENTER_X - 160, y: CENTER_Y - 240 },
+  { x: CENTER_X + 160, y: CENTER_Y - 240 },
+  { x: CENTER_X - 260, y: CENTER_Y + 80 },
+  { x: CENTER_X + 260, y: CENTER_Y + 80 },
+  { x: CENTER_X - 180, y: CENTER_Y + 220 },
+  { x: CENTER_X + 180, y: CENTER_Y + 220 },
+  { x: CENTER_X, y: CENTER_Y + 280 },
+  { x: CENTER_X, y: CENTER_Y - 260 },
 ]
 
 const PET_CHATTERS = [
@@ -249,14 +249,24 @@ export default function DessertPlaza({
         if (walkerIdx === selectedIdx) return prev
 
         const curr = next[walkerIdx]
-        const targetWp = PLAZA_WAYPOINTS[Math.floor(Math.random() * PLAZA_WAYPOINTS.length)]
+        // 🛡️ 충돌 회피: 다른 펫들 및 내 펫(중앙)과 140px 이상 안전 거리를 유지하는 웨이포인트 선택
+        const candidateWps = PLAZA_WAYPOINTS.filter((wp) => {
+          const distToCenter = Math.hypot(wp.x - CENTER_X, wp.y - CENTER_Y)
+          if (distToCenter < 140) return false
+          return next.every((other, oIdx) => {
+            if (oIdx === walkerIdx) return true
+            return Math.hypot(wp.x - other.x, wp.y - other.y) >= 130
+          })
+        })
+        const chosenWpList = candidateWps.length > 0 ? candidateWps : PLAZA_WAYPOINTS
+        const targetWp = chosenWpList[Math.floor(Math.random() * chosenWpList.length)]
         const facingLeft = targetWp.x < curr.x
         const speech = Math.random() < 0.35 ? PET_CHATTERS[Math.floor(Math.random() * PET_CHATTERS.length)] : null
 
         const startX = curr.x
         const startY = curr.y
-        const targetX = targetWp.x + (Math.random() * 24 - 12)
-        const targetY = targetWp.y + (Math.random() * 24 - 12)
+        const targetX = targetWp.x + (Math.random() * 20 - 10)
+        const targetY = targetWp.y + (Math.random() * 20 - 10)
 
         const dx = targetX - startX
         const dy = targetY - startY
@@ -266,21 +276,20 @@ export default function DessertPlaza({
           const uy = dy / dist
           const angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90
 
-          // 이동 경로에 맞춰 펫이 지나온 뒤쪽에만 순차적으로 발자국 찍기
+          // 🐾 뒤쪽에 정확히 남는 발자국: 펫이 출발한 뒤 지나간 궤적의 뒤쪽(-26px)에만 순차적으로 찍기
           const steps = 3
           for (let s = 1; s <= steps; s++) {
             setTimeout(() => {
-              // 해당 경과 시점의 펫 위치
-              const elapsedRatio = s / (steps + 1)
+              const elapsedRatio = (s - 0.3) / steps
               const curX = startX + dx * elapsedRatio
               const curY = startY + dy * elapsedRatio
-              // 펫의 진행 반대 방향(뒤쪽 16px) 및 발밑에 발자국 배치
-              const fx = curX - ux * 16
-              const fy = curY - uy * 16 + 26
+              // 펫의 진행 반대 방향(뒤쪽 26px) 및 발밑(y+30px)에 발자국 배치
+              const fx = curX - ux * 26
+              const fy = curY - uy * 26 + 30
               stepCountRef.current += 1
               const isLeft = stepCountRef.current % 2 === 0
               addFootprint(fx, fy, isLeft, angle)
-            }, s * 650)
+            }, s * 700)
           }
         }
 
@@ -702,7 +711,7 @@ export default function DessertPlaza({
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  zIndex: 10,
+                  zIndex: Math.floor(CENTER_Y),
                   pointerEvents: 'none',
                 }}
               >
@@ -793,7 +802,7 @@ export default function DessertPlaza({
                   flexDirection: 'column',
                   alignItems: 'center',
                   cursor: 'pointer',
-                  zIndex: isSelected ? 15 : 4,
+                  zIndex: isSelected ? 90 : Math.floor(actor.y),
                   transform: `translate3d(${actor.x - 55}px, ${actor.y - 65}px, 0)`,
                   scale: isSelected ? '1.15' : '1',
                   transition: 'transform 2.6s ease-in-out, scale 0.2s ease-out',

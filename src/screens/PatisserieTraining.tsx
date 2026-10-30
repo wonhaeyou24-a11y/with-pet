@@ -486,7 +486,9 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
         <button className="btn-round" onClick={onBack} aria-label="뒤로" style={{ width: 34, height: 34 }}>
           <BackIcon />
         </button>
-        <h1 className="title" style={{ fontSize: 16, margin: 0 }}>🧁 파티세리 훈련 & 🏰 타워</h1>
+        <h1 className="title" style={{ fontSize: 15, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, textAlign: 'center' }}>
+          {activeTab === 'tower' ? '🏰 디저트 타워' : activeTab === 'stats' ? '📊 파티세리 능력치' : '🧁 파티세리 훈련'}
+        </h1>
         <span className="chip honey" style={{ fontWeight: 800, fontSize: 11, padding: '2px 8px' }}>
           🪙 {coins}
         </span>
