@@ -537,17 +537,106 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                   />
                 </div>
 
-                {/* 2. 중앙 획득 오브젝트: 젤리 / 보물상자 */}
+                {/* 2. 중앙 획득 오브젝트: Stitch 황금 페이스트리 보물상자 & 마법 젤리 */}
                 <div
                   style={{
                     position: 'absolute',
-                    left: '52%',
-                    bottom: 28,
-                    fontSize: 30,
-                    animation: 'pulseGlow 1s ease infinite',
+                    left: '50%',
+                    bottom: 24,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    animation: 'pulseGlow 1.2s ease infinite',
+                    zIndex: 12,
                   }}
                 >
-                  {liveActionPhase % 2 === 0 ? '🎁' : '🍬'}
+                  {liveActionPhase % 2 === 0 ? (
+                    /* 🎁 Stitch 황금 페이스트리 보물상자 (Golden Pastry Chest) */
+                    <div
+                      style={{
+                        position: 'relative',
+                        width: 52,
+                        height: 44,
+                        background: 'linear-gradient(180deg, #FFE082 0%, #FFB300 40%, #FF8F00 100%)',
+                        borderRadius: '12px 12px 10px 10px',
+                        border: '2px solid #FFF8E1',
+                        boxShadow: '0 4px 14px rgba(255, 143, 0, 0.5), inset 0 2px 0 rgba(255,255,255,0.7)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {/* 생크림 웨이브 덮개 띠 */}
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: -4,
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          width: 48,
+                          height: 10,
+                          borderRadius: 999,
+                          background: '#FFFFFF',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                          border: '1px solid #FFE082',
+                        }}
+                      />
+                      {/* 루비 딸기 보석 자물쇠 */}
+                      <div
+                        style={{
+                          fontSize: 16,
+                          filter: 'drop-shadow(0 2px 4px rgba(216,27,96,0.5))',
+                          marginTop: 2,
+                        }}
+                      >
+                        🍓
+                      </div>
+                      {/* 황금빛 별빛 스파클 */}
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: -10,
+                          right: -6,
+                          fontSize: 12,
+                          animation: 'pulse 0.8s infinite alternate',
+                        }}
+                      >
+                        ✨
+                      </div>
+                    </div>
+                  ) : (
+                    /* 🍬 별빛 크리스탈 마법 젤리 */
+                    <div
+                      style={{
+                        width: 42,
+                        height: 42,
+                        borderRadius: '50%',
+                        background: 'radial-gradient(circle at 35% 35%, #FF80AB 0%, #F50057 60%, #880E4F 100%)',
+                        border: '2px solid #FFFFFF',
+                        boxShadow: '0 0 16px rgba(245, 0, 87, 0.6), inset 0 3px 0 rgba(255,255,255,0.6)',
+                        display: 'grid',
+                        placeItems: 'center',
+                        fontSize: 20,
+                      }}
+                    >
+                      🍬
+                    </div>
+                  )}
+                  <span
+                    style={{
+                      fontSize: 8,
+                      fontWeight: 900,
+                      color: '#FFF8E1',
+                      background: 'rgba(0,0,0,0.6)',
+                      padding: '1px 5px',
+                      borderRadius: 6,
+                      marginTop: 2,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {liveActionPhase % 2 === 0 ? '황금 페이스트리 상자' : '별빛 젤리젬'}
+                  </span>
                 </div>
 
                 {/* 3. 오른쪽 층 수호자 몬스터 (피격 리액션) */}

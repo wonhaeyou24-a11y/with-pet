@@ -93,6 +93,16 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
       setPetActionState(`⛲ 초코 분수대에서 따뜻한 가나슈를 콕 찍어 먹고 있어요 🍫`)
     } else if (furn.id === 'table-pretzel') {
       setPetActionState(`🪑 프레첼 테이블에서 향긋한 딸기 홍차를 마시고 있어요 ☕`)
+    } else if (furn.id === 'sofa-parfait') {
+      setPetActionState(`🍓🛋️ 생딸기 파르페 소파의 도톰한 벨벳 생크림에 푹 파묻혀 뒹굴고 있어요! (+행복도 MAX ✨)`)
+    } else if (furn.id === 'lamp-fondue') {
+      setPetActionState(`🫕💡 퐁듀 초콜릿 무드 램프의 따스하고 달콤한 불빛 아래서 온기를 쬐고 있어요 🕯️`)
+    } else if (furn.id === 'stool-macaron') {
+      setPetActionState(`🍬🪑 파스텔 마카롱 벨벳 스툴에 총총 올라앉아 다리를 흔들거리고 있어요 🎵`)
+    } else if (furn.id === 'clock-pretzel') {
+      setPetActionState(`🥨⏰ 골든 프레첼 벽시계가 째깍째깍 울릴 때마다 고개를 갸우뚱거려요 ⏳`)
+    } else if (furn.id === 'rug-waffle') {
+      setPetActionState(`🧇🧶 와플 체크 메이플 러그의 달콤한 시럽 향기에 취해 뒹굴뒹굴 누웠어요 🍯`)
     } else {
       setPetActionState(`💡 ${furn.name}을(를) 호기심 가득한 눈으로 톡톡 건드려봅니다!`)
     }

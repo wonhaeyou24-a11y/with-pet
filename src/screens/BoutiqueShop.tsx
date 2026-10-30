@@ -19,6 +19,7 @@ import { loadMallangCustom, saveMallangCustom } from '../monsters/MallangChamele
 import Monster3DView from '../monsters/Monster3DView'
 import type { MonsterDecorations } from '../monsters/types'
 import { BackIcon } from '../ui/Icons'
+import DessertShowroomModal from './DessertShowroomModal'
 
 type BoutiqueTab = 'fashion' | 'interior'
 
@@ -33,6 +34,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
   const [ribbonCoins, setCoinsState] = useState<number>(() => getRibbonCoins())
   const [ownedItems, setOwnedItems] = useState<Set<string>>(() => getOwnedBoutiqueItems())
   const [toast, setToast] = useState<string | null>(null)
+  const [showShowroom, setShowShowroom] = useState<boolean>(false)
 
   // 3D 피팅룸 미리보기 상태 (실제 저장은 구매 후 장착 시)
   const savedCustom = loadMallangCustom(monster.id)
@@ -200,21 +202,46 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
           </div>
         </div>
 
-        {/* 보유 특별 주화 (슈가 리본 코인 🎀) */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 5,
-            padding: '5px 10px',
-            borderRadius: 20,
-            background: 'linear-gradient(135deg, #FDF2F8 0%, #FCE7F3 100%)',
-            border: '1.5px solid #F472B6',
-            boxShadow: '0 2px 6px rgba(244,114,182,0.18)',
-          }}
-        >
-          <span style={{ fontSize: 15 }}>🎀</span>
-          <span style={{ fontSize: 13, fontWeight: 900, color: '#BE185D' }}>{ribbonCoins}</span>
+        {/* 우측 도구: 쇼룸 & 보유 특별 주화 (슈가 리본 코인 🎀) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button
+            onClick={() => {
+              setShowShowroom(true)
+              playDessertAsmr('sugar-crack')
+            }}
+            style={{
+              padding: '4px 8px',
+              borderRadius: 14,
+              border: '1.5px solid #FFD54F',
+              background: 'linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%)',
+              color: '#E65100',
+              fontWeight: 900,
+              fontSize: 11,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 3,
+              boxShadow: '0 2px 6px rgba(255,179,0,0.2)',
+            }}
+            title="Stitch 디저트 비주얼 에셋 쇼룸 열기"
+          >
+            <span>✨ 쇼룸</span>
+          </button>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              padding: '5px 10px',
+              borderRadius: 20,
+              background: 'linear-gradient(135deg, #FDF2F8 0%, #FCE7F3 100%)',
+              border: '1.5px solid #F472B6',
+              boxShadow: '0 2px 6px rgba(244,114,182,0.18)',
+            }}
+          >
+            <span style={{ fontSize: 15 }}>🎀</span>
+            <span style={{ fontSize: 13, fontWeight: 900, color: '#BE185D' }}>{ribbonCoins}</span>
+          </div>
         </div>
       </div>
 
@@ -792,6 +819,13 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
         >
           {toast}
         </div>
+      )}
+
+      {/* ✨ Stitch 디저트 비주얼 에셋 쇼룸 모달 */}
+      {showShowroom && (
+        <DessertShowroomModal
+          onClose={() => setShowShowroom(false)}
+        />
       )}
     </div>
   )

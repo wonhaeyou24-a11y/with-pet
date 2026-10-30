@@ -17,6 +17,7 @@ import { getSpeciesSoundKind, playDessertAsmr } from '../lib/sound'
 import MonsterView from '../monsters/MonsterView'
 import CakeBoxShareModal from './CakeBoxShareModal'
 import MissionModal from './MissionModal'
+import DessertShowroomModal from './DessertShowroomModal'
 import { ChevronIcon, ElementIcon, SparkleIcon } from '../ui/Icons'
 import { StatBars, TopBar, totalStats } from '../ui/parts'
 import { getSensoryReactionClass, SensoryBurst } from '../ui/SensoryFx'
@@ -58,6 +59,7 @@ export default function MonsterHome({
 }: Props) {
   const [showMissions, setShowMissions] = useState<boolean>(false)
   const [showCakeBox, setShowCakeBox] = useState<boolean>(false)
+  const [showShowroom, setShowShowroom] = useState<boolean>(false)
   const [claimableMissions, setClaimableMissions] = useState<number>(() => getClaimableMissionsCount())
   const look = monsterLook(monster)
   const activeSpecies = look.mallang?.morphForm ?? monster.species
@@ -224,6 +226,26 @@ export default function MonsterHome({
                   {claimableMissions}
                 </span>
               )}
+            </button>
+            <button
+              className="chip"
+              onClick={() => {
+                setShowShowroom(true)
+                playDessertAsmr('sugar-crack')
+              }}
+              style={{
+                cursor: 'pointer',
+                border: '1px solid #FFD54F',
+                fontWeight: 900,
+                fontSize: 12,
+                background: 'linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%)',
+                color: '#E65100',
+                padding: '2px 8px',
+                boxShadow: '0 2px 6px rgba(255, 179, 0, 0.25)',
+              }}
+              title="Stitch 고품질 디저트 비주얼 에셋 키트 쇼룸"
+            >
+              ✨ 쇼룸
             </button>
             <button
               className="chip"
@@ -644,6 +666,14 @@ export default function MonsterHome({
           monster={monster}
           ownerNickname={nickname}
           onClose={() => setShowCakeBox(false)}
+        />
+      )}
+
+      {/* ✨ Stitch 디저트 비주얼 에셋 쇼룸 모달 */}
+      {showShowroom && (
+        <DessertShowroomModal
+          onClose={() => setShowShowroom(false)}
+          onNavigateToBoutique={onOpenBoutique}
         />
       )}
     </main>
