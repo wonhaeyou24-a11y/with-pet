@@ -474,6 +474,40 @@ type Recipe = (m: Mixer) => void
 
 const jit = (m: Mixer, v: number, spread = 0.06) => v * (1 + (m.rand() * 2 - 1) * spread)
 
+// 왁뿌볼 선택음 조절값: fScale(밝기 배율), shimmer(10kHz 위 반짝임), body(묵직한 몸통), clicks(클릭 개수)
+export interface WaxTapOpts {
+  fScale: number
+  shimmer: number
+  body: number
+  clicks: number
+  level: number
+}
+export const WAX_TAP_DEFAULT: WaxTapOpts = { fScale: 1, shimmer: 1, body: 0, clicks: 40, level: 0.56 }
+
+function buildWaxTap(m: Mixer, o: WaxTapOpts) {
+  const top = (f: number) => Math.min(15500, f * o.fScale)
+  // 첫 타격: 바싹 마른 껍질이 갈라지는 한 번의 날카로운 "딱"
+  tick(m, 0, jit(m, top(5200)), 0.9, 1, -0.1)
+  // 본체: 앞쪽에 몰려 있다가 뒤로 갈수록 듬성듬성해지는 클릭 (skew 로 앞쪽 밀집)
+  crackCluster(m, 0.002, { n: o.clicks, spanMs: 460, skew: 2.3, fLo: jit(m, 2800 * o.fScale), fHi: jit(m, top(9500)), dLo: 0.5, dHi: 2.2, amp: 0.95, ampDecay: 1.2, noiseMix: 0.55, panSpread: 0.55 })
+  // 가장 밝은 반짝임(10kHz 이상)
+  scatter(m, 0.004, { count: 14, spanMs: 340, p: 1.6, fLo: 7500 * o.fScale, fHi: top(12500), dMs: 0.6, amp: 0.3 * o.shimmer })
+  // 부서지는 조각이 이어서 바스락거리는 가벼운 꼬리
+  crackCluster(m, 0.2, { n: 8, spanMs: 300, skew: 1.6, fLo: 3200, fHi: top(7000), dLo: 0.8, dHi: 2.8, amp: 0.4, ampDecay: 1.6, noiseMix: 0.6, panSpread: 0.6 })
+  // 묵직함: 껍질이 단단하게 눌리는 낮은 "툭" + 중저음 균열
+  if (o.body > 0) {
+    thump(m, 0.004, jit(m, 190), 95, 34, 0.34 * o.body)
+    crackCluster(m, 0.006, { n: 12, spanMs: 90, skew: 1.4, fLo: 700, fHi: 2000, dLo: 3, dHi: 8, amp: 0.5 * o.body, ampDecay: 1.5, noiseMix: 0.5, panSpread: 0.4 })
+  }
+}
+
+// 후보 소리 비교용 (sound-lab 과 scripts/wax-tap-variants.mjs 에서 쓴다)
+export function synthesizeWaxTapVariant(o: WaxTapOpts, sampleRate: number, rand: Rand = Math.random): SynthSound {
+  const m = new Mixer(sampleRate, 0.8, rand)
+  buildWaxTap(m, o)
+  return finish(m, { reverb: 0.04, level: o.level, highCut: o.fScale > 1.1 ? 17000 : 14000 })
+}
+
 const RECIPES: Record<SynthKind, { total: number; finish: FinishOpts; build: Recipe }> = {
   // 🫧 왁뿌볼: 단단한 왁스 껍질을 꾹 눌러 → 끽 → "아-그-작" 세 번에 나눠 깨지고 → 부스러기 → 속의 말랑한 점액이 쭈욱
   'wax-pop': {
@@ -511,17 +545,8 @@ const RECIPES: Record<SynthKind, { total: number; finish: FinishOpts; build: Rec
   // 소리의 중심은 3~6kHz(약 48%)이고 6kHz 이상도 약 35%로 아주 밝다. 저음(700Hz 아래)은 거의 없다.
   'wax-tap': {
     total: 0.6,
-    finish: { reverb: 0.04, level: 0.56, highCut: 14000 },
-    build: (m) => {
-      // 첫 타격: 바싹 마른 껍질이 갈라지는 한 번의 날카로운 "딱"
-      tick(m, 0, jit(m, 5200), 0.9, 1, -0.1)
-      // 본체: 앞쪽에 몰려 있다가 뒤로 갈수록 듬성듬성해지는 밝은 클릭 40개 (skew 로 앞쪽 밀집)
-      crackCluster(m, 0.002, { n: 40, spanMs: 460, skew: 2.3, fLo: jit(m, 2800), fHi: jit(m, 9500), dLo: 0.5, dHi: 2.2, amp: 0.95, ampDecay: 1.2, noiseMix: 0.55, panSpread: 0.55 })
-      // 가장 밝은 반짝임(10kHz 이상): 녹음에서 6kHz 위가 약 1/3을 차지한다
-      scatter(m, 0.004, { count: 14, spanMs: 340, p: 1.6, fLo: 7500, fHi: 12500, dMs: 0.6, amp: 0.3 })
-      // 부서지는 조각이 이어서 바스락거리는 가벼운 꼬리
-      crackCluster(m, 0.2, { n: 8, spanMs: 300, skew: 1.6, fLo: 3200, fHi: 7000, dLo: 0.8, dHi: 2.8, amp: 0.4, ampDecay: 1.6, noiseMix: 0.6, panSpread: 0.6 })
-    },
+    finish: { reverb: 0.04, level: WAX_TAP_DEFAULT.level, highCut: 14000 },
+    build: (m) => buildWaxTap(m, WAX_TAP_DEFAULT),
   },
 
   // 💚 두바이쫀득쿠키: 초코 껍질이 톡 → 수백 가닥 카다이프가 가늘고 밝게 "사사삭" → 쫀득한 쿠키 속
