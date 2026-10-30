@@ -1,7 +1,7 @@
-// M3 화면 3: 🏆 지인 디저트 인터랙티브 2.5D 파티세리 광장 맵
-// 넓은 디저트 광장에 지인들의 캐릭터들이 모여 있으며,
-// 줌인/줌아웃(0.75x~1.85x)과 드래그 패닝으로 광장을 둘러보고 캐릭터의 장식·꾸밈을 확대 감상하며,
-// 머리 위 순위·승률 배지를 확인하고 터치 시 친선 대전 및 한입 투표를 진행합니다.
+// M3 화면 3: 🍂 사계절 감성 파티세리 광장 (가을 낙엽 바닥 & 펫 발자국 페이드아웃 애니메이션)
+// - 분수나 주변 건물을 모두 비우고 깨끗하게 낙엽이 깔린 가을 바닥으로 조성했습니다.
+// - 펫이 산책하고 이동할 때마다 낙엽 위에 귀여운 젤리 발자국이 찍히고 스르륵 사라지는 감성 모션을 지원합니다.
+// - 4계절(봄·여름·가을·겨울)과 특별 이벤트(할로윈·크리스마스)로 손쉽게 전환할 수 있는 테마 시스템을 탑재했습니다.
 
 import { useEffect, useRef, useState, type PointerEvent, type WheelEvent } from 'react'
 import { addRibbonCoins } from '../config/boutique'
@@ -29,47 +29,159 @@ const CANVAS_H = 720
 const CENTER_X = CANVAS_W / 2
 const CENTER_Y = CANVAS_H / 2
 
-// 광장 내 캐릭터 초기 스폰 좌표
+// 4계절 및 이벤트 테마 설정
+export type PlazaThemeId = 'autumn' | 'spring' | 'summer' | 'winter' | 'halloween' | 'christmas'
+
+export interface PlazaThemeConfig {
+  id: PlazaThemeId
+  name: string
+  seasonLabel: string
+  icon: string
+  bgGradient: string
+  floorDotColor: string
+  leafIcons: string[]
+  footprintColor: string
+  desc: string
+}
+
+export const PLAZA_THEMES: Record<PlazaThemeId, PlazaThemeConfig> = {
+  autumn: {
+    id: 'autumn',
+    name: '가을 낙엽 광장',
+    seasonLabel: '🍁 깊어가는 가을',
+    icon: '🍁',
+    bgGradient: 'radial-gradient(circle at 50% 50%, #FFF3E0 0%, #FFE0B2 45%, #FFCC80 100%)',
+    floorDotColor: 'rgba(230, 81, 0, 0.08)',
+    leafIcons: ['🍁', '🍂', '🌰', '🌾', '🍂', '🍁', '🍃'],
+    footprintColor: '#D84315',
+    desc: '붉고 노란 단풍과 바사삭 은행잎이 소복하게 쌓인 깨끗한 가을 바닥',
+  },
+  spring: {
+    id: 'spring',
+    name: '봄 벚꽃 광장',
+    seasonLabel: '🌸 따스한 봄날',
+    icon: '🌸',
+    bgGradient: 'radial-gradient(circle at 50% 50%, #FFF0F5 0%, #FCE4EC 45%, #F8BBD0 100%)',
+    floorDotColor: 'rgba(194, 24, 91, 0.08)',
+    leafIcons: ['🌸', '🌷', '🌿', '🌸', '🍃', '🌸', '✨'],
+    footprintColor: '#C2185B',
+    desc: '살랑이는 봄바람에 분홍 벚꽃잎이 흩날리는 로맨틱한 봄 바닥',
+  },
+  summer: {
+    id: 'summer',
+    name: '여름 해변 광장',
+    seasonLabel: '🌊 시원한 여름',
+    icon: '🌊',
+    bgGradient: 'radial-gradient(circle at 50% 50%, #FFF9C4 0%, #FFF59D 45%, #E0F7FA 100%)',
+    floorDotColor: 'rgba(0, 151, 167, 0.08)',
+    leafIcons: ['🐚', '🫧', '⭐', '🌊', '🌴', '🫧', '🏖️'],
+    footprintColor: '#00838F',
+    desc: '반짝이는 고운 모래사장과 시원한 바닷바람이 부는 여름 바닥',
+  },
+  winter: {
+    id: 'winter',
+    name: '겨울 눈꽃 광장',
+    seasonLabel: '❄️ 포근한 겨울',
+    icon: '❄️',
+    bgGradient: 'radial-gradient(circle at 50% 50%, #FFFFFF 0%, #ECEFF1 50%, #CFD8DC 100%)',
+    floorDotColor: 'rgba(84, 110, 122, 0.08)',
+    leafIcons: ['❄️', '⛄', '🌨️', '❄️', '✨', '❄️', '⭐'],
+    footprintColor: '#546E7A',
+    desc: '뽀드득 소리가 날 듯 새하얀 첫눈이 소복하게 쌓인 겨울 바닥',
+  },
+  halloween: {
+    id: 'halloween',
+    name: '할로윈 호박 축제',
+    seasonLabel: '🎃 할로윈 페스티벌',
+    icon: '🎃',
+    bgGradient: 'radial-gradient(circle at 50% 50%, #311B92 0%, #1A237E 60%, #0D0716 100%)',
+    floorDotColor: 'rgba(255, 111, 0, 0.15)',
+    leafIcons: ['🎃', '🍬', '🦇', '👻', '🍭', '🎃', '✨'],
+    footprintColor: '#FF6D00',
+    desc: '신비로운 보랏빛 밤하늘과 호박 사탕이 가득한 축제 공간',
+  },
+  christmas: {
+    id: 'christmas',
+    name: '크리스마스 빌리지',
+    seasonLabel: '🎄 메리 크리스마스',
+    icon: '🎄',
+    bgGradient: 'radial-gradient(circle at 50% 50%, #1B5E20 0%, #0D5302 50%, #B71C1C 100%)',
+    floorDotColor: 'rgba(255, 215, 0, 0.15)',
+    leafIcons: ['🎄', '🎁', '🔔', '❄️', '⭐', '🎀', '✨'],
+    footprintColor: '#FFD600',
+    desc: '따뜻한 트리 전구와 크리스마스 선물이 놓인 연말 축제 공간',
+  },
+}
+
+// 펫이 산책하며 남기는 발자국 객체
+interface Footprint {
+  id: string
+  x: number
+  y: number
+  isLeft: boolean
+  rotation: number
+  opacity: number
+  createdAt: number
+}
+
+// 광장 내 캐릭터 초기 스폰 좌표 (넓고 자연스러운 분산 배치)
 const PLAZA_COORDS = [
-  { x: CENTER_X - 120, y: CENTER_Y - 70, rank: 1, winRate: 88, zone: '초코 분수대 앞' },
-  { x: CENTER_X + 130, y: CENTER_Y - 60, rank: 2, winRate: 81, zone: '바닐라 테라스' },
-  { x: CENTER_X - 160, y: CENTER_Y + 110, rank: 3, winRate: 74, zone: '마카롱 정원' },
-  { x: CENTER_X + 150, y: CENTER_Y + 120, rank: 4, winRate: 69, zone: '크런치 가든' },
-  { x: CENTER_X, y: CENTER_Y + 170, rank: 5, winRate: 62, zone: '광장 벤치' },
+  { x: CENTER_X - 160, y: CENTER_Y - 90, rank: 1, winRate: 88 },
+  { x: CENTER_X + 160, y: CENTER_Y - 90, rank: 2, winRate: 81 },
+  { x: CENTER_X - 180, y: CENTER_Y + 120, rank: 3, winRate: 74 },
+  { x: CENTER_X + 180, y: CENTER_Y + 120, rank: 4, winRate: 69 },
+  { x: CENTER_X, y: CENTER_Y + 150, rank: 5, winRate: 62 },
 ]
 
-// 🐾 광장 내 자연스러운 산책 구역 핫스팟 목록 (돌바닥 길, 분수대 주변, 테라스, 쉼터 등)
+// 🐾 광장 내 자연스러운 산책 구역 핫스팟 목록
 const PLAZA_WAYPOINTS = [
-  { x: CENTER_X - 120, y: CENTER_Y - 70 },
-  { x: CENTER_X + 130, y: CENTER_Y - 70 },
-  { x: CENTER_X - 60, y: CENTER_Y - 130 },
-  { x: CENTER_X + 60, y: CENTER_Y - 130 },
-  { x: CENTER_X, y: CENTER_Y + 130 },
-  { x: 230, y: 190 }, // 버터 빵집 골목
-  { x: 630, y: 190 }, // 롤리팝 카페 앞
-  { x: 230, y: 490 }, // 부티크 샵 보도
-  { x: 630, y: 490 }, // 아레나 콜로세움 앞
-  { x: CENTER_X - 170, y: CENTER_Y + 30 }, // 서쪽 가로수길
-  { x: CENTER_X + 170, y: CENTER_Y + 30 }, // 동쪽 가로수길
-  { x: CENTER_X, y: CENTER_Y + 190 }, // 남쪽 휴식 벤치
+  { x: CENTER_X - 180, y: CENTER_Y - 110 },
+  { x: CENTER_X + 180, y: CENTER_Y - 110 },
+  { x: CENTER_X - 90, y: CENTER_Y - 160 },
+  { x: CENTER_X + 90, y: CENTER_Y - 160 },
+  { x: CENTER_X, y: CENTER_Y },
+  { x: CENTER_X - 220, y: CENTER_Y + 50 },
+  { x: CENTER_X + 220, y: CENTER_Y + 50 },
+  { x: CENTER_X - 140, y: CENTER_Y + 180 },
+  { x: CENTER_X + 140, y: CENTER_Y + 180 },
+  { x: CENTER_X, y: CENTER_Y + 210 },
 ]
 
 const PET_CHATTERS = [
-  '초코 분수 달콤해~ ⛲',
-  '오늘 날씨 최고! 🌸',
-  '누구 친선전 할래? ⚔️',
-  '방금 구운 빵 냄새 🥐',
-  '산책하니까 신나! 🐾',
-  '내 방에 놀러와 💕',
+  '낙엽 밟는 소리 바사삭-! 🍁',
+  '가을 공기 정말 시원해~ 🍂',
+  '누구 친선전 할 친구? ⚔️',
+  '바람에 낙엽이 흩날려요 🍃',
+  '밤 주웠다 또각또각 🌰',
+  '한입 투표 고마워요 🥄',
 ]
 
-interface PetActorState {
-  x: number
-  y: number
-  isWalking: boolean
-  facingLeft: boolean
-  speech: string | null
-}
+// 소복이 깔린 고정 바닥 낙엽 조경 좌표들 (건물 없이 바닥에 아름답게 흩뿌려진 단풍잎)
+const STATIC_LEAVES = [
+  { x: 120, y: 110, icon: '🍁', rot: 25, size: 26, op: 0.8 },
+  { x: 260, y: 90, icon: '🍂', rot: -40, size: 22, op: 0.75 },
+  { x: 420, y: 130, icon: '🌰', rot: 15, size: 20, op: 0.9 },
+  { x: 590, y: 80, icon: '🍁', rot: 60, size: 28, op: 0.85 },
+  { x: 740, y: 120, icon: '🍂', rot: -20, size: 24, op: 0.8 },
+  { x: 180, y: 240, icon: '🌾', rot: 30, size: 22, op: 0.7 },
+  { x: 330, y: 220, icon: '🍁', rot: -15, size: 26, op: 0.85 },
+  { x: 520, y: 250, icon: '🍂', rot: 45, size: 24, op: 0.8 },
+  { x: 680, y: 230, icon: '🍁', rot: -50, size: 28, op: 0.85 },
+  { x: 140, y: 380, icon: '🍂', rot: 10, size: 25, op: 0.75 },
+  { x: 290, y: 390, icon: '🌰', rot: -30, size: 21, op: 0.9 },
+  { x: 440, y: 360, icon: '🍁', rot: 75, size: 27, op: 0.85 },
+  { x: 610, y: 400, icon: '🍂', rot: -10, size: 24, op: 0.8 },
+  { x: 760, y: 370, icon: '🌾', rot: 20, size: 22, op: 0.7 },
+  { x: 200, y: 520, icon: '🍁', rot: -45, size: 29, op: 0.9 },
+  { x: 360, y: 540, icon: '🍂', rot: 35, size: 23, op: 0.8 },
+  { x: 500, y: 510, icon: '🍁', rot: -65, size: 26, op: 0.85 },
+  { x: 670, y: 530, icon: '🌰', rot: 15, size: 20, op: 0.9 },
+  { x: 160, y: 640, icon: '🍂', rot: 50, size: 24, op: 0.75 },
+  { x: 320, y: 630, icon: '🍁', rot: -25, size: 27, op: 0.85 },
+  { x: 480, y: 640, icon: '🌾', rot: 40, size: 22, op: 0.7 },
+  { x: 640, y: 620, icon: '🍁', rot: -10, size: 28, op: 0.85 },
+  { x: 750, y: 640, icon: '🍂', rot: 60, size: 25, op: 0.8 },
+]
 
 export default function DessertPlaza({
   myMonster,
@@ -82,9 +194,17 @@ export default function DessertPlaza({
   const [selectedIdx, setSelectedIdx] = useState<number>(0)
   const [likedIds, setLikedIds] = useState<Record<string, boolean>>({})
   const [toast, setToast] = useState<string | null>(null)
+  const [currentTheme, setCurrentTheme] = useState<PlazaThemeId>('autumn')
+  const [showThemeModal, setShowThemeModal] = useState<boolean>(false)
 
-  // 🐾 지인 캐릭터들의 자연스러운 광장 자율 산책 상태
-  const [actors, setActors] = useState<PetActorState[]>(() =>
+  // 🐾 펫 산책 발자국 상태 (스르륵 페이드아웃)
+  const [footprints, setFootprints] = useState<Footprint[]>([])
+  const stepCountRef = useRef<number>(0)
+
+  // 각 지인 캐릭터들의 실시간 자율 산책 좌표
+  const [actors, setActors] = useState<
+    { x: number; y: number; isWalking: boolean; facingLeft: boolean; speech: string | null }[]
+  >(() =>
     PLAZA_COORDS.map((c) => ({
       x: c.x,
       y: c.y,
@@ -94,23 +214,77 @@ export default function DessertPlaza({
     })),
   )
 
-  // 3.8초마다 캐릭터들이 자연스럽게 광장 핫스팟으로 산책
+  // 발자국 추가 헬퍼 (새 발자국 생성 후 2.5초에 걸쳐 서서히 페이드아웃)
+  const addFootprint = (x: number, y: number, isLeft: boolean, angle: number) => {
+    const id = `fp-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+    const newFp: Footprint = {
+      id,
+      x,
+      y,
+      isLeft,
+      rotation: angle,
+      opacity: 0.85,
+      createdAt: Date.now(),
+    }
+    setFootprints((prev) => [...prev.slice(-24), newFp])
+  }
+
+  // 발자국 서서히 사라지는 타이머 (스르륵 fade-out)
   useEffect(() => {
-    const wanderTimer = window.setInterval(() => {
+    const fadeTimer = setInterval(() => {
+      const now = Date.now()
+      setFootprints((prev) =>
+        prev
+          .map((fp) => {
+            const age = now - fp.createdAt
+            const remaining = Math.max(0, 1 - age / 2600)
+            return { ...fp, opacity: remaining * 0.85 }
+          })
+          .filter((fp) => fp.opacity > 0.05),
+      )
+    }, 200)
+
+    return () => clearInterval(fadeTimer)
+  }, [])
+
+  // 지인 캐릭터들의 자연스러운 광장 자율 산책 루프 (이동할 때마다 발자국 남기기)
+  useEffect(() => {
+    const wanderTimer = setInterval(() => {
       setActors((prev) => {
         const next = [...prev]
         const walkerIdx = Math.floor(Math.random() * next.length)
         if (walkerIdx === selectedIdx) return prev
 
-        const targetWp = PLAZA_WAYPOINTS[Math.floor(Math.random() * PLAZA_WAYPOINTS.length)]
         const curr = next[walkerIdx]
+        const targetWp = PLAZA_WAYPOINTS[Math.floor(Math.random() * PLAZA_WAYPOINTS.length)]
         const facingLeft = targetWp.x < curr.x
-        const speech = Math.random() < 0.4 ? PET_CHATTERS[Math.floor(Math.random() * PET_CHATTERS.length)] : null
+        const speech = Math.random() < 0.45 ? PET_CHATTERS[Math.floor(Math.random() * PET_CHATTERS.length)] : null
+
+        const startX = curr.x
+        const startY = curr.y
+        const targetX = targetWp.x + (Math.random() * 30 - 15)
+        const targetY = targetWp.y + (Math.random() * 30 - 15)
+
+        // 이동 경로에 4~5개의 발자국을 순차적으로 남기기
+        const steps = 4
+        for (let s = 1; s <= steps; s++) {
+          setTimeout(() => {
+            const ratio = s / steps
+            const fx = startX + (targetX - startX) * ratio
+            const fy = startY + (targetY - startY) * ratio + 32
+            stepCountRef.current += 1
+            const isLeft = stepCountRef.current % 2 === 0
+            const dx = targetX - startX
+            const dy = targetY - startY
+            const angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90
+            addFootprint(fx, fy, isLeft, angle)
+          }, s * 450)
+        }
 
         next[walkerIdx] = {
           ...curr,
-          x: targetWp.x + (Math.random() * 30 - 15),
-          y: targetWp.y + (Math.random() * 30 - 15),
+          x: targetX,
+          y: targetY,
           isWalking: true,
           facingLeft,
           speech,
@@ -120,23 +294,17 @@ export default function DessertPlaza({
           setActors((latest) => {
             if (!latest[walkerIdx]) return latest
             const lNext = [...latest]
-            lNext[walkerIdx] = {
-              ...lNext[walkerIdx],
-              isWalking: false,
-            }
+            lNext[walkerIdx] = { ...lNext[walkerIdx], isWalking: false }
             return lNext
           })
-        }, 2800)
+        }, 2600)
 
         if (speech) {
           setTimeout(() => {
             setActors((latest) => {
               if (!latest[walkerIdx]) return latest
               const lNext = [...latest]
-              lNext[walkerIdx] = {
-                ...lNext[walkerIdx],
-                speech: null,
-              }
+              lNext[walkerIdx] = { ...lNext[walkerIdx], speech: null }
               return lNext
             })
           }, 3200)
@@ -144,7 +312,7 @@ export default function DessertPlaza({
 
         return next
       })
-    }, 3800)
+    }, 3200)
 
     return () => clearInterval(wanderTimer)
   }, [selectedIdx])
@@ -192,7 +360,7 @@ export default function DessertPlaza({
 
         setEntries([...mapped, ...PLAZA_SHOWCASE_FRIENDS])
       } catch {
-        // 오프라인 폴백 세이프가드
+        // 오프라인 폴백
       }
     }
     void fetchRealFriends()
@@ -203,6 +371,7 @@ export default function DessertPlaza({
 
   const selectedFriend = entries[selectedIdx] ?? entries[0]
   const selLook = monsterLook(selectedFriend.monster)
+  const themeObj = PLAZA_THEMES[currentTheme]
 
   function showToast(msg: string) {
     setToast(msg)
@@ -212,8 +381,7 @@ export default function DessertPlaza({
   function handleSelectFriend(idx: number) {
     setSelectedIdx(idx)
     const coord = PLAZA_COORDS[idx % PLAZA_COORDS.length]
-    playDessertAsmr('syrup-drizzle')
-    // 부드럽게 해당 캐릭터 위치로 포커스 이동
+    playDessertAsmr('acorn-snap')
     const targetZoom = Math.max(zoom, 1.1)
     setZoom(targetZoom)
     setPan({
@@ -264,11 +432,13 @@ export default function DessertPlaza({
       pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
     }
 
-    if (pointersRef.current.size === 2 && pinchDistRef.current !== null) {
+    if (pointersRef.current.size === 2) {
       const pts = Array.from(pointersRef.current.values())
       const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y)
-      const ratio = dist / pinchDistRef.current
-      setZoom((z) => Math.max(0.7, Math.min(1.85, Number((z * ratio).toFixed(3)))))
+      if (pinchDistRef.current && pinchDistRef.current > 10) {
+        const ratio = dist / pinchDistRef.current
+        setZoom((z) => Math.max(0.65, Math.min(1.85, Number((z * ratio).toFixed(2)))))
+      }
       pinchDistRef.current = dist
       return
     }
@@ -276,74 +446,103 @@ export default function DessertPlaza({
     if (!dragRef.current.active) return
     const dx = e.clientX - dragRef.current.startX
     const dy = e.clientY - dragRef.current.startY
-    if (Math.hypot(dx, dy) > 5) dragRef.current.moved = true
-
+    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+      dragRef.current.moved = true
+    }
     setPan({
-      x: dragRef.current.originX + dx,
-      y: dragRef.current.originY + dy,
+      x: Math.max(-280, Math.min(280, dragRef.current.originX + dx)),
+      y: Math.max(-240, Math.min(240, dragRef.current.originY + dy)),
     })
   }
 
   function handlePointerUp(e: PointerEvent<HTMLDivElement>) {
     pointersRef.current.delete(e.pointerId)
-    if (pointersRef.current.size < 2) pinchDistRef.current = null
+    if (pointersRef.current.size < 2) {
+      pinchDistRef.current = null
+    }
     dragRef.current.active = false
   }
 
   function handleWheel(e: WheelEvent<HTMLDivElement>) {
-    e.preventDefault()
     const delta = e.deltaY < 0 ? 0.12 : -0.12
-    setZoom((z) => Math.max(0.7, Math.min(1.85, Number((z + delta).toFixed(2)))))
+    setZoom((z) => Math.max(0.65, Math.min(1.85, Number((z + delta).toFixed(2)))))
   }
 
   return (
     <main
-      className="mobile-screen"
+      className="screen"
       style={{
         display: 'flex',
         flexDirection: 'column',
         height: '100dvh',
-        background: '#FAF5EE',
         overflow: 'hidden',
+        background: '#FFF8E7',
         userSelect: 'none',
+        position: 'relative',
       }}
     >
-      {/* 1. 상단 헤더 */}
+      {/* 1. 상단 미니멀 바 (계절/이벤트 테마 뱃지 & 코인) */}
       <div
         className="row between"
         style={{
-          padding: '10px 14px',
+          padding: '8px 12px',
           background: '#FFFDF9',
-          borderBottom: '1.5px solid #F0DFB8',
+          borderBottom: '1.5px solid #FFD54F',
           flexShrink: 0,
-          zIndex: 20,
+          zIndex: 30,
         }}
       >
-        <button className="btn-round" onClick={onBack} aria-label="뒤로">
-          <BackIcon />
-        </button>
-        <div>
-          <h1 className="title" style={{ fontSize: 16, margin: 0, textAlign: 'center' }}>
-            🏰 파티세리 광장 빌리지
-          </h1>
-          <div style={{ fontSize: 11, color: '#8D6E63', textAlign: 'center' }}>
-            👆 드래그 탐색 · 🤏 줌인 확대 · 캐릭터 터치
+        <div className="row" style={{ gap: 6, alignItems: 'center' }}>
+          <button className="btn-round" onClick={onBack} aria-label="뒤로">
+            <BackIcon />
+          </button>
+          <div>
+            <h1 className="title" style={{ fontSize: 15, margin: 0 }}>
+              {themeObj.icon} {themeObj.name}
+            </h1>
+            <div style={{ fontSize: 10, color: '#8D6E63' }}>
+              👆 드래그 탐색 · 🤏 줌인 확대 · 캐릭터 터치
+            </div>
           </div>
         </div>
-        <span className="chip honey" style={{ fontWeight: 800, fontSize: 12 }}>
-          🪙 {coins}
-        </span>
+
+        <div className="row" style={{ gap: 6 }}>
+          {/* 계절/이벤트 테마 변경 버튼 */}
+          <button
+            onClick={() => setShowThemeModal(true)}
+            style={{
+              padding: '4px 8px',
+              borderRadius: 10,
+              border: '1.5px solid #FFB74D',
+              background: '#FFF8E1',
+              color: '#E65100',
+              fontSize: 11,
+              fontWeight: 900,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 3,
+            }}
+          >
+            {themeObj.seasonLabel} ▾
+          </button>
+
+          <span className="chip honey" style={{ fontWeight: 800, fontSize: 11, padding: '4px 8px' }}>
+            🪙 {coins}
+          </span>
+        </div>
       </div>
 
-      {/* 2. 2.5D 인터랙티브 광장 맵 (무스크롤 뷰포트) */}
+      {/* 2. 깨끗한 가을 낙엽 바닥 2.5D 인터랙티브 맵 (분수·주변 건물 완전 제거!) */}
       <div
         style={{
           position: 'relative',
           flex: 1,
           minHeight: 0,
           overflow: 'hidden',
-          background: 'radial-gradient(circle at 50% 50%, #FFF8E7 0%, #F5E6CC 100%)',
+          background: themeObj.bgGradient,
           touchAction: 'none',
+          cursor: dragRef.current.active ? 'grabbing' : 'grab',
         }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -351,31 +550,32 @@ export default function DessertPlaza({
         onPointerCancel={handlePointerUp}
         onWheel={handleWheel}
       >
-        {/* 줌 컨트롤러 */}
+        {/* 우측 상단 줌/초기화 플로팅 컨트롤 */}
         <div
+          onPointerDown={(e) => e.stopPropagation()}
           style={{
             position: 'absolute',
-            right: 12,
-            top: 12,
-            zIndex: 15,
+            right: 10,
+            top: 10,
+            zIndex: 25,
             display: 'flex',
             flexDirection: 'column',
-            gap: 6,
+            gap: 4,
           }}
-          onPointerDown={(e) => e.stopPropagation()}
         >
           <button
-            onClick={() => setZoom((z) => Math.min(1.85, Number((z + 0.25).toFixed(2))))}
+            onClick={() => setZoom((z) => Math.min(1.85, Number((z + 0.2).toFixed(2))))}
             style={{
-              width: 38,
-              height: 38,
-              borderRadius: 12,
-              background: '#FFFDF9',
-              border: '1.5px solid #D7CCC8',
+              width: 36,
+              height: 36,
+              borderRadius: 10,
+              border: '1.5px solid rgba(0,0,0,0.15)',
+              background: 'rgba(255,255,255,0.92)',
+              color: '#3E2723',
               fontSize: 18,
               fontWeight: 900,
               cursor: 'pointer',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+              boxShadow: '0 3px 8px rgba(0,0,0,0.12)',
             }}
           >
             ＋
@@ -386,38 +586,40 @@ export default function DessertPlaza({
               setPan({ x: 0, y: 0 })
             }}
             style={{
-              width: 38,
+              width: 36,
               height: 28,
               borderRadius: 8,
-              background: '#FFFDF9',
-              border: '1.5px solid #D7CCC8',
-              fontSize: 11,
-              fontWeight: 800,
+              border: '1.5px solid rgba(0,0,0,0.15)',
+              background: 'rgba(255,255,255,0.92)',
+              color: '#E65100',
+              fontSize: 10,
+              fontWeight: 900,
               cursor: 'pointer',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+              boxShadow: '0 3px 8px rgba(0,0,0,0.12)',
             }}
           >
-            초기화
+            {Math.round(zoom * 100)}%
           </button>
           <button
-            onClick={() => setZoom((z) => Math.max(0.7, Number((z - 0.25).toFixed(2))))}
+            onClick={() => setZoom((z) => Math.max(0.65, Number((z - 0.2).toFixed(2))))}
             style={{
-              width: 38,
-              height: 38,
-              borderRadius: 12,
-              background: '#FFFDF9',
-              border: '1.5px solid #D7CCC8',
+              width: 36,
+              height: 36,
+              borderRadius: 10,
+              border: '1.5px solid rgba(0,0,0,0.15)',
+              background: 'rgba(255,255,255,0.92)',
+              color: '#3E2723',
               fontSize: 18,
               fontWeight: 900,
               cursor: 'pointer',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+              boxShadow: '0 3px 8px rgba(0,0,0,0.12)',
             }}
           >
             －
           </button>
         </div>
 
-        {/* 광장 캔버스 월드: 픽셀 파티세리 빌리지 (돌바닥, 빵집 건물, 롤리팝 나무, 퐁듀 분수대) */}
+        {/* 860x720 대형 2.5D 광장 캔버스 (가을 낙엽 바닥 & 발자국 모션 월드) */}
         <div
           style={{
             position: 'absolute',
@@ -429,230 +631,66 @@ export default function DessertPlaza({
             marginTop: -CENTER_Y,
             transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
             transformOrigin: '50% 50%',
-            transition: dragRef.current.active ? 'none' : 'transform 0.22s ease-out',
+            transition: dragRef.current.active ? 'none' : 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
-          {/* 1. 광장 바닥 아트: 코블스톤 픽셀 돌바닥 & 베이지 보도블록 */}
+          {/* 바닥 격자 도트 텍스처 */}
           <div
             style={{
               position: 'absolute',
               inset: 0,
-              borderRadius: 36,
-              border: '6px solid #D7CCC8',
-              backgroundColor: '#F5EBE1',
-              backgroundImage: `
-                radial-gradient(#D7CCC8 12%, transparent 12%),
-                repeating-linear-gradient(0deg, transparent, transparent 38px, rgba(141,110,99,0.12) 38px, rgba(141,110,99,0.12) 40px),
-                repeating-linear-gradient(90deg, transparent, transparent 38px, rgba(141,110,99,0.12) 38px, rgba(141,110,99,0.12) 40px)
-              `,
-              backgroundSize: '40px 40px',
-              boxShadow: 'inset 0 0 50px rgba(109,76,65,0.2), 0 8px 30px rgba(0,0,0,0.1)',
+              backgroundImage: `radial-gradient(${themeObj.floorDotColor} 2px, transparent 2px)`,
+              backgroundSize: '28px 28px',
+              pointerEvents: 'none',
             }}
           />
 
-          {/* 중앙 광장 원형 대리석 테두리 바닥 */}
-          <div
-            style={{
-              position: 'absolute',
-              left: CENTER_X - 140,
-              top: CENTER_Y - 140,
-              width: 280,
-              height: 280,
-              borderRadius: '50%',
-              background: 'radial-gradient(circle, #FFFDF9 0%, #F5EBE1 70%, #E6D7C8 100%)',
-              border: '4px dashed #BCAAA4',
-              boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.06)',
-            }}
-          />
-
-          {/* 2. 픽셀 마을 건물들 (북서: 빵집, 북동: 카페, 남서: 부티크, 남동: 아레나, 북: 성탑) */}
-          {/* 북쪽 (12시): 🏰 그랜드 파티세리 성탑 */}
-          <div
-            style={{
-              position: 'absolute',
-              left: CENTER_X - 70,
-              top: 24,
-              width: 140,
-              height: 80,
-              borderRadius: 14,
-              background: 'linear-gradient(180deg, #CE93D8 0%, #BA68C8 100%)',
-              border: '3px solid #7B1FA2',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 6px 14px rgba(0,0,0,0.15)',
-              color: '#FFFFFF',
-              zIndex: 2,
-            }}
-          >
-            <span style={{ fontSize: 26 }}>🏰</span>
-            <span style={{ fontSize: 10, fontWeight: 900, background: 'rgba(0,0,0,0.3)', padding: '2px 8px', borderRadius: 8, marginTop: 2 }}>
-              디저트 궁전
-            </span>
-          </div>
-
-          {/* 10시 방향: 🥐 크루아상 베이커리 하우스 */}
-          <div
-            style={{
-              position: 'absolute',
-              left: 48,
-              top: 50,
-              width: 130,
-              height: 90,
-              borderRadius: 12,
-              background: 'linear-gradient(180deg, #FFE082 0%, #FFB74D 100%)',
-              border: '3px solid #E65100',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 6px 12px rgba(0,0,0,0.12)',
-              zIndex: 2,
-            }}
-          >
-            <span style={{ fontSize: 28 }}>🥐</span>
-            <span style={{ fontSize: 10, fontWeight: 900, color: '#3E2723', background: '#FFF8E1', padding: '1px 6px', borderRadius: 6 }}>
-              버터 빵집
-            </span>
-          </div>
-
-          {/* 2시 방향: ☕ 롤리팝 카페 & 야외 테라스 */}
-          <div
-            style={{
-              position: 'absolute',
-              right: 48,
-              top: 50,
-              width: 130,
-              height: 90,
-              borderRadius: 12,
-              background: 'linear-gradient(180deg, #FFAB91 0%, #FF8A65 100%)',
-              border: '3px solid #D84315',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 6px 12px rgba(0,0,0,0.12)',
-              zIndex: 2,
-            }}
-          >
-            <span style={{ fontSize: 28 }}>☕</span>
-            <span style={{ fontSize: 10, fontWeight: 900, color: '#3E2723', background: '#FBE9E7', padding: '1px 6px', borderRadius: 6 }}>
-              롤리팝 카페
-            </span>
-          </div>
-
-          {/* 8시 방향: 🎪 마카롱 부티크 공방 */}
-          <div
-            style={{
-              position: 'absolute',
-              left: 48,
-              bottom: 60,
-              width: 125,
-              height: 85,
-              borderRadius: 12,
-              background: 'linear-gradient(180deg, #F8BBD0 0%, #F48FB1 100%)',
-              border: '3px solid #C2185B',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 6px 12px rgba(0,0,0,0.12)',
-              zIndex: 2,
-            }}
-          >
-            <span style={{ fontSize: 28 }}>🎪</span>
-            <span style={{ fontSize: 10, fontWeight: 900, color: '#880E4F', background: '#FCE4EC', padding: '1px 6px', borderRadius: 6 }}>
-              부티크 샵
-            </span>
-          </div>
-
-          {/* 4시 방향: ⚔️ 배틀 아레나 콜로세움 */}
-          <div
-            style={{
-              position: 'absolute',
-              right: 48,
-              bottom: 60,
-              width: 125,
-              height: 85,
-              borderRadius: 12,
-              background: 'linear-gradient(180deg, #B0BEC5 0%, #90A4AE 100%)',
-              border: '3px solid #37474F',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 6px 12px rgba(0,0,0,0.12)',
-              zIndex: 2,
-            }}
-          >
-            <span style={{ fontSize: 28 }}>⚔️</span>
-            <span style={{ fontSize: 10, fontWeight: 900, color: '#263238', background: '#ECEFF1', padding: '1px 6px', borderRadius: 6 }}>
-              배틀 아레나
-            </span>
-          </div>
-
-          {/* 3. 롤리팝 가로수 & 마카롱 꽃밭 조경 */}
-          {[
-            { x: 195, y: 160, icon: '🍭' },
-            { x: CANVAS_W - 200, y: 160, icon: '🍭' },
-            { x: 190, y: CANVAS_H - 180, icon: '🌸' },
-            { x: CANVAS_W - 200, y: CANVAS_H - 180, icon: '🌸' },
-            { x: CENTER_X - 170, y: CENTER_Y + 10, icon: '🌳' },
-            { x: CENTER_X + 170, y: CENTER_Y + 10, icon: '🌳' },
-          ].map((deco, di) => (
+          {/* 소복하게 흩뿌려진 고정 낙엽들 (건물 없이 깨끗한 가을 바닥 표현) */}
+          {STATIC_LEAVES.map((leaf, li) => (
             <div
-              key={di}
+              key={li}
               style={{
                 position: 'absolute',
-                left: deco.x,
-                top: deco.y,
-                fontSize: 26,
-                filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.15))',
-                zIndex: 2,
+                left: leaf.x,
+                top: leaf.y,
+                fontSize: leaf.size,
+                opacity: leaf.op,
+                transform: `rotate(${leaf.rot}deg)`,
+                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.12))',
                 pointerEvents: 'none',
+                userSelect: 'none',
               }}
             >
-              {deco.icon}
+              {currentTheme === 'autumn'
+                ? leaf.icon
+                : themeObj.leafIcons[li % themeObj.leafIcons.length]}
             </div>
           ))}
 
-          {/* 4. 중앙 대리석 퐁듀 분수대 (3단 디테일 & 초콜릿 파동) */}
-          <div
-            style={{
-              position: 'absolute',
-              left: CENTER_X - 65,
-              top: CENTER_Y - 65,
-              width: 130,
-              height: 130,
-              borderRadius: '50%',
-              background: 'radial-gradient(circle, #FF4081 0%, #E91E63 60%, #880E4F 100%)',
-              border: '5px solid #FFFFFF',
-              boxShadow: '0 8px 26px rgba(233,30,99,0.35)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#FFFFFF',
-              zIndex: 3,
-            }}
-          >
-            <span style={{ fontSize: 36, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}>⛲</span>
-            <span
+          {/* 🐾 펫 이동 시 실시간으로 찍히고 스르륵 사라지는 발자국 레이어 (Fade-out 애니메이션) */}
+          {footprints.map((fp) => (
+            <div
+              key={fp.id}
               style={{
-                fontSize: 10,
-                fontWeight: 900,
-                background: 'rgba(0,0,0,0.4)',
-                padding: '2px 8px',
-                borderRadius: 999,
-                marginTop: 2,
+                position: 'absolute',
+                left: fp.x + (fp.isLeft ? -10 : 10),
+                top: fp.y,
+                fontSize: 16,
+                opacity: fp.opacity,
+                transform: `rotate(${fp.rotation}deg) scale(${fp.isLeft ? 0.95 : 1})`,
+                transition: 'opacity 0.25s linear',
+                pointerEvents: 'none',
+                userSelect: 'none',
+                color: themeObj.footprintColor,
+                filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.15))',
+                zIndex: 3,
               }}
             >
-              초코 퐁듀 분수
-            </span>
-          </div>
+              🐾
+            </div>
+          ))}
 
-          {/* 5. 지인들의 캐릭터 노드 배치 (자연스러운 광장 산책 & 초경량 60fps 렌더링) */}
+          {/* 지인들의 캐릭터 노드 배치 (가을 바닥 자율 산책 & 발자국 생성) */}
           {entries.slice(0, PLAZA_COORDS.length).map((friend, idx) => {
             const coord = PLAZA_COORDS[idx]
             const actor = actors[idx] ?? { x: coord.x, y: coord.y, isWalking: false, facingLeft: false, speech: null }
@@ -677,7 +715,7 @@ export default function DessertPlaza({
                   cursor: 'pointer',
                   zIndex: isSelected ? 15 : 4,
                   transform: isSelected ? 'scale(1.15)' : 'scale(1)',
-                  transition: 'left 2.8s ease-in-out, top 2.8s ease-in-out, transform 0.2s ease-out',
+                  transition: 'left 2.6s ease-in-out, top 2.6s ease-in-out, transform 0.2s ease-out',
                 }}
               >
                 {/* 💬 자율 산책 귀여운 말풍선 */}
@@ -687,13 +725,13 @@ export default function DessertPlaza({
                       position: 'absolute',
                       top: -26,
                       background: '#FFFFFF',
-                      border: '1.5px solid #FF80AB',
+                      border: '1.5px solid #FF8A65',
                       borderRadius: 10,
                       padding: '2px 8px',
                       fontSize: 10,
                       fontWeight: 800,
-                      color: '#C2185B',
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                      color: '#E65100',
+                      boxShadow: '0 3px 8px rgba(0,0,0,0.15)',
                       whiteSpace: 'nowrap',
                       pointerEvents: 'none',
                       animation: 'bounce 0.6s ease',
@@ -707,7 +745,7 @@ export default function DessertPlaza({
                 {/* 머리 위 순위 & 승률 배지 */}
                 <div
                   style={{
-                    padding: '3px 8px',
+                    padding: '2px 8px',
                     borderRadius: 999,
                     background:
                       coord.rank === 1
@@ -728,15 +766,15 @@ export default function DessertPlaza({
                   {coord.rank === 1 ? '👑 1위' : `${coord.rank}위`} · 승률 {coord.winRate}%
                 </div>
 
-                {/* 초경량 2.5D 캐릭터 아바타 (산책 시 뜀박질 바운스 & 좌우 반전) */}
+                {/* 2.5D 캐릭터 아바타 (산책 시 뜀박질 바운스 & 좌우 반전) */}
                 <div
                   style={{
                     width: 86,
                     height: 86,
                     borderRadius: '50%',
-                    background: isSelected ? 'rgba(255, 235, 59, 0.35)' : 'rgba(255,255,255,0.4)',
-                    border: isSelected ? '3px solid #FFD600' : '2px solid rgba(255,255,255,0.8)',
-                    boxShadow: isSelected ? '0 0 16px rgba(255,214,0,0.6)' : '0 3px 10px rgba(0,0,0,0.1)',
+                    background: isSelected ? 'rgba(255, 235, 59, 0.4)' : 'rgba(255,255,255,0.5)',
+                    border: isSelected ? '3px solid #FFD600' : '2px solid rgba(255,255,255,0.9)',
+                    boxShadow: isSelected ? '0 0 18px rgba(255,214,0,0.65)' : '0 3px 10px rgba(0,0,0,0.1)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -781,7 +819,7 @@ export default function DessertPlaza({
         </div>
       </div>
 
-      {/* 3. 하단 선택된 지인 디저트 프로필 카드 (친선전 & 한입 투표 & 3D 장식 보기) */}
+      {/* 3. 하단 선택된 지인 디저트 프로필 카드 (친선전 & 한입 투표 & 100dvh 무스크롤 안전 여백) */}
       <div
         className="card tight"
         style={{
@@ -888,6 +926,100 @@ export default function DessertPlaza({
           </button>
         </div>
       </div>
+
+      {/* 4. 4계절 & 이벤트 테마 선택 모달 */}
+      {showThemeModal && (
+        <div
+          onClick={() => setShowThemeModal(false)}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 60,
+            background: 'rgba(0,0,0,0.65)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+            animation: 'fadeIn 0.2s ease',
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%',
+              maxWidth: 320,
+              background: '#FFFDF9',
+              borderRadius: 20,
+              border: '2px solid #FFB74D',
+              padding: '16px 14px',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+              boxShadow: '0 12px 32px rgba(0,0,0,0.35)',
+            }}
+          >
+            <h3 style={{ fontSize: 16, fontWeight: 900, color: '#3E2723', margin: 0 }}>
+              🍂 사계절 & 이벤트 광장 테마
+            </h3>
+            <div style={{ fontSize: 11, color: '#8D6E63' }}>
+              계절의 변화와 다채로운 축제 공간으로 광장을 언제든 꾸며보세요!
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginTop: 4 }}>
+              {(Object.keys(PLAZA_THEMES) as PlazaThemeId[]).map((tid) => {
+                const t = PLAZA_THEMES[tid]
+                const isCur = currentTheme === tid
+                return (
+                  <button
+                    key={tid}
+                    onClick={() => {
+                      playDessertAsmr('acorn-snap')
+                      setCurrentTheme(tid)
+                      setShowThemeModal(false)
+                      showToast(`✨ 광장 테마가 [${t.name}]으로 변경되었습니다!`)
+                    }}
+                    style={{
+                      padding: '10px 8px',
+                      borderRadius: 12,
+                      border: isCur ? '2px solid #FF7A59' : '1px solid #E0D3C5',
+                      background: isCur ? '#FFF3E0' : '#FFFDF9',
+                      color: isCur ? '#D84315' : '#4E342E',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 2,
+                    }}
+                  >
+                    <span style={{ fontSize: 24 }}>{t.icon}</span>
+                    <strong style={{ fontSize: 12 }}>{t.name}</strong>
+                    <span style={{ fontSize: 9, color: '#795548' }}>{t.seasonLabel}</span>
+                  </button>
+                )
+              })}
+            </div>
+
+            <button
+              onClick={() => setShowThemeModal(false)}
+              style={{
+                padding: '8px',
+                borderRadius: 10,
+                border: '1px solid #D7CCC8',
+                background: '#FFF',
+                color: '#5D4037',
+                fontSize: 12,
+                fontWeight: 800,
+                cursor: 'pointer',
+                marginTop: 4,
+              }}
+            >
+              닫기
+            </button>
+          </div>
+        </div>
+      )}
 
       {toast && <div className="toast">{toast}</div>}
     </main>

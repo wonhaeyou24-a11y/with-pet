@@ -272,7 +272,6 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
   }
 
   const statNameMap = Object.fromEntries(STAT_INFO.map((s) => [s.key, s.label]))
-  const doneCount = monster.care_counts?.[selectedCourse.id] ?? 0
 
   return (
     <main
@@ -313,14 +312,14 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
           </span>
         </div>
 
-        {/* 3D 캐릭터 스테이지 & 실시간 훈련/타워 탐험 액션 연출 뷰 */}
+        {/* 3D 캐릭터 스테이지 & 실시간 훈련/타워 탐험 액션 연출 뷰 (공간 확장) */}
         <div
           className="stage"
           style={{
             alignItems: 'center',
             position: 'relative',
-            height: 154,
-            minHeight: 154,
+            height: 182,
+            minHeight: 182,
             padding: 2,
             cursor: 'pointer',
             background: trainSession
@@ -857,8 +856,8 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
             ) : (
               <div
                 style={{
-                  padding: '12px',
-                  borderRadius: 18,
+                  padding: '10px 12px',
+                  borderRadius: 16,
                   border: '2px solid #FF7A59',
                   background: '#FFF8F4',
                   display: 'flex',
@@ -868,36 +867,30 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                   flex: 1,
                 }}
               >
-                <div className="row between">
-                  <div className="row" style={{ gap: 8 }}>
-                    <span style={{ fontSize: 28 }}>{selectedCourse.icon}</span>
+                <div className="row between" style={{ alignItems: 'center' }}>
+                  <div className="row" style={{ gap: 6, alignItems: 'center' }}>
+                    <span style={{ fontSize: 24 }}>{selectedCourse.icon}</span>
                     <div>
-                      <div style={{ fontSize: 14, fontWeight: 900, color: '#3B2F2F' }}>{selectedCourse.name}</div>
-                      <div style={{ fontSize: 12, color: '#D85A3A', fontWeight: 800 }}>
-                        {statNameMap[selectedCourse.mainStat]} +{selectedCourse.mainGain}
-                        {selectedCourse.subStat ? ` · ${statNameMap[selectedCourse.subStat]} +${selectedCourse.subGain}` : ''} · {selectedCourse.personalityLabel}
+                      <div style={{ fontSize: 13, fontWeight: 900, color: '#3B2F2F' }}>{selectedCourse.name}</div>
+                      <div style={{ fontSize: 11, color: '#D85A3A', fontWeight: 800 }}>
+                        {statNameMap[selectedCourse.mainStat]} +{selectedCourse.mainGain} · {selectedCourse.personalityLabel}
                       </div>
                     </div>
                   </div>
-                  <span className="chip" style={{ fontSize: 12 }}>
-                    누적 {doneCount}회
-                  </span>
-                </div>
-
-                <div style={{ fontSize: 12, color: '#6E5D53', lineHeight: 1.35 }}>{selectedCourse.desc}</div>
-
-                <div className="row between" style={{ background: '#FFFDF9', padding: '4px 8px', borderRadius: 8, fontSize: 11, color: '#795548' }}>
-                  <span>⏱️ 훈련 시간: 약 2분 30초 (백그라운드 자율 진행)</span>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', fontWeight: 700 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', fontWeight: 800, fontSize: 11, background: '#FFFDF9', padding: '3px 7px', borderRadius: 8, border: '1px solid #FFE0B2' }}>
                     <input type="checkbox" checked={fastMode} onChange={(e) => setFastMode(e.target.checked)} />
-                    ⚡ 10초 쾌속
+                    ⚡ 쾌속 10초
                   </label>
                 </div>
 
+                <div style={{ fontSize: 11, color: '#6E5D53', lineHeight: 1.3 }}>
+                  {selectedCourse.desc} (앱 닫아도 백그라운드 진행)
+                </div>
+
                 {tooTired ? (
-                  <div className="row between" style={{ background: '#FFF0EE', padding: '8px 10px', borderRadius: 12, border: '1px dashed #D9534F' }}>
-                    <span style={{ fontSize: 12, fontWeight: 800, color: '#D9534F' }}>💤 노곤함 80 이상! 휴식이 필요해요</span>
-                    <button className="btn mint" onClick={onGoRest} style={{ padding: '6px 10px', fontSize: 12 }}>
+                  <div className="row between" style={{ background: '#FFF0EE', padding: '6px 10px', borderRadius: 12, border: '1px dashed #D9534F' }}>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: '#D9534F' }}>💤 노곤함 80 이상! 휴식 필요</span>
+                    <button className="btn mint" onClick={onGoRest} style={{ padding: '5px 8px', fontSize: 11 }}>
                       🌙 휴식하기
                     </button>
                   </div>
@@ -906,9 +899,16 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                     className="btn"
                     disabled={busy || Boolean(trainSession)}
                     onClick={handleStartTraining}
-                    style={{ padding: '10px', fontSize: 13, width: '100%' }}
+                    style={{
+                      padding: '11px',
+                      fontSize: 14,
+                      fontWeight: 900,
+                      width: '100%',
+                      background: 'linear-gradient(90deg, #FF7A59 0%, #FF9800 100%)',
+                      boxShadow: '0 3px 8px rgba(255,122,89,0.3)',
+                    }}
                   >
-                    ⚡ 훈련 시작하기 ({fastMode ? '10초' : '2분 30초'} 소요 · 앱 꺼도 진행)
+                    ⚡ {selectedCourse.name} 훈련 출발 ({fastMode ? '10초' : '2분 30초'})
                   </button>
                 )}
               </div>
@@ -1131,17 +1131,15 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                   </button>
                 </div>
               ) : (
-                <div style={{ fontSize: 12, color: '#5D4037', lineHeight: 1.35 }}>
-                  내 전투력(<strong>{battlePower}</strong>)이 권장(<strong>{currentFloorInfo.reqCp}</strong>)보다 높을수록 탐험 속도가 빨라집니다.
-                  <br />
-                  출발하면 <strong>앱을 꺼도 펫이 스스로 3개 층을 돌파</strong>하고 돌아옵니다!
+                <div style={{ fontSize: 11, color: '#5D4037', lineHeight: 1.35 }}>
+                  내 전투력(<strong>{battlePower}</strong>) vs 권장(<strong>{currentFloorInfo.reqCp}</strong>) · <strong>앱 닫아도 3개 층 자율 돌파</strong>
                 </div>
               )}
 
               {tooTired ? (
-                <div className="row between" style={{ background: '#FFF0EE', padding: '8px 10px', borderRadius: 12, border: '1px dashed #D9534F' }}>
-                  <span style={{ fontSize: 12, fontWeight: 800, color: '#D9534F' }}>💤 노곤함 80 이상! 휴식이 필요해요</span>
-                  <button className="btn mint" onClick={onGoRest} style={{ padding: '6px 10px', fontSize: 12 }}>
+                <div className="row between" style={{ background: '#FFF0EE', padding: '6px 10px', borderRadius: 12, border: '1px dashed #D9534F' }}>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: '#D9534F' }}>💤 노곤함 80 이상! 휴식 필요</span>
+                  <button className="btn mint" onClick={onGoRest} style={{ padding: '5px 8px', fontSize: 11 }}>
                     🌙 휴식하기
                   </button>
                 </div>
@@ -1151,14 +1149,15 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                   disabled={busy}
                   onClick={handleStartExplore}
                   style={{
-                    padding: '10px',
-                    fontSize: 13,
+                    padding: '11px',
+                    fontSize: 14,
+                    fontWeight: 900,
                     width: '100%',
-                    background: 'linear-gradient(180deg, #7C4DFF 0%, #651FFF 100%)',
-                    boxShadow: '0 4px 0 #4527A0',
+                    background: 'linear-gradient(90deg, #7C4DFF 0%, #651FFF 100%)',
+                    boxShadow: '0 3px 8px rgba(124,77,255,0.35)',
                   }}
                 >
-                  ⚔️ 디저트 타워 무한 자율 탐험 출발 (앱 꺼도 진행)
+                  ⚔️ {towerFloor}층 타워 탐험 출발 (자율 돌파)
                 </button>
               ) : null}
             </div>

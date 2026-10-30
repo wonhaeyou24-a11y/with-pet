@@ -1,7 +1,8 @@
 // M3 오감 자극 식감 ASMR 대전 엔진 (난수 시드 기반 100% 재현 가능한 턴제 리플레이 생성기)
 // 동일한 시드(seed)와 양측 스냅샷을 넣으면 언제나 똑같은 턴 기록과 식감 사운드 연출이 재생됩니다.
 
-import { DEFAULT_EQUIPPED_SKILLS, SKILL_NODES_T1, type BattleStanceId, type SkillNodeDef } from '../config/skills'
+import { getBoostedStats, getSkillLevels, getSkillPowerMult } from '../config/skillLevels'
+import { ALL_SKILL_NODES, type BattleStanceId, type SkillNodeDef } from '../config/skills'
 import { SPECIES_INFO } from '../config/species'
 import type { Element } from '../monsters/types'
 import type { MonsterRow } from './api'
@@ -75,8 +76,11 @@ export function simulateAsmrBattle(
 ): BattleSimulationResult {
   const rng = createSeededRng(seed)
 
-  const cMaxHp = Math.max(80, (challenger.stats.hp ?? 45) * 3 + challenger.level * 8)
-  const dMaxHp = Math.max(80, (defender.stats.hp ?? 45) * 3 + defender.level * 8)
+  const cBoosted = getBoostedStats(challenger)
+  const dBoosted = getBoostedStats(defender)
+
+  const cMaxHp = Math.max(80, (cBoosted.hp ?? 45) * 3 + challenger.level * 8)
+  const dMaxHp = Math.max(80, (dBoosted.hp ?? 45) * 3 + defender.level * 8)
 
   let cHp = cMaxHp
   let dHp = dMaxHp
@@ -85,17 +89,14 @@ export function simulateAsmrBattle(
   let cDefBuff = 0
   let dDefBuff = 0
 
-  const cEquippedIds = challenger.equipped_skills?.length ? challenger.equipped_skills : DEFAULT_EQUIPPED_SKILLS
-  const dEquippedIds = defender.equipped_skills?.length ? defender.equipped_skills : DEFAULT_EQUIPPED_SKILLS
+  const cLevels = getSkillLevels(challenger)
+  const dLevels = getSkillLevels(defender)
 
-  const cSkills = cEquippedIds
-    .map((id) => SKILL_NODES_T1.find((s) => s.id === id))
-    .filter((s): s is SkillNodeDef => Boolean(s) && s!.kind === 'active')
-  const dSkills = dEquippedIds
-    .map((id) => SKILL_NODES_T1.find((s) => s.id === id))
-    .filter((s): s is SkillNodeDef => Boolean(s) && s!.kind === 'active')
+  // 레벨 1 이상 배운 모든 액티브 스킬들이 대전에서 발동 풀에 참여
+  const cSkills = ALL_SKILL_NODES.filter((s) => s.kind === 'active' && (cLevels[s.id] ?? 0) >= 1)
+  const dSkills = ALL_SKILL_NODES.filter((s) => s.kind === 'active' && (dLevels[s.id] ?? 0) >= 1)
 
-  const fallbackSkill = SKILL_NODES_T1[0]
+  const fallbackSkill = ALL_SKILL_NODES[0]
   if (cSkills.length === 0) cSkills.push(fallbackSkill)
   if (dSkills.length === 0) dSkills.push(fallbackSkill)
 
@@ -137,6 +138,11 @@ export function simulateAsmrBattle(
       const stance = (atkMon.battle_stance as BattleStanceId) ?? 'balanced'
       const skill = pickSkill(isChallenger ? cSkills : dSkills, stance, hpRatio)
 
+      const atkStats = isChallenger ? cBoosted : dBoosted
+      const defStats = isChallenger ? dBoosted : cBoosted
+      const skillLv = (isChallenger ? cLevels[skill.id] : dLevels[skill.id]) ?? 1
+      const powerMult = getSkillPowerMult(skillLv)
+
       // 캐릭터 고유 식감 사운드와 스킬 사운드 결합
       const speciesSound = getSpeciesSoundKind(atkMon.species)
       const asmrSound: DessertSoundKind = skill.id === 'kataifi-strike' || skill.id === 'element-drizzle' ? speciesSound : skill.asmr
@@ -157,16 +163,16 @@ export function simulateAsmrBattle(
       let narrative = ''
 
       if (skill.kindTag === 'heal') {
-        heal = Math.round((isChallenger ? cMaxHp : dMaxHp) * 0.18)
+        heal = Math.round((isChallenger ? cMaxHp : dMaxHp) * (0.16 + (skillLv - 1) * 0.03))
         if (isChallenger) cHp = Math.min(cMaxHp, cHp + heal)
         else dHp = Math.min(dMaxHp, dHp + heal)
         actionType = 'heal'
         motion = 'bounce'
         targetReaction = 'none'
-        bannerText = '💖 달콤 체력 회복!'
-        narrative = `💖 [${atkName}]의 [${skill.name}]! 달콤한 교감으로 체력을 +${heal} 회복했어요!`
+        bannerText = skillLv > 1 ? `💖 달콤 체력 회복 (Lv.${skillLv})!` : '💖 달콤 체력 회복!'
+        narrative = `💖 [${atkName}]의 [${skill.name}](Lv.${skillLv})! 달콤한 교감으로 체력을 +${heal} 회복했어요!`
       } else if (skill.kindTag === 'shield') {
-        shield = Math.round((isChallenger ? cMaxHp : dMaxHp) * 0.16)
+        shield = Math.round((isChallenger ? cMaxHp : dMaxHp) * (0.15 + (skillLv - 1) * 0.025))
         if (isChallenger) {
           cShield += shield
           cDefBuff = 2
@@ -177,17 +183,17 @@ export function simulateAsmrBattle(
         actionType = 'block'
         motion = 'shield'
         targetReaction = 'none'
-        bannerText = '💎 슈가코팅 쉴드!'
+        bannerText = skillLv > 1 ? `💎 슈가코팅 쉴드 (Lv.${skillLv})!` : '💎 슈가코팅 쉴드!'
         if (skill.power > 0) {
-          damage = Math.max(8, Math.round(skill.power * 0.7))
+          damage = Math.max(8, Math.round(skill.power * powerMult * 0.7))
           if (isChallenger) dHp = Math.max(0, dHp - damage)
           else cHp = Math.max(0, cHp - damage)
         }
-        narrative = `💎 [${atkName}]의 [${skill.name}]! 빠작거리는 설탕 보호막(+${shield})을 둘렀어요!`
+        narrative = `💎 [${atkName}]의 [${skill.name}](Lv.${skillLv})! 빠작거리는 설탕 보호막(+${shield})을 둘렀어요!`
       } else {
         // 상대방 속도와 방어력에 따른 다이내믹 액션 판정
-        const defSpd = defMon.stats.spd ?? 25
-        const atkSpd = atkMon.stats.spd ?? 25
+        const defSpd = defStats.spd ?? 25
+        const atkSpd = atkStats.spd ?? 25
         const dodgeProb = Math.min(0.22, Math.max(0.08, (defSpd - atkSpd) * 0.008 + 0.12))
         const guardProb = 0.16
 
@@ -204,9 +210,9 @@ export function simulateAsmrBattle(
         } else if (rollAction < dodgeProb + guardProb) {
           // 🛡️ 2. 슈가 가드 블록 발동!
           isBlock = true
-          let basePower = skill.power || 35
-          const atkStat = (atkMon.stats.atk ?? 28) + (atkMon.stats.int ?? 28) * 0.35
-          const defStat = (defMon.stats.def ?? 28) * 1.5
+          let basePower = Math.round((skill.power || 35) * powerMult)
+          const atkStat = (atkStats.atk ?? 28) + (atkStats.int ?? 28) * 0.35
+          const defStat = (defStats.def ?? 28) * 1.5
           damage = Math.max(5, Math.round(((basePower * (atkStat / Math.max(15, defStat))) * 0.4 + 4) * (0.85 + rng() * 0.2)))
           
           if (isChallenger) dHp = Math.max(0, dHp - damage)
@@ -219,17 +225,17 @@ export function simulateAsmrBattle(
           narrative = `🛡️ [${defName}]의 단단한 슈가 가드! 공격을 막아 피해를 ${damage}로 줄였어요!`
         } else {
           // 💥 3. 일반 타격 또는 치명타
-          let basePower = skill.power || 40
+          let basePower = Math.round((skill.power || 40) * powerMult)
           if (skill.id === 'cookie-flurry') {
             hitCount = 2 + Math.floor(rng() * 3) // 2~4회
-            basePower = skill.power * hitCount
+            basePower = Math.round(skill.power * powerMult * hitCount)
           } else if (skill.kindTag === 'dice') {
             diceValue = 1 + Math.floor(rng() * 6)
-            basePower = 22 * diceValue
+            basePower = Math.round(22 * powerMult * diceValue)
           }
 
-          const atkStat = (atkMon.stats.atk ?? 28) + (atkMon.stats.int ?? 28) * 0.35
-          const defStat = (defMon.stats.def ?? 28) * (1 + ((isChallenger ? dDefBuff : cDefBuff) > 0 ? 0.35 : 0))
+          const atkStat = (atkStats.atk ?? 28) + (atkStats.int ?? 28) * 0.35
+          const defStat = (defStats.def ?? 28) * (1 + ((isChallenger ? dDefBuff : cDefBuff) > 0 ? 0.35 : 0))
           const elMult = elementMultiplier(atkMon.element, defMon.element)
           isAdvantage = elMult > 1.05
           isCrit = rng() < 0.2
@@ -268,7 +274,7 @@ export function simulateAsmrBattle(
                 : isAdvantage
                   ? ' (속성 상성 우위!)'
                   : ''
-          narrative = `${skill.icon} [${atkName}]의 [${skill.name}]!${extraTag} [${defName}]에게 ${damage} 피해!`
+          narrative = `${skill.icon} [${atkName}]의 [${skill.name}](Lv.${skillLv})!${extraTag} [${defName}]에게 ${damage} 피해!`
         }
       }
 

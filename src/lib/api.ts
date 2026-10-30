@@ -36,6 +36,7 @@ export interface MonsterRow {
   care_counts?: Record<string, number>
   unlocked_skills?: string[]
   equipped_skills?: string[]
+  skill_levels?: Record<string, number>
   battle_stance?: 'aggressive' | 'balanced' | 'defensive' | 'trickster'
   bio?: string
   likes_count?: number

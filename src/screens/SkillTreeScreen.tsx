@@ -1,22 +1,30 @@
-// M3 화면 1: 🌈 방사형(Radial) 줌인·축소 식감 스킬 트리 & 전투 성향 장착소
-// 중앙의 내 디저트 몬스터 코어에서 6개 식감 가지(맹공·철벽·교감·요술·깜짝·원소)가 360도 방사형으로 뻗어 나가며,
-// 핀치 줌 / 휠 줌 / 확대·축소 버튼과 드래그 패닝으로 탐색하고 한 화면(무스크롤)에서 해금·장착합니다.
+// M3 화면 1: 🌈 방사형(Radial) 식감 스킬 트리 & 전 스킬 영구 누적 강화 시스템
+// - 장착 방식이 아닌, 스킬 레벨(Lv.1 ~ Lv.Max)을 올리면 즉시 펫의 능력치와 대전 액티브에 영구 누적 적용됩니다.
+// - 여러 스킬을 골고루 올릴수록 펫이 다채롭게 강화되며, 방사형 캔버스를 시원하게 확장하여 펫의 공간을 극대화했습니다.
 
 import { useMemo, useRef, useState, type PointerEvent, type WheelEvent } from 'react'
 import {
+  BRANCH_STAT_LABEL,
+  computeSkillStatBonus,
+  getSkillLevels,
+  getSkillLockReason,
+  getSkillMaxLevel,
+  getSkillPowerMult,
+  getSkillUpgradeCost,
+} from '../config/skillLevels'
+import {
   ALL_SKILL_NODES,
   BATTLE_STANCES,
-  DEFAULT_EQUIPPED_SKILLS,
-  DEFAULT_UNLOCKED_SKILLS,
   SKILL_BRANCHES,
   type BattleStanceId,
   type SkillBranchId,
   type SkillNodeDef,
 } from '../config/skills'
 import { SPECIES_INFO } from '../config/species'
-import { type MonsterRow } from '../lib/api'
+import { monsterLook, type MonsterRow } from '../lib/api'
 import { playDessertAsmr } from '../lib/sound'
 import { supabase } from '../lib/supabase'
+import MonsterView from '../monsters/MonsterView'
 import { BackIcon } from '../ui/Icons'
 
 interface Props {
@@ -41,15 +49,15 @@ const CANVAS_SIZE = 960
 const CENTER = CANVAS_SIZE / 2
 
 export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Props) {
-  const [unlocked, setUnlocked] = useState<string[]>(() => monster.unlocked_skills ?? DEFAULT_UNLOCKED_SKILLS)
-  const [equipped, setEquipped] = useState<string[]>(() => monster.equipped_skills ?? DEFAULT_EQUIPPED_SKILLS)
+  const [skillLevels, setSkillLevels] = useState<Record<string, number>>(() => getSkillLevels(monster))
   const [stance, setStance] = useState<BattleStanceId>(() => monster.battle_stance ?? 'balanced')
   const [sp, setSp] = useState<number>(() => Math.max(monster.sp ?? 3, 3))
   const [selectedId, setSelectedId] = useState<string>(ALL_SKILL_NODES[0].id)
   const [toast, setToast] = useState<string | null>(null)
+  const [showBonusModal, setShowBonusModal] = useState<boolean>(false)
 
   // 방사형 캔버스 줌(확대/축소) & 패닝(이동) 상태
-  const [zoom, setZoom] = useState<number>(0.75)
+  const [zoom, setZoom] = useState<number>(0.82)
   const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
   const dragRef = useRef<{
     active: boolean
@@ -64,33 +72,41 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
   const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map())
   const pinchDistRef = useRef<number | null>(null)
 
-  const speciesInfo = SPECIES_INFO[monster.species]
+  const look = monsterLook(monster)
+  const activeSpecies = look.mallang?.morphForm ?? monster.species
+  const speciesInfo = SPECIES_INFO[activeSpecies] ?? SPECIES_INFO[monster.species]
 
-  // 6개 가지를 60도 간격(360도 방사형)으로 배치하고, 각 가지의 노드들을 1단계(내부링) -> 2단계(중간링) -> 3단계(외부링)로 연결
+  // 누적 적용 스탯 보너스 계산
+  const currentBonus = useMemo(() => computeSkillStatBonus(skillLevels), [skillLevels])
+  const activeLearnedCount = useMemo(
+    () => ALL_SKILL_NODES.filter((s) => (skillLevels[s.id] ?? 0) > 0).length,
+    [skillLevels],
+  )
+
+  // 6개 가지 360도 방사형 노드 좌표 계산
   const radialNodes = useMemo<PositionedNode[]>(() => {
     const list: PositionedNode[] = []
     const nodeCoordMap = new Map<string, { x: number; y: number }>()
 
     SKILL_BRANCHES.forEach((b, bIdx) => {
-      const baseAngleDeg = bIdx * 60 - 90 // 위쪽(-90도)부터 시계방향 6방향
+      const baseAngleDeg = bIdx * 60 - 90
       const baseAngleRad = (baseAngleDeg * Math.PI) / 180
       const branchSkills = ALL_SKILL_NODES.filter((s) => s.branch === b.id)
 
-      const coreX = CENTER + Math.cos(baseAngleRad) * 58
-      const coreY = CENTER + Math.sin(baseAngleRad) * 58
+      const coreX = CENTER + Math.cos(baseAngleRad) * 62
+      const coreY = CENTER + Math.sin(baseAngleRad) * 62
 
       branchSkills.forEach((node, sIdx) => {
-        // 티어별 거리: T1(130~195) -> T2(285) -> T3(385)
-        let radius = 135
+        let radius = 145
         let angleOffsetDeg = 0
         if (node.tier === 1) {
-          radius = 125 + sIdx * 55
-          angleOffsetDeg = sIdx === 0 ? 0 : sIdx % 2 === 1 ? -12 : 12
+          radius = 135 + sIdx * 58
+          angleOffsetDeg = sIdx === 0 ? 0 : sIdx % 2 === 1 ? -13 : 13
         } else if (node.tier === 2) {
-          radius = 285
+          radius = 295
           angleOffsetDeg = 0
         } else if (node.tier === 3) {
-          radius = 385
+          radius = 395
           angleOffsetDeg = 0
         }
 
@@ -100,7 +116,6 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
 
         nodeCoordMap.set(node.id, { x, y })
 
-        // 선행 스킬이 있으면 선행 스킬 위치에서 선 연결, 없으면 코어 또는 이전 노드 연결
         let parentX = coreX
         let parentY = coreY
         if (node.requires && node.requires.length > 0) {
@@ -135,40 +150,37 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
     [radialNodes, selectedId],
   )
 
-  function showToast(msg: string) {
+  function showToastMsg(msg: string) {
     setToast(msg)
-    setTimeout(() => setToast(null), 2400)
+    setTimeout(() => setToast(null), 2500)
   }
 
-  async function persistChanges(nextUnlocked: string[], nextEquipped: string[], nextStance: BattleStanceId, nextSp: number) {
+  async function persistChanges(nextLevels: Record<string, number>, nextSp: number, nextStance: BattleStanceId) {
     const updated: MonsterRow = {
       ...monster,
-      unlocked_skills: nextUnlocked,
-      equipped_skills: nextEquipped,
-      battle_stance: nextStance,
+      skill_levels: nextLevels,
       sp: nextSp,
+      battle_stance: nextStance,
     }
     onUpdateMonster(updated)
     try {
       await supabase
         .from('monsters')
         .update({
-          unlocked_skills: nextUnlocked,
-          equipped_skills: nextEquipped,
-          battle_stance: nextStance,
+          skill_levels: nextLevels,
           sp: nextSp,
+          battle_stance: nextStance,
         })
         .eq('id', monster.id)
     } catch {
-      // 오프라인/로컬 폴백 시 상위 상태에 안전 반영됨
+      // 로컬/오프라인 세이프가드
     }
   }
 
-  // 특정 노드를 선택하면 해당 노드가 화면 중앙에 오도록 부드럽게 패닝 + ASMR 사운드 재생
   function focusNode(p: PositionedNode) {
     setSelectedId(p.node.id)
     playDessertAsmr(p.node.asmr)
-    const targetZoom = Math.max(zoom, 0.95)
+    const targetZoom = Math.max(zoom, 1.0)
     setZoom(targetZoom)
     setPan({
       x: (CENTER - p.x) * targetZoom * 0.65,
@@ -181,70 +193,52 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
     if (first) focusNode(first)
   }
 
-  function handleUnlock(node: SkillNodeDef) {
-    if (unlocked.includes(node.id)) return
-    const curLevel = monster.level ?? 1
-    if (node.tier === 2 && curLevel < 8) {
-      showToast('🔒 Tier 2 스킬은 Lv.8 (2단계 진화) 이상부터 배울 수 있어요!')
+  // 스킬 레벨업 처리 (장착이 아닌 즉시 영구 누적 적용)
+  function handleUpgradeSkill(node: SkillNodeDef) {
+    const curLv = skillLevels[node.id] ?? 0
+    const maxLv = getSkillMaxLevel(node)
+    if (curLv >= maxLv) {
+      showToastMsg(`👑 [${node.name}]은(는) 이미 최고 레벨(MAX)입니다!`)
       return
     }
-    if (node.tier === 3 && curLevel < 15) {
-      showToast('👑 궁극기 스킬은 Lv.15 (3단계 로얄 진화) 이상부터 배울 수 있어요!')
+
+    const lockReason = getSkillLockReason(node, skillLevels, monster.level ?? 1)
+    if (lockReason) {
+      showToastMsg(`🔒 ${lockReason}`)
       return
     }
-    if (node.requires && node.requires.some((reqId) => !unlocked.includes(reqId))) {
-      showToast('🔒 선행 식감 스킬을 먼저 습득해야 배울 수 있어요!')
+
+    const cost = getSkillUpgradeCost(node, curLv)
+    if (sp < cost) {
+      showToastMsg(`⭐ SP가 부족해요! (필요: ${cost} SP) 파티세리 훈련으로 SP를 획득하세요.`)
       return
     }
-    if (sp < node.spCost) {
-      showToast('SP가 부족해요! 훈련이나 레벨업으로 SP를 모아 보세요.')
-      return
-    }
+
+    const nextLv = curLv + 1
+    const nextLevels = { ...skillLevels, [node.id]: nextLv }
+    const nextSp = sp - cost
+
     playDessertAsmr(node.asmr, 2)
-    const nextUnlocked = [...unlocked, node.id]
-    const nextSp = sp - node.spCost
-    const nextEquipped =
-      node.kind === 'active' && equipped.length < 4 && !equipped.includes(node.id)
-        ? [...equipped, node.id]
-        : equipped
-    setUnlocked(nextUnlocked)
+    setSkillLevels(nextLevels)
     setSp(nextSp)
-    setEquipped(nextEquipped)
-    void persistChanges(nextUnlocked, nextEquipped, stance, nextSp)
-    showToast(`✨ [${node.name}] 식감 스킬 해금 완료!`)
+    void persistChanges(nextLevels, nextSp, stance)
+
+    const statLabel = BRANCH_STAT_LABEL[node.branch]
+    showToastMsg(
+      curLv === 0
+        ? `✨ [${node.name}] 스킬 습득 완료! (${statLabel} 영구 강화 적용)`
+        : `🔥 [${node.name}] Lv.${nextLv} 레벨업! (${statLabel} 및 위력 대폭 강화)`,
+    )
   }
 
-  function handleToggleEquip(node: SkillNodeDef) {
-    if (!unlocked.includes(node.id) || node.kind !== 'active') return
-    playDessertAsmr(node.asmr, 1)
-    let nextEquipped: string[]
-    if (equipped.includes(node.id)) {
-      if (equipped.length <= 1) {
-        showToast('최소 1개의 액티브 스킬은 장착해야 해요!')
-        return
-      }
-      nextEquipped = equipped.filter((id) => id !== node.id)
-      showToast(`[${node.name}] 장착 해제`)
-    } else {
-      if (equipped.length >= 4) {
-        nextEquipped = [...equipped.slice(1), node.id]
-        showToast(`⚔️ [${node.name}] 스킬을 슬롯에 교체 장착했어요!`)
-      } else {
-        nextEquipped = [...equipped, node.id]
-        showToast(`⚔️ [${node.name}] 스킬 장착 완료!`)
-      }
-    }
-    setEquipped(nextEquipped)
-    void persistChanges(unlocked, nextEquipped, stance, sp)
-  }
-
+  // 전투 성향 순환
   function handleCycleStance() {
     const idx = BATTLE_STANCES.findIndex((s) => s.id === stance)
     const next = BATTLE_STANCES[(idx + 1) % BATTLE_STANCES.length]
     playDessertAsmr('syrup-drizzle')
     setStance(next.id)
-    void persistChanges(unlocked, equipped, next.id, sp)
-    showToast(`${next.icon} 전투 성향: ${next.name}`)
+    void persistChanges(skillLevels, sp, next.id)
+    showToastMsg(`${next.icon} 대전 성향: ${next.name}`)
   }
 
   // 포인터 드래그 & 핀치 줌 핸들러
@@ -274,13 +268,12 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
       pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
     }
 
-    // 두 손가락 핀치 줌 처리
     if (pointersRef.current.size === 2) {
       const pts = Array.from(pointersRef.current.values())
       const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y)
       if (pinchDistRef.current && pinchDistRef.current > 10) {
         const ratio = dist / pinchDistRef.current
-        setZoom((z) => Math.max(0.52, Math.min(1.85, Number((z * ratio).toFixed(2)))))
+        setZoom((z) => Math.max(0.55, Math.min(1.85, Number((z * ratio).toFixed(2)))))
       }
       pinchDistRef.current = dist
       return
@@ -308,13 +301,16 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
 
   function handleWheel(e: WheelEvent<HTMLDivElement>) {
     const delta = e.deltaY < 0 ? 0.12 : -0.12
-    setZoom((z) => Math.max(0.52, Math.min(1.85, Number((z + delta).toFixed(2)))))
+    setZoom((z) => Math.max(0.55, Math.min(1.85, Number((z + delta).toFixed(2)))))
   }
 
-  const currentStanceObj = BATTLE_STANCES.find((s) => s.id === stance) ?? BATTLE_STANCES[0]
   const selNode = selectedPositioned.node
-  const isSelUnlocked = unlocked.includes(selNode.id)
-  const isSelEquipped = equipped.includes(selNode.id)
+  const selLevel = skillLevels[selNode.id] ?? 0
+  const selMaxLevel = getSkillMaxLevel(selNode)
+  const isMaxLevel = selLevel >= selMaxLevel
+  const upgradeCost = getSkillUpgradeCost(selNode, selLevel)
+  const lockReason = getSkillLockReason(selNode, skillLevels, monster.level ?? 1)
+  const currentStanceObj = BATTLE_STANCES.find((s) => s.id === stance) ?? BATTLE_STANCES[0]
 
   return (
     <main
@@ -326,87 +322,123 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
         padding: '10px 12px calc(10px + env(safe-area-inset-bottom, 0px))',
         gap: 6,
         justifyContent: 'space-between',
+        position: 'relative',
+        background: '#130C1E',
       }}
     >
-      {/* 1. 상단 헤더 바 */}
-      <div className="row between" style={{ flexShrink: 0 }}>
-        <button className="btn-round" onClick={onBack} aria-label="뒤로">
-          <BackIcon />
-        </button>
-        <h1 className="title">🌈 방사형 식감 스킬 트리</h1>
-        <button
-          className="chip honey"
-          onClick={() => {
-            playDessertAsmr('syrup-drizzle')
-            setSp((s) => s + 1)
-            showToast('🎁 연구 보너스로 SP +1을 획득했어요!')
-          }}
-          style={{ cursor: 'pointer', fontWeight: 900 }}
-          title="누르면 테스트용 SP +1 충전"
-        >
-          ⭐ SP {sp} (+충전)
-        </button>
-      </div>
-
-      {/* 2. 장착 슬롯 4칸 & 전투 성향 원터치 바 */}
-      <div
-        className="card tight"
-        style={{
-          flexShrink: 0,
-          display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 8,
-          padding: '8px 12px',
-        }}
-      >
-        <div className="row" style={{ gap: 6, flex: 1, minWidth: 0 }}>
-          <span style={{ fontSize: 12, fontWeight: 800, color: '#7A6A60', whiteSpace: 'nowrap' }}>장착({equipped.length}/4)</span>
-          <div className="row" style={{ gap: 4 }}>
-            {[0, 1, 2, 3].map((slotIdx) => {
-              const skId = equipped[slotIdx]
-              const sk = ALL_SKILL_NODES.find((s) => s.id === skId)
-              return (
-                <button
-                  key={slotIdx}
-                  onClick={() => {
-                    if (sk) {
-                      const pos = radialNodes.find((r) => r.node.id === sk.id)
-                      if (pos) focusNode(pos)
-                    }
-                  }}
-                  style={{
-                    width: 34,
-                    height: 34,
-                    borderRadius: 10,
-                    border: sk ? '2px solid #FF8A65' : '1.5px dashed #D7C49E',
-                    background: sk ? '#FFF5EE' : '#FFFDF9',
-                    display: 'grid',
-                    placeItems: 'center',
-                    fontSize: 16,
-                    cursor: sk ? 'pointer' : 'default',
-                    padding: 0,
-                  }}
-                  title={sk ? sk.name : '빈 슬롯'}
-                >
-                  {sk ? sk.icon : '·'}
-                </button>
-              )
-            })}
+      {/* 1. 상단 미니멀 헤더 바 (임팩트 있는 아이콘 & 공간 절약) */}
+      <div className="row between" style={{ flexShrink: 0, zIndex: 30, alignItems: 'center' }}>
+        <div className="row" style={{ gap: 6, alignItems: 'center' }}>
+          <button className="btn-round" onClick={onBack} aria-label="뒤로" style={{ background: '#25173B', color: '#FFF' }}>
+            <BackIcon />
+          </button>
+          <div>
+            <h1 className="title" style={{ fontSize: 16, color: '#FFF', margin: 0 }}>
+              🌈 식감 스킬트리
+            </h1>
+            <div style={{ fontSize: 10, color: '#CE93D8' }}>
+              배운 스킬 {activeLearnedCount}개 펫에 영구 강화 중 ✨
+            </div>
           </div>
         </div>
 
-        <button
-          className="chip coral"
-          onClick={handleCycleStance}
-          style={{ cursor: 'pointer', fontWeight: 800, flexShrink: 0 }}
-        >
-          {currentStanceObj.icon} {currentStanceObj.name.split(' ')[0]} ↻
-        </button>
+        <div className="row" style={{ gap: 6 }}>
+          {/* 누적 보너스 요약 팝업 버튼 */}
+          <button
+            onClick={() => setShowBonusModal(true)}
+            style={{
+              padding: '4px 8px',
+              borderRadius: 10,
+              border: '1px solid #AB47BC',
+              background: '#311B92',
+              color: '#F3E5F5',
+              fontSize: 11,
+              fontWeight: 800,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 3,
+            }}
+          >
+            📊 능력치 보너스
+          </button>
+
+          {/* SP 표시 & 테스트 보너스 충전 */}
+          <button
+            className="chip honey"
+            onClick={() => {
+              playDessertAsmr('syrup-drizzle')
+              setSp((s) => s + 1)
+              showToastMsg('🎁 연구 보너스로 SP +1을 획득했어요!')
+            }}
+            style={{ cursor: 'pointer', fontWeight: 900, fontSize: 11, padding: '4px 8px' }}
+            title="누르면 SP +1 충전"
+          >
+            ⭐ {sp} SP
+          </button>
+        </div>
       </div>
 
-      {/* 3. 360도 방사형 줌인/축소 인터랙티브 스킬 맵 (남은 화면 영역 꽉 채움) */}
+      {/* 2. 대전 성향 슬림 칩 & 6대 계열 미니 원터치 탭 (공간 낭비 없이 1줄로 통합) */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 6,
+          background: 'rgba(37, 23, 59, 0.85)',
+          padding: '4px 8px',
+          borderRadius: 12,
+          border: '1px solid rgba(255,255,255,0.1)',
+          flexShrink: 0,
+          zIndex: 25,
+        }}
+      >
+        <button
+          onClick={handleCycleStance}
+          style={{
+            padding: '2px 8px',
+            borderRadius: 8,
+            border: 'none',
+            background: 'linear-gradient(90deg, #EC4899, #8B5CF6)',
+            color: '#FFFFFF',
+            fontSize: 11,
+            fontWeight: 800,
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+          }}
+          title="클릭하여 대전 성향 변경"
+        >
+          {currentStanceObj.icon} {currentStanceObj.name.split(' ')[0]}
+        </button>
+
+        {/* 6대 계열 미니 도트 바로가기 버튼 */}
+        <div style={{ display: 'flex', gap: 4 }}>
+          {SKILL_BRANCHES.map((b) => (
+            <button
+              key={b.id}
+              onClick={() => focusBranch(b.id)}
+              style={{
+                width: 26,
+                height: 26,
+                padding: 0,
+                borderRadius: '50%',
+                border: `1.5px solid ${b.color}`,
+                background: 'rgba(25, 18, 36, 0.9)',
+                fontSize: 12,
+                cursor: 'pointer',
+                display: 'grid',
+                placeItems: 'center',
+              }}
+              title={b.name}
+            >
+              {b.icon}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 3. 360도 방사형 스킬트리 캔버스 (화면 전체 확장 & 시원한 펫 코어) */}
       <div
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -414,85 +446,43 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
         onPointerCancel={handlePointerUp}
         onWheel={handleWheel}
         style={{
+          position: 'relative',
           flex: 1,
           minHeight: 0,
-          position: 'relative',
-          borderRadius: 24,
-          border: '2px solid #E8D5B5',
-          background:
-            'radial-gradient(circle at 50% 50%, #2D223B 0%, #1E1729 58%, #140F1D 100%)',
-          boxShadow: 'inset 0 4px 24px rgba(0,0,0,0.45)',
+          borderRadius: 20,
           overflow: 'hidden',
+          background: 'radial-gradient(circle at 50% 50%, #201335 0%, #0D0716 100%)',
+          border: '1.5px solid rgba(255, 255, 255, 0.1)',
           touchAction: 'none',
-          userSelect: 'none',
-          cursor: 'grab',
+          cursor: dragRef.current.active ? 'grabbing' : 'grab',
         }}
       >
-        {/* 상단 6개 가지 빠른 줌 이동 칩 바 */}
+        {/* 우측 하단 줌 컨트롤러 */}
         <div
           onPointerDown={(e) => e.stopPropagation()}
           style={{
             position: 'absolute',
-            top: 8,
-            left: 8,
             right: 8,
-            zIndex: 15,
-            display: 'grid',
-            gridTemplateColumns: 'repeat(6, minmax(0, 1fr))',
-            gap: 4,
-          }}
-        >
-          {SKILL_BRANCHES.map((b) => (
-            <button
-              key={b.id}
-              onClick={() => focusBranch(b.id)}
-              style={{
-                padding: '5px 2px',
-                borderRadius: 999,
-                border: `1.5px solid ${b.color}`,
-                background: 'rgba(25, 18, 36, 0.82)',
-                color: '#FFFDF9',
-                fontSize: 12,
-                fontWeight: 800,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
-              {b.icon} {b.name.slice(0, 2)}
-            </button>
-          ))}
-        </div>
-
-        {/* 우측 하단 줌인/축소/초기화 플로팅 컨트롤러 */}
-        <div
-          onPointerDown={(e) => e.stopPropagation()}
-          style={{
-            position: 'absolute',
-            right: 10,
-            bottom: 10,
+            bottom: 8,
             zIndex: 15,
             display: 'flex',
             flexDirection: 'column',
-            gap: 6,
+            gap: 4,
           }}
         >
           <button
-            onClick={() => setZoom((z) => Math.min(1.85, Number((z + 0.22).toFixed(2))))}
+            onClick={() => setZoom((z) => Math.min(1.85, Number((z + 0.2).toFixed(2))))}
             style={{
-              width: 44,
-              height: 36,
-              padding: 0,
-              borderRadius: 12,
-              border: '1.5px solid rgba(255,255,255,0.28)',
-              background: 'rgba(35, 26, 48, 0.88)',
-              color: '#FFFFFF',
-              fontSize: 18,
+              width: 34,
+              height: 30,
+              borderRadius: 8,
+              border: '1px solid rgba(255,255,255,0.25)',
+              background: 'rgba(35, 26, 48, 0.9)',
+              color: '#FFF',
+              fontSize: 16,
               fontWeight: 900,
               cursor: 'pointer',
             }}
-            aria-label="확대"
           >
             ＋
           </button>
@@ -502,61 +492,38 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
               setPan({ x: 0, y: 0 })
             }}
             style={{
-              width: 44,
-              height: 30,
-              padding: 0,
-              borderRadius: 10,
-              border: '1.5px solid rgba(255,255,255,0.28)',
-              background: 'rgba(35, 26, 48, 0.88)',
+              width: 34,
+              height: 24,
+              borderRadius: 6,
+              border: '1px solid rgba(255,255,255,0.25)',
+              background: 'rgba(35, 26, 48, 0.9)',
               color: '#FFE082',
-              fontSize: 12,
+              fontSize: 10,
               fontWeight: 800,
-              whiteSpace: 'nowrap',
               cursor: 'pointer',
             }}
           >
             {Math.round(zoom * 100)}%
           </button>
           <button
-            onClick={() => setZoom((z) => Math.max(0.52, Number((z - 0.22).toFixed(2))))}
+            onClick={() => setZoom((z) => Math.max(0.55, Number((z - 0.2).toFixed(2))))}
             style={{
-              width: 44,
-              height: 36,
-              padding: 0,
-              borderRadius: 12,
-              border: '1.5px solid rgba(255,255,255,0.28)',
-              background: 'rgba(35, 26, 48, 0.88)',
-              color: '#FFFFFF',
-              fontSize: 18,
+              width: 34,
+              height: 30,
+              borderRadius: 8,
+              border: '1px solid rgba(255,255,255,0.25)',
+              background: 'rgba(35, 26, 48, 0.9)',
+              color: '#FFF',
+              fontSize: 16,
               fontWeight: 900,
               cursor: 'pointer',
             }}
-            aria-label="축소"
           >
             －
           </button>
         </div>
 
-        {/* 좌측 하단 안내 배지 */}
-        <div
-          style={{
-            position: 'absolute',
-            left: 10,
-            bottom: 10,
-            zIndex: 12,
-            padding: '4px 10px',
-            borderRadius: 999,
-            background: 'rgba(20, 15, 29, 0.72)',
-            color: '#E2D6F3',
-            fontSize: 12,
-            fontWeight: 700,
-            pointerEvents: 'none',
-          }}
-        >
-          👆 드래그 이동 · 🤏 확대/축소 · 노드 터치
-        </div>
-
-        {/* 실제 확대/축소 및 패닝이 적용되는 960x960 방사형 월드 */}
+        {/* 960x960 방사형 월드 컨테이너 */}
         <div
           style={{
             position: 'absolute',
@@ -571,15 +538,14 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
             transition: dragRef.current.active ? 'none' : 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
-          {/* 방사형 동심원 가이드 & 연결선 SVG */}
+          {/* 가이드 동심원 및 연결선 */}
           <svg
             width={CANVAS_SIZE}
             height={CANVAS_SIZE}
             viewBox={`0 0 ${CANVAS_SIZE} ${CANVAS_SIZE}`}
             style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
           >
-            {/* 동심원 궤도 3개 */}
-            {[148, 246, 344, 435].map((r, i) => (
+            {[145, 245, 345, 440].map((r, i) => (
               <circle
                 key={i}
                 cx={CENTER}
@@ -592,11 +558,10 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
               />
             ))}
 
-            {/* 6방위 섹터 광선 */}
             {SKILL_BRANCHES.map((b, idx) => {
               const rad = ((idx * 60 - 90) * Math.PI) / 180
-              const x2 = CENTER + Math.cos(rad) * 445
-              const y2 = CENTER + Math.sin(rad) * 445
+              const x2 = CENTER + Math.cos(rad) * 450
+              const y2 = CENTER + Math.sin(rad) * 450
               return (
                 <line
                   key={b.id}
@@ -605,15 +570,15 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
                   x2={x2}
                   y2={y2}
                   stroke={b.color}
-                  strokeOpacity={0.22}
+                  strokeOpacity={0.25}
                   strokeWidth={2}
                 />
               )
             })}
 
-            {/* 부모-자식 스킬 노드 연결선 */}
             {radialNodes.map((p) => {
-              const isUnlocked = unlocked.includes(p.node.id)
+              const lv = skillLevels[p.node.id] ?? 0
+              const isLearned = lv > 0
               return (
                 <line
                   key={`edge-${p.node.id}`}
@@ -621,16 +586,16 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
                   y1={p.parentY}
                   x2={p.x}
                   y2={p.y}
-                  stroke={isUnlocked ? p.color : 'rgba(255,255,255,0.22)'}
-                  strokeWidth={isUnlocked ? 5 : 2.5}
-                  strokeDasharray={isUnlocked ? undefined : '6 5'}
+                  stroke={isLearned ? p.color : 'rgba(255,255,255,0.2)'}
+                  strokeWidth={isLearned ? 4.5 : 2}
+                  strokeDasharray={isLearned ? undefined : '5 4'}
                   strokeLinecap="round"
                 />
               )
             })}
           </svg>
 
-          {/* 중앙 코어 허브: 내 디저트 몬스터 */}
+          {/* 중앙 코어 허브: 내 디저트 몬스터 (공간 대폭 확장) */}
           <div
             onClick={() => {
               setPan({ x: 0, y: 0 })
@@ -639,36 +604,39 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
             }}
             style={{
               position: 'absolute',
-              left: CENTER - 58,
-              top: CENTER - 58,
-              width: 116,
-              height: 116,
+              left: CENTER - 62,
+              top: CENTER - 62,
+              width: 124,
+              height: 124,
               borderRadius: '50%',
               background: 'radial-gradient(circle, #FFF8EA 0%, #FFE0B2 100%)',
               border: '4px solid #FFB74D',
-              boxShadow: '0 0 28px rgba(255, 183, 77, 0.55)',
+              boxShadow: '0 0 32px rgba(255, 183, 77, 0.65)',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
               textAlign: 'center',
               cursor: 'pointer',
-              padding: 6,
+              zIndex: 10,
+              padding: 4,
             }}
           >
-            <span style={{ fontSize: 24 }}>🍰</span>
-            <strong style={{ fontSize: 13, color: '#3B2F2F', lineHeight: 1.15 }}>
+            <MonsterView look={look} size={70} prefer2D={true} title={monster.name ?? undefined} />
+            <strong style={{ fontSize: 12, color: '#3E2723', marginTop: 1, whiteSpace: 'nowrap' }}>
               {monster.name ?? speciesInfo?.name ?? '디저트'}
             </strong>
-            <span style={{ fontSize: 12, fontWeight: 800, color: '#D85A3A' }}>
-              해금 {unlocked.length}/{ALL_SKILL_NODES.length}
+            <span style={{ fontSize: 10, fontWeight: 900, color: '#D85A3A' }}>
+              ✨ {activeLearnedCount}개 스킬 누적
             </span>
           </div>
 
           {/* 방사형 스킬 노드들 */}
           {radialNodes.map((p) => {
-            const isUnlocked = unlocked.includes(p.node.id)
-            const isEquipped = equipped.includes(p.node.id)
+            const lv = skillLevels[p.node.id] ?? 0
+            const maxLv = getSkillMaxLevel(p.node)
+            const isLearned = lv > 0
+            const isMax = lv >= maxLv
             const isSelected = selectedId === p.node.id
 
             return (
@@ -681,76 +649,77 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
                 }}
                 style={{
                   position: 'absolute',
-                  left: p.x - 36,
-                  top: p.y - 36,
-                  width: 72,
-                  height: 72,
+                  left: p.x - 34,
+                  top: p.y - 34,
+                  width: 68,
+                  height: 68,
                   borderRadius: '50%',
                   border: isSelected
-                    ? '3.5px solid #FFFFFF'
-                    : isEquipped
-                      ? '3px solid #FF8A65'
-                      : isUnlocked
-                        ? `3px solid ${p.color}`
-                        : '2px dashed rgba(255,255,255,0.38)',
-                  background: isUnlocked
+                    ? '3px solid #FFFFFF'
+                    : isLearned
+                      ? `3px solid ${p.color}`
+                      : '2px dashed rgba(255,255,255,0.3)',
+                  background: isLearned
                     ? `radial-gradient(circle at 35% 30%, #FFFFFF 0%, ${p.color} 100%)`
                     : 'rgba(38, 30, 54, 0.92)',
-                  color: isUnlocked ? '#231815' : '#D1C4E9',
+                  color: isLearned ? '#231815' : '#D1C4E9',
                   boxShadow: isSelected
-                    ? `0 0 0 5px ${p.color}, 0 8px 20px rgba(0,0,0,0.45)`
-                    : isUnlocked
-                      ? `0 0 16px ${p.color}88`
+                    ? `0 0 0 4px ${p.color}, 0 8px 20px rgba(0,0,0,0.5)`
+                    : isLearned
+                      ? `0 0 14px ${p.color}88`
                       : '0 4px 10px rgba(0,0,0,0.35)',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  padding: 4,
+                  padding: 2,
                   cursor: 'pointer',
-                  transform: isSelected ? 'scale(1.16)' : 'scale(1)',
-                  transition: 'transform 0.16s ease, box-shadow 0.16s ease',
+                  transform: isSelected ? 'scale(1.15)' : 'scale(1)',
+                  transition: 'transform 0.16s ease',
+                  zIndex: isSelected ? 12 : 5,
                 }}
               >
                 <span style={{ fontSize: 22, lineHeight: 1 }}>{p.node.icon}</span>
                 <span
                   style={{
-                    fontSize: 12,
+                    fontSize: 10,
                     fontWeight: 900,
-                    marginTop: 2,
-                    maxWidth: 62,
+                    marginTop: 1,
+                    maxWidth: 60,
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
-                    color: isUnlocked ? '#231815' : '#EDE7F6',
+                    color: isLearned ? '#231815' : '#EDE7F6',
                   }}
                 >
                   {p.node.name.split(' ')[0]}
                 </span>
-                {isEquipped && (
-                  <span
-                    style={{
-                      position: 'absolute',
-                      top: -6,
-                      right: -4,
-                      padding: '1px 5px',
-                      borderRadius: 999,
-                      background: '#FF5252',
-                      color: '#FFFFFF',
-                      fontSize: 12,
-                      fontWeight: 900,
-                    }}
-                  >
-                    장착
-                  </span>
-                )}
+
+                {/* 스킬 레벨 뱃지 (Lv.X 또는 MAX) */}
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: -6,
+                    right: -4,
+                    padding: '1px 5px',
+                    borderRadius: 999,
+                    background: isMax ? '#FFD700' : isLearned ? '#10B981' : '#6B7280',
+                    color: isMax ? '#3E2723' : '#FFFFFF',
+                    fontSize: 9,
+                    fontWeight: 900,
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                    border: '1px solid rgba(255,255,255,0.8)',
+                  }}
+                >
+                  {isMax ? 'MAX' : isLearned ? `Lv.${lv}` : '🔒'}
+                </span>
               </button>
             )
           })}
         </div>
       </div>
 
-      {/* 4. 하단 고정 선택 노드 상세 & 해금/장착 액션 바 (글씨 잘림/칸 깨짐 완전 방지 3단 구조) */}
+      {/* 4. 하단 선택 스킬 간소화 플로팅 카드 (장착 슬롯 제거 -> 즉시 레벨업 적용) */}
       <div
         className="card tight"
         style={{
@@ -759,143 +728,211 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
           border: `2px solid ${selectedPositioned.color}`,
           padding: '8px 12px',
           gap: 5,
+          zIndex: 30,
+          boxShadow: '0 -4px 16px rgba(0,0,0,0.25)',
         }}
       >
-        {/* 1단: 아이콘 + 스킬 이름 + 티어/가지 뱃지 */}
-        <div className="row between" style={{ alignItems: 'center', gap: 6 }}>
-          <div className="row" style={{ alignItems: 'center', gap: 6, minWidth: 0, flex: 1 }}>
+        <div className="row between" style={{ alignItems: 'center', gap: 8 }}>
+          <div className="row" style={{ gap: 8, minWidth: 0, flex: 1, alignItems: 'center' }}>
             <span
               style={{
-                width: 32,
-                height: 32,
-                borderRadius: 10,
-                background: `${selectedPositioned.color}22`,
-                border: `1.5px solid ${selectedPositioned.color}`,
+                width: 38,
+                height: 38,
+                borderRadius: 12,
+                background: selectedPositioned.color,
                 display: 'grid',
                 placeItems: 'center',
-                fontSize: 18,
+                fontSize: 20,
+                color: '#FFF',
                 flexShrink: 0,
+                boxShadow: `0 3px 8px ${selectedPositioned.color}66`,
               }}
             >
               {selNode.icon}
             </span>
-            <strong
-              style={{
-                fontSize: 14,
-                color: '#3B2F2F',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
-              {selNode.name}
-            </strong>
+
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div className="row" style={{ gap: 4, alignItems: 'center' }}>
+                <strong style={{ fontSize: 13, color: '#3E2723', whiteSpace: 'nowrap' }}>
+                  {selNode.name}
+                </strong>
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 900,
+                    padding: '1px 5px',
+                    borderRadius: 6,
+                    background: isMaxLevel ? '#FFD700' : selLevel > 0 ? '#DCFCE7' : '#F3F4F6',
+                    color: isMaxLevel ? '#3E2723' : selLevel > 0 ? '#15803D' : '#6B7280',
+                  }}
+                >
+                  {isMaxLevel ? 'Lv.MAX' : selLevel > 0 ? `Lv.${selLevel}/${selMaxLevel}` : '미습득'}
+                </span>
+              </div>
+              <div style={{ fontSize: 10, color: '#795548', marginTop: 1 }}>
+                계열: <strong>{selectedPositioned.branchName}</strong> (+{BRANCH_STAT_LABEL[selNode.branch]} 영구 강화)
+              </div>
+            </div>
           </div>
 
-          <div className="row" style={{ gap: 4, flexShrink: 0 }}>
-            <span
-              className="chip"
-              style={{
-                fontSize: 10,
-                padding: '2px 6px',
-                whiteSpace: 'nowrap',
-                flexShrink: 0,
-              }}
-            >
-              {selectedPositioned.branchName}
-            </span>
+          {/* 레벨업 원터치 버튼 */}
+          {isMaxLevel ? (
             <span
               style={{
-                fontSize: 10,
+                padding: '8px 12px',
+                borderRadius: 12,
+                background: 'linear-gradient(90deg, #F59E0B, #D97706)',
+                color: '#FFF',
                 fontWeight: 900,
-                padding: '2px 6px',
-                borderRadius: 6,
-                background:
-                  selNode.tier === 3 ? '#FFD700' : selNode.tier === 2 ? '#BA68C8' : '#81C784',
-                color: selNode.tier === 3 ? '#3E2723' : '#FFFFFF',
-                whiteSpace: 'nowrap',
-                flexShrink: 0,
+                fontSize: 12,
+                boxShadow: '0 2px 6px rgba(245,158,11,0.3)',
               }}
             >
-              {selNode.tier === 3 ? '👑 궁극기' : selNode.tier === 2 ? '⚡ Tier 2' : 'Tier 1'}
+              👑 최고 레벨
             </span>
-          </div>
-        </div>
-
-        {/* 2단: 온오마토페이아 & 소리듣기 버튼 */}
-        <div className="row between" style={{ alignItems: 'center', gap: 6 }}>
-          <div
-            style={{
-              fontSize: 11,
-              color: '#D85A3A',
-              fontWeight: 700,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              flex: 1,
-            }}
-          >
-            🔊 {selNode.onomatopoeia}
-          </div>
-          <button
-            className="chip"
-            onClick={() => playDessertAsmr(selNode.asmr)}
-            style={{
-              cursor: 'pointer',
-              flexShrink: 0,
-              fontWeight: 800,
-              fontSize: 11,
-              padding: '2px 7px',
-              background: '#FFF2EC',
-              color: '#D85A3A',
-            }}
-          >
-            🎧 소리듣기
-          </button>
-        </div>
-
-        {/* 3단: 스킬 상세 효과 & 해금/장착 버튼 */}
-        <div className="row between" style={{ alignItems: 'center', gap: 8, marginTop: 2 }}>
-          <p
-            style={{
-              fontSize: 12,
-              color: '#5D4037',
-              fontWeight: 600,
-              margin: 0,
-              flex: 1,
-              lineHeight: 1.35,
-              wordBreak: 'keep-all',
-            }}
-          >
-            {selNode.effectText}
-          </p>
-
-          {!isSelUnlocked ? (
+          ) : (
             <button
               className="btn"
-              onClick={() => handleUnlock(selNode)}
-              style={{ padding: '7px 12px', fontSize: 12, flexShrink: 0, whiteSpace: 'nowrap' }}
+              onClick={() => handleUpgradeSkill(selNode)}
+              style={{
+                padding: '8px 12px',
+                fontSize: 12,
+                fontWeight: 900,
+                background: lockReason ? '#9E9E9E' : 'linear-gradient(90deg, #10B981, #059669)',
+                boxShadow: lockReason ? 'none' : '0 3px 8px rgba(16,185,129,0.3)',
+                whiteSpace: 'nowrap',
+              }}
             >
-              🔓 SP {selNode.spCost} 해금
+              {selLevel === 0 ? `✨ 습득 (⭐ ${upgradeCost})` : `🔥 Lv.${selLevel + 1} 강화 (⭐ ${upgradeCost})`}
             </button>
-          ) : selNode.kind === 'active' ? (
-            <button
-              className={isSelEquipped ? 'btn' : 'btn mint'}
-              onClick={() => handleToggleEquip(selNode)}
-              style={{ padding: '7px 12px', fontSize: 12, flexShrink: 0, whiteSpace: 'nowrap' }}
-            >
-              {isSelEquipped ? '장착 해제' : '⚔️ 슬롯 장착'}
-            </button>
-          ) : (
-            <span
-              className="chip mint"
-              style={{ fontWeight: 900, flexShrink: 0, fontSize: 11, padding: '4px 8px' }}
-            >
-              ✨ 패시브 적용중
-            </span>
           )}
         </div>
+
+        {/* 효과 설명 한 줄 (콤팩트) */}
+        <div className="row between" style={{ alignItems: 'center', gap: 6, fontSize: 11, color: '#5D4037', marginTop: 1 }}>
+          <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {selNode.effectText}
+            {selLevel > 1 && ` (현재 위력 ×${getSkillPowerMult(selLevel).toFixed(2)})`}
+          </span>
+          <button
+            onClick={() => playDessertAsmr(selNode.asmr)}
+            style={{
+              padding: '1px 6px',
+              borderRadius: 6,
+              border: '1px solid #FFAB91',
+              background: '#FFF',
+              color: '#D84315',
+              fontSize: 10,
+              fontWeight: 800,
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+          >
+            🔊 사운드
+          </button>
+        </div>
       </div>
+
+      {/* 5. 펫에 적용된 영구 스킬 능력치 보너스 모달 */}
+      {showBonusModal && (
+        <div
+          onClick={() => setShowBonusModal(false)}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 60,
+            background: 'rgba(0,0,0,0.7)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+            animation: 'fadeIn 0.2s ease',
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%',
+              maxWidth: 320,
+              background: '#FFFDF9',
+              borderRadius: 20,
+              border: '2px solid #BA68C8',
+              padding: '16px 14px',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+              boxShadow: '0 12px 32px rgba(0,0,0,0.4)',
+            }}
+          >
+            <h3 style={{ fontSize: 16, fontWeight: 900, color: '#4A148C', margin: 0 }}>
+              📊 스킬 레벨 펫 영구 적용치
+            </h3>
+            <div style={{ fontSize: 11, color: '#6A1B9A' }}>
+              스킬을 배울 때마다 펫에게 영구적으로 보너스 능력치가 합산됩니다!
+            </div>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: 6,
+                background: '#F3E5F5',
+                padding: '10px 8px',
+                borderRadius: 14,
+                marginTop: 4,
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 10, color: '#6A1B9A' }}>체력(HP)</div>
+                <strong style={{ fontSize: 13, color: '#D81B60' }}>+{currentBonus.hp}</strong>
+              </div>
+              <div>
+                <div style={{ fontSize: 10, color: '#6A1B9A' }}>공격(ATK)</div>
+                <strong style={{ fontSize: 13, color: '#E65100' }}>+{currentBonus.atk}</strong>
+              </div>
+              <div>
+                <div style={{ fontSize: 10, color: '#6A1B9A' }}>방어(DEF)</div>
+                <strong style={{ fontSize: 13, color: '#F57F17' }}>+{currentBonus.def}</strong>
+              </div>
+              <div>
+                <div style={{ fontSize: 10, color: '#6A1B9A' }}>속도(SPD)</div>
+                <strong style={{ fontSize: 13, color: '#2E7D32' }}>+{currentBonus.spd}</strong>
+              </div>
+              <div>
+                <div style={{ fontSize: 10, color: '#6A1B9A' }}>지능(INT)</div>
+                <strong style={{ fontSize: 13, color: '#1565C0' }}>+{currentBonus.int}</strong>
+              </div>
+              <div>
+                <div style={{ fontSize: 10, color: '#6A1B9A' }}>매력(CHA)</div>
+                <strong style={{ fontSize: 13, color: '#8E24AA' }}>+{currentBonus.cha}</strong>
+              </div>
+            </div>
+
+            <div style={{ fontSize: 11, color: '#795548', lineHeight: 1.35, marginTop: 4 }}>
+              💡 다양한 스킬의 레벨을 골고루 올릴수록 펫이 모든 능력치에서 강력해집니다.
+            </div>
+
+            <button
+              onClick={() => setShowBonusModal(false)}
+              style={{
+                padding: '9px',
+                borderRadius: 12,
+                border: 'none',
+                background: 'linear-gradient(90deg, #9C27B0, #7B1FA2)',
+                color: '#FFF',
+                fontSize: 12,
+                fontWeight: 900,
+                cursor: 'pointer',
+                marginTop: 4,
+              }}
+            >
+              확인 닫기
+            </button>
+          </div>
+        </div>
+      )}
 
       {toast && <div className="toast">{toast}</div>}
     </main>
