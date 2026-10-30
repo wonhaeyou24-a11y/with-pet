@@ -25,7 +25,6 @@ const KINDS = [
   ['biscuit-armor', '강철등비스킷'],
   ['starlight-ting', '별비늘별사탕'],
   ['syrup-drizzle', '시럽토핑'],
-  ['wax-pop', '왁뿌볼'],
 ]
 
 function seeded(seed) {

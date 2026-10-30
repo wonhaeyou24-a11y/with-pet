@@ -514,22 +514,34 @@ export function synthesizeWaxTapVariant(o: WaxTapOpts, sampleRate: number, rand:
 }
 
 const RECIPES: Record<SynthKind, { total: number; finish: FinishOpts; build: Recipe }> = {
-  // 🫧 왁뿌볼: 단단한 왁스 껍질이 와지끈 부서지며(실제 녹음 분석: 5~10ms 간격 밝은 클릭이 앞쪽에 몰렸다 듬성듬성) → 속의 말랑한 점액이 쭈욱 새는 촉촉한 소리
+  // 🫧 왁뿌볼: 단단한 왁스 껍질을 꾹 눌러 → 끽 → "아-그-작" 세 번에 나눠 깨지고 → 부스러기 → 속의 말랑한 점액이 쭈욱
   'wax-pop': {
-    total: 1.15,
-    finish: { reverb: 0.05, level: 0.95, highCut: 14000 },
+    total: 1.05,
+    finish: { reverb: 0.2, level: 1 },
     build: (m) => {
-      tick(m, 0, jit(m, 5200), 0.9, 1, -0.1)
-      crackCluster(m, 0.002, { n: 64, spanMs: 640, skew: 2.3, fLo: jit(m, 2800), fHi: jit(m, 9500), dLo: 0.5, dHi: 2.4, amp: 0.95, ampDecay: 1.15, noiseMix: 0.55, panSpread: 0.55 })
-      scatter(m, 0.004, { count: 22, spanMs: 520, p: 1.6, fLo: 7500, fHi: 12500, dMs: 0.6, amp: 0.28 })
-      // 껍질이 뭉개지는 둔탁한 눌림
-      smack(m, 0.01, { f: 420, q: 1.1, decayMs: 26, amp: 0.55, glide: 0.8, color: 'pink' })
-      // 속의 말랑한 점액: 걸쭉하게 흘러나오며 쩝쩝 달라붙는다
-      swell(m, 0.26, 0.5, { type: 'bp', f0: 320, f1: 1000, q: 1.3, attackMs: 70, releaseMs: 200, amp: 0.2, color: 'pink', amRate: 8, amDepth: 0.55 })
-      smack(m, 0.34, { f: 620, q: 1.5, decayMs: 22, amp: 0.4, glide: 1.7, pan: -0.2 })
-      smack(m, 0.5, { f: 520, q: 1.5, decayMs: 24, amp: 0.36, glide: 1.8, pan: 0.2 })
-      smack(m, 0.7, { f: 760, q: 1.6, decayMs: 20, amp: 0.34, glide: 2.0 })
-      smack(m, 0.92, { f: 900, q: 1.7, decayMs: 14, amp: 0.4, glide: 2.2 })
+      // 껍질이 눌리며 삐걱이는 긴장감
+      swell(m, 0, 0.15, { type: 'bp', f0: 240, f1: jit(m, 780), q: 7, attackMs: 18, releaseMs: 55, amp: 0.1, amRate: 26, amDepth: 0.55, color: 'pink', pan: -0.15 })
+      tick(m, 0.085, 2300, 1.1, 0.2, -0.3)
+      tick(m, 0.118, 2900, 1.0, 0.26, 0.25)
+      // 첫 번째 아그작: 두꺼운 껍질이 쩍 갈라지는 큰 소리 + 묵직한 '턱'
+      crackCluster(m, 0.15, { n: 52, spanMs: 40, fLo: 1300, fHi: 5400, dLo: 1.2, dHi: 6.5, amp: 0.95, ampDecay: 2.2, noiseMix: 0.4, panSpread: 0.5 })
+      crackCluster(m, 0.152, { n: 16, spanMs: 36, fLo: 520, fHi: 1500, dLo: 4, dHi: 10, amp: 0.7, ampDecay: 1.8, noiseMix: 0.5, panSpread: 0.3 })
+      thump(m, 0.15, 200, 95, 48, 0.6)
+      // 두 번째, 세 번째 조각이 연달아 아-그-작
+      crackCluster(m, 0.222, { n: 38, spanMs: 32, fLo: 1800, fHi: 6400, dLo: 1.0, dHi: 5, amp: 0.78, ampDecay: 2, panSpread: 0.6, pan: -0.2 })
+      thump(m, 0.222, 240, 120, 30, 0.3, -0.2)
+      crackCluster(m, 0.293, { n: 28, spanMs: 28, fLo: 2200, fHi: 7200, dLo: 0.8, dHi: 4, amp: 0.62, ampDecay: 2, panSpread: 0.6, pan: 0.25 })
+      crackCluster(m, 0.345, { n: 20, spanMs: 24, fLo: 1500, fHi: 5200, dLo: 1.2, dHi: 5, amp: 0.46, ampDecay: 2, panSpread: 0.5 })
+      // 부서진 껍질 부스러기가 후두둑
+      scatter(m, 0.3, { count: 18, spanMs: 260, p: 1.6, fLo: 2800, fHi: 7600, dMs: 1.0, amp: 0.26 })
+      // 속의 말랑한 점액이 눌리며 새어 나옴
+      swell(m, 0.27, 0.36, { type: 'bp', f0: 300, f1: jit(m, 840), q: 5, attackMs: 45, releaseMs: 170, amp: 0.22, amRate: 11, amDepth: 0.45, color: 'pink' })
+      const bubbles = [0.31, 0.375, 0.43, 0.49, 0.545, 0.6]
+      bubbles.forEach((t, i) => bubble(m, t + m.rand() * 0.012, 380 + m.rand() * 600, 1.1 + m.rand() * 0.7, 22 + m.rand() * 26, 0.2 + m.rand() * 0.18, (i % 2 ? 1 : -1) * 0.4))
+      // 끈적하게 떨어지는 마지막 "쩍"
+      tick(m, 0.66, 1700, 9, 0.42, 0.1)
+      bubble(m, 0.665, 300, 2.2, 32, 0.34, 0.1)
+      thump(m, 0.66, 130, 72, 55, 0.3)
     },
   },
 
