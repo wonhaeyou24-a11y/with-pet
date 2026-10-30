@@ -10,6 +10,8 @@ import { SPECIES_INFO } from '../config/species'
 import { monsterLook, type MonsterRow } from '../lib/api'
 import { simulateAsmrBattle, type BattleSimulationResult } from '../lib/battleEngine'
 import { playDessertAsmr } from '../lib/sound'
+import BattleFighter, { type Pose } from '../ui/BattleFighter'
+import BattleFx from '../ui/BattleFx'
 import MonsterView from '../monsters/MonsterView'
 import { BackIcon, ElementIcon } from '../ui/Icons'
 import { getSensoryReactionClass, SensoryBurst } from '../ui/SensoryFx'
@@ -185,78 +187,67 @@ export default function AsmrBattleArena({
     setPlaying(true)
   }
 
-  // 양측 애니메이션 트랜스폼 계산 (도약 스매시, 고속 회전 돌진, 회피 점프, 가드, 젤리 찌그러짐)
-  const isChallengerActor = currentTurn?.actor === 'challenger'
-  const isDefenderActor = currentTurn?.actor === 'defender'
-  const isCrit = currentTurn?.isCrit
-  const isMultiHit = (currentTurn?.hitCount ?? 0) >= 2
+  // 양측 애니메이션 계산. 준비·돌진 중에는 stepIdx 가 아직 안 올라갔으므로 "이번에 행동할 턴"을 따로 본다
+  const actTurn = actionPhase === 'reaction' ? currentTurn : (sim.turns[stepIdx] ?? null)
+  const isChallengerActor = actTurn?.actor === 'challenger'
+  const isDefenderActor = actTurn?.actor === 'defender'
+  const isCrit = actTurn?.isCrit
+  const isMultiHit = (actTurn?.hitCount ?? 0) >= 2
+  const dir = isChallengerActor ? 1 : -1 // 공격자가 달려가는 방향
 
-  let cTransform = 'translateX(0) translateY(0) scale(1)'
-  let dTransform = 'translateX(0) translateY(0) scale(1)'
-
-  if (actionPhase === 'windup') {
-    if (isChallengerActor) cTransform = 'translateX(-16px) translateY(4px) scale(0.92) rotate(-6deg)'
-    if (isDefenderActor) dTransform = 'translateX(16px) translateY(4px) scale(0.92) rotate(6deg)'
-  } else if (actionPhase === 'strike') {
-    if (isChallengerActor) {
-      if (isCrit) {
-        // 🔥 도약 점프 스매시 강타!
-        cTransform = 'translateY(-34px) translateX(65px) scale(1.32) rotate(14deg)'
-      } else if (isMultiHit) {
-        // ⚡ 팽이 회전 연속 돌진!
-        cTransform = 'translateX(62px) scale(1.22) rotate(360deg)'
-      } else {
-        cTransform = 'translateX(58px) scale(1.18)'
-      }
+  const REST: Pose = { transform: 'translateX(0) translateY(0) scale(1)', ms: 420, ease: 'cubic-bezier(0.2, 1.6, 0.4, 1)' }
+  let cPose: Pose = REST
+  let dPose: Pose = REST
+  const DASH = 'cubic-bezier(0.1, 0.9, 0.2, 1)'
+  const attackerPose = (): Pose => {
+    if (actionPhase === 'windup') {
+      return { transform: `translateX(${-22 * dir}px) translateY(6px) scale(0.88, 0.94) rotate(${-8 * dir}deg)`, ms: 240, ease: 'ease-out' }
     }
-    if (isDefenderActor) {
-      if (isCrit) {
-        // 🔥 도약 점프 스매시 강타!
-        dTransform = 'translateY(-34px) translateX(-65px) scale(1.32) rotate(-14deg)'
-      } else if (isMultiHit) {
-        // ⚡ 팽이 회전 연속 돌진!
-        dTransform = 'translateX(-62px) scale(1.22) rotate(-360deg)'
-      } else {
-        dTransform = 'translateX(-58px) scale(1.18)'
-      }
+    if (isCrit) {
+      return { transform: `translateY(-38px) translateX(${76 * dir}px) scale(1.4) rotate(${16 * dir}deg)`, ms: 150, ease: DASH }
     }
+    if (isMultiHit) {
+      return { transform: `translateX(${70 * dir}px) scale(1.26) rotate(${360 * dir}deg)`, ms: 190, ease: DASH }
+    }
+    return { transform: `translateX(${66 * dir}px) scale(1.22, 1.1)`, ms: 130, ease: DASH }
+  }
+  const victimPose = (): Pose => {
+    if (actTurn?.isDodge) return { transform: `translateY(-44px) translateX(${-16 * dir}px) scale(1.12) rotate(${12 * dir}deg)`, ms: 200, ease: 'cubic-bezier(0.2, 0.9, 0.3, 1.2)' }
+    if (actTurn?.isBlock) return { transform: `translateX(${12 * dir}px) scale(0.86, 1.16)`, ms: 110, ease: 'ease-out' }
+    if (isCrit) return { transform: `translateX(${52 * dir}px) translateY(-14px) scale(1.34, 0.7) rotate(${26 * dir}deg)`, ms: 100, ease: DASH }
+    return { transform: `translateX(${34 * dir}px) scale(1.12, 0.86) rotate(${9 * dir}deg)`, ms: 100, ease: DASH }
+  }
+  if (actionPhase === 'windup' || actionPhase === 'strike') {
+    if (isChallengerActor) cPose = attackerPose()
+    if (isDefenderActor) dPose = attackerPose()
   } else if (actionPhase === 'reaction') {
+    // 맞은 쪽만 밀려나고, 공격자는 돌진한 자리에서 잠깐 버틴다
+    const holdPose: Pose = { transform: `translateX(${30 * dir}px) scale(1.1)`, ms: 160, ease: 'ease-out' }
     if (isChallengerActor) {
-      if (currentTurn?.isDodge) {
-        // 💨 뽀용 공중제비 회피
-        dTransform = 'translateY(-40px) scale(1.12) rotate(10deg)'
-      } else if (currentTurn?.isBlock) {
-        // 🛡️ 가드 압축
-        dTransform = 'translateX(14px) scale(0.88, 1.14)'
-      } else if (isCrit) {
-        // 💥 치명타 피격 젤리 납작 찌그러짐
-        dTransform = 'translateX(34px) translateY(-8px) scale(1.32, 0.72) rotate(22deg)'
-      } else {
-        dTransform = 'translateX(24px) scale(1.1, 0.88) rotate(8deg)'
-      }
+      cPose = holdPose
+      dPose = victimPose()
     }
     if (isDefenderActor) {
-      if (currentTurn?.isDodge) {
-        // 💨 뽀용 공중제비 회피
-        cTransform = 'translateY(-40px) scale(1.12) rotate(-10deg)'
-      } else if (currentTurn?.isBlock) {
-        // 🛡️ 가드 압축
-        cTransform = 'translateX(-14px) scale(0.88, 1.14)'
-      } else if (isCrit) {
-        // 💥 치명타 피격 젤리 납작 찌그러짐
-        cTransform = 'translateX(-34px) translateY(-8px) scale(1.32, 0.72) rotate(-22deg)'
-      } else {
-        cTransform = 'translateX(-24px) scale(1.1, 0.88) rotate(-8deg)'
-      }
+      dPose = holdPose
+      cPose = victimPose()
     }
   }
+  const isHitMoment =
+    actionPhase === 'reaction' && !!actTurn && !actTurn.isDodge && !actTurn.isBlock && (actTurn.damage ?? 0) > 0
+  const fxTint = (() => {
+    const cat = actTurn ? getSensoryReactionClass(actTurn.asmr ?? 'sugar-crack') : ''
+    if (cat === 'mon-react-crispy') return '#FFB300'
+    if (cat === 'mon-react-jiggly') return '#FFD54F'
+    if (cat === 'mon-react-melty') return '#A1887F'
+    return '#F48FB1'
+  })()
 
   const cHitReaction =
-    actionPhase === 'reaction' && isDefenderActor && !currentTurn?.isDodge && !currentTurn?.isBlock
+    isHitMoment && isDefenderActor
       ? getSensoryReactionClass(currentTurn?.asmr ?? 'sugar-crack')
       : ''
   const dHitReaction =
-    actionPhase === 'reaction' && isChallengerActor && !currentTurn?.isDodge && !currentTurn?.isBlock
+    isHitMoment && isChallengerActor
       ? getSensoryReactionClass(currentTurn?.asmr ?? 'sugar-crack')
       : ''
 
@@ -360,6 +351,16 @@ export default function AsmrBattleArena({
           80% { opacity: 0.75; }
           100% { opacity: 0; }
         }
+        @keyframes fxRing { 0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; } }
+        @keyframes fxBurst { 0% { transform: translate(-50%, -50%) scale(0.3) rotate(-20deg); opacity: 1; } 40% { transform: translate(-50%, -50%) scale(1.25) rotate(8deg); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1.5) rotate(0); opacity: 0; } }
+        @keyframes fxSlash { 0% { transform: rotate(var(--a)) translateX(10px); opacity: 1; } 100% { transform: rotate(var(--a)) translateX(var(--d)); opacity: 0; } }
+        @keyframes fxSpeed { 0% { transform: translateX(var(--from)); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateX(var(--to)); opacity: 0; } }
+        @keyframes fxDust { 0% { transform: translate(0, 0) scale(0.4); opacity: 0.9; } 100% { transform: translate(var(--dx), var(--dy)) scale(1.5); opacity: 0; } }
+        @keyframes fxFlash { 0% { opacity: 0.85; } 100% { opacity: 0; } }
+        @keyframes fxRays { 0% { opacity: 1; transform: scale(0.7); } 100% { opacity: 0; transform: scale(1.25); } }
+        @keyframes stageShake { 0%,100% { transform: translate(0,0); } 15% { transform: translate(-7px, 4px); } 30% { transform: translate(6px, -5px); } 45% { transform: translate(-5px, -3px); } 60% { transform: translate(4px, 3px); } 80% { transform: translate(-2px, 1px); } }
+        @keyframes stageShakeSoft { 0%,100% { transform: translate(0,0); } 25% { transform: translate(-3px, 2px); } 50% { transform: translate(3px, -2px); } 75% { transform: translate(-1px, 1px); } }
+        @media (prefers-reduced-motion: reduce) { .battle-stage { animation: none !important; } }
         @keyframes screenShake {
           0% { transform: translate(0, 0); }
           20% { transform: translate(-4px, 3px); }
@@ -467,8 +468,9 @@ export default function AsmrBattleArena({
 
       {/* 🎮 3D 캐릭터 실시간 전투 액션 대치 스테이지 (글 상자 없이 펫 공간 극대화) */}
       <div
-        className="card"
+        className="card battle-stage"
         style={{
+          animation: isHitMoment ? (isCrit ? 'stageShake 0.42s ease-out' : 'stageShakeSoft 0.26s ease-out') : undefined,
           background: 'radial-gradient(ellipse at 50% 60%, #FFF9EC 0%, #FFF3E0 60%, #FFE0B2 100%)',
           padding: '8px 10px',
           position: 'relative',
@@ -482,6 +484,18 @@ export default function AsmrBattleArena({
           borderRadius: 16,
         }}
       >
+        <BattleFx
+          stepKey={stepIdx}
+          phase={actionPhase}
+          actor={actTurn?.actor}
+          isCrit={!!isCrit}
+          isDodge={!!actTurn?.isDodge}
+          isBlock={!!actTurn?.isBlock}
+          damage={actTurn?.damage ?? 0}
+          multiHit={isMultiHit}
+          tint={fxTint}
+        />
+
         {/* 🔥 필살기 / 치명타 극적 컷인 배너 연출 (대각선 번쩍임 & 슬로우 모션) */}
         {cutin && (
           <div
@@ -643,30 +657,16 @@ export default function AsmrBattleArena({
             )}
 
             {/* 3D 몬스터 뷰 & 물리 모션 트랜스폼 */}
-            <div
-              key={`c-${stepIdx}`}
-              className={cHitReaction}
-              style={{
-                position: 'relative',
-                transform: cTransform,
-                transition: 'transform 0.28s cubic-bezier(0.18, 0.89, 0.32, 1.28)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-              }}
-            >
-              <MonsterView look={cLook} size={120} title={challenger.name ?? cInfo?.name} />
-              {/* 발밑 타원형 접시 섀도우 */}
-              <div
-                style={{
-                  width: 86,
-                  height: 18,
-                  borderRadius: '50%',
-                  background: 'radial-gradient(ellipse, rgba(62,39,35,0.35) 0%, rgba(62,39,35,0.1) 60%, transparent 80%)',
-                  marginTop: -10,
-                }}
-              />
-            </div>
+            <BattleFighter
+              look={cLook}
+              size={120}
+              title={challenger.name ?? cInfo?.name}
+              pose={cPose}
+              hitClass={cHitReaction || undefined}
+              hitKey={stepIdx}
+              flash={isHitMoment && isDefenderActor}
+              trail={actionPhase === 'strike' && isChallengerActor}
+            />
           </div>
 
           {/* [오른쪽] 지인 디저트 몬스터 */}
@@ -754,30 +754,16 @@ export default function AsmrBattleArena({
             )}
 
             {/* 3D 몬스터 뷰 & 물리 모션 트랜스폼 */}
-            <div
-              key={`d-${stepIdx}`}
-              className={dHitReaction}
-              style={{
-                position: 'relative',
-                transform: dTransform,
-                transition: 'transform 0.28s cubic-bezier(0.18, 0.89, 0.32, 1.28)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-              }}
-            >
-              <MonsterView look={dLook} size={120} title={defender.name ?? dInfo?.name} />
-              {/* 발밑 타원형 접시 섀도우 */}
-              <div
-                style={{
-                  width: 86,
-                  height: 18,
-                  borderRadius: '50%',
-                  background: 'radial-gradient(ellipse, rgba(62,39,35,0.35) 0%, rgba(62,39,35,0.1) 60%, transparent 80%)',
-                  marginTop: -10,
-                }}
-              />
-            </div>
+            <BattleFighter
+              look={dLook}
+              size={120}
+              title={defender.name ?? dInfo?.name}
+              pose={dPose}
+              hitClass={dHitReaction || undefined}
+              hitKey={stepIdx}
+              flash={isHitMoment && isChallengerActor}
+              trail={actionPhase === 'strike' && isDefenderActor}
+            />
           </div>
         </div>
 
