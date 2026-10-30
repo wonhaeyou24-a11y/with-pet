@@ -40,10 +40,34 @@ export default function AsmrBattleArena({
   const [cheerCount, setCheerCount] = useState<number>(0)
   const [cheerToast, setCheerToast] = useState<string | null>(null)
   const [actionPhase, setActionPhase] = useState<'idle' | 'windup' | 'strike' | 'reaction'>('idle')
+  // 🔥 필살기 컷인 배너 상태 (슬로우 모션 & 극적 연출)
+  const [cutin, setCutin] = useState<{
+    actor: 'challenger' | 'defender'
+    title: string
+    name: string
+    icon: string
+    quote: string
+  } | null>(null)
+
+  // 🎬 대전 명장면 리플레이 짤 모달 탭 상태
+  const [showHighlightModal, setShowHighlightModal] = useState<boolean>(false)
+  const [copiedClipToast, setCopiedClipToast] = useState<boolean>(false)
 
   const sim = useMemo(() => simulateAsmrBattle(challenger, defender, seed), [challenger, defender, seed])
   const currentTurn = stepIdx > 0 ? sim.turns[stepIdx - 1] : null
   const isFinished = stepIdx >= sim.turns.length
+
+  // 대전 중 가장 극적이었던 하이라이트 턴 산출 (최대 대미지 또는 치명타 씬)
+  const bestHighlight = useMemo(() => {
+    if (!sim.turns || sim.turns.length === 0) return null
+    let maxDmgTurn = sim.turns[0]
+    for (const t of sim.turns) {
+      if (t.damage > maxDmgTurn.damage || (t.isCrit && !maxDmgTurn.isCrit)) {
+        maxDmgTurn = t
+      }
+    }
+    return maxDmgTurn
+  }, [sim.turns])
 
   const cLook = monsterLook(challenger)
   const dLook = monsterLook(defender)
@@ -59,24 +83,45 @@ export default function AsmrBattleArena({
   useEffect(() => {
     if (!playing || isFinished) return
 
-    const turnInterval = 1200
+    const nextTurn = sim.turns[stepIdx]
+    const isSpecialTurn = nextTurn && (nextTurn.isCrit || nextTurn.damage >= 24)
+    const turnInterval = isSpecialTurn ? 1650 : 1200 // 필살기일 때 슬로우 모션 연출
 
-    // 1단계: 턴 개시 및 돌진 모션
+    // 0단계: 필살기/치명타 컷인 배너 트리거 (스페셜 턴인 경우)
+    let tCutin: any = null
+    if (isSpecialTurn) {
+      const isChallenger = nextTurn.actor === 'challenger'
+      const actorName = isChallenger ? challenger.name || cInfo?.name || '두바이쫀득이' : defender.name || dInfo?.name || '카다이프킹'
+      setCutin({
+        actor: nextTurn.actor,
+        title: nextTurn.isCrit ? `🔥 [${actorName} 필살기 발동]` : `⚡ [${actorName} 극의 식감 스킬]`,
+        name: nextTurn.skillName || '골든 카다이프 버스트!!',
+        icon: nextTurn.skillIcon || '💥',
+        quote: isChallenger
+          ? `바사삭 부서지는 황금빛 크런치로 결정타를 날려요!`
+          : `상대 파티시에의 달콤한 식감 반격이 시작돼요!`,
+      })
+      tCutin = setTimeout(() => {
+        setCutin(null)
+      }, 750)
+    }
+
+    // 1단계: 턴 개시 및 도약/기 모으기 모션
     const t1 = setTimeout(() => {
       setActionPhase('windup')
-    }, 50)
+    }, isSpecialTurn ? 350 : 50)
 
-    // 2단계: 타격 & ASMR 사운드
+    // 2단계: 타격 & ASMR 사운드 폭발
     const t2 = setTimeout(() => {
       setActionPhase('strike')
       const nextStep = stepIdx + 1
       const turn = sim.turns[nextStep - 1]
       if (turn) {
-        playDessertAsmr(turn.asmr, turn.hitCount ?? (turn.isCrit ? 3 : 1))
+        playDessertAsmr(turn.asmr, turn.hitCount ?? (turn.isCrit ? 4 : 1))
       }
-    }, turnInterval * 0.4)
+    }, turnInterval * 0.42)
 
-    // 3단계: 피격 반응 & 스텝 인덱스 증가
+    // 3단계: 피격 찌그러짐 반응 & 체력 갱신
     const t3 = setTimeout(() => {
       setActionPhase('reaction')
       const nextStep = stepIdx + 1
@@ -97,6 +142,7 @@ export default function AsmrBattleArena({
     }, turnInterval)
 
     return () => {
+      if (tCutin) clearTimeout(tCutin)
       clearTimeout(t1)
       clearTimeout(t2)
       clearTimeout(t3)
@@ -129,33 +175,69 @@ export default function AsmrBattleArena({
     setPlaying(true)
   }
 
-  // 양측 애니메이션 트랜스폼 계산 (돌진, 도약, 회피 점프, 가드, 피격 반동)
+  // 양측 애니메이션 트랜스폼 계산 (도약 스매시, 고속 회전 돌진, 회피 점프, 가드, 젤리 찌그러짐)
   const isChallengerActor = currentTurn?.actor === 'challenger'
   const isDefenderActor = currentTurn?.actor === 'defender'
+  const isCrit = currentTurn?.isCrit
+  const isMultiHit = (currentTurn?.hitCount ?? 0) >= 2
 
   let cTransform = 'translateX(0) translateY(0) scale(1)'
   let dTransform = 'translateX(0) translateY(0) scale(1)'
 
   if (actionPhase === 'windup') {
-    if (isChallengerActor) cTransform = 'translateX(-8px) scale(0.96)'
-    if (isDefenderActor) dTransform = 'translateX(8px) scale(0.96)'
+    if (isChallengerActor) cTransform = 'translateX(-16px) translateY(4px) scale(0.92) rotate(-6deg)'
+    if (isDefenderActor) dTransform = 'translateX(16px) translateY(4px) scale(0.92) rotate(6deg)'
   } else if (actionPhase === 'strike') {
     if (isChallengerActor) {
-      cTransform = 'translateX(58px) scale(1.18)'
+      if (isCrit) {
+        // 🔥 도약 점프 스매시 강타!
+        cTransform = 'translateY(-34px) translateX(65px) scale(1.32) rotate(14deg)'
+      } else if (isMultiHit) {
+        // ⚡ 팽이 회전 연속 돌진!
+        cTransform = 'translateX(62px) scale(1.22) rotate(360deg)'
+      } else {
+        cTransform = 'translateX(58px) scale(1.18)'
+      }
     }
     if (isDefenderActor) {
-      dTransform = 'translateX(-58px) scale(1.18)'
+      if (isCrit) {
+        // 🔥 도약 점프 스매시 강타!
+        dTransform = 'translateY(-34px) translateX(-65px) scale(1.32) rotate(-14deg)'
+      } else if (isMultiHit) {
+        // ⚡ 팽이 회전 연속 돌진!
+        dTransform = 'translateX(-62px) scale(1.22) rotate(-360deg)'
+      } else {
+        dTransform = 'translateX(-58px) scale(1.18)'
+      }
     }
   } else if (actionPhase === 'reaction') {
     if (isChallengerActor) {
-      if (currentTurn?.isDodge) dTransform = 'translateY(-30px) scale(1.05)'
-      else if (currentTurn?.isBlock) dTransform = 'translateX(12px) scale(0.92)'
-      else dTransform = 'translateX(26px) rotate(8deg)'
+      if (currentTurn?.isDodge) {
+        // 💨 뽀용 공중제비 회피
+        dTransform = 'translateY(-40px) scale(1.12) rotate(10deg)'
+      } else if (currentTurn?.isBlock) {
+        // 🛡️ 가드 압축
+        dTransform = 'translateX(14px) scale(0.88, 1.14)'
+      } else if (isCrit) {
+        // 💥 치명타 피격 젤리 납작 찌그러짐
+        dTransform = 'translateX(34px) translateY(-8px) scale(1.32, 0.72) rotate(22deg)'
+      } else {
+        dTransform = 'translateX(24px) scale(1.1, 0.88) rotate(8deg)'
+      }
     }
     if (isDefenderActor) {
-      if (currentTurn?.isDodge) cTransform = 'translateY(-30px) scale(1.05)'
-      else if (currentTurn?.isBlock) cTransform = 'translateX(-12px) scale(0.92)'
-      else cTransform = 'translateX(-26px) rotate(-8deg)'
+      if (currentTurn?.isDodge) {
+        // 💨 뽀용 공중제비 회피
+        cTransform = 'translateY(-40px) scale(1.12) rotate(-10deg)'
+      } else if (currentTurn?.isBlock) {
+        // 🛡️ 가드 압축
+        cTransform = 'translateX(-14px) scale(0.88, 1.14)'
+      } else if (isCrit) {
+        // 💥 치명타 피격 젤리 납작 찌그러짐
+        cTransform = 'translateX(-34px) translateY(-8px) scale(1.32, 0.72) rotate(-22deg)'
+      } else {
+        cTransform = 'translateX(-24px) scale(1.1, 0.88) rotate(-8deg)'
+      }
     }
   }
 
@@ -243,6 +325,38 @@ export default function AsmrBattleArena({
         @keyframes pulseGlow {
           0%, 100% { transform: scale(1); opacity: 0.85; }
           50% { transform: scale(1.08); opacity: 1; }
+        }
+        @keyframes cutinBanner {
+          0% {
+            opacity: 0;
+            transform: scale(0.85) skewX(-12deg) translateY(-20px);
+          }
+          20% {
+            opacity: 1;
+            transform: scale(1.04) skewX(-12deg) translateY(0);
+          }
+          80% {
+            opacity: 1;
+            transform: scale(1) skewX(-12deg) translateY(0);
+          }
+          100% {
+            opacity: 0;
+            transform: scale(1.08) skewX(-12deg) translateY(15px);
+          }
+        }
+        @keyframes cutinVignette {
+          0% { opacity: 0; }
+          25% { opacity: 0.75; }
+          80% { opacity: 0.75; }
+          100% { opacity: 0; }
+        }
+        @keyframes screenShake {
+          0% { transform: translate(0, 0); }
+          20% { transform: translate(-4px, 3px); }
+          40% { transform: translate(4px, -3px); }
+          60% { transform: translate(-3px, -2px); }
+          80% { transform: translate(2px, 3px); }
+          100% { transform: translate(0, 0); }
         }
       `}</style>
 
@@ -358,6 +472,60 @@ export default function AsmrBattleArena({
           borderRadius: 16,
         }}
       >
+        {/* 🔥 필살기 / 치명타 극적 컷인 배너 연출 (대각선 번쩍임 & 슬로우 모션) */}
+        {cutin && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: 35,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              pointerEvents: 'none',
+            }}
+          >
+            {/* 배경 암전 비네트 */}
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.85) 100%)',
+                animation: 'cutinVignette 0.75s ease forwards',
+              }}
+            />
+            {/* 번쩍이는 대각선 슬라이드 배너 */}
+            <div
+              style={{
+                position: 'relative',
+                zIndex: 40,
+                width: '115%',
+                background:
+                  cutin.actor === 'challenger'
+                    ? 'linear-gradient(90deg, #D84315 0%, #FF6F00 50%, #FFB300 100%)'
+                    : 'linear-gradient(90deg, #6A1B9A 0%, #AD1457 50%, #E91E63 100%)',
+                padding: '10px 20px',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.6), inset 0 2px 0 rgba(255,255,255,0.4)',
+                textAlign: 'center',
+                animation: 'cutinBanner 0.75s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards',
+                borderTop: '2px solid #FFF',
+                borderBottom: '2px solid #FFF',
+              }}
+            >
+              <div style={{ fontSize: 11, fontWeight: 900, color: '#FFEB3B', letterSpacing: '1px', textShadow: '0 2px 4px #000' }}>
+                {cutin.title}
+              </div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: '#FFFFFF', textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>
+                {cutin.icon} {cutin.name}
+              </div>
+              <div style={{ fontSize: 10, fontWeight: 800, color: '#FFF8E1', marginTop: 2, textShadow: '0 1px 3px #000' }}>
+                "{cutin.quote}"
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 현재 턴 ASMR 파편 & 의성어 버스트 이펙트 */}
         {currentTurn && (
           <SensoryBurst
@@ -762,7 +930,34 @@ export default function AsmrBattleArena({
               </b>
             </div>
 
-            <div className="row wrap center" style={{ gap: 6, marginTop: 4 }}>
+            {/* 🎬 배틀 명장면 리플레이 짤 보기 & 공유 버튼 (임팩트 업그레이드) */}
+            <button
+              onClick={() => {
+                setShowHighlightModal(true)
+                playDessertAsmr('sugar-crack', 2)
+              }}
+              style={{
+                width: '100%',
+                padding: '9px 12px',
+                borderRadius: 14,
+                border: '2px solid #FF9800',
+                background: 'linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%)',
+                color: '#E65100',
+                fontWeight: 900,
+                fontSize: 12,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                boxShadow: '0 3px 8px rgba(255,152,0,0.25)',
+              }}
+            >
+              <span style={{ fontSize: 16 }}>🎬</span>
+              <span>배틀 명장면 리플레이 짤 보기 & 공유</span>
+            </button>
+
+            <div className="row wrap center" style={{ gap: 6, marginTop: 2 }}>
               <button
                 className="chip coral"
                 onClick={handleReplaySameSeed}
@@ -793,6 +988,171 @@ export default function AsmrBattleArena({
                 }}
               >
                 🚪 광장으로 돌아가기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🎬 배틀 명장면 리플레이 짤 & 공유 전용 모달 */}
+      {showHighlightModal && bestHighlight && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 60,
+            background: 'rgba(0,0,0,0.7)',
+            backdropFilter: 'blur(5px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+            animation: 'fadeIn 0.2s ease',
+          }}
+          onClick={() => setShowHighlightModal(false)}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: 320,
+              background: '#FFFDF9',
+              borderRadius: 22,
+              border: '2px solid #FFB74D',
+              boxShadow: '0 16px 40px rgba(0,0,0,0.4)',
+              padding: '16px',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="row between" style={{ alignItems: 'center' }}>
+              <span style={{ fontSize: 13, fontWeight: 900, color: '#E65100' }}>
+                🎬 배틀 명장면 리플레이 짤
+              </span>
+              <button
+                onClick={() => setShowHighlightModal(false)}
+                style={{ border: 'none', background: 'none', fontSize: 14, cursor: 'pointer', color: '#8D6E63', fontWeight: 900 }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* 움직이는 짤(GIF 애니메이션 프레임) 캔버스 카드 */}
+            <div
+              style={{
+                position: 'relative',
+                borderRadius: 16,
+                background: 'radial-gradient(ellipse at center, #FFF8E1 0%, #FFE082 100%)',
+                border: '1.5px solid #FFD54F',
+                padding: '14px 10px',
+                overflow: 'hidden',
+                boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.06)',
+              }}
+            >
+              {/* 상단 짤 배지 */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 8,
+                  left: 8,
+                  background: 'rgba(0,0,0,0.7)',
+                  color: '#FFEB3B',
+                  fontSize: 10,
+                  fontWeight: 900,
+                  padding: '2px 8px',
+                  borderRadius: 6,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
+              >
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#FF1744', display: 'inline-block' }} />
+                GIF 리플레이 짤
+              </div>
+
+              {/* 3D 펫들의 결정타 도약 액션 짤 애니메이션 */}
+              <div
+                style={{
+                  height: 140,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  position: 'relative',
+                }}
+              >
+                <div style={{ animation: 'bounce 0.8s infinite alternate ease-in-out' }}>
+                  <MonsterView look={cLook} size={90} title={challenger.name || cInfo?.name} />
+                </div>
+                <div style={{ fontSize: 24, animation: 'pulseGlow 0.5s infinite alternate' }}>💥</div>
+                <div style={{ animation: 'shake 0.8s infinite ease-in-out', opacity: 0.85 }}>
+                  <MonsterView look={dLook} size={75} title={defender.name || dInfo?.name} />
+                </div>
+              </div>
+
+              {/* 하단 짤 정보 오버레이 */}
+              <div
+                style={{
+                  background: 'rgba(255,255,255,0.92)',
+                  borderRadius: 12,
+                  padding: '6px 10px',
+                  border: '1px solid #FFE082',
+                }}
+              >
+                <div style={{ fontSize: 11, fontWeight: 900, color: '#D84315' }}>
+                  {bestHighlight.isCrit ? '🔥 [필살기 결정타] ' : '⚡ [최대 식감 타격] '}
+                  {bestHighlight.skillIcon} {bestHighlight.skillName}
+                </div>
+                <div style={{ fontSize: 10, color: '#5D4037', fontWeight: 800, marginTop: 1 }}>
+                  대미지 -{bestHighlight.damage} HP · ASMR {bestHighlight.onomatopoeia}
+                </div>
+              </div>
+            </div>
+
+            {/* 짤 공유 / 복사 버튼 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <button
+                onClick={() => {
+                  try {
+                    navigator.clipboard.writeText(
+                      `[파티세리 디저트 대전] #${seed} 시드에서 ${challenger.name || cInfo?.name}의 ${bestHighlight.skillName} 필살기 명장면! 대미지 -${bestHighlight.damage} 폭발!`
+                    )
+                    setCopiedClipToast(true)
+                    setTimeout(() => setCopiedClipToast(false), 2500)
+                  } catch {}
+                  playDessertAsmr('cookie-crisp')
+                }}
+                style={{
+                  padding: '9px 0',
+                  borderRadius: 12,
+                  border: 'none',
+                  background: 'linear-gradient(90deg, #FF7043, #FF5722)',
+                  color: '#FFFFFF',
+                  fontWeight: 900,
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  boxShadow: '0 3px 8px rgba(255,87,34,0.3)',
+                }}
+              >
+                {copiedClipToast ? '✅ 배틀 명장면 링크 복사 완료!' : '📸 배틀 명장면 짤 링크 복사 & 공유'}
+              </button>
+
+              <button
+                onClick={() => setShowHighlightModal(false)}
+                style={{
+                  padding: '8px 0',
+                  borderRadius: 10,
+                  border: '1px solid #CFD8DC',
+                  background: '#ECEFF1',
+                  color: '#455A64',
+                  fontWeight: 800,
+                  fontSize: 11,
+                  cursor: 'pointer',
+                }}
+              >
+                닫기
               </button>
             </div>
           </div>

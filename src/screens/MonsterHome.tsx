@@ -63,6 +63,7 @@ export default function MonsterHome({
   const [showCakeBox, setShowCakeBox] = useState<boolean>(false)
   const [showShowroom, setShowShowroom] = useState<boolean>(false)
   const [showNotifModal, setShowNotifModal] = useState<boolean>(false)
+  const [showMoreMenu, setShowMoreMenu] = useState<boolean>(false)
   const [notifStatus, setNotifStatus] = useState<string>(() =>
     typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'unsupported',
   )
@@ -162,24 +163,38 @@ export default function MonsterHome({
         gap: 6,
       }}
     >
-      {/* 1. 심플 & 임팩트 상단 스마트 HUD (코인·리본·퀵 액션 바) */}
+      {/* 1. 심플 & 임팩트 상단 스마트 HUD (코인·리본·미션·알림·메뉴) */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
-        {/* 상단 1열: 닉네임, 재화 2종, 퀵 액션 아이콘 그룹 */}
+        {/* 상단 1열: 닉네임, 재화 2종, 퀵 액션 3종 (가로 390px 완벽 안착) */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '6px 10px',
+            padding: '7px 12px',
             borderRadius: 16,
             background: '#FFFFFF',
             border: '1.5px solid #F0DFB8',
             boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
           }}
         >
-          {/* 프로필 & 닉네임 & 빛나는 뱃지 */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 18 }}>🍰</span>
+          {/* 프로필 & 닉네임 & 칭호 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #FFE082, #FFB74D)',
+                display: 'grid',
+                placeItems: 'center',
+                fontSize: 16,
+                boxShadow: '0 2px 5px rgba(255,183,77,0.3)',
+                flexShrink: 0,
+              }}
+            >
+              🍰
+            </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                 <span style={{ fontSize: 13, fontWeight: 900, color: '#3E2723', lineHeight: 1.1 }}>
@@ -191,20 +206,21 @@ export default function MonsterHome({
                   </span>
                 )}
               </div>
-              <div style={{ fontSize: 9, fontWeight: 800, color: '#FF7043' }}>
-                수석 파티시에 · Lv.{monster.level}
+              <div style={{ fontSize: 10, fontWeight: 800, color: '#FF7043', marginTop: 1 }}>
+                Lv.{monster.level} 파티시에
               </div>
             </div>
           </div>
 
-          {/* 재화 & 4대 퀵 도구 아이콘 버튼 */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          {/* 재화 2종 & 3대 퀵 버튼 (절대 줄바꿈 없이 한 줄 정돈) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            {/* 코인 */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 4,
-                padding: '3px 8px',
+                gap: 3,
+                padding: '4px 8px',
                 borderRadius: 12,
                 background: '#FFF8E1',
                 border: '1px solid #FFE082',
@@ -212,18 +228,20 @@ export default function MonsterHome({
                 fontWeight: 900,
                 color: '#E65100',
               }}
+              title="골드 코인"
             >
               <span>🪙</span>
               <span>{coins}</span>
             </div>
 
+            {/* 리본 코인 */}
             <div
               onClick={onOpenBoutique}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: 3,
-                padding: '3px 8px',
+                padding: '4px 8px',
                 borderRadius: 12,
                 background: '#FDF2F8',
                 border: '1px solid #F472B6',
@@ -232,27 +250,27 @@ export default function MonsterHome({
                 color: '#BE185D',
                 cursor: 'pointer',
               }}
-              title="부티크 상점 가기"
+              title="부티크 리본코인 (터치시 상점 이동)"
             >
               <span>🎀</span>
               <span>{getRibbonCoins()}</span>
             </div>
 
-            {/* 4대 퀵 아이콘 뱃지 */}
+            {/* 미션 버튼 */}
             <button
               onClick={() => {
                 setShowMissions(true)
                 playDessertAsmr('mochi-squish')
               }}
               style={{
-                width: 30,
-                height: 30,
+                width: 32,
+                height: 32,
                 borderRadius: 10,
                 border: claimableMissions > 0 ? '1.5px solid #FF9800' : '1px solid #E0D3C5',
                 background: claimableMissions > 0 ? '#FFF8E1' : '#FFFDF9',
                 display: 'grid',
                 placeItems: 'center',
-                fontSize: 14,
+                fontSize: 15,
                 cursor: 'pointer',
                 position: 'relative',
               }}
@@ -268,8 +286,8 @@ export default function MonsterHome({
                     background: '#E11D48',
                     color: '#FFFFFF',
                     borderRadius: '50%',
-                    width: 14,
-                    height: 14,
+                    width: 15,
+                    height: 15,
                     fontSize: 9,
                     fontWeight: 900,
                     display: 'grid',
@@ -281,20 +299,21 @@ export default function MonsterHome({
               )}
             </button>
 
+            {/* 알림 버튼 */}
             <button
               onClick={() => {
                 setShowNotifModal(true)
                 playDessertAsmr('cookie-crisp')
               }}
               style={{
-                width: 30,
-                height: 30,
+                width: 32,
+                height: 32,
                 borderRadius: 10,
                 border: '1px solid #BBDEFB',
                 background: '#E3F2FD',
                 display: 'grid',
                 placeItems: 'center',
-                fontSize: 13,
+                fontSize: 14,
                 cursor: 'pointer',
               }}
               title="백그라운드 알림 센터"
@@ -302,151 +321,84 @@ export default function MonsterHome({
               🔔
             </button>
 
+            {/* 메뉴(더보기) 버튼 */}
             <button
               onClick={() => {
-                setShowShowroom(true)
+                setShowMoreMenu(true)
                 playDessertAsmr('sugar-crack')
               }}
               style={{
-                width: 30,
-                height: 30,
+                width: 32,
+                height: 32,
                 borderRadius: 10,
-                border: '1.5px solid #FFD54F',
-                background: 'linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%)',
+                border: '1px solid #D7CCC8',
+                background: '#EFEBE9',
                 display: 'grid',
                 placeItems: 'center',
-                fontSize: 13,
-                cursor: 'pointer',
-                boxShadow: '0 2px 6px rgba(255,179,0,0.2)',
-              }}
-              title="Stitch 디저트 비주얼 쇼룸"
-            >
-              ✨
-            </button>
-
-            <button
-              onClick={() => {
-                setShowCakeBox(true)
-                playDessertAsmr('sugar-crack')
-              }}
-              style={{
-                width: 30,
-                height: 30,
-                borderRadius: 10,
-                border: '1px solid #FBCFE8',
-                background: '#FFF5F7',
-                display: 'grid',
-                placeItems: 'center',
-                fontSize: 13,
+                fontSize: 15,
                 cursor: 'pointer',
               }}
-              title="케이크 상자 포장 카드 자랑"
+              title="게임 메뉴 및 부가기능"
             >
-              🎁
+              ⚙️
             </button>
-
-            {onResetTestEgg && (
-              <button
-                onClick={onResetTestEgg}
-                style={{
-                  width: 30,
-                  height: 30,
-                  borderRadius: 10,
-                  border: '1px solid #BBDEFB',
-                  background: '#EBF8FF',
-                  display: 'grid',
-                  placeItems: 'center',
-                  fontSize: 13,
-                  cursor: 'pointer',
-                }}
-                title="테스트용 1분 디저트 알 리셋"
-              >
-                🥚
-              </button>
-            )}
-
-            {onLogout && (
-              <button
-                onClick={onLogout}
-                style={{
-                  width: 30,
-                  height: 30,
-                  borderRadius: 10,
-                  border: '1px solid #CFD8DC',
-                  background: '#ECEFF1',
-                  display: 'grid',
-                  placeItems: 'center',
-                  fontSize: 12,
-                  cursor: 'pointer',
-                }}
-                title="로그아웃"
-              >
-                🚪
-              </button>
-            )}
           </div>
         </div>
 
-        {/* 상단 2열: 슬림 4대 디저트 컨디션 캡슐 (세로 공간 대폭 절약) */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 5 }}>
-          <div
-            style={{
-              padding: '4px 6px',
-              borderRadius: 10,
-              background: '#FFFFFF',
-              border: '1px solid #F0DFB8',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            <span style={{ fontSize: 10, color: '#795548', fontWeight: 800 }}>🍓 당충전</span>
-            <span style={{ fontSize: 11, fontWeight: 900, color: '#D84315' }}>{hunger}%</span>
+        {/* 상단 2열: 슬림 4대 디저트 컨디션 게이지 바 (세로 24px 초슬림 일체형 카드) */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: 6,
+            padding: '5px 8px',
+            borderRadius: 12,
+            background: '#FFFDF9',
+            border: '1px solid #F0DFB8',
+          }}
+        >
+          {/* 당충전 */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, fontWeight: 800, color: '#795548' }}>
+              <span>🍓 당충전</span>
+              <span style={{ color: '#D84315', fontWeight: 900 }}>{hunger}%</span>
+            </div>
+            <div style={{ height: 4, borderRadius: 999, background: '#FFECB3', overflow: 'hidden' }}>
+              <div style={{ width: `${hunger}%`, height: '100%', background: '#FF7043', borderRadius: 999 }} />
+            </div>
           </div>
 
-          <div
-            style={{
-              padding: '4px 6px',
-              borderRadius: 10,
-              background: '#FFFFFF',
-              border: '1px solid #F0DFB8',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            <span style={{ fontSize: 10, color: '#795548', fontWeight: 800 }}>💖 달콤</span>
-            <span style={{ fontSize: 11, fontWeight: 900, color: '#AD1457' }}>{mood}%</span>
+          {/* 달콤 */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, fontWeight: 800, color: '#795548' }}>
+              <span>💖 달콤</span>
+              <span style={{ color: '#AD1457', fontWeight: 900 }}>{mood}%</span>
+            </div>
+            <div style={{ height: 4, borderRadius: 999, background: '#F8BBD0', overflow: 'hidden' }}>
+              <div style={{ width: `${mood}%`, height: '100%', background: '#EC407A', borderRadius: 999 }} />
+            </div>
           </div>
 
-          <div
-            style={{
-              padding: '4px 6px',
-              borderRadius: 10,
-              background: fatigue >= 80 ? '#FFEBEE' : '#FFFFFF',
-              border: fatigue >= 80 ? '1.5px solid #E53935' : '1px solid #F0DFB8',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            <span style={{ fontSize: 10, color: fatigue >= 80 ? '#D32F2F' : '#795548', fontWeight: 800 }}>💤 노곤</span>
-            <span style={{ fontSize: 11, fontWeight: 900, color: fatigue >= 80 ? '#D32F2F' : '#5E35B1' }}>{fatigue}%</span>
+          {/* 노곤 */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, fontWeight: 800, color: fatigue >= 80 ? '#D32F2F' : '#795548' }}>
+              <span>💤 노곤</span>
+              <span style={{ color: fatigue >= 80 ? '#D32F2F' : '#5E35B1', fontWeight: 900 }}>{fatigue}%</span>
+            </div>
+            <div style={{ height: 4, borderRadius: 999, background: '#E1BEE7', overflow: 'hidden' }}>
+              <div style={{ width: `${fatigue}%`, height: '100%', background: fatigue >= 80 ? '#E53935' : '#8E24AA', borderRadius: 999 }} />
+            </div>
           </div>
 
-          <div
-            style={{
-              padding: '4px 6px',
-              borderRadius: 10,
-              background: '#FFFFFF',
-              border: '1px solid #F0DFB8',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            <span style={{ fontSize: 10, color: '#795548', fontWeight: 800 }}>✨ 윤기</span>
-            <span style={{ fontSize: 11, fontWeight: 900, color: '#00897B' }}>{cleanliness}%</span>
+          {/* 윤기 */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, fontWeight: 800, color: '#795548' }}>
+              <span>✨ 윤기</span>
+              <span style={{ color: '#00897B', fontWeight: 900 }}>{cleanliness}%</span>
+            </div>
+            <div style={{ height: 4, borderRadius: 999, background: '#B2DFDB', overflow: 'hidden' }}>
+              <div style={{ width: `${cleanliness}%`, height: '100%', background: '#26A69A', borderRadius: 999 }} />
+            </div>
           </div>
         </div>
       </div>
@@ -723,7 +675,7 @@ export default function MonsterHome({
               <div style={{ fontSize: 9, color: '#E11D48', fontWeight: 800 }}>3D 피팅룸</div>
             </div>
           </div>
-          <span style={{ fontSize: 11, background: '#FFFFFF', padding: '2px 6px', borderRadius: 8, color: '#9F1239', fontWeight: 900 }}>
+          <span style={{ fontSize: 10, background: '#FFFFFF', padding: '2px 5px', borderRadius: 8, color: '#9F1239', fontWeight: 900, whiteSpace: 'nowrap' }}>
             SHOP
           </span>
         </button>
@@ -1040,6 +992,175 @@ export default function MonsterHome({
 
             <button
               onClick={() => setShowNotifModal(false)}
+              style={{
+                padding: '8px 0',
+                borderRadius: 10,
+                border: '1px solid #CFD8DC',
+                background: '#ECEFF1',
+                color: '#455A64',
+                fontWeight: 800,
+                fontSize: 11,
+                cursor: 'pointer',
+                marginTop: 4,
+              }}
+            >
+              닫기
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 5. 부가기능 및 시스템 더보기 메뉴 팝오버 모달 */}
+      {showMoreMenu && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 60,
+            background: 'rgba(0,0,0,0.5)',
+            backdropFilter: 'blur(3px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+            animation: 'fadeIn 0.2s ease',
+          }}
+          onClick={() => setShowMoreMenu(false)}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: 300,
+              background: '#FFFDF9',
+              borderRadius: 20,
+              border: '2px solid #E0D3C5',
+              boxShadow: '0 12px 32px rgba(0,0,0,0.25)',
+              padding: '16px 14px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 10,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="row between" style={{ alignItems: 'center' }}>
+              <div style={{ fontSize: 14, fontWeight: 900, color: '#3E2723' }}>⚙️ 게임 메뉴 및 도구</div>
+              <button
+                onClick={() => setShowMoreMenu(false)}
+                style={{
+                  border: 'none',
+                  background: 'none',
+                  fontSize: 14,
+                  cursor: 'pointer',
+                  color: '#8D6E63',
+                  fontWeight: 900,
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginTop: 4 }}>
+              <button
+                onClick={() => {
+                  setShowMoreMenu(false)
+                  setShowShowroom(true)
+                  playDessertAsmr('sugar-crack')
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '9px 12px',
+                  borderRadius: 12,
+                  border: '1.5px solid #FFD54F',
+                  background: 'linear-gradient(90deg, #FFF8E1, #FFECB3)',
+                  color: '#E65100',
+                  fontWeight: 900,
+                  fontSize: 12,
+                  cursor: 'pointer',
+                }}
+              >
+                <span style={{ fontSize: 16 }}>✨</span>
+                <span>Stitch 디저트 비주얼 쇼룸</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowMoreMenu(false)
+                  setShowCakeBox(true)
+                  playDessertAsmr('sugar-crack')
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '9px 12px',
+                  borderRadius: 12,
+                  border: '1.5px solid #FBCFE8',
+                  background: '#FFF5F7',
+                  color: '#BE185D',
+                  fontWeight: 900,
+                  fontSize: 12,
+                  cursor: 'pointer',
+                }}
+              >
+                <span style={{ fontSize: 16 }}>🎁</span>
+                <span>케이크 상자 포장 카드 자랑</span>
+              </button>
+
+              {onResetTestEgg && (
+                <button
+                  onClick={() => {
+                    setShowMoreMenu(false)
+                    onResetTestEgg()
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '9px 12px',
+                    borderRadius: 12,
+                    border: '1.5px solid #BBDEFB',
+                    background: '#EBF8FF',
+                    color: '#0288D1',
+                    fontWeight: 900,
+                    fontSize: 12,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span style={{ fontSize: 16 }}>🥚</span>
+                  <span>테스트용 1분 디저트 알 리셋</span>
+                </button>
+              )}
+
+              {onLogout && (
+                <button
+                  onClick={() => {
+                    setShowMoreMenu(false)
+                    onLogout()
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '9px 12px',
+                    borderRadius: 12,
+                    border: '1px solid #CFD8DC',
+                    background: '#ECEFF1',
+                    color: '#455A64',
+                    fontWeight: 800,
+                    fontSize: 12,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span style={{ fontSize: 16 }}>🚪</span>
+                  <span>로그아웃</span>
+                </button>
+              )}
+            </div>
+
+            <button
+              onClick={() => setShowMoreMenu(false)}
               style={{
                 padding: '8px 0',
                 borderRadius: 10,
