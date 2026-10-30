@@ -2,10 +2,10 @@
 // 직관적인 카드 액자(썸네일 그리드) 형태로 내가 보유하고 발견한 디저트를 한눈에 볼 수 있으며,
 // 액자를 터치하면 3D 프리뷰와 식감 ASMR 사운드 및 상세 진화 정보를 감상합니다.
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { EVO_BRANCHES, SPECIES_EVOLUTIONS, type EvoBranchId } from '../config/evolution'
 import { ELEMENT_INFO, SPECIES_INFO } from '../config/species'
-import { getDiscoveredDexEntries } from '../lib/evolutionEngine'
+import { fetchDiscoveredDexEntries } from '../lib/evolutionEngine'
 import { getSpeciesSoundKind, playDessertAsmr } from '../lib/sound'
 import MonsterView from '../monsters/MonsterView'
 import type { MonsterLook } from '../monsters/types'
@@ -56,7 +56,17 @@ export default function DessertPokedexScreen({ onBack, onSwitchPet }: Props) {
   const [filterUnlockedOnly, setFilterUnlockedOnly] = useState<boolean>(false)
   const [selectedItem, setSelectedItem] = useState<DexFrameItem | null>(null)
   const [switchToast, setSwitchToast] = useState<string | null>(null)
-  const discoveredSet = useMemo(() => getDiscoveredDexEntries(), [])
+  const [discoveredSet, setDiscoveredSet] = useState<Set<string>>(() => new Set())
+  const [dexError, setDexError] = useState(false)
+  useEffect(() => {
+    let alive = true
+    fetchDiscoveredDexEntries()
+      .then((s) => alive && setDiscoveredSet(s))
+      .catch(() => alive && setDexError(true))
+    return () => {
+      alive = false
+    }
+  }, [])
 
   // 전체 도감 액자 리스트 생성 (종족별 1단계 1종 + 2단계 4종 + 3단계 4종)
   const allFrames = useMemo<DexFrameItem[]>(() => {
@@ -69,7 +79,7 @@ export default function DessertPokedexScreen({ onBack, onSwitchPet }: Props) {
 
       // 1단계 베이비
       const baseKey = `${spId}_stage1_base`
-      const isBaseUnlocked = discoveredSet.has(baseKey) || spId === 'mochi' || spId === 'dubai-cookie'
+      const isBaseUnlocked = discoveredSet.has(baseKey)
       list.push({
         id: `${spId}-1`,
         species: spId,
@@ -223,6 +233,7 @@ export default function DessertPokedexScreen({ onBack, onSwitchPet }: Props) {
           <span style={{ fontSize: 11, color: '#4CAF50', marginLeft: 4, fontWeight: 800 }}>
             ({completionPct}%)
           </span>
+          {dexError && <span style={{ fontSize: 10, color: '#C62828', marginLeft: 6, fontWeight: 800 }}>기록을 못 불러왔어요</span>}
         </div>
 
         <button

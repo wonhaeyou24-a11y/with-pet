@@ -5,7 +5,10 @@
 import { EVO_BRANCHES, SPECIES_EVOLUTIONS } from '../config/evolution'
 import { checkEvolutionEligibility as checkEligibility, computeEvolution, type EvoBranchId, type EvolutionEligibility } from '../../supabase/functions/battle/evolution.ts'
 import type { MonsterRow, Stats } from './api'
+import { IS_DEV_MOCK } from './devMode'
+import { SERVER_TIMEOUT_MS, withTimeout } from './net'
 import { playDessertAsmr } from './sound'
+import { supabase } from './supabase'
 
 export interface EvolutionResult {
   success: boolean
@@ -70,8 +73,8 @@ export function executeEvolution(monster: MonsterRow, chosenBranch?: EvoBranchId
     console.warn('[Evolution] ASMR 사운드 재생 예외 안전 격리:', err)
   }
 
-  // 도감(Dex) 발견 기록 로컬스토리지에 안전 저장
-  recordDiscoveredDexEntry(monster.species, nextStage, branch)
+  // 개발용 로컬 모드에서만 기기에 기록한다 (실서비스는 서버 트리거가 기록)
+  if (IS_DEV_MOCK) recordDiscoveredDexEntry(monster.species, nextStage, branch)
 
   return {
     success: true,
@@ -104,7 +107,21 @@ export function recordDiscoveredDexEntry(species: string, stage: number, branch?
   }
 }
 
-// 도감 해금 목록 조회
+// 도감 해금 목록 조회: 실서비스는 서버(players.dex_unlocked), 개발용 로컬 모드는 기기 저장소
+export async function fetchDiscoveredDexEntries(): Promise<Set<string>> {
+  if (IS_DEV_MOCK) return getDiscoveredDexEntries()
+  const { data: sess } = await supabase.auth.getSession()
+  const uid = sess.session?.user.id
+  if (!uid) return new Set()
+  const { data, error } = await withTimeout(
+    Promise.resolve(supabase.from('players').select('dex_unlocked').eq('id', uid).maybeSingle()),
+    SERVER_TIMEOUT_MS,
+  )
+  if (error) throw error
+  const list = (data as { dex_unlocked?: unknown } | null)?.dex_unlocked
+  return new Set(Array.isArray(list) ? (list as string[]) : [])
+}
+
 export function getDiscoveredDexEntries(): Set<string> {
   try {
     const raw = localStorage.getItem(DEX_STORAGE_KEY)

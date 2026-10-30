@@ -27,6 +27,8 @@ test('상품 아이디는 중복이 없고 가격은 0 이상이다', () => {
 })
 test('기본 지급 아이템은 모두 상품표에 있고 서버에서도 이미 가진 것으로 처리된다', () => {
   const ids = new Set(parseShopItems(boutique).map((i) => i.id))
+  // 받침대의 기본 지급은 상품 id(base-nest) 와 받침대 종류 id(nest) 둘 다 들어 있다
+  for (const m of boutique.matchAll(/baseId: '([^']+)'/g)) ids.add(m[1])
   const defaults = parseDefaultOwned(boutique)
   assert.ok(defaults.length >= 3)
   for (const d of defaults) {

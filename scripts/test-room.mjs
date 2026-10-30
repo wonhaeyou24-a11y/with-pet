@@ -55,4 +55,28 @@ test('실제 서비스 화면은 서버 값으로 방을 채우고, 방문자는
   assert.ok(room.includes('{!isVisitor && ('))
 })
 
+console.log('도감 서버 저장(4c)')
+const dexSql = readFileSync('supabase/migrations/20261031100000_m5_dex_server.sql', 'utf8').replace(/\r\n/g, '\n')
+const evo = readFileSync('src/lib/evolutionEngine.ts', 'utf8')
+const dexScreen = readFileSync('src/screens/DessertPokedex.tsx', 'utf8')
+test('도감 기록은 부화·진화 트리거가 서버에서 남기고, 화면은 이 컬럼을 직접 못 쓴다', () => {
+  assert.match(dexSql, /add column if not exists dex_unlocked jsonb/)
+  assert.match(dexSql, /create trigger monsters_dex_insert after insert on public\.monsters/)
+  assert.match(dexSql, /after update of evo_stage, evo_branch on public\.monsters/)
+  assert.match(dexSql, /revoke all on function public\.dex_record\(\) from public, anon, authenticated/)
+  assert.ok(!/grant[^;]*dex_unlocked/i.test(dexSql))
+})
+test('도감 키 형식이 화면(종족_stage단계_갈래)과 서버 트리거에서 같다', () => {
+  assert.match(dexSql, /new\.species \|\| '_stage' \|\| coalesce\(new\.evo_stage, 1\)::text \|\| '_'/)
+  assert.ok(dexScreen.includes('`${spId}_stage1_base`'))
+  assert.ok(dexScreen.includes('`${spId}_stage2_${bId}`') && dexScreen.includes('`${spId}_stage3_${bId}`'))
+  assert.ok(evo.includes("`${species}_stage${stage}_${branch || 'base'}`"))
+})
+test('실제 서비스는 서버 값만 읽고 기기에 기록하지 않으며, 도감에 항상 열려 있는 종족이 없다', () => {
+  assert.ok(evo.includes('if (IS_DEV_MOCK) recordDiscoveredDexEntry('))
+  assert.ok(evo.includes('if (IS_DEV_MOCK) return getDiscoveredDexEntries()'))
+  assert.ok(evo.includes(".select('dex_unlocked')"))
+  assert.ok(!dexScreen.includes("spId === 'mochi'"))
+})
+
 console.log(`\n${passed}개 통과`)

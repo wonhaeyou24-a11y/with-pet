@@ -59,7 +59,7 @@ language sql
 immutable
 set search_path = public
 as $$
-  select (p_owned ? p_item) or p_item = any(array['berry-beret', 'sleep-mask', 'bell-ribbon', 'room-patisserie', 'sofa-macaron'])
+  select (p_owned ? p_item) or p_item = any(array['berry-beret', 'sleep-mask', 'bell-ribbon', 'room-patisserie', 'sofa-macaron', 'nest', 'base-nest'])
 $$;
 revoke all on function public._item_ok(jsonb, text) from public, anon, authenticated;
 

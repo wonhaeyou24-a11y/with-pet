@@ -33,6 +33,12 @@ revoke all on public.shop_items, public.mission_rules from anon, authenticated;
 grant select on public.shop_items, public.mission_rules to authenticated;
 
 insert into public.shop_items (id, price) values
+  ('base-nest', 0),
+  ('base-strawberry-cake', 45),
+  ('base-choco-cookie', 35),
+  ('base-custard-pudding', 35),
+  ('base-macaron-cushion', 50),
+  ('base-parfait-cup', 70),
   ('cream-cherry', 35),
   ('wizard-hat', 65),
   ('birthday-candle', 40),
@@ -240,7 +246,7 @@ begin
   if not found then return jsonb_build_object('ok', false, 'code', 'bad_item', 'message', '없는 상품이에요.'); end if;
   select * into p from public.players where id = uid for update;
   if not found then return jsonb_build_object('ok', false, 'code', 'no_player', 'message', '플레이어 정보를 찾지 못했어요.'); end if;
-  if p.owned_items ? p_item or p_item = any(array['berry-beret', 'sleep-mask', 'bell-ribbon', 'room-patisserie', 'sofa-macaron']) then
+  if p.owned_items ? p_item or p_item = any(array['berry-beret', 'sleep-mask', 'bell-ribbon', 'room-patisserie', 'sofa-macaron', 'nest', 'base-nest']) then
     return jsonb_build_object('ok', false, 'code', 'owned', 'message', '이미 소유하고 있는 아이템입니다.');
   end if;
   if p.ribbon_coins < it.price then
