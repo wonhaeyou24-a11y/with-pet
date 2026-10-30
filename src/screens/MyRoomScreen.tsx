@@ -339,9 +339,9 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
       {/* 3. 싸이월드 감성 룸 캔버스 스테이지 */}
       <div
         style={{
-          height: 185,
-          minHeight: 185,
-          maxHeight: 185,
+          height: 250,
+          minHeight: 250,
+          maxHeight: 250,
           position: 'relative',
           margin: '4px 12px',
           borderRadius: 16,
@@ -488,12 +488,12 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
               left: '50%',
               transform: `translateX(-50%) ${bouncePet ? 'translateY(-14px) scale(1.08)' : 'translateY(0)'}`,
               transition: 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
-              width: 130,
-              height: 130,
+              width: 170,
+              height: 170,
               zIndex: 3,
             }}
           >
-            <Monster3DView look={look} size={130} fluid interactive />
+            <Monster3DView look={look} size={170} fluid interactive />
           </div>
         </div>
 

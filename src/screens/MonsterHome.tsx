@@ -710,46 +710,61 @@ export default function MonsterHome({
         <button
           onClick={onOpenEvolution}
           style={{
-            padding: '6px 10px',
-            borderRadius: 10,
-            border: evoEligibility.canEvolve ? '1.5px solid #FFB300' : '1px solid #E0D3C5',
-            background: evoEligibility.canEvolve
-              ? 'linear-gradient(90deg, #FFF8E1 0%, #FFE082 100%)'
-              : '#FFF8F2',
-            color: evoEligibility.canEvolve ? '#E65100' : '#4E342E',
-            fontSize: 11,
+            padding: '10px 12px',
+            borderRadius: 14,
+            border: '2px solid #FBBF24',
+            background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 60%, #FDE68A 100%)',
+            color: '#78350F',
+            fontSize: 13,
             fontWeight: 900,
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            gap: 4,
+            justifyContent: 'space-between',
+            boxShadow: '0 3px 0 #FBBF24, 0 4px 10px rgba(251,191,36,0.25)',
+            transition: 'transform 0.1s ease',
           }}
         >
-          <span>✨ {evoEligibility.canEvolve ? '진화 가능!' : '진화의 전당'}</span>
-          <span style={{ fontSize: 9, color: evoEligibility.canEvolve ? '#D84315' : '#8D6E63' }}>
-            ({monster.evo_stage ?? 1}단계)
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+            <span style={{ fontSize: 20 }}>✨</span>
+            <div style={{ textAlign: 'left', whiteSpace: 'nowrap' }}>
+              <div style={{ lineHeight: 1.1 }}>{evoEligibility.canEvolve ? '진화 가능!' : '진화의 전당'}</div>
+              <div style={{ fontSize: 9, color: '#B45309', fontWeight: 800 }}>{monster.evo_stage ?? 1}단계</div>
+            </div>
+          </div>
+          <span style={{ fontSize: 10, background: '#FFFFFF', padding: '2px 5px', borderRadius: 8, color: '#B45309', fontWeight: 900, whiteSpace: 'nowrap' }}>
+            {evoEligibility.canEvolve ? 'UP!' : 'EVO'}
           </span>
         </button>
 
         <button
           onClick={onOpenDex}
           style={{
-            padding: '6px 10px',
-            borderRadius: 10,
-            border: '1px solid #E0D3C5',
-            background: '#FFF8F2',
-            color: '#4E342E',
-            fontSize: 11,
-            fontWeight: 800,
+            padding: '10px 12px',
+            borderRadius: 14,
+            border: '2px solid #34D399',
+            background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 60%, #A7F3D0 100%)',
+            color: '#064E3B',
+            fontSize: 13,
+            fontWeight: 900,
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            gap: 4,
+            justifyContent: 'space-between',
+            boxShadow: '0 3px 0 #34D399, 0 4px 10px rgba(52,211,153,0.25)',
+            transition: 'transform 0.1s ease',
           }}
         >
-          <span>📖 디저트 도감</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+            <span style={{ fontSize: 20 }}>📖</span>
+            <div style={{ textAlign: 'left', whiteSpace: 'nowrap' }}>
+              <div style={{ lineHeight: 1.1 }}>디저트 도감</div>
+              <div style={{ fontSize: 9, color: '#047857', fontWeight: 800 }}>모아보기</div>
+            </div>
+          </div>
+          <span style={{ fontSize: 10, background: '#FFFFFF', padding: '2px 5px', borderRadius: 8, color: '#047857', fontWeight: 900, whiteSpace: 'nowrap' }}>
+            DEX
+          </span>
         </button>
       </div>
 

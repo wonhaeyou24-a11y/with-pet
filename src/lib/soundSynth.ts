@@ -506,20 +506,23 @@ const RECIPES: Record<SynthKind, { total: number; finish: FinishOpts; build: Rec
     },
   },
 
-  // 🫧 왁뿌볼 선택음: 버튼을 누를 때마다 들어도 피곤하지 않은 짧은 "아그작 + 말랑" (0.3초, 조금 작은 음량)
+  // 🫧 왁뿌볼 선택음: 얇고 단단한 왁스 껍질이 "바사삭" 여러 조각으로 깨지고, 말랑한 속이 "찌걱" 눌린다 (0.5초)
   'wax-tap': {
     total: 0.5,
-    finish: { reverb: 0.1, level: 0.72, highCut: 11000 },
+    finish: { reverb: 0.08, level: 0.78, highCut: 12000 },
     build: (m) => {
-      tick(m, 0, jit(m, 2400), 1, 0.2, -0.2)
-      // 껍질이 아그작 갈라지는 한 번의 소리 + 작은 '턱'
-      crackCluster(m, 0.012, { n: 26, spanMs: 22, fLo: jit(m, 1500), fHi: jit(m, 5600), dLo: 1, dHi: 5, amp: 0.9, ampDecay: 2.2, noiseMix: 0.4, panSpread: 0.35 })
-      crackCluster(m, 0.014, { n: 8, spanMs: 20, fLo: 600, fHi: 1400, dLo: 4, dHi: 9, amp: 0.55, ampDecay: 1.8, noiseMix: 0.5 })
-      thump(m, 0.012, jit(m, 210), 105, 36, 0.42)
-      // 부스러기와 속의 말랑한 끝맛
-      scatter(m, 0.05, { count: 7, spanMs: 110, p: 1.5, fLo: 3000, fHi: 7000, dMs: 0.9, amp: 0.22 })
-      swell(m, 0.06, 0.16, { type: 'bp', f0: 350, f1: 800, q: 4, attackMs: 20, releaseMs: 80, amp: 0.1, color: 'pink' })
-      bubble(m, 0.1, 480 + m.rand() * 320, 1.4, 26, 0.26, 0.15)
+      tick(m, 0, jit(m, 3200), 1, 0.25, -0.2)
+      // 1) 첫 균열: 크고 날카로운 파편 묶음
+      crackCluster(m, 0.004, { n: 34, spanMs: 40, fLo: jit(m, 2200), fHi: jit(m, 7200), dLo: 0.8, dHi: 3.5, amp: 1, ampDecay: 1.4, noiseMix: 0.35, panSpread: 0.5 })
+      // 2) 이어서 번지는 잔 파편들 (껍질이 우수수 부서지는 느낌)
+      crackCluster(m, 0.045, { n: 44, spanMs: 150, fLo: jit(m, 2800), fHi: jit(m, 8200), dLo: 0.7, dHi: 3, amp: 0.7, ampDecay: 2.4, noiseMix: 0.3, panSpread: 0.6 })
+      // 3) 껍질이 뭉개지는 둔탁한 몸통
+      crackCluster(m, 0.01, { n: 10, spanMs: 34, fLo: 900, fHi: 2000, dLo: 3, dHi: 8, amp: 0.55, ampDecay: 1.6, noiseMix: 0.5 })
+      thump(m, 0.008, jit(m, 190), 95, 30, 0.34)
+      // 4) 속의 말랑이가 눌리며 나는 촉촉한 찌걱
+      swell(m, 0.07, 0.2, { type: 'bp', f0: 320, f1: 900, q: 3, attackMs: 25, releaseMs: 110, amp: 0.13, color: 'pink' })
+      bubble(m, 0.09, 420 + m.rand() * 260, 1.5, 24, 0.24, 0.12)
+      bubble(m, 0.15, 650 + m.rand() * 300, 1.6, 20, 0.16, 0.2)
     },
   },
 

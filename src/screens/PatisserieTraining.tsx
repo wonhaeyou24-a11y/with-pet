@@ -1171,16 +1171,20 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                   disabled={busy}
                   onClick={finishTraining}
                   style={{
-                    padding: '8px 0',
+                    minHeight: 54,
+                    padding: '14px 0',
                     width: '100%',
-                    borderRadius: 12,
+                    borderRadius: 16,
                     border: 'none',
                     background: 'linear-gradient(90deg, #43A047, #2E7D32)',
                     color: '#FFFFFF',
                     fontWeight: 900,
-                    fontSize: 13,
+                    fontSize: 16,
                     cursor: 'pointer',
-                    boxShadow: '0 3px 8px rgba(46,125,50,0.3)',
+                    boxShadow: '0 4px 0 #1B5E20, 0 6px 12px rgba(46,125,50,0.3)',
+                    position: 'relative',
+                    zIndex: 5,
+                    touchAction: 'manipulation',
                   }}
                 >
                   🎁 훈련 성장 보상 수령하기!

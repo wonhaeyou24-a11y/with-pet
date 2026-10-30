@@ -254,7 +254,7 @@ export default function MonsterDetail({
         <button className="btn-round" onClick={onBack} aria-label="뒤로">
           <BackIcon />
         </button>
-        <h1 className="title" style={{ fontSize: 17 }}>🍰 3D 디저트 & 변신 공방</h1>
+        <h1 className="title" style={{ fontSize: 17 }}>🍰 플레이팅·변신 공방</h1>
         <div className="row" style={{ gap: 4 }}>
           <button
             className="chip honey"
@@ -309,7 +309,6 @@ export default function MonsterDetail({
               size={156}
               title={info?.name}
               animate
-              interactive
             />
           </div>
         </div>

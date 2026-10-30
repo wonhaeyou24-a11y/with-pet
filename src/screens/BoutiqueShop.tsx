@@ -301,9 +301,9 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
       {/* 3. 중앙 3D 실시간 피팅룸 스테이지 (하단 버튼 짤림 방지: 컴팩트 180px) */}
       <div
         style={{
-          height: 180,
-          minHeight: 170,
-          maxHeight: 185,
+          height: 250,
+          minHeight: 230,
+          maxHeight: 260,
           position: 'relative',
           margin: '4px 12px',
           borderRadius: 18,
@@ -322,7 +322,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
         {tab === 'fashion' ? (
           <>
             <div style={{ width: '100%', height: '100%' }}>
-              <Monster3DView look={previewLook} size={165} fluid interactive />
+              <Monster3DView look={previewLook} size={230} fluid interactive />
             </div>
             {/* 전체 해제 버튼 & 360도 회전 힌트 뱃지 */}
             <button
