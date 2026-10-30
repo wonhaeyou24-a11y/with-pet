@@ -1,7 +1,7 @@
 // 🛍️ 파티세리 부티크 상점: 패션 장신구 & 마이룸 인테리어 쇼핑 (3D 피팅룸 지원)
 // 100dvh 모바일 최적화, 무스크롤 덱 구조, Zero-Crash 무결성 보장
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   BOUTIQUE_FASHION_ITEMS,
   getOwnedBoutiqueItems,
@@ -14,6 +14,8 @@ import {
   type RoomThemeDef,
 } from '../config/boutique'
 import { monsterLook, type MonsterRow } from '../lib/api'
+import { IS_DEV_MOCK } from '../lib/devMode'
+import { refreshAccount } from '../lib/shopApi'
 import { playDessertAsmr } from '../lib/sound'
 import { loadMallangCustom, saveMallangCustom } from '../monsters/MallangChameleon'
 import Monster3DView from '../monsters/Monster3DView'
@@ -35,6 +37,16 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
   const [ownedItems, setOwnedItems] = useState<Set<string>>(() => getOwnedBoutiqueItems())
   const [toast, setToast] = useState<string | null>(null)
   const [showShowroom, setShowShowroom] = useState<boolean>(false)
+  const [buying, setBuying] = useState(false)
+
+  // 실제 서비스: 열 때 서버의 최신 리본 코인·보유 아이템을 받아 온다
+  useEffect(() => {
+    if (IS_DEV_MOCK) return
+    void refreshAccount().then(() => {
+      setCoinsState(getRibbonCoins())
+      setOwnedItems(new Set(getOwnedBoutiqueItems()))
+    })
+  }, [])
 
   // 3D 피팅룸 미리보기 상태 (실제 저장은 구매 후 장착 시)
   const savedCustom = loadMallangCustom(monster.id)
@@ -83,8 +95,11 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
   }
 
   // 패션 아이템 구매
-  const handlePurchaseFashion = (item: BoutiqueItem) => {
-    const res = purchaseBoutiqueItem(item.id, item.price)
+  const handlePurchaseFashion = async (item: BoutiqueItem) => {
+    if (buying) return
+    setBuying(true)
+    const res = await purchaseBoutiqueItem(item.id, item.price)
+    setBuying(false)
     if (res.success) {
       playDessertAsmr('sugar-crack')
       setCoinsState(getRibbonCoins())
@@ -104,8 +119,11 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
   }
 
   // 룸 테마 / 가구 구매
-  const handlePurchaseInterior = (id: string, name: string, price: number) => {
-    const res = purchaseBoutiqueItem(id, price)
+  const handlePurchaseInterior = async (id: string, name: string, price: number) => {
+    if (buying) return
+    setBuying(true)
+    const res = await purchaseBoutiqueItem(id, price)
+    setBuying(false)
     if (res.success) {
       playDessertAsmr('cookie-crisp')
       setCoinsState(getRibbonCoins())

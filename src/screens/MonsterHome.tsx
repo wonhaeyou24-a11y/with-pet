@@ -19,6 +19,7 @@ import { getSpeciesSoundKind, playDessertAsmr } from '../lib/sound'
 import MonsterView from '../monsters/MonsterView'
 import CakeBoxShareModal from './CakeBoxShareModal'
 import MissionModal from './MissionModal'
+import { useAccount } from '../lib/shopApi'
 import DessertShowroomModal from './DessertShowroomModal'
 import DessertSoundStudioModal from './DessertSoundStudioModal'
 import { ChevronIcon, ElementIcon, SparkleIcon } from '../ui/Icons'
@@ -39,6 +40,8 @@ type Props = {
   onOpenMyRoom?: () => void
   onOpenBoutique?: () => void
   onRewardCoins?: (amount: number) => void
+  // 실제 서비스: 서버가 알려 준 코인 총액 (미션 보상)
+  onCoins?: (coins: number) => void
   onResetTestEgg?: () => void
   onLogout?: () => void
 }
@@ -140,6 +143,7 @@ export default function MonsterHome({
   onOpenMyRoom,
   onOpenBoutique,
   onRewardCoins,
+  onCoins,
   onResetTestEgg,
   onLogout,
 }: Props) {
@@ -154,6 +158,11 @@ export default function MonsterHome({
   )
   const [notifScheduled, setNotifScheduled] = useState<boolean>(false)
   const [claimableMissions, setClaimableMissions] = useState<number>(() => getClaimableMissionsCount())
+  // 서버의 리본 코인·미션 진행이 바뀌면 화면도 다시 그린다
+  const account = useAccount()
+  useEffect(() => {
+    setClaimableMissions(getClaimableMissionsCount())
+  }, [account])
   const look = monsterLook(monster)
   const activeSpecies = look.mallang?.morphForm ?? monster.species
   const info = SPECIES_INFO[activeSpecies] ?? SPECIES_INFO[monster.species]
@@ -749,6 +758,7 @@ export default function MonsterHome({
       {/* 미션 모달 */}
       {showMissions && (
         <MissionModal
+          onSetCoins={onCoins}
           onRewardCoins={(amount) => {
             onRewardCoins?.(amount)
             setClaimableMissions(getClaimableMissionsCount())

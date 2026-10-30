@@ -1017,7 +1017,7 @@ export default function DessertPlaza({
               playDessertAsmr('mochi-squish')
               addRibbonCoins(10, '친구 미니룸 방문 응원')
               recordMissionAction('w-social', 1)
-              setToast(`🏰 ${selectedFriend.ownerNickname}님의 미니룸에 방명록 응원을 남겼습니다! (🎀 +10 리본)`)
+              setToast(IS_DEV_MOCK ? `🏰 ${selectedFriend.ownerNickname}님의 미니룸에 방명록 응원을 남겼습니다! (🎀 +10 리본)` : `🏰 ${selectedFriend.ownerNickname}님의 미니룸 방문은 지인 방명록과 함께 곧 열려요!`)
               setTimeout(() => setToast(null), 3000)
             }}
             style={{

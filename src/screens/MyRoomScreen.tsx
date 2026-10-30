@@ -20,6 +20,8 @@ import {
 } from '../config/boutique'
 import { recordMissionAction } from '../config/missions'
 import { monsterLook, type MonsterRow } from '../lib/api'
+import { IS_DEV_MOCK } from '../lib/devMode'
+import { refreshAccount } from '../lib/shopApi'
 import { miniRoomBgm } from '../lib/bgmPlayer'
 import { playDessertAsmr } from '../lib/sound'
 import Monster3DView from '../monsters/Monster3DView'
@@ -36,8 +38,16 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
   const [guestBook, setGuestBook] = useState<GuestBookEntry[]>(() => loadGuestBook())
   const [ribbonCoins, setCoinsState] = useState<number>(() => getRibbonCoins())
   const [isEditing, setIsEditing] = useState<boolean>(false)
-  const [ownedItems] = useState<Set<string>>(() => getOwnedBoutiqueItems())
+  const [ownedItems, setOwnedItems] = useState<Set<string>>(() => getOwnedBoutiqueItems())
   const [toast, setToast] = useState<string | null>(null)
+  // 실제 서비스: 열 때 서버의 최신 리본 코인·보유 아이템을 받아 온다
+  useEffect(() => {
+    if (IS_DEV_MOCK) return
+    void refreshAccount().then(() => {
+      setCoinsState(getRibbonCoins())
+      setOwnedItems(new Set(getOwnedBoutiqueItems()))
+    })
+  }, [])
   const [newComment, setNewComment] = useState<string>('')
   const [replyingToId, setReplyingToId] = useState<string | null>(null)
   const [replyText, setReplyText] = useState<string>('')
@@ -138,7 +148,7 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
     saveRoomCustom(nextRoom)
     const earned = addRibbonCoins(5, '룸 좋아요')
     setCoinsState(earned)
-    showToast('❤️ 룸에 사랑의 하트를 보냈습니다! (+5 🎀 리본 코인)')
+    showToast(IS_DEV_MOCK ? '❤️ 룸에 사랑의 하트를 보냈습니다! (+5 🎀 리본 코인)' : '❤️ 룸에 사랑의 하트를 보냈습니다!')
   }
 
   // 방명록 등록
@@ -151,7 +161,7 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
     const earned = addRibbonCoins(10, '방명록 작성')
     setCoinsState(earned)
     recordMissionAction('w-social', 1)
-    showToast('📝 방명록을 남겼습니다! (+10 🎀 리본 코인 획득)')
+    showToast(IS_DEV_MOCK ? '📝 방명록을 남겼습니다! (+10 🎀 리본 코인 획득)' : '📝 방명록을 남겼습니다!')
   }
 
   // 방명록 답글(대댓글) 등록
@@ -166,7 +176,7 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
     setReplyingToId(null)
     const earned = addRibbonCoins(5, '방명록 답글')
     setCoinsState(earned)
-    showToast('💌 친구의 방명록에 답글을 남겼습니다! (+5 🎀 리본 코인 획득)')
+    showToast(IS_DEV_MOCK ? '💌 친구의 방명록에 답글을 남겼습니다! (+5 🎀 리본 코인 획득)' : '💌 친구의 방명록에 답글을 남겼습니다!')
   }
 
   return (

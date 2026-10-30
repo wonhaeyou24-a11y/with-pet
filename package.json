@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "sound:lab": "node scripts/sound-lab.mjs",
     "test:care": "node scripts/test-care.mjs",
-    "test:battle": "node scripts/test-battle.mjs"
+    "test:battle": "node scripts/test-battle.mjs",
+    "test:shop": "node scripts/test-shop.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",

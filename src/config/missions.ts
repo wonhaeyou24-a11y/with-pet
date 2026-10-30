@@ -2,7 +2,9 @@
 // 100% 한글 주석, Zero-Trust 무결성 체크섬, KST 자정 자동 리셋, 보상 지급 관리
 
 import { addRibbonCoins } from './boutique'
+import { IS_DEV_MOCK } from '../lib/devMode'
 import { playDessertAsmr } from '../lib/sound'
+import { claimMission, getAccount } from '../lib/shopApi'
 
 export interface MissionDef {
   id: string
@@ -114,6 +116,11 @@ function calcMissionChecksum(counts: Record<string, number>, claimed: Record<str
 }
 
 export function loadMissionProgress(): MissionProgressState {
+  // 실제 서비스: 진행도는 서버가 올리고 화면은 읽기만 한다
+  if (!IS_DEV_MOCK) {
+    const a = getAccount()
+    return { counts: a.counts, claimed: a.claimed, lastDailyDate: a.day, lastWeeklyId: a.week, checksum: '' }
+  }
   const today = getTodayString()
   const weekId = getWeekId()
 
@@ -183,6 +190,8 @@ export function saveMissionProgress(state: MissionProgressState): void {
 
 // 미션 진행도 기록 (외부 활동에서 호출)
 export function recordMissionAction(missionId: string, countDelta: number = 1): void {
+  // 실제 서비스에서는 서버가 훈련·대전·타워·투표 기록을 보고 직접 올린다
+  if (!IS_DEV_MOCK) return
   try {
     const state = loadMissionProgress()
     const current = state.counts[missionId] ?? 0
@@ -194,10 +203,19 @@ export function recordMissionAction(missionId: string, countDelta: number = 1): 
 }
 
 // 미션 보상 수령
-export function claimMissionReward(
+export async function claimMissionReward(
   missionId: string,
-  onRewardGranted: (coins: number, ribbons: number) => void,
-): { success: boolean; message: string } {
+  // dev: 받은 보상 (코인, 리본) / 실제 서비스: 서버가 알려 준 코인 총액(absoluteCoins)
+  onRewardGranted: (coins: number, ribbons: number, absoluteCoins?: number) => void,
+): Promise<{ success: boolean; message: string }> {
+  if (!IS_DEV_MOCK) {
+    const res = await claimMission(missionId)
+    if (res.success) {
+      playDessertAsmr('sugar-crack', 3)
+      onRewardGranted(0, 0, res.coins)
+    }
+    return { success: res.success, message: res.message }
+  }
   const state = loadMissionProgress()
   const allMissions = [...DAILY_MISSIONS, ...WEEKLY_MISSIONS]
   const mission = allMissions.find((m) => m.id === missionId)

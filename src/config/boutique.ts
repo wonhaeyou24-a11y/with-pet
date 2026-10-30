@@ -3,6 +3,8 @@
 
 import type { DecoSlot } from '../monsters/Decorations'
 import type { DessertSoundKind } from '../lib/sound'
+import { IS_DEV_MOCK } from '../lib/devMode'
+import { buyItem, getAccount } from '../lib/shopApi'
 
 // 1. 특별 주화 (슈가 리본 코인 🎀) & 무결성 관리
 const RIBBON_STORAGE_KEY = 'withpet_ribbon_coins_secure_v1'
@@ -16,6 +18,8 @@ function getCheckSum(value: number): string {
 }
 
 export function getRibbonCoins(): number {
+  // 실제 서비스: 리본 코인은 서버가 기억하고 화면은 읽기만 한다
+  if (!IS_DEV_MOCK) return getAccount().ribbon
   try {
     const raw = localStorage.getItem(RIBBON_STORAGE_KEY)
     if (!raw) {
@@ -35,6 +39,7 @@ export function getRibbonCoins(): number {
 }
 
 export function setRibbonCoins(amount: number): void {
+  if (!IS_DEV_MOCK) return
   try {
     const safeAmount = Math.max(0, Math.floor(amount))
     const payload = {
@@ -49,6 +54,8 @@ export function setRibbonCoins(amount: number): void {
 }
 
 export function addRibbonCoins(amount: number, _reason?: string): number {
+  // 실제 서비스에서는 서버가 활동 기록에 맞춰 직접 올린다 (화면에서 올릴 수 없다)
+  if (!IS_DEV_MOCK) return getAccount().ribbon
   const current = getRibbonCoins()
   const next = current + amount
   setRibbonCoins(next)
@@ -56,6 +63,7 @@ export function addRibbonCoins(amount: number, _reason?: string): number {
 }
 
 export function spendRibbonCoins(amount: number): boolean {
+  if (!IS_DEV_MOCK) return false
   const current = getRibbonCoins()
   if (current < amount) return false
   setRibbonCoins(current - amount)
@@ -72,6 +80,7 @@ const DEFAULT_OWNED_ITEMS = [
 ]
 
 export function getOwnedBoutiqueItems(): Set<string> {
+  if (!IS_DEV_MOCK) return new Set([...DEFAULT_OWNED_ITEMS, ...getAccount().owned])
   try {
     const raw = localStorage.getItem(OWNED_ITEMS_KEY)
     if (!raw) {
@@ -87,6 +96,7 @@ export function getOwnedBoutiqueItems(): Set<string> {
 }
 
 export function saveOwnedBoutiqueItems(items: Set<string>): void {
+  if (!IS_DEV_MOCK) return
   try {
     localStorage.setItem(OWNED_ITEMS_KEY, JSON.stringify(Array.from(items)))
   } catch (err) {
@@ -94,7 +104,9 @@ export function saveOwnedBoutiqueItems(items: Set<string>): void {
   }
 }
 
-export function purchaseBoutiqueItem(itemId: string, price: number): { success: boolean; message: string } {
+export async function purchaseBoutiqueItem(itemId: string, price: number): Promise<{ success: boolean; message: string }> {
+  // 실제 서비스: 가격은 서버의 표로 정해지고 구매도 서버가 처리한다 (화면이 보낸 가격은 쓰지 않는다)
+  if (!IS_DEV_MOCK) return buyItem(itemId)
   const owned = getOwnedBoutiqueItems()
   if (owned.has(itemId)) {
     return { success: false, message: '이미 소유하고 있는 아이템입니다.' }

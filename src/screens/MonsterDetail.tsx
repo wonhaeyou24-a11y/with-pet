@@ -2,8 +2,10 @@
 // 1. 플레이팅 받침대·시럽 / 2. 9종 식감 ASMR 사운드보드 / 3. 15종 체형 몰딩 / 4. 2D 바디 페인팅 / 5. 만능 파츠·프로필을
 // 단 한 화면에서 스크롤 없이 탭 전환만으로 조작합니다.
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { getOwnedBoutiqueItems, getRibbonCoins } from '../config/boutique'
+import { useAccount, refreshAccount } from '../lib/shopApi'
+import { IS_DEV_MOCK } from '../lib/devMode'
 import { defaultDessertBase, SPECIES_INFO } from '../config/species'
 import { monsterLook, serverNow, type MonsterRow } from '../lib/api'
 import {
@@ -54,6 +56,11 @@ function daysTogether(hatchedAt: string) {
   return Math.max(1, Math.floor((serverNow() - Date.parse(hatchedAt)) / 86_400_000) + 1)
 }
 
+// 서버의 리본 코인·보유 아이템이 바뀌면 다시 그린다
+function useAccountRefresh() {
+  useAccount()
+}
+
 export default function MonsterDetail({
   monster,
   onBack,
@@ -63,9 +70,14 @@ export default function MonsterDetail({
   onBack: () => void
   onOpenBoutique?: () => void
 }) {
+  useAccountRefresh()
   const savedCustom = loadMallangCustom(monster.id)
 
   const [studioTab, setStudioTab] = useState<StudioTab>('dessert')
+  // 실제 서비스: 열 때 서버의 최신 보유 아이템을 받아 온다
+  useEffect(() => {
+    if (!IS_DEV_MOCK) void refreshAccount()
+  }, [])
   const [morphForm, setMorphForm] = useState<MorphFormId>(
     savedCustom?.morphForm ?? (monster.species as MorphFormId) ?? 'mochi',
   )

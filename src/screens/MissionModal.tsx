@@ -1,7 +1,7 @@
 // 📜 파티세리 일일 & 주간 미션 모달
 // 100dvh 모바일 최적화, 무스크롤 덱 구조, Zero-Crash 무결성
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   claimMissionReward,
   DAILY_MISSIONS,
@@ -11,25 +11,36 @@ import {
   type MissionProgressState,
 } from '../config/missions'
 import { playDessertAsmr } from '../lib/sound'
+import { refreshAccount } from '../lib/shopApi'
+import { IS_DEV_MOCK } from '../lib/devMode'
 
 interface Props {
   onRewardCoins: (amount: number) => void
+  // 실제 서비스: 서버가 알려 준 코인 총액
+  onSetCoins?: (coins: number) => void
   onClose: () => void
 }
 
-export default function MissionModal({ onRewardCoins, onClose }: Props) {
+export default function MissionModal({ onRewardCoins, onSetCoins, onClose }: Props) {
   const [tab, setTab] = useState<'daily' | 'weekly'>('daily')
   const [progress, setProgress] = useState<MissionProgressState>(() => loadMissionProgress())
   const [toast, setToast] = useState<string | null>(null)
+
+  // 실제 서비스: 열 때마다 서버의 최신 진행도를 받아 온다
+  useEffect(() => {
+    if (IS_DEV_MOCK) return
+    void refreshAccount().then(() => setProgress(loadMissionProgress()))
+  }, [])
 
   const showToast = (msg: string) => {
     setToast(msg)
     window.setTimeout(() => setToast(null), 3000)
   }
 
-  const handleClaim = (mission: MissionDef) => {
-    const res = claimMissionReward(mission.id, (coins) => {
-      onRewardCoins(coins)
+  const handleClaim = async (mission: MissionDef) => {
+    const res = await claimMissionReward(mission.id, (coins, _ribbons, absoluteCoins) => {
+      if (absoluteCoins !== undefined) onSetCoins?.(absoluteCoins)
+      else onRewardCoins(coins)
     })
 
     if (res.success) {

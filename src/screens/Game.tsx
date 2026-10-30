@@ -16,6 +16,7 @@ import EvolutionRevealScreen from './EvolutionReveal'
 import HatchReveal from './HatchReveal'
 import MonsterDetail from './MonsterDetail'
 import ServerBattle from './ServerBattle'
+import { refreshAccount } from '../lib/shopApi'
 import { isRealMonsterId } from '../lib/battleApi'
 import MonsterHome from './MonsterHome'
 import MyRoomScreen from './MyRoomScreen'
@@ -103,6 +104,17 @@ export default function Game({ player }: { player: Player }) {
   const earnLocalCoins = (delta: number) => {
     if (IS_DEV_MOCK) setCoins((c) => c + delta)
   }
+
+  // 실제 서비스: 서버에서 받은 코인 총액을 반영하고, 함께 바뀌었을 리본 코인·미션 진행도 새로 받아 온다
+  const setCoinsFromServer = (next: number) => {
+    setCoins(next)
+    if (!IS_DEV_MOCK) void refreshAccount()
+  }
+
+  // 실제 서비스: 로그인하면 리본 코인·보유 아이템·미션 진행을 서버에서 받아 온다
+  useEffect(() => {
+    if (!IS_DEV_MOCK) void refreshAccount()
+  }, [])
 
   async function care(action: 'pet' | 'warm') {
     if (!egg || busy) return
@@ -206,6 +218,7 @@ export default function Game({ player }: { player: Player }) {
         return next
       })
       setCoins(nextCoins)
+      if (!IS_DEV_MOCK) void refreshAccount() // 훈련·돌보기·타워로 생긴 리본 코인·미션 진행 반영
       // 가방 정보 없이 호출되는 경우(타워 보상 등)에는 기존 가방을 그대로 둔다
       setFoodBag((cur) => (Object.keys(nextBag).length > 0 ? nextBag : cur))
     }
@@ -277,7 +290,7 @@ export default function Game({ player }: { player: Player }) {
           myNickname={player.nickname}
           coins={coins}
           onEarnCoins={earnLocalCoins}
-          onCoins={setCoins}
+          onCoins={setCoinsFromServer}
           onChallenge={(friend) => {
             setBattleTarget(friend)
             setSubView('battle')
@@ -295,7 +308,7 @@ export default function Game({ player }: { player: Player }) {
             challenger={monster}
             defender={battleTarget.monster}
             defenderOwnerName={battleTarget.ownerNickname}
-            onCoins={setCoins}
+            onCoins={setCoinsFromServer}
             onBack={() => setSubView('plaza')}
           />
         )
@@ -359,6 +372,7 @@ export default function Game({ player }: { player: Player }) {
         onOpenMyRoom={() => setSubView('myroom')}
         onOpenBoutique={() => setSubView('boutique')}
         onRewardCoins={earnLocalCoins}
+        onCoins={setCoinsFromServer}
         onResetTestEgg={
           IS_DEV_MOCK
             ? () => {
