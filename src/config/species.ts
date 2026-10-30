@@ -13,9 +13,9 @@ export const SPECIES_INFO: Record<
     defaultBase: 'choco-cookie',
   },
   'wax-ball': {
-    name: '톡톡왁싱볼',
-    desc: '얇은 파스텔 밀랍 왁스 캡슐을 깨물면 진한 과일 시럽이 쭈욱 터져 나오는 ASMR 인기 캐릭터',
-    textureLabel: '🫧 톡! 파삭 과즙팡 왁싱볼',
+    name: '왁뿌볼',
+    desc: '단단한 왁스 껍질을 꾹 누르면 아-그-작 깨지고, 속의 말랑한 점액이 쭈욱 새어 나오는 ASMR 인기 캐릭터',
+    textureLabel: '🫧 아그작! 왁뿌볼 껍질 & 말랑 속',
     defaultBase: 'parfait-cup',
   },
   tanghulu: {

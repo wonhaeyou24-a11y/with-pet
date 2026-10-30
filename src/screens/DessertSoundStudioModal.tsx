@@ -33,9 +33,9 @@ const SOUND_STUDIO_ITEMS: SoundCardItem[] = [
   },
   {
     speciesId: 'wax-ball',
-    speciesName: '톡톡왁싱볼',
+    speciesName: '왁뿌볼',
     soundKind: 'wax-pop',
-    textureLabel: '🫧 톡! 파삭 과즙팡 왁싱볼',
+    textureLabel: '🫧 아그작! 왁뿌볼 껍질 & 말랑 속',
     category: 'crispy',
   },
   {
@@ -129,7 +129,23 @@ const SOUND_STUDIO_ITEMS: SoundCardItem[] = [
     textureLabel: '🦎 뽀요용~ 만능 모찌 반죽',
     category: 'chewy',
   },
+  {
+    speciesId: 'choco-cookie-base',
+    speciesName: '초코 쿠키 받침대',
+    soundKind: 'cookie-crisp',
+    textureLabel: '🍪 오독-오독 버터 쿠키 세 입',
+    category: 'crispy',
+  },
+  {
+    speciesId: 'topping-syrup',
+    speciesName: '시럽 & 스프링클 토핑',
+    soundKind: 'syrup-drizzle',
+    textureLabel: '🌈 졸졸 시럽 & 통통 스프링클',
+    category: 'chewy',
+  },
 ]
+
+const countOf = (category: SensoryCategory) => SOUND_STUDIO_ITEMS.filter((item) => item.category === category).length
 
 export default function DessertSoundStudioModal({ onClose }: Props) {
   const [filter, setFilter] = useState<string>('all')
@@ -212,7 +228,7 @@ export default function DessertSoundStudioModal({ onClose }: Props) {
                 디저트 펫 ASMR 사운드 스튜디오
               </div>
               <div style={{ fontSize: 10, fontWeight: 800, color: '#E65100', marginTop: 1 }}>
-                15종 전 종족 리얼 식감 폴라(Foley) 청음실
+                {SOUND_STUDIO_ITEMS.length}종 디저트 식감 ASMR 청음실
               </div>
             </div>
           </div>
@@ -249,11 +265,11 @@ export default function DessertSoundStudioModal({ onClose }: Props) {
           }}
         >
           {[
-            { id: 'all', label: '전체 (15종)' },
-            { id: 'crispy', label: '바삭 크런치 (7종)' },
-            { id: 'chewy', label: '쫀득 말랑 (2종)' },
-            { id: 'jiggly', label: '탱글 출렁 (2종)' },
-            { id: 'melty', label: '사르르 멜팅 (4종)' },
+            { id: 'all', label: `전체 (${SOUND_STUDIO_ITEMS.length}종)` },
+            { id: 'crispy', label: `바삭 크런치 (${countOf('crispy')}종)` },
+            { id: 'chewy', label: `쫀득 말랑 (${countOf('chewy')}종)` },
+            { id: 'jiggly', label: `탱글 출렁 (${countOf('jiggly')}종)` },
+            { id: 'melty', label: `사르르 멜팅 (${countOf('melty')}종)` },
           ].map((tab) => {
             const isSel = filter === tab.id
             return (

@@ -1644,10 +1644,10 @@ export function WaxBallArt({ look, uid }: ArtProps & { look: MonsterLook & { mal
 
 export const waxBall: SpeciesDef = {
   id: 'wax-ball',
-  name: '톡톡왁싱볼',
+  name: '왁뿌볼',
   element: 'water',
-  postureLabel: '자세 W · 톡! 파삭 과즙팡 왁싱볼',
-  silhouetteDesc: '얇은 파스텔 밀랍 왁스 캡슐 속에 진한 과일 시럽이 찰랑이는 왁싱볼 요정',
+  postureLabel: '자세 W · 아그작! 왁뿌볼',
+  silhouetteDesc: '파스텔 왁스 껍질 속에 말랑한 점액이 찰랑이는 왁뿌볼 요정',
   paletteCount: WAX_COLORS.length,
   partCounts: { ears: 4, tail: 4, top: 4 },
   Art: WaxBallArt,
