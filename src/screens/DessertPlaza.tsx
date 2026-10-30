@@ -632,25 +632,25 @@ export default function DessertPlaza({
         </div>
 
         <div className="row" style={{ gap: 6 }}>
-          {/* 계절/이벤트 테마 변경 버튼 */}
-          <button
-            onClick={() => setShowThemeModal(true)}
+          {/* 🍁 현실 사계절 및 이벤트 자동 동기화 뱃지 (지인/방문자는 선택창이 보이지 않고 계절 뱃지만 표시) */}
+          <div
             style={{
-              padding: '4px 8px',
+              padding: '4px 9px',
               borderRadius: 10,
               border: '1.5px solid #FFB74D',
               background: '#FFF8E1',
               color: '#E65100',
               fontSize: 11,
               fontWeight: 900,
-              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: 3,
+              userSelect: 'none',
             }}
+            title="실제 현실 계절 및 기념일 일정에 맞춰 자동으로 광장 테마가 변화합니다"
           >
-            {themeObj.seasonLabel} ▾
-          </button>
+            <span>{themeObj.seasonLabel}</span>
+          </div>
 
           <span className="chip honey" style={{ fontWeight: 800, fontSize: 11, padding: '4px 8px' }}>
             🪙 {coins}

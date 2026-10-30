@@ -466,6 +466,17 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
       }}
     >
       <style>{`
+        /* 쫀득한 버튼 및 카드 터치 눌림 효과 */
+        .active-bounce {
+          transition: transform 0.08s ease, filter 0.08s ease, box-shadow 0.08s ease !important;
+          will-change: transform;
+        }
+        .active-bounce:active:not(:disabled) {
+          transform: scale(0.96) translateY(2px) !important;
+          filter: brightness(0.92) !important;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
+        }
+
         @keyframes crunchPound {
           0%, 100% { transform: translateY(0) scale(1, 1); }
           40% { transform: translateY(-16px) scale(0.92, 1.08); }

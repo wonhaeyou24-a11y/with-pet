@@ -138,7 +138,7 @@ export default function Login() {
   return (
     <main className="screen center">
       <div className="center-text">
-        <EggArt rarity="common" mood="sleep" size={130} />
+        <EggArt rarity="common" mood={busy ? "happy" : "sleep"} size={130} rainbowLoading={busy} />
       </div>
       <div className="stack" style={{ gap: 6 }}>
         <h1 className="title-xl">

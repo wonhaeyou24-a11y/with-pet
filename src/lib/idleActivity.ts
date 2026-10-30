@@ -72,6 +72,11 @@ export function sendIdleNotification(title: string, body: string, icon = '/icons
     if (typeof window === 'undefined') return
     if (!('Notification' in window) || Notification.permission !== 'granted') return
 
+    // 🛡️ [규칙]: 알림은 앱을 나가 있거나 꺼져 있을 때만 발송 (게임 중에는 모바일 알림 생략)
+    if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+      return
+    }
+
     const options = {
       body,
       icon,

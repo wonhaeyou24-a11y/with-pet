@@ -57,20 +57,54 @@ function Shell({ rarity, clip }: { rarity: Rarity; clip: string }) {
   )
 }
 
-export function EggArt({ rarity = 'common', mood = 'sleep', size = 200, fluid = false }: { rarity?: Rarity; mood?: Mood; size?: number; fluid?: boolean }) {
+export function EggArt({ rarity = 'common', mood = 'sleep', size = 200, fluid = false, rainbowLoading = false }: { rarity?: Rarity; mood?: Mood; size?: number; fluid?: boolean; rainbowLoading?: boolean }) {
   const uid = useId().replace(/:/g, '')
   const clip = `${uid}-egg`
   // fluid: 화면 높이에 맞춰 크기가 줄어든다 (한 화면에 들어오게)
   const sizing = fluid ? {} : { width: size, height: (size * 240) / 200 }
   return (
-    <svg viewBox="0 0 200 240" role="img" aria-label={`${rarity} egg`} style={{ overflow: 'visible', ...sizing }}>
+    <svg viewBox="0 0 200 240" role="img" aria-label={`${rarity} egg`} style={{ overflow: 'visible', ...sizing, ...(rainbowLoading ? { animation: 'eggRainbowDance 2s ease-in-out infinite' } : {}) }}>
       <defs>
         <clipPath id={clip}>
           <path d={EGG_D} />
         </clipPath>
+        <linearGradient id={`${clip}-rainbow`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#FF8A80">
+            <animate attributeName="stop-color" values="#FF8A80;#FFD180;#FFFF8D;#B9F6CA;#80D8FF;#EA80FC;#FF8A80" dur="3s" repeatCount="indefinite" />
+          </stop>
+          <stop offset="25%" stopColor="#FFD180">
+            <animate attributeName="stop-color" values="#FFD180;#FFFF8D;#B9F6CA;#80D8FF;#EA80FC;#FF8A80;#FFD180" dur="3s" repeatCount="indefinite" />
+          </stop>
+          <stop offset="50%" stopColor="#FFFF8D">
+            <animate attributeName="stop-color" values="#FFFF8D;#B9F6CA;#80D8FF;#EA80FC;#FF8A80;#FFD180;#FFFF8D" dur="3s" repeatCount="indefinite" />
+          </stop>
+          <stop offset="75%" stopColor="#B9F6CA">
+            <animate attributeName="stop-color" values="#B9F6CA;#80D8FF;#EA80FC;#FF8A80;#FFD180;#FFFF8D;#B9F6CA" dur="3s" repeatCount="indefinite" />
+          </stop>
+          <stop offset="100%" stopColor="#80D8FF">
+            <animate attributeName="stop-color" values="#80D8FF;#EA80FC;#FF8A80;#FFD180;#FFFF8D;#B9F6CA;#80D8FF" dur="3s" repeatCount="indefinite" />
+          </stop>
+        </linearGradient>
       </defs>
       <ellipse cx="100" cy="226" rx="62" ry="9" fill="rgba(89,62,34,0.14)" />
       <Shell rarity={rarity} clip={clip} />
+      {rainbowLoading && (
+        <g clipPath={`url(#${clip})`}>
+          <rect
+            x="0"
+            y="0"
+            width="200"
+            height="240"
+            fill={`url(#${clip}-rainbow)`}
+            opacity="0.85"
+            style={{ mixBlendMode: 'color' }}
+          />
+          <circle cx="100" cy="120" r="80" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="8" opacity="0.5">
+            <animate attributeName="r" values="20;90" dur="1.8s" repeatCount="indefinite" />
+            <animate attributeName="opacity" values="0.8;0" dur="1.8s" repeatCount="indefinite" />
+          </circle>
+        </g>
+      )}
       <ellipse cx="74" cy="64" rx="14" ry="22" transform="rotate(24 74 64)" fill="#fff" opacity="0.32" clipPath={`url(#${clip})`} />
       <path d={EGG_D} fill="none" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
 

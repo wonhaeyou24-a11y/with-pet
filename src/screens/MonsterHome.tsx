@@ -12,6 +12,7 @@ import {
   getActiveTrainingSession,
   requestNotificationPermission,
   scheduleAutoIdleNotifications,
+  sendIdleNotification,
   scheduleTestIdleNotification,
   type PetAutonomousSuggestion,
   type TowerExpeditionSession,
@@ -257,6 +258,11 @@ export default function MonsterHome({
       )
       if (sug && !suggestion) {
         setSuggestion(sug)
+        // 🔔 펫이 자율 의견을 제시할 때 백그라운드 시스템 알림 연동 (앱이 꺼져있을 때 수신)
+        sendIdleNotification(
+          `💭 [${monster.name || '디저트'}] 펫의 속삭임`,
+          sug.message || sug.balloon || '주인님! 디저트 펫이 새로운 활동을 하고 싶어해요!'
+        )
       }
     }, 2000)
 

@@ -1,3 +1,4 @@
+import { EggArt } from '../ui/EggArt'
 // 개발용 화면 갤러리 (주소 끝에 #/dev/screens). 가짜 데이터로 모든 화면을 확인한다. 운영 빌드에는 들어가지 않는다.
 import { useEffect, useState, type ReactNode } from 'react'
 import type { EggRow, MonsterRow } from '../lib/api'
@@ -163,6 +164,15 @@ const SCREENS: Record<string, () => ReactNode> = {
   ),
   '디저트 도감(M4)': () => <DessertPokedexScreen onBack={noop} />,
   '몬스터 상세': () => <MonsterDetail monster={{ ...shiny, name: '두바이쫀득' }} onBack={noop} />,
+  '알 부화 및 무지개 충전': () => (
+    <div style={{ padding: 30, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 24, height: '100%', background: '#FFFDF9' }}>
+      <div style={{ textAlign: 'center' }}>
+        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: '#3E2723' }}>🌈 로그인 무지개 충전 알</h2>
+        <p style={{ margin: '4px 0 0', fontSize: 12, color: '#8D6E63' }}>로그인 및 인증 중 알이 생동감 있게 물들며 춤을 춥니다.</p>
+      </div>
+      <EggArt rarity="common" mood="happy" size={180} rainbowLoading={true} />
+    </div>
+  ),
   '파티세리 부티크': () => (
     <BoutiqueShop
       monster={{ ...shiny, name: '두바이쫀득' }}
