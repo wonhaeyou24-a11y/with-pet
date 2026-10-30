@@ -250,11 +250,14 @@ export default function MonsterHome({
       className="screen"
       style={{
         justifyContent: 'space-between',
+        width: '100%',
+        minWidth: '100%',
         height: '100dvh',
         maxHeight: '100dvh',
         overflow: 'hidden',
         padding: '12px 14px calc(12px + env(safe-area-inset-bottom, 0px))',
         gap: 6,
+        background: '#FAF6EE',
       }}
     >
       {/* 1. 심플 & 임팩트 상단 스마트 HUD (코인·리본·미션·알림·메뉴) */}

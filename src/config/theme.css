@@ -80,9 +80,9 @@ body {
 
 body {
   background-color: var(--bg);
-  background-image: radial-gradient(rgba(186, 142, 75, 0.16) 1.4px, transparent 1.6px), linear-gradient(180deg, var(--bg-soft), var(--bg));
-  background-size: 24px 24px, 100% 100%;
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  background-image: none;
+  margin: 0;
+  padding: 0;
 }
 
 #root {

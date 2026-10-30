@@ -196,7 +196,7 @@ export default function ScreenGallery() {
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
   return (
-    <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+    <div style={{ width: '100%', minHeight: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
       <select
         aria-label="화면 전환"
         value={name}
@@ -220,7 +220,7 @@ export default function ScreenGallery() {
           </option>
         ))}
       </select>
-      <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }} key={name}>
+      <div style={{ width: '100%', minHeight: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'stretch' }} key={name}>
         {SCREENS[name]?.()}
       </div>
     </div>

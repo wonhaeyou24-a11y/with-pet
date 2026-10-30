@@ -349,6 +349,8 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
       style={{
         display: 'flex',
         flexDirection: 'column',
+        width: '100%',
+        minWidth: '100%',
         height: '100dvh',
         maxHeight: '100dvh',
         background: '#FFF5F7',
@@ -356,6 +358,7 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
         overflow: 'hidden',
         userSelect: 'none',
         position: 'relative',
+        boxSizing: 'border-box',
       }}
     >
       {/* 1. 상단 미니홈피 헤더바 */}
