@@ -1,11 +1,12 @@
 // M3 화면 2: ⚔️🎧 리얼 액션 턴제 식감 ASMR 대전 아레나 (원스크린 100dvh 레이아웃)
-// 두 3D 디저트 몬스터가 속도와 AI 성향에 따라 돌진 타격, 점프 회피(MISS), 슈가 가드(BLOCK),
-// 치명타(CRITICAL) 등 다양한 리얼 액션을 주고받으며, 관전 중 실시간 터치 응원 손맛을 즐깁니다.
+// - 상태바를 상단 헤더 뒤쪽으로 슬림하게 배치하여 3D 몬스터 모션 공간을 극대화했습니다.
+// - 글 설명 대신 펫 주변에 플로팅 대미지/힐/치명타/회피 텍스트가 솟아오르며 스르륵 사라지는 직관적 RPG 방식을 적용했습니다.
+// - 하단 공간을 심플하고 직관적인 컨트롤 위주로 정돈하여 화면 밖 잘림을 100% 방지했습니다.
 
 import { useEffect, useMemo, useState } from 'react'
 import { addRibbonCoins } from '../config/boutique'
 import { recordMissionAction } from '../config/missions'
-import { ELEMENT_INFO, SPECIES_INFO } from '../config/species'
+import { SPECIES_INFO } from '../config/species'
 import { monsterLook, type MonsterRow } from '../lib/api'
 import { simulateAsmrBattle } from '../lib/battleEngine'
 import { playDessertAsmr } from '../lib/sound'
@@ -148,84 +149,232 @@ export default function AsmrBattleArena({
   const isChallengerActor = currentTurn?.actor === 'challenger'
   const isDefenderActor = currentTurn?.actor === 'defender'
 
-  let cTransform = 'none'
-  let dTransform = 'none'
+  let cTransform = 'translateX(0) translateY(0) scale(1)'
+  let dTransform = 'translateX(0) translateY(0) scale(1)'
 
-  if (actionPhase === 'strike' || actionPhase === 'reaction') {
+  if (actionPhase === 'windup') {
+    if (isChallengerActor) cTransform = 'translateX(-8px) scale(0.96)'
+    if (isDefenderActor) dTransform = 'translateX(8px) scale(0.96)'
+  } else if (actionPhase === 'strike') {
     if (isChallengerActor) {
-      // 내 몬스터 공격 중
-      if (currentTurn?.motion === 'jump') cTransform = 'translate(24px, -18px) scale(1.12)'
-      else if (currentTurn?.motion === 'rush') cTransform = 'translateX(28px) scale(1.08)'
-      else cTransform = 'scale(1.06)'
-
-      // 상대방 반응
-      if (currentTurn?.targetReaction === 'dodge') dTransform = 'translate(10px, -24px)'
-      else if (currentTurn?.targetReaction === 'block') dTransform = 'scale(0.92)'
-      else if (currentTurn?.targetReaction === 'hit') dTransform = 'translateX(18px) scale(0.94)'
-    } else if (isDefenderActor) {
-      // 상대 몬스터 공격 중
-      if (currentTurn?.motion === 'jump') dTransform = 'translate(-24px, -18px) scale(1.12)'
-      else if (currentTurn?.motion === 'rush') dTransform = 'translateX(-28px) scale(1.08)'
-      else dTransform = 'scale(1.06)'
-
-      // 내 몬스터 반응
-      if (currentTurn?.targetReaction === 'dodge') cTransform = 'translate(-10px, -24px)'
-      else if (currentTurn?.targetReaction === 'block') cTransform = 'scale(0.92)'
-      else if (currentTurn?.targetReaction === 'hit') cTransform = 'translateX(-18px) scale(0.94)'
+      cTransform = 'translateX(58px) scale(1.18)'
+    }
+    if (isDefenderActor) {
+      dTransform = 'translateX(-58px) scale(1.18)'
+    }
+  } else if (actionPhase === 'reaction') {
+    if (isChallengerActor) {
+      if (currentTurn?.isDodge) dTransform = 'translateY(-30px) scale(1.05)'
+      else if (currentTurn?.isBlock) dTransform = 'translateX(12px) scale(0.92)'
+      else dTransform = 'translateX(26px) rotate(8deg)'
+    }
+    if (isDefenderActor) {
+      if (currentTurn?.isDodge) cTransform = 'translateY(-30px) scale(1.05)'
+      else if (currentTurn?.isBlock) cTransform = 'translateX(-12px) scale(0.92)'
+      else cTransform = 'translateX(-26px) rotate(-8deg)'
     }
   }
 
   const cHitReaction =
-    currentTurn && currentTurn.actor === 'defender' && currentTurn.targetReaction === 'hit'
-      ? getSensoryReactionClass(currentTurn.asmr)
+    actionPhase === 'reaction' && isDefenderActor && !currentTurn?.isDodge && !currentTurn?.isBlock
+      ? getSensoryReactionClass(currentTurn?.asmr ?? 'sugar-crack')
       : ''
   const dHitReaction =
-    currentTurn && currentTurn.actor === 'challenger' && currentTurn.targetReaction === 'hit'
-      ? getSensoryReactionClass(currentTurn.asmr)
+    actionPhase === 'reaction' && isChallengerActor && !currentTurn?.isDodge && !currentTurn?.isBlock
+      ? getSensoryReactionClass(currentTurn?.asmr ?? 'sugar-crack')
       : ''
 
-  const visibleLogs = sim.turns.slice(Math.max(0, stepIdx - 3), Math.max(1, stepIdx))
+  // 턴마다 등장하는 플로팅 전투 텍스트 데이터 산출
+  const challengerFloating = useMemo(() => {
+    if (!currentTurn) return null
+    // 내가 피격당했을 때
+    if (currentTurn.actor === 'defender') {
+      if (currentTurn.isDodge) return { type: 'dodge', text: '💨 MISS!', sub: '회피 성공' }
+      if (currentTurn.isBlock) return { type: 'block', text: `🛡️ GUARD! -${currentTurn.damage}`, sub: '가드 방어' }
+      if (currentTurn.isCrit) return { type: 'crit', text: `💥 -${currentTurn.damage}`, sub: '치명타 (CRITICAL)!' }
+      if (currentTurn.damage > 0) return { type: 'dmg', text: `-${currentTurn.damage}` }
+    }
+    // 내가 공격자이면서 회복/스킬 시전했을 때
+    if (currentTurn.actor === 'challenger') {
+      if (currentTurn.heal > 0) return { type: 'heal', text: `+${currentTurn.heal} 💖`, sub: '체력 회복' }
+      if (currentTurn.shield > 0) return { type: 'shield', text: `+${currentTurn.shield} 🛡️`, sub: '보호막 생성' }
+      return { type: 'skill', text: `${currentTurn.skillIcon} ${currentTurn.skillName}` }
+    }
+    return null
+  }, [currentTurn, stepIdx])
+
+  const defenderFloating = useMemo(() => {
+    if (!currentTurn) return null
+    // 상대가 피격당했을 때
+    if (currentTurn.actor === 'challenger') {
+      if (currentTurn.isDodge) return { type: 'dodge', text: '💨 MISS!', sub: '회피 성공' }
+      if (currentTurn.isBlock) return { type: 'block', text: `🛡️ GUARD! -${currentTurn.damage}`, sub: '가드 방어' }
+      if (currentTurn.isCrit) return { type: 'crit', text: `💥 -${currentTurn.damage}`, sub: '치명타 (CRITICAL)!' }
+      if (currentTurn.damage > 0) return { type: 'dmg', text: `-${currentTurn.damage}` }
+    }
+    // 상대가 공격자이면서 회복/스킬 시전했을 때
+    if (currentTurn.actor === 'defender') {
+      if (currentTurn.heal > 0) return { type: 'heal', text: `+${currentTurn.heal} 💖`, sub: '체력 회복' }
+      if (currentTurn.shield > 0) return { type: 'shield', text: `+${currentTurn.shield} 🛡️`, sub: '보호막 생성' }
+      return { type: 'skill', text: `${currentTurn.skillIcon} ${currentTurn.skillName}` }
+    }
+    return null
+  }, [currentTurn, stepIdx])
 
   return (
     <main
       className="screen"
       style={{
-        justifyContent: 'space-between',
+        padding: '8px 12px calc(8px + env(safe-area-inset-bottom, 0px))',
+        gap: 6,
+        background: '#FAF6EE',
         height: '100dvh',
         maxHeight: '100dvh',
         overflow: 'hidden',
-        padding: '10px 12px calc(12px + env(safe-area-inset-bottom, 0px))',
-        gap: 6,
+        boxSizing: 'border-box',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
       }}
     >
+      <style>{`
+        @keyframes floatCombatNum {
+          0% {
+            opacity: 0;
+            transform: translateY(14px) scale(0.75);
+          }
+          18% {
+            opacity: 1;
+            transform: translateY(-8px) scale(1.15);
+          }
+          75% {
+            opacity: 0.95;
+            transform: translateY(-26px) scale(1);
+          }
+          100% {
+            opacity: 0;
+            transform: translateY(-48px) scale(0.9);
+          }
+        }
+        @keyframes pulseGlow {
+          0%, 100% { transform: scale(1); opacity: 0.85; }
+          50% { transform: scale(1.08); opacity: 1; }
+        }
+      `}</style>
+
       {/* 상단 헤더 */}
       <div className="row between" style={{ flexShrink: 0 }}>
-        <button className="btn-round" onClick={onBack} aria-label="뒤로">
+        <button className="btn-round" onClick={onBack} aria-label="뒤로" style={{ width: 34, height: 34 }}>
           <BackIcon />
         </button>
-        <h1 className="title" style={{ fontSize: 16 }}>⚔️ 실시간 턴제 식감 대전</h1>
-        <span className="chip" style={{ fontSize: 11, fontWeight: 800 }}>
-          시드 #{seed}
+        <h1 className="title" style={{ fontSize: 15, margin: 0 }}>⚔️ 실시간 턴제 식감 대전</h1>
+        <span className="chip" style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px' }}>
+          #{seed}
         </span>
       </div>
 
-      {/* 대전 아레나 실시간 3D 스테이지 카드 */}
+      {/* 🛡️ 상단 뒤쪽 배치: 슬림 통합 대전 상태바 (HUD) */}
+      <div
+        style={{
+          width: '100%',
+          background: '#FFFDF9',
+          borderRadius: 14,
+          border: '1.5px solid #F0DFB8',
+          padding: '6px 10px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+          flexShrink: 0,
+        }}
+      >
+        {/* 왼쪽: 내 펫 정보 & 체력 게이지 */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <div className="row between" style={{ fontSize: 11, fontWeight: 900 }}>
+            <span style={{ color: '#3B2F2F', display: 'flex', alignItems: 'center', gap: 3, maxWidth: 95, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <ElementIcon element={challenger.element} size={12} />
+              {challenger.name || cInfo?.name}
+            </span>
+            <span style={{ color: '#D84315', fontSize: 10 }}>나 · Lv.{challenger.level}</span>
+          </div>
+          <div style={{ height: 7, borderRadius: 999, background: '#F5E8C9', overflow: 'hidden' }}>
+            <div
+              style={{
+                width: `${cPct}%`,
+                height: '100%',
+                borderRadius: 999,
+                background: cPct > 30 ? 'linear-gradient(90deg, #66BB6A, #43A047)' : '#E53935',
+                transition: 'width 0.3s ease',
+              }}
+            />
+          </div>
+          <div style={{ fontSize: 9, fontWeight: 800, color: '#7A6A60', textAlign: 'right' }}>
+            {cHp}/{sim.challengerMaxHp}
+          </div>
+        </div>
+
+        {/* 중앙: VS 엠블럼 */}
+        <div
+          style={{
+            padding: '3px 7px',
+            borderRadius: 999,
+            background: 'linear-gradient(135deg, #FF7043, #D84315)',
+            color: '#FFFFFF',
+            fontSize: 10,
+            fontWeight: 900,
+            letterSpacing: '0.5px',
+            boxShadow: '0 2px 5px rgba(216,67,21,0.25)',
+            flexShrink: 0,
+          }}
+        >
+          VS
+        </div>
+
+        {/* 오른쪽: 상대 펫 정보 & 체력 게이지 */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <div className="row between" style={{ fontSize: 11, fontWeight: 900 }}>
+            <span style={{ color: '#E65100', fontSize: 10 }}>Lv.{defender.level} · {defenderOwnerName}</span>
+            <span style={{ color: '#3B2F2F', display: 'flex', alignItems: 'center', gap: 3, maxWidth: 85, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {defender.name || dInfo?.name}
+              <ElementIcon element={defender.element} size={12} />
+            </span>
+          </div>
+          <div style={{ height: 7, borderRadius: 999, background: '#F5E8C9', overflow: 'hidden' }}>
+            <div
+              style={{
+                width: `${dPct}%`,
+                height: '100%',
+                borderRadius: 999,
+                background: dPct > 30 ? 'linear-gradient(90deg, #FFA726, #FB8C00)' : '#E53935',
+                transition: 'width 0.3s ease',
+                marginLeft: 'auto',
+              }}
+            />
+          </div>
+          <div style={{ fontSize: 9, fontWeight: 800, color: '#7A6A60', textAlign: 'left' }}>
+            {dHp}/{sim.defenderMaxHp}
+          </div>
+        </div>
+      </div>
+
+      {/* 🎮 3D 캐릭터 실시간 전투 액션 대치 스테이지 (글 상자 없이 펫 공간 극대화) */}
       <div
         className="card"
         style={{
-          background: 'linear-gradient(180deg, #FFF7EC 0%, #FFFFFF 100%)',
-          padding: '10px 12px',
-          gap: 6,
+          background: 'radial-gradient(ellipse at 50% 60%, #FFF9EC 0%, #FFF3E0 60%, #FFE0B2 100%)',
+          padding: '8px 10px',
           position: 'relative',
           overflow: 'hidden',
           flex: 1,
           minHeight: 0,
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'space-between',
+          justifyContent: 'center',
+          border: '1.5px solid #FFE082',
+          borderRadius: 16,
         }}
       >
-        {/* 현재 턴 ASMR 파편 & 의성어 버스트 */}
+        {/* 현재 턴 ASMR 파편 & 의성어 버스트 이펙트 */}
         {currentTurn && (
           <SensoryBurst
             kind={currentTurn.asmr}
@@ -235,42 +384,103 @@ export default function AsmrBattleArena({
           />
         )}
 
-        {/* 양측 체력 바 & 3D 캐릭터 실시간 대치 및 모션 액션 스테이지 */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 8, flex: 1, alignItems: 'center' }}>
-          {/* 내 디저트 몬스터 (왼쪽) */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-            <div style={{ width: '100%', padding: '5px 7px', borderRadius: 12, background: '#FFFDF9', border: '1.5px solid #F0DFB8' }}>
-              <div className="row between">
-                <span style={{ fontSize: 12, fontWeight: 900, color: '#3B2F2F' }}>
-                  {challenger.name || cInfo?.name}
-                </span>
-                <span className="chip coral" style={{ fontSize: 11, padding: '1px 5px' }}>
-                  나 · Lv.{challenger.level}
-                </span>
-              </div>
-              <div className="row between" style={{ marginTop: 2, marginBottom: 2 }}>
-                <span style={{ fontSize: 11, color: '#7A6A60', display: 'flex', alignItems: 'center', gap: 3 }}>
-                  <ElementIcon element={challenger.element} size={13} />
-                  {ELEMENT_INFO[challenger.element].label}
-                </span>
-                <span style={{ fontSize: 12, fontWeight: 800, color: '#3B2F2F' }}>
-                  {cHp}/{sim.challengerMaxHp}
-                </span>
-              </div>
-              <div style={{ height: 7, borderRadius: 999, background: '#F5E8C9', overflow: 'hidden' }}>
+        {/* 3D 캐릭터 2인 대치 캔버스 & 플로팅 대미지/힐 텍스트 */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: 6,
+            width: '100%',
+            height: '100%',
+            alignItems: 'center',
+            position: 'relative',
+          }}
+        >
+          {/* [왼쪽] 내 디저트 몬스터 */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              position: 'relative',
+              height: '100%',
+              justifyContent: 'center',
+            }}
+          >
+            {/* 🌟 내 캐릭터 주변 플로팅 전투 텍스트 (Floating Combat Text) */}
+            {challengerFloating && (
+              <div
+                key={`c-float-${stepIdx}`}
+                style={{
+                  position: 'absolute',
+                  top: '10%',
+                  zIndex: 25,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  animation: 'floatCombatNum 1.25s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards',
+                  pointerEvents: 'none',
+                }}
+              >
+                {challengerFloating.sub && (
+                  <div
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 900,
+                      color: '#FFFFFF',
+                      background:
+                        challengerFloating.type === 'crit'
+                          ? '#D81B60'
+                          : challengerFloating.type === 'dodge'
+                            ? '#1E88E5'
+                            : challengerFloating.type === 'block'
+                              ? '#FB8C00'
+                              : '#43A047',
+                      padding: '2px 8px',
+                      borderRadius: 999,
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
+                      marginBottom: 2,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {challengerFloating.sub}
+                  </div>
+                )}
                 <div
                   style={{
-                    width: `${cPct}%`,
-                    height: '100%',
-                    borderRadius: 999,
-                    background: cPct > 30 ? '#4CAF6A' : '#D9534F',
-                    transition: 'width 0.3s ease',
+                    fontSize:
+                      challengerFloating.type === 'crit'
+                        ? 26
+                        : challengerFloating.type === 'skill'
+                          ? 13
+                          : 22,
+                    fontWeight: 900,
+                    color:
+                      challengerFloating.type === 'crit'
+                        ? '#FF1744'
+                        : challengerFloating.type === 'heal'
+                          ? '#00E676'
+                          : challengerFloating.type === 'dodge'
+                            ? '#29B6F6'
+                            : challengerFloating.type === 'block'
+                              ? '#FFA726'
+                              : challengerFloating.type === 'skill'
+                                ? '#5D4037'
+                                : '#FF5252',
+                    textShadow:
+                      challengerFloating.type === 'skill'
+                        ? '0 1px 3px rgba(255,255,255,0.9)'
+                        : '0 2px 8px rgba(0,0,0,0.45), 0 0 5px #FFFFFF',
+                    letterSpacing: '-0.5px',
+                    whiteSpace: 'nowrap',
                   }}
-                />
+                >
+                  {challengerFloating.text}
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* 3D 몬스터 뷰 & 실시간 물리 모션 트랜스폼 */}
+            {/* 3D 몬스터 뷰 & 물리 모션 트랜스폼 */}
             <div
               key={`c-${stepIdx}`}
               className={cHitReaction}
@@ -278,65 +488,110 @@ export default function AsmrBattleArena({
                 position: 'relative',
                 transform: cTransform,
                 transition: 'transform 0.28s cubic-bezier(0.18, 0.89, 0.32, 1.28)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
               }}
             >
-              {currentTurn?.actor === 'defender' && currentTurn.bannerText && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: -6,
-                    left: 4,
-                    zIndex: 10,
-                    padding: '2px 8px',
-                    borderRadius: 999,
-                    background: currentTurn.isDodge ? '#2196F3' : currentTurn.isBlock ? '#FF9800' : '#E91E63',
-                    color: '#FFFFFF',
-                    fontSize: 11,
-                    fontWeight: 900,
-                    animation: 'bounce 0.8s ease',
-                  }}
-                >
-                  {currentTurn.bannerText}
-                </div>
-              )}
-              <MonsterView look={cLook} size={92} title={challenger.name ?? cInfo?.name} />
+              <MonsterView look={cLook} size={120} title={challenger.name ?? cInfo?.name} />
+              {/* 발밑 타원형 접시 섀도우 */}
+              <div
+                style={{
+                  width: 86,
+                  height: 18,
+                  borderRadius: '50%',
+                  background: 'radial-gradient(ellipse, rgba(62,39,35,0.35) 0%, rgba(62,39,35,0.1) 60%, transparent 80%)',
+                  marginTop: -10,
+                }}
+              />
             </div>
           </div>
 
-          {/* 지인 디저트 몬스터 (오른쪽) */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-            <div style={{ width: '100%', padding: '5px 7px', borderRadius: 12, background: '#FFFDF9', border: '1.5px solid #F0DFB8' }}>
-              <div className="row between">
-                <span style={{ fontSize: 12, fontWeight: 900, color: '#3B2F2F' }}>
-                  {defender.name || dInfo?.name}
-                </span>
-                <span className="chip honey" style={{ fontSize: 11, padding: '1px 5px' }}>
-                  {defenderOwnerName} · Lv.{defender.level}
-                </span>
-              </div>
-              <div className="row between" style={{ marginTop: 2, marginBottom: 2 }}>
-                <span style={{ fontSize: 11, color: '#7A6A60', display: 'flex', alignItems: 'center', gap: 3 }}>
-                  <ElementIcon element={defender.element} size={13} />
-                  {ELEMENT_INFO[defender.element].label}
-                </span>
-                <span style={{ fontSize: 12, fontWeight: 800, color: '#3B2F2F' }}>
-                  {dHp}/{sim.defenderMaxHp}
-                </span>
-              </div>
-              <div style={{ height: 7, borderRadius: 999, background: '#F5E8C9', overflow: 'hidden' }}>
+          {/* [오른쪽] 지인 디저트 몬스터 */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              position: 'relative',
+              height: '100%',
+              justifyContent: 'center',
+            }}
+          >
+            {/* 🌟 상대 캐릭터 주변 플로팅 전투 텍스트 (Floating Combat Text) */}
+            {defenderFloating && (
+              <div
+                key={`d-float-${stepIdx}`}
+                style={{
+                  position: 'absolute',
+                  top: '10%',
+                  zIndex: 25,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  animation: 'floatCombatNum 1.25s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards',
+                  pointerEvents: 'none',
+                }}
+              >
+                {defenderFloating.sub && (
+                  <div
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 900,
+                      color: '#FFFFFF',
+                      background:
+                        defenderFloating.type === 'crit'
+                          ? '#D81B60'
+                          : defenderFloating.type === 'dodge'
+                            ? '#1E88E5'
+                            : defenderFloating.type === 'block'
+                              ? '#FB8C00'
+                              : '#43A047',
+                      padding: '2px 8px',
+                      borderRadius: 999,
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
+                      marginBottom: 2,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {defenderFloating.sub}
+                  </div>
+                )}
                 <div
                   style={{
-                    width: `${dPct}%`,
-                    height: '100%',
-                    borderRadius: 999,
-                    background: dPct > 30 ? '#FF8A65' : '#D9534F',
-                    transition: 'width 0.3s ease',
+                    fontSize:
+                      defenderFloating.type === 'crit'
+                        ? 26
+                        : defenderFloating.type === 'skill'
+                          ? 13
+                          : 22,
+                    fontWeight: 900,
+                    color:
+                      defenderFloating.type === 'crit'
+                        ? '#FF1744'
+                        : defenderFloating.type === 'heal'
+                          ? '#00E676'
+                          : defenderFloating.type === 'dodge'
+                            ? '#29B6F6'
+                            : defenderFloating.type === 'block'
+                              ? '#FFA726'
+                              : defenderFloating.type === 'skill'
+                                ? '#5D4037'
+                                : '#FF5252',
+                    textShadow:
+                      defenderFloating.type === 'skill'
+                        ? '0 1px 3px rgba(255,255,255,0.9)'
+                        : '0 2px 8px rgba(0,0,0,0.45), 0 0 5px #FFFFFF',
+                    letterSpacing: '-0.5px',
+                    whiteSpace: 'nowrap',
                   }}
-                />
+                >
+                  {defenderFloating.text}
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* 3D 몬스터 뷰 & 실시간 물리 모션 트랜스폼 */}
+            {/* 3D 몬스터 뷰 & 물리 모션 트랜스폼 */}
             <div
               key={`d-${stepIdx}`}
               className={dHitReaction}
@@ -344,298 +599,244 @@ export default function AsmrBattleArena({
                 position: 'relative',
                 transform: dTransform,
                 transition: 'transform 0.28s cubic-bezier(0.18, 0.89, 0.32, 1.28)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
               }}
             >
-              {currentTurn?.actor === 'challenger' && currentTurn.bannerText && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: -6,
-                    right: 4,
-                    zIndex: 10,
-                    padding: '2px 8px',
-                    borderRadius: 999,
-                    background: currentTurn.isDodge ? '#2196F3' : currentTurn.isBlock ? '#FF9800' : '#E91E63',
-                    color: '#FFFFFF',
-                    fontSize: 11,
-                    fontWeight: 900,
-                    animation: 'bounce 0.8s ease',
-                  }}
-                >
-                  {currentTurn.bannerText}
-                </div>
-              )}
-              <MonsterView look={dLook} size={92} title={defender.name ?? dInfo?.name} />
+              <MonsterView look={dLook} size={120} title={defender.name ?? dInfo?.name} />
+              {/* 발밑 타원형 접시 섀도우 */}
+              <div
+                style={{
+                  width: 86,
+                  height: 18,
+                  borderRadius: '50%',
+                  background: 'radial-gradient(ellipse, rgba(62,39,35,0.35) 0%, rgba(62,39,35,0.1) 60%, transparent 80%)',
+                  marginTop: -10,
+                }}
+              />
             </div>
           </div>
         </div>
 
-        {/* 실시간 턴 중계 & 액션 배너 */}
+        {/* 1줄 미니멀 실시간 ASMR 사운드 뱃지 (장황한 설명글 대신 사운드와 의성어만 간결하게) */}
         <div
           style={{
-            padding: '7px 10px',
-            borderRadius: 14,
-            background: isFinished ? (sim.winner === 'challenger' ? '#E8F8F0' : '#FFF2EC') : '#FFFBF2',
-            border: isFinished ? '2px solid #FF8A65' : '1.5px solid #F0DFB8',
-            textAlign: 'center',
+            position: 'absolute',
+            bottom: 6,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(255, 255, 255, 0.94)',
+            border: '1px solid #FFE082',
+            borderRadius: 999,
+            padding: '2px 10px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 5,
+            fontSize: 10,
+            fontWeight: 800,
+            color: '#795548',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
+            whiteSpace: 'nowrap',
+            zIndex: 10,
           }}
         >
           {isFinished ? (
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 900, color: '#3B2F2F' }}>
-                {sim.winner === 'challenger'
-                  ? `🏆 승리! [${challenger.name || cInfo?.name}]의 식감 액션이 빛났어요! (+30 코인)`
-                  : `👏 아까운 명승부! [${defender.name || dInfo?.name}] 친구와 멋지게 겨뤘어요! (+15 코인)`}
-              </div>
-              <div style={{ fontSize: 11, color: '#7A6A60', marginTop: 2 }}>
-                시드 #{seed} · 같은 시드로 다시 감상하거나 새 시드로 재대결할 수 있어요.
-              </div>
-            </div>
+            <span style={{ color: sim.winner === 'challenger' ? '#2E7D32' : '#C2185B' }}>
+              {sim.winner === 'challenger' ? '🏆 배틀 종료 · 승리!' : '👏 배틀 종료 · 멋진 승부!'}
+            </span>
           ) : currentTurn ? (
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 800, color: '#D85A3A' }}>
-                턴 {currentTurn.turn}/{sim.turns.length} · 🔊 {currentTurn.onomatopoeia}
-              </div>
-              <div style={{ fontSize: 12, fontWeight: 800, color: '#3B2F2F', marginTop: 1 }}>
-                {currentTurn.narrative}
-              </div>
-            </div>
+            <span>
+              턴 {currentTurn.turn}/{sim.turns.length} · 🔊 {currentTurn.onomatopoeia}
+            </span>
           ) : (
-            <div style={{ fontSize: 12, fontWeight: 800, color: '#5D4037' }}>
-              🍮 식감 ASMR 실시간 턴제 대전이 시작됩니다…!
-            </div>
+            <span>🍮 달콤한 ASMR 대전 시작!</span>
           )}
         </div>
+      </div>
 
-        {/* 관전 중 실시간 터치 응원 손맛 & 컨트롤 바 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-          {!isFinished && (
-            <div className="row between" style={{ background: '#FFFDF9', padding: '4px 8px', borderRadius: 12, border: '1px solid #FFE082' }}>
-              <button
-                className="chip honey"
-                onClick={handleCheer}
+      {/* 🎮 하단 직관적 게임 컨트롤 바 (심플 & 효율적인 공간 배치) */}
+      <div
+        className="card"
+        style={{
+          background: '#FFFDF9',
+          border: '1.5px solid #F0DFB8',
+          padding: '6px 8px',
+          gap: 6,
+          flexShrink: 0,
+        }}
+      >
+        {/* 실시간 관전 터치 응원 버튼 */}
+        {!isFinished && (
+          <div className="row between" style={{ gap: 6 }}>
+            <button
+              onClick={handleCheer}
+              style={{
+                flex: 1,
+                cursor: 'pointer',
+                border: 'none',
+                borderRadius: 10,
+                fontWeight: 900,
+                fontSize: 11,
+                padding: '6px 10px',
+                background: 'linear-gradient(90deg, #FF7043, #FF5722)',
+                color: '#FFFFFF',
+                boxShadow: '0 2px 6px rgba(255,87,34,0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 4,
+              }}
+            >
+              💖 펫 응원 터치! {cheerCount > 0 ? `(${cheerCount})` : ''}
+            </button>
+            {cheerToast && (
+              <span
                 style={{
-                  cursor: 'pointer',
-                  border: 'none',
-                  fontWeight: 900,
-                  fontSize: 12,
-                  padding: '4px 10px',
-                  background: 'linear-gradient(90deg, #FF9800, #FF5722)',
-                  color: '#FFFFFF',
+                  fontSize: 10,
+                  fontWeight: 800,
+                  color: '#D84315',
+                  animation: 'pulseGlow 0.8s ease infinite',
+                  whiteSpace: 'nowrap',
                 }}
               >
-                💖 터치 응원하기! {cheerCount > 0 ? `(${cheerCount}회)` : ''}
-              </button>
-              <span style={{ fontSize: 11, fontWeight: 800, color: '#D85A3A' }}>
-                {cheerToast ?? '타이밍 맞춰 펫을 응원해 보세요!'}
+                {cheerToast}
               </span>
-            </div>
-          )}
-
-          <div className="row wrap center" style={{ gap: 6 }}>
-            {!isFinished ? (
-              <>
-                <button
-                  className="chip coral"
-                  onClick={() => setPlaying((p) => !p)}
-                  style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 11 }}
-                >
-                  {playing ? '⏸️ 일시정지' : '▶️ 재생'}
-                </button>
-                <button
-                  className="chip honey"
-                  onClick={() => setSpeed((s) => (s === 1 ? 2 : 1))}
-                  style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 11 }}
-                >
-                  ⚡ 배속 {speed}x
-                </button>
-                <button
-                  className="chip"
-                  onClick={handleSkipToEnd}
-                  style={{ cursor: 'pointer', border: 'none', fontWeight: 700, fontSize: 11 }}
-                >
-                  ⏩ 결과 스킵
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  className="chip coral"
-                  onClick={handleReplaySameSeed}
-                  style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 12 }}
-                >
-                  🔄 같은 시드(#{seed}) 리플레이
-                </button>
-                <button
-                  className="chip honey"
-                  onClick={handleRematchNewSeed}
-                  style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 12 }}
-                >
-                  🎲 새 시드로 재대결
-                </button>
-              </>
             )}
           </div>
-        </div>
-      </div>
+        )}
 
-      {/* 하단 턴별 상세 식감 로그 덱 (컴팩트 높이로 모바일 화면 잘림 100% 방지) */}
-      <div className="card deck-card" style={{ padding: '4px 8px', gap: 2, flexShrink: 0, maxHeight: 80 }}>
-        <div className="row between" style={{ flexShrink: 0 }}>
-          <h2 className="title" style={{ fontSize: 13 }}>
-            📜 배틀 액션 로그 ({Math.max(1, stepIdx)}/{sim.turns.length}턴)
-          </h2>
-          <div className="row" style={{ gap: 4 }}>
-            <button
-              className="chip"
-              disabled={stepIdx <= 1}
-              onClick={() => {
-                setPlaying(false)
-                const prev = Math.max(1, stepIdx - 1)
-                setStepIdx(prev)
-                const t = sim.turns[prev - 1]
-                if (t) playDessertAsmr(t.asmr, t.hitCount ?? 1)
-              }}
-              style={{ cursor: 'pointer', border: 'none', fontSize: 10, padding: '1px 6px' }}
-            >
-              ◀ 이전
-            </button>
-            <button
-              className="chip"
-              disabled={stepIdx >= sim.turns.length}
-              onClick={() => {
-                setPlaying(false)
-                const next = Math.min(sim.turns.length, stepIdx + 1)
-                setStepIdx(next)
-                const t = sim.turns[next - 1]
-                if (t) playDessertAsmr(t.asmr, t.hitCount ?? 1)
-              }}
-              style={{ cursor: 'pointer', border: 'none', fontSize: 10, padding: '1px 6px' }}
-            >
-              다음 ▶
-            </button>
-          </div>
-        </div>
-
-        <div className="deck-scroll" style={{ display: 'flex', flexDirection: 'column', gap: 3, flex: 1, overflowY: 'auto' }}>
-          {visibleLogs.map((t) => {
-            const isLatest = t.turn === stepIdx
-            return (
-              <div
-                key={t.turn}
-                onClick={() => playDessertAsmr(t.asmr, t.hitCount ?? 1)}
-                style={{
-                  padding: '4px 6px',
-                  borderRadius: 8,
-                  border: isLatest ? '1.5px solid #FF8A65' : '1px solid #F0DFB8',
-                  background: isLatest ? '#FFF4EE' : '#FFFFFF',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 4,
-                  cursor: 'pointer',
-                }}
+        {/* 조작 버튼 그룹 */}
+        <div className="row between" style={{ gap: 5 }}>
+          {!isFinished ? (
+            <>
+              <button
+                className="chip coral"
+                onClick={() => setPlaying((p) => !p)}
+                style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 11, flex: 1, padding: '5px 0' }}
               >
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 10, fontWeight: 800, color: '#3B2F2F', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    [턴 {t.turn}] {t.narrative}
-                  </div>
-                  <div style={{ fontSize: 9, color: '#D85A3A', fontWeight: 700 }}>
-                    🔊 {t.onomatopoeia} {t.bannerText ? `· ${t.bannerText}` : ''}
-                  </div>
-                </div>
-                <span className="chip" style={{ fontSize: 9, flexShrink: 0, padding: '1px 4px' }}>
-                  🎧 ASMR
-                </span>
-              </div>
-            )
-          })}
+                {playing ? '⏸️ 정지' : '▶️ 재생'}
+              </button>
+              <button
+                className="chip honey"
+                onClick={() => setSpeed((s) => (s === 1 ? 2 : 1))}
+                style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 11, flex: 1, padding: '5px 0' }}
+              >
+                ⚡ 배속 {speed}x
+              </button>
+              <button
+                className="chip"
+                onClick={handleSkipToEnd}
+                style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 11, flex: 1, padding: '5px 0' }}
+              >
+                ⏩ 스킵
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                className="chip coral"
+                onClick={handleReplaySameSeed}
+                style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 11, flex: 1, padding: '6px 0' }}
+              >
+                🔄 다시 보기
+              </button>
+              <button
+                className="chip honey"
+                onClick={handleRematchNewSeed}
+                style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 11, flex: 1, padding: '6px 0' }}
+              >
+                🎲 새 대결
+              </button>
+              <button
+                className="chip"
+                onClick={onBack}
+                style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 11, flex: 1, padding: '6px 0', background: '#5D4037', color: '#FFFFFF' }}
+              >
+                🚪 대전 종료
+              </button>
+            </>
+          )}
         </div>
       </div>
 
-      {/* 대전 종료 결과 팝업 & 광장 복귀 모달 (모바일 화면 내 100% 노출 보장) */}
+      {/* 대전 종료 결과 팝업 & 광장 복귀 모달 */}
       {isFinished && (
         <div
           style={{
             position: 'absolute',
             inset: 0,
             zIndex: 50,
-            background: 'rgba(0,0,0,0.65)',
-            backdropFilter: 'blur(4px)',
+            background: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(3px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: 14,
+            padding: 16,
             animation: 'fadeIn 0.25s ease',
           }}
         >
           <div
             style={{
               width: '100%',
-              maxWidth: 320,
-              maxHeight: '86dvh',
-              overflowY: 'auto',
+              maxWidth: 310,
               background: '#FFFDF9',
               borderRadius: 20,
               border: '2px solid #FFD54F',
+              boxShadow: '0 12px 32px rgba(0,0,0,0.3)',
               padding: '16px 14px',
               textAlign: 'center',
               display: 'flex',
               flexDirection: 'column',
               gap: 10,
-              boxShadow: '0 12px 32px rgba(0,0,0,0.3)',
             }}
           >
-            <div style={{ fontSize: 38 }}>
-              {sim.winner === 'challenger' ? '🎉🏆🎉' : '💔🍪💦'}
-            </div>
-            <h2
-              style={{
-                fontSize: 18,
-                fontWeight: 900,
-                margin: 0,
-                color: sim.winner === 'challenger' ? '#E65100' : '#4E342E',
-              }}
-            >
-              {sim.winner === 'challenger' ? '달콤한 승리 달성!' : '아쉬운 패배!'}
-            </h2>
-            <div style={{ fontSize: 12, color: '#6D4C41', lineHeight: 1.35 }}>
+            <div style={{ fontSize: 36 }}>{sim.winner === 'challenger' ? '🎉🏆🎉' : '👏🍮✨'}</div>
+            <div style={{ fontSize: 16, fontWeight: 900, color: '#3E2723' }}>
               {sim.winner === 'challenger'
-                ? `[${defender.name ?? '상대'}]와의 친선전에서 승리하여 🪙 30 코인과 🎀 30 리본 코인을 획득했습니다!`
-                : `[${defender.name ?? '상대'}]와의 명승부 끝에 🪙 15 코인과 🎀 10 리본 코인을 획득했습니다!`}
+                ? `승리! [${challenger.name || cInfo?.name}] 압승!`
+                : `명승부! [${defender.name || dInfo?.name}] 대등한 접전!`}
             </div>
-            <div
-              style={{
-                fontSize: 11,
-                color: '#BE185D',
-                fontWeight: 800,
-                background: '#FDF2F8',
-                padding: '6px 8px',
-                borderRadius: 10,
-                border: '1px solid #FBCFE8',
-              }}
-            >
-              🎀 슈가 리본 코인으로 부티크 상점에서 유니크 장신구와 마이룸 가구를 구입하세요!
+            <div style={{ fontSize: 12, color: '#795548', lineHeight: 1.4 }}>
+              달콤한 식감 ASMR 대전이 마무리되었습니다.<br />
+              <b style={{ color: '#E65100' }}>
+                {sim.winner === 'challenger' ? '보상: +30 리본코인 획득! 🎀' : '보상: +10 리본코인 획득! 🎀'}
+              </b>
             </div>
 
-            <button
-              onClick={onBack}
-              style={{
-                padding: '11px',
-                borderRadius: 14,
-                border: 'none',
-                background: 'linear-gradient(90deg, #FF7A59 0%, #FF9800 100%)',
-                color: '#FFFFFF',
-                fontSize: 14,
-                fontWeight: 900,
-                cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(255,122,89,0.35)',
-                marginTop: 2,
-                flexShrink: 0,
-              }}
-            >
-              🏆 대전 종료 &amp; 광장으로 복귀
-            </button>
+            <div className="row wrap center" style={{ gap: 6, marginTop: 4 }}>
+              <button
+                className="chip coral"
+                onClick={handleReplaySameSeed}
+                style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 11, padding: '7px 12px' }}
+              >
+                🔄 다시 감상
+              </button>
+              <button
+                className="chip honey"
+                onClick={handleRematchNewSeed}
+                style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 11, padding: '7px 12px' }}
+              >
+                ⚔️ 새 시드 대결
+              </button>
+              <button
+                className="btn primary"
+                onClick={onBack}
+                style={{
+                  width: '100%',
+                  marginTop: 4,
+                  fontWeight: 900,
+                  fontSize: 13,
+                  padding: '9px 0',
+                  background: 'linear-gradient(135deg, #FF7043, #D84315)',
+                  border: 'none',
+                  borderRadius: 12,
+                  color: '#FFFFFF',
+                }}
+              >
+                🚪 광장으로 돌아가기
+              </button>
+            </div>
           </div>
         </div>
       )}

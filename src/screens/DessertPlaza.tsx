@@ -690,7 +690,92 @@ export default function DessertPlaza({
             </div>
           ))}
 
-          {/* 지인들의 캐릭터 노드 배치 (가을 바닥 자율 산책 & 발자국 생성) */}
+          {/* 내 대표 펫 산책 노드 (실제 3D Three.js 디저트 펫 디자인) */}
+          {(() => {
+            const myLook = monsterLook(myMonster)
+            return (
+              <div
+                style={{
+                  position: 'absolute',
+                  left: CENTER_X - 55,
+                  top: CENTER_Y - 70,
+                  width: 110,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  zIndex: 10,
+                  pointerEvents: 'none',
+                }}
+              >
+                {/* 내 펫 뱃지 */}
+                <div
+                  style={{
+                    padding: '2px 8px',
+                    borderRadius: 999,
+                    background: 'linear-gradient(90deg, #FF7043, #D84315)',
+                    color: '#FFFFFF',
+                    fontSize: 10,
+                    fontWeight: 900,
+                    boxShadow: '0 2px 6px rgba(216,67,21,0.3)',
+                    whiteSpace: 'nowrap',
+                    marginBottom: 2,
+                  }}
+                >
+                  ⭐ 내 파트너 (Lv.{myMonster.level})
+                </div>
+
+                {/* 실제 3D Three.js 몬스터 및 발밑 그림자 */}
+                <div
+                  style={{
+                    position: 'relative',
+                    width: 96,
+                    height: 96,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: 4,
+                      width: 72,
+                      height: 18,
+                      borderRadius: '50%',
+                      background: 'radial-gradient(ellipse, rgba(62,39,35,0.4) 0%, rgba(62,39,35,0.12) 60%, transparent 80%)',
+                      zIndex: 1,
+                    }}
+                  />
+                  <div style={{ position: 'relative', zIndex: 3 }}>
+                    <MonsterView
+                      look={myLook}
+                      size={92}
+                      prefer2D={false}
+                      title={myMonster.name ?? undefined}
+                    />
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 800,
+                    color: '#3E2723',
+                    background: 'rgba(255,255,255,0.95)',
+                    padding: '2px 8px',
+                    borderRadius: 999,
+                    marginTop: 2,
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+                  }}
+                >
+                  {myMonster.name}
+                </div>
+              </div>
+            )
+          })()}
+
+          {/* 지인들의 캐릭터 노드 배치 (실제 3D Three.js 디저트 펫 디자인 & 가을 바닥 자율 산책) */}
           {entries.slice(0, PLAZA_COORDS.length).map((friend, idx) => {
             const coord = PLAZA_COORDS[idx]
             const actor = actors[idx] ?? { x: coord.x, y: coord.y, isWalking: false, facingLeft: false, speech: null }
@@ -766,29 +851,59 @@ export default function DessertPlaza({
                   {coord.rank === 1 ? '👑 1위' : `${coord.rank}위`} · 승률 {coord.winRate}%
                 </div>
 
-                {/* 2.5D 캐릭터 아바타 (산책 시 뜀박질 바운스 & 좌우 반전) */}
+                {/* 🌟 실제 3D Three.js 디저트 몬스터 & 부드러운 발밑 타원 그림자 */}
                 <div
                   style={{
-                    width: 86,
-                    height: 86,
-                    borderRadius: '50%',
-                    background: isSelected ? 'rgba(255, 235, 59, 0.4)' : 'rgba(255,255,255,0.5)',
-                    border: isSelected ? '3px solid #FFD600' : '2px solid rgba(255,255,255,0.9)',
-                    boxShadow: isSelected ? '0 0 18px rgba(255,214,0,0.65)' : '0 3px 10px rgba(0,0,0,0.1)',
+                    position: 'relative',
+                    width: 96,
+                    height: 96,
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    position: 'relative',
                     transform: `${actor.facingLeft ? 'scaleX(-1)' : 'scaleX(1)'} ${actor.isWalking ? 'translateY(-4px)' : 'translateY(0)'}`,
                     transition: 'transform 0.25s ease',
                   }}
                 >
-                  <MonsterView
-                    look={fLook}
-                    size={78}
-                    prefer2D={true}
-                    title={friend.monster.name ?? undefined}
+                  {/* 발밑 타원형 섀도우 */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: 4,
+                      width: 68,
+                      height: 18,
+                      borderRadius: '50%',
+                      background: 'radial-gradient(ellipse, rgba(62,39,35,0.4) 0%, rgba(62,39,35,0.12) 60%, transparent 80%)',
+                      zIndex: 1,
+                      transform: isSelected ? 'scale(1.2)' : 'scale(1)',
+                      transition: 'transform 0.2s ease',
+                    }}
                   />
+                  {/* 선택 시 강조 황금 링 이펙트 */}
+                  {isSelected && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        width: 76,
+                        height: 24,
+                        borderRadius: '50%',
+                        border: '2px solid #FFD600',
+                        boxShadow: '0 0 12px #FFD600',
+                        animation: 'pulse 1.4s infinite ease-in-out',
+                        zIndex: 2,
+                      }}
+                    />
+                  )}
+                  {/* 실제 Three.js 3D 몬스터 (prefer2D: false) */}
+                  <div style={{ position: 'relative', zIndex: 3 }}>
+                    <MonsterView
+                      look={fLook}
+                      size={90}
+                      prefer2D={false}
+                      title={friend.monster.name ?? undefined}
+                    />
+                  </div>
                 </div>
 
                 {/* 캐릭터 이름 & 주인 닉네임 */}
@@ -848,7 +963,7 @@ export default function DessertPlaza({
                 flexShrink: 0,
               }}
             >
-              <MonsterView look={selLook} size={40} prefer2D={true} title={selectedFriend.monster.name ?? undefined} />
+              <MonsterView look={selLook} size={42} prefer2D={false} title={selectedFriend.monster.name ?? undefined} />
             </span>
             <div style={{ minWidth: 0, flex: 1 }}>
               <div className="row" style={{ gap: 4 }}>
