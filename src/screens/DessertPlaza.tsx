@@ -217,6 +217,7 @@ export default function DessertPlaza({
 
   // 발자국 추가 헬퍼 (새 발자국 생성 - 최대 18개 유지, CSS로 자연스럽게 2.6초 페이드아웃)
   const addFootprint = (x: number, y: number, isLeft: boolean, angle: number) => {
+    if (dragRef.current.active && dragRef.current.moved) return
     const id = `fp-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
     const newFp: Footprint = {
       id,
@@ -233,6 +234,7 @@ export default function DessertPlaza({
   // 지인 캐릭터들의 자연스러운 광장 자율 산책 루프 (뒤쪽에 정확한 타이밍으로 발자국 남기기)
   useEffect(() => {
     const wanderTimer = setInterval(() => {
+      if (dragRef.current.active && dragRef.current.moved) return
       setActors((prev) => {
         const next = [...prev]
         const walkerIdx = Math.floor(Math.random() * next.length)
@@ -324,6 +326,7 @@ export default function DessertPlaza({
 
   const canvasRef = useRef<HTMLDivElement | null>(null)
   const livePanRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 })
+  const rafRef = useRef<number | null>(null)
   const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map())
   const pinchDistRef = useRef<number | null>(null)
 
@@ -367,7 +370,8 @@ export default function DessertPlaza({
   const selectedFriend = entries[selectedIdx] ?? entries[0]
   // 펫마다 저장소를 읽는 계산은 지인 목록이 바뀔 때만 한다 (드래그·산책 중 매번 다시 하지 않는다)
   const entryLooks = useMemo(() => entries.map((e) => monsterLook(e.monster)), [entries])
-  const selLook = monsterLook(selectedFriend.monster)
+  const selLook = useMemo(() => monsterLook(selectedFriend.monster), [selectedFriend.monster])
+  const myLookMemo = useMemo(() => monsterLook(myMonster), [myMonster])
   const themeObj = PLAZA_THEMES[currentTheme]
 
   function showToast(msg: string) {
@@ -453,10 +457,16 @@ export default function DessertPlaza({
       y: Math.max(-240, Math.min(240, dragRef.current.originY + dy)),
     }
     livePanRef.current = next
-    const el = canvasRef.current
-    if (el) {
-      el.style.transition = 'none'
-      el.style.transform = `translate3d(${next.x}px, ${next.y}px, 0) scale(${zoom})`
+    if (rafRef.current === null) {
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = null
+        const el = canvasRef.current
+        if (el) {
+          el.style.transition = 'none'
+          const p = livePanRef.current
+          el.style.transform = `translate3d(${p.x}px, ${p.y}px, 0) scale(${zoom})`
+        }
+      })
     }
   }
 
@@ -468,6 +478,10 @@ export default function DessertPlaza({
     const wasDragging = dragRef.current.active && dragRef.current.moved
     dragRef.current.active = false
     if (wasDragging) {
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current)
+        rafRef.current = null
+      }
       if (canvasRef.current) canvasRef.current.style.transition = 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)'
       setPan(livePanRef.current)
     }
@@ -706,7 +720,7 @@ export default function DessertPlaza({
 
           {/* 내 대표 펫 산책 노드 (실제 3D Three.js 디저트 펫 디자인) */}
           {(() => {
-            const myLook = monsterLook(myMonster)
+            const myLook = myLookMemo
             return (
               <div
                 style={{

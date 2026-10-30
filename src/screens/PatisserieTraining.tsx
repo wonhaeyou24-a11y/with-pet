@@ -248,8 +248,11 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
 
   // 훈련 완료 및 보상 수령
   async function finishTraining() {
-    if (!trainSession) return
+    if (!trainSession || busy) return
     setBusy(true)
+    setToast('🎁 보상을 받아오는 중이에요…')
+    // 서버 응답을 기다리는 동안에도 누른 느낌이 바로 나도록 소리부터 낸다
+    playDessertAsmr('sugar-crack', 1)
     const courseId = trainSession.courseId
     // 실제 서비스: 등급·보상은 서버가 정한다 (아직 안 끝났으면 서버가 남은 시간을 알려 준다)
     const res = IS_DEV_MOCK
@@ -264,6 +267,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
     clearTrainingSession(monster.id)
     setTrainSession(null)
     setTrainTimeLeft(0)
+    setToast(null)
 
     if (res.ok && res.monster && res.foodBag !== undefined && res.coins !== undefined) {
       onUpdate(res.monster, res.coins, res.foodBag)
@@ -1299,7 +1303,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                     touchAction: 'manipulation',
                   }}
                 >
-                  🎁 훈련 성장 보상 수령하기!
+                  {busy ? '⏳ 보상 받는 중…' : '🎁 훈련 성장 보상 수령하기!'}
                 </button>
               )
             ) : tooTired ? (
@@ -1435,7 +1439,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                   boxShadow: '0 3px 8px rgba(124,77,255,0.3)',
                 }}
               >
-                🏁 탐험 완료 & 전리품 수령하기!
+                {busy ? '⏳ 전리품 받는 중…' : '🏁 탐험 완료 & 전리품 수령하기!'}
               </button>
             ) : tooTired ? (
               <div className="row between" style={{ background: '#FFF0EE', padding: '5px 8px', borderRadius: 10, border: '1px dashed #D9534F' }}>
