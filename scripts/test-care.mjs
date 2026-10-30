@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { HATCH, SPECIES } from '../supabase/functions/egg/config.ts'
+import { ACTIVITY, applyTowerClaim, battlePower, coinRoomToday, remainingSeconds, rollGrade, towerFloorInfo, towerFloorsCleared, towerSecPerFloor } from '../supabase/functions/care/activity.ts'
 import { applyCareAction, applyExpAndLevelUp, applyFeed, applyTimeDecay, applyTrain, buyFood, expForNextLevel, FOODS } from '../supabase/functions/care/logic.ts'
 
 const base = () => ({
@@ -194,6 +195,78 @@ test('클라이언트 토핑 목록(src/config/care.ts)과 서버 토핑 표가 
 test('부화 설정의 종족은 모두 클라이언트에 그림이 등록돼 있다', () => {
   const registry = readFileSync('src/monsters/registry.ts', 'utf8') + readFileSync('src/monsters/MallangChameleon.tsx', 'utf8')
   for (const id of Object.keys(SPECIES)) assert.ok(registry.includes(`'${id}'`) || registry.includes(id), `${id} 종족 그림이 없다`)
+})
+
+console.log('훈련·타워 서버 판정 (2단계)')
+test('훈련 시간 표가 클라이언트(idleActivity.ts)와 같다', () => {
+  const client = readFileSync('src/lib/idleActivity.ts', 'utf8')
+  for (const [id, sec] of Object.entries(ACTIVITY.trainSeconds)) assert.ok(client.includes(`${id}: ${sec},`), `${id} 훈련 시간(${sec}초)이 클라이언트와 다르다`)
+})
+test('훈련은 서버 시각 기준으로 끝나기 전에는 남은 시간이 나온다', () => {
+  const now = new Date('2026-10-30T12:00:00Z')
+  assert.equal(remainingSeconds('2026-10-30T12:02:30Z', now), 150)
+  assert.equal(remainingSeconds('2026-10-30T11:59:00Z', now), 0)
+})
+test('등급은 시드가 같으면 항상 같고, 확률 합은 1이다', () => {
+  assert.equal(rollGrade(12345), rollGrade(12345))
+  const w = ACTIVITY.gradeWeights
+  assert.ok(Math.abs(w.perfect + w.great + w.normal - 1) < 1e-9)
+})
+test('등급 분포가 설정 확률에 가깝다 (1만 번)', () => {
+  const n = { perfect: 0, great: 0, normal: 0 }
+  for (let i = 0; i < 10000; i++) n[rollGrade(i * 7919 + 13)]++
+  assert.ok(Math.abs(n.perfect / 10000 - ACTIVITY.gradeWeights.perfect) < 0.03)
+  assert.ok(Math.abs(n.normal / 10000 - ACTIVITY.gradeWeights.normal) < 0.03)
+})
+test('하루 코인 상한: 남은 한도만큼만 코인이 들어오고 능력치·경험치는 그대로 오른다', () => {
+  const r = applyTrain(base(), 'str', 'perfect', 5)
+  assert.equal(r.state.coins, 100 + 5)
+  assert.equal(r.state.stats.atk, 30 + 3)
+  assert.ok(r.state.exp > 0)
+  assert.match(r.message, /한도/)
+})
+test('코인 한도가 0이어도 훈련은 막히지 않는다', () => {
+  const r = applyTrain(base(), 'str', 'great', 0)
+  assert.equal(r.ok, true)
+  assert.equal(r.state.coins, 100)
+})
+test('오늘 받은 만큼 한도에서 빠진다', () => {
+  assert.equal(coinRoomToday(0), ACTIVITY.dailyCoinCap)
+  assert.equal(coinRoomToday(ACTIVITY.dailyCoinCap + 50), 0)
+})
+test('타워: 전투력이 높을수록 한 층이 빠르다', () => {
+  assert.ok(towerSecPerFloor(500, 1) < towerSecPerFloor(40, 1))
+})
+test('타워: 지난 시간만큼만 층이 열리고, 끝까지 가도 최대 층 수를 넘지 않는다', () => {
+  const t0 = '2026-10-30T12:00:00Z'
+  assert.equal(towerFloorsCleared(t0, 100, 3, new Date('2026-10-30T12:01:39Z')), 0)
+  assert.equal(towerFloorsCleared(t0, 100, 3, new Date('2026-10-30T12:03:40Z')), 2)
+  assert.equal(towerFloorsCleared(t0, 100, 3, new Date('2026-10-31T12:00:00Z')), 3)
+})
+test('타워: 첫 층도 못 올랐으면 보상 없음 (조기 수령 방지)', () => {
+  assert.equal(applyTowerClaim(base(), 1, 0, 400).code, 'not_yet')
+})
+test('타워: 층마다 경험치·코인이 쌓이고 피로가 오르며 능력치는 깎이지 않는다', () => {
+  const r = applyTowerClaim(base(), 1, 3, 400)
+  assert.equal(r.ok, true)
+  const want = [1, 2, 3].reduce((sum, f) => sum + towerFloorInfo(f).rewardCoins, 0)
+  assert.equal(r.coinsGain, want)
+  assert.equal(r.state.coins, 100 + want)
+  assert.equal(r.state.fatigue, 3 * ACTIVITY.tower.fatiguePerFloor)
+  assert.equal(r.state.careCounts.tower, 3)
+  for (const k of Object.keys(base().stats)) assert.ok(r.state.stats[k] >= base().stats[k])
+})
+test('타워: 코인 한도에 걸려도 경험치는 받고 안내가 나온다', () => {
+  const r = applyTowerClaim(base(), 1, 3, 10)
+  assert.equal(r.coinsGain, 10)
+  assert.ok(r.coinsCut > 0)
+  assert.ok(r.expGain > 0)
+  assert.match(r.message, /한도/)
+})
+test('타워: 하루 입장 3회, 서버 표와 클라이언트 층 보상 식이 같다', () => {
+  assert.equal(ACTIVITY.tower.dailyEntries, 3)
+  const client = readFileSync('src/screens/PatisserieTraining.tsx', 'utf8')
+  assert.ok(client.includes('45 + floor * 22') && client.includes('25 + floor * 15') && client.includes('20 + floor * 8'))
 })
 
 console.log(`\n${passed}개 통과`)

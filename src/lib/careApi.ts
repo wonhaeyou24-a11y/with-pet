@@ -3,7 +3,7 @@
 // 동일한 규칙으로 안전하게 동작하도록 Zero-Crash Self-Healing 폴백을 지원합니다.
 
 import { DESSERT_FOODS, expForNextLevel, TRAINING_COURSES, type TrainingId } from '../config/care'
-import { serverNow, type MonsterRow, type Stats } from './api'
+import { serverNow, syncServerTime, type MonsterRow, type Stats } from './api'
 import { IS_DEV_MOCK } from './devMode'
 import { NETWORK_MESSAGE, readFunctionError, SERVER_TIMEOUT_MS, withTimeout } from './net'
 import { supabase } from './supabase'
@@ -372,10 +372,60 @@ export async function callCare(
       SERVER_TIMEOUT_MS,
     )
     if (error) return { ok: false, code: 'server', message: await readFunctionError(error) }
-    if (data && typeof data === 'object' && 'ok' in data) return data as CareResponse
+    if (data && typeof data === 'object' && 'ok' in data) {
+      syncServerTime((data as { now?: string }).now)
+      return data as CareResponse
+    }
     return { ok: false, code: 'network', message: NETWORK_MESSAGE }
   } catch {
     return { ok: false, code: 'network', message: NETWORK_MESSAGE }
   }
 }
 
+
+// ── 2단계: 훈련·디저트 타워 (서버 전용). 시작·완료·등급·보상은 모두 서버가 정한다.
+export interface ServerSession {
+  id: string
+  kind: 'train' | 'tower'
+  courseId: TrainingId | null
+  startFloor: number | null
+  maxFloors: number | null
+  secPerFloor: number | null
+  startedAt: string
+  finishAt: string
+}
+
+export interface ActivityResponse extends CareResponse {
+  session?: ServerSession
+  already?: boolean
+  train?: ServerSession | null
+  tower?: ServerSession | null
+  towerFloor?: number
+  towerEntriesLeft?: number
+  coinRoom?: number
+  remaining?: number
+  floorsCleared?: number
+  expGain?: number
+  coinsGain?: number
+}
+
+export async function callActivity(
+  monsterId: string,
+  action: 'activity' | 'train_start' | 'train_finish' | 'tower_start' | 'tower_finish',
+  params: { courseId?: TrainingId } = {},
+): Promise<ActivityResponse> {
+  try {
+    const { data, error } = await withTimeout(
+      supabase.functions.invoke('care', { body: { action, monsterId, ...params } }),
+      SERVER_TIMEOUT_MS,
+    )
+    if (error) return { ok: false, code: 'server', message: await readFunctionError(error) }
+    if (data && typeof data === 'object' && 'ok' in data) {
+      syncServerTime((data as { now?: string }).now)
+      return data as ActivityResponse
+    }
+    return { ok: false, code: 'network', message: NETWORK_MESSAGE }
+  } catch {
+    return { ok: false, code: 'network', message: NETWORK_MESSAGE }
+  }
+}

@@ -2,7 +2,7 @@
 // 사용자가 앱을 닫거나 다른 화면으로 이동해도 실제 시각(Date.now)을 기반으로 백그라운드에서 현실 시간으로 진행됩니다.
 
 import { TRAINING_COURSES, type TrainingCourse, type TrainingId } from '../config/care'
-import type { Stats } from '../lib/api'
+import { serverNow, type Stats } from '../lib/api'
 import { withJosa } from './josa'
 import { type DessertSoundKind } from './sound'
 
@@ -152,6 +152,28 @@ export function startTrainingSession(monsterId: string, course: TrainingCourse, 
   return sess
 }
 
+// 서버가 알려 준 훈련 세션을 화면용 형식으로 저장한다 (끝나는 시각은 서버 시각 기준)
+export function saveServerTrainingSession(monsterId: string, course: TrainingCourse, startedAtIso: string, finishAtIso: string): TrainingSession {
+  const startedAt = Date.parse(startedAtIso)
+  const finishAt = Date.parse(finishAtIso)
+  const sess: TrainingSession = {
+    monsterId,
+    courseId: course.id,
+    courseName: course.name,
+    startedAt,
+    durationSec: Math.round((finishAt - startedAt) / 1000),
+    finishAt,
+    claimed: false,
+    asmr: course.asmr,
+  }
+  try {
+    localStorage.setItem(`${TRAINING_KEY_PREFIX}${monsterId}`, JSON.stringify(sess))
+  } catch {
+    // 무시
+  }
+  return sess
+}
+
 export function clearTrainingSession(monsterId: string) {
   try {
     localStorage.removeItem(`${TRAINING_KEY_PREFIX}${monsterId}`)
@@ -220,7 +242,7 @@ export function syncTowerProgress(sess: TowerExpeditionSession): {
   floorsCleared: number
   isDone: boolean
 } {
-  const now = Date.now()
+  const now = serverNow()
   const elapsedSec = Math.max(0, Math.floor((now - sess.startedAt) / 1000))
   const floorsPassed = Math.min(sess.maxFloors, Math.floor(elapsedSec / sess.secPerFloor))
   const newCurrentFloor = sess.startFloor + floorsPassed
@@ -241,6 +263,32 @@ export function syncTowerProgress(sess: TowerExpeditionSession): {
     floorsCleared: floorsPassed,
     isDone,
   }
+}
+
+// 서버가 알려 준 타워 세션을 화면용 형식으로 저장한다
+export function saveServerTowerSession(
+  monsterId: string,
+  s: { startFloor: number; maxFloors: number; secPerFloor: number; startedAt: string },
+): TowerExpeditionSession {
+  const startedAt = Date.parse(s.startedAt)
+  const sess: TowerExpeditionSession = {
+    monsterId,
+    startFloor: s.startFloor,
+    currentFloor: s.startFloor,
+    startedAt,
+    lastFloorAt: startedAt,
+    secPerFloor: s.secPerFloor,
+    maxFloors: s.maxFloors,
+    targetFloor: s.startFloor + s.maxFloors,
+    logs: [`🏰 ${s.startFloor}층 탐험 출발! 달콤한 시럽 탑문을 열었습니다.`],
+    claimed: false,
+  }
+  try {
+    localStorage.setItem(`${TOWER_KEY_PREFIX}${monsterId}`, JSON.stringify(sess))
+  } catch {
+    // 무시
+  }
+  return sess
 }
 
 export function clearTowerSession(monsterId: string) {

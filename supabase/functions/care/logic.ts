@@ -207,7 +207,13 @@ export function applyCareAction(s: CareState, kind: string): CareResult {
   return { ok: true, state: next, leveledUp: lv.leveledUp, message, logAction: kind }
 }
 
-export function applyTrain(s: CareState, courseId: string, grade: 'normal' | 'great' | 'perfect'): CareResult {
+// coinRoom: 오늘 더 받을 수 있는 코인 (기본은 제한 없음). 넘으면 코인만 줄고 능력치·경험치는 그대로 오른다.
+export function applyTrain(
+  s: CareState,
+  courseId: string,
+  grade: 'normal' | 'great' | 'perfect',
+  coinRoom = Number.POSITIVE_INFINITY,
+): CareResult {
   const course = TRAININGS[courseId]
   if (!course) return fail('bad_course', '알 수 없는 훈련 코스예요.', 400)
   if (s.fatigue >= 80) {
@@ -229,7 +235,8 @@ export function applyTrain(s: CareState, courseId: string, grade: 'normal' | 'gr
   next.bond = clamp(s.bond + course.bondShift, -100, 100)
   next.careCounts[courseId] = (next.careCounts[courseId] ?? 0) + 1
 
-  const earnedCoins = course.coinGain + (grade === 'perfect' ? 10 : grade === 'great' ? 5 : 0)
+  const rawCoins = course.coinGain + (grade === 'perfect' ? 10 : grade === 'great' ? 5 : 0)
+  const earnedCoins = Math.min(rawCoins, coinRoom)
   const earnedExp = course.expGain + (grade === 'perfect' ? 10 : 0)
   next.coins += earnedCoins
 
@@ -240,7 +247,7 @@ export function applyTrain(s: CareState, courseId: string, grade: 'normal' | 'gr
     ok: true,
     state: next,
     leveledUp: lv.leveledUp,
-    message: `${badge} 주 능력치 +${mainDelta}${course.subStat ? `, 보조 +${subDelta}` : ''} 상승! (+${earnedCoins} 코인)`,
+    message: `${badge} 주 능력치 +${mainDelta}${course.subStat ? `, 보조 +${subDelta}` : ''} 상승! (+${earnedCoins} 코인${earnedCoins < rawCoins ? ', 오늘 코인 한도에 도달했어요' : ''})`,
     logAction: `train_${courseId}`,
     logDetail: grade,
   }

@@ -9,14 +9,17 @@ import { addRibbonCoins } from '../config/boutique'
 import { expForNextLevel, TRAINING_COURSES, type TrainingCourse } from '../config/care'
 import { recordMissionAction } from '../config/missions'
 import { personalityLabel, SPECIES_INFO, STAT_INFO } from '../config/species'
-import { monsterLook, type MonsterRow } from '../lib/api'
-import { callCare } from '../lib/careApi'
+import { monsterLook, serverNow, type MonsterRow } from '../lib/api'
+import { callActivity, callCare, type ServerSession } from '../lib/careApi'
 import { IS_DEV_MOCK } from '../lib/devMode'
 import {
   clearTowerSession,
   clearTrainingSession,
+  COURSE_DURATIONS,
   getActiveTowerSession,
   getActiveTrainingSession,
+  saveServerTowerSession,
+  saveServerTrainingSession,
   startTowerExpedition,
   startTrainingSession,
   syncTowerProgress,
@@ -38,6 +41,9 @@ interface Props {
 
 type TrainingTab = 'courses' | 'tower' | 'stats'
 
+const durationLabel = (sec: number) =>
+  sec % 60 === 0 ? `${sec / 60}분` : sec >= 60 ? `${Math.floor(sec / 60)}분 ${sec % 60}초` : `${sec}초`
+
 // 디저트 타워 층 정보 생성 헬퍼
 function getTowerFloorInfo(floor: number) {
   const themes = [
@@ -56,6 +62,15 @@ function getTowerFloorInfo(floor: number) {
   return { ...theme, floor, isBoss, reqCp, rewardExp, rewardCoins }
 }
 
+function towerFromServer(monsterId: string, s: ServerSession) {
+  return saveServerTowerSession(monsterId, {
+    startFloor: s.startFloor ?? 1,
+    maxFloors: s.maxFloors ?? 3,
+    secPerFloor: s.secPerFloor ?? 140,
+    startedAt: s.startedAt,
+  })
+}
+
 export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest, onBack }: Props) {
   const [selectedCourse, setSelectedCourse] = useState<TrainingCourse>(TRAINING_COURSES[0])
   const [activeTab, setActiveTab] = useState<TrainingTab>('courses')
@@ -70,7 +85,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
   const [trainTimeLeft, setTrainTimeLeft] = useState<number>(() => {
     const sess = getActiveTrainingSession(monster.id)
     if (!sess) return 0
-    return Math.max(0, Math.ceil((sess.finishAt - Date.now()) / 1000))
+    return Math.max(0, Math.ceil((sess.finishAt - serverNow()) / 1000))
   })
   const trainTimerRef = useRef<number | null>(null)
   const [liveActionPhase, setLiveActionPhase] = useState<number>(0)
@@ -91,6 +106,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
     }
     return null
   })
+  const [towerEntriesLeft, setTowerEntriesLeft] = useState<number | null>(null)
   const [exploreLog, setExploreLog] = useState<string>('탐사 대기 중')
   const exploreTimerRef = useRef<number | null>(null)
 
@@ -122,12 +138,44 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
     setTimeout(() => setAsmrBubble(null), 1850)
   }
 
+  // 실제 서비스: 진행 중인 훈련·타워와 타워 층은 서버가 기억한다. 화면을 열 때 서버 기준으로 맞춘다.
+  useEffect(() => {
+    if (IS_DEV_MOCK) return
+    let cancelled = false
+    callActivity(monster.id, 'activity').then((res) => {
+      if (cancelled || !res.ok) return
+      if (res.train) {
+        const course = TRAINING_COURSES.find((c) => c.id === res.train!.courseId)
+        if (course) {
+          const sess = saveServerTrainingSession(monster.id, course, res.train.startedAt, res.train.finishAt)
+          setTrainSession(sess)
+          setTrainTimeLeft(Math.max(0, Math.ceil((sess.finishAt - serverNow()) / 1000)))
+        }
+      } else {
+        clearTrainingSession(monster.id)
+        setTrainSession(null)
+        setTrainTimeLeft(0)
+      }
+      if (res.tower) {
+        setTowerSession(towerFromServer(monster.id, res.tower))
+      } else {
+        clearTowerSession(monster.id)
+        setTowerSession(null)
+      }
+      if (typeof res.towerFloor === 'number') setTowerFloor(res.towerFloor)
+      if (typeof res.towerEntriesLeft === 'number') setTowerEntriesLeft(res.towerEntriesLeft)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [monster.id])
+
   // 훈련 타이머 관리
   useEffect(() => {
     if (!trainSession) return
 
     const updateTimer = () => {
-      const left = Math.max(0, Math.ceil((trainSession.finishAt - Date.now()) / 1000))
+      const left = Math.max(0, Math.ceil((trainSession.finishAt - serverNow()) / 1000))
       setTrainTimeLeft(left)
       setLiveActionPhase((p) => (p + 1) % 8)
       if (left <= 0) {
@@ -170,8 +218,25 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
   }, [towerSession])
 
   // 훈련 시작
-  function handleStartTraining() {
+  async function handleStartTraining() {
     if (tooTired || busy || (trainSession && trainTimeLeft > 0)) return
+    if (!IS_DEV_MOCK) {
+      setBusy(true)
+      const res = await callActivity(monster.id, 'train_start', { courseId: selectedCourse.id })
+      setBusy(false)
+      if (!res.ok || !res.session) {
+        setToast(res.message ?? '잠시 후 다시 시도해 주세요.')
+        setTimeout(() => setToast(null), 3000)
+        return
+      }
+      const sess = saveServerTrainingSession(monster.id, selectedCourse, res.session.startedAt, res.session.finishAt)
+      setTrainSession(sess)
+      setTrainTimeLeft(Math.max(0, Math.ceil((sess.finishAt - serverNow()) / 1000)))
+      triggerAsmr(selectedCourse.asmr)
+      setToast(`💪 "${selectedCourse.name}" 훈련 시작! 앱을 나가도 현실 시간으로 계속 훈련해요.`)
+      setTimeout(() => setToast(null), 3000)
+      return
+    }
     const duration = fastMode ? 10 : undefined
     const sess = startTrainingSession(monster.id, selectedCourse, duration)
     setTrainSession(sess)
@@ -186,8 +251,16 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
     if (!trainSession) return
     setBusy(true)
     const courseId = trainSession.courseId
-    const res = await callCare(monster, coins, 'train', { courseId, grade: 'perfect' })
+    // 실제 서비스: 등급·보상은 서버가 정한다 (아직 안 끝났으면 서버가 남은 시간을 알려 준다)
+    const res = IS_DEV_MOCK
+      ? await callCare(monster, coins, 'train', { courseId, grade: 'perfect' })
+      : await callActivity(monster.id, 'train_finish')
     setBusy(false)
+    if (!res.ok && ['not_yet', 'too_tired', 'busy', 'network', 'server'].includes(res.code ?? '')) {
+      setToast(res.message ?? '잠시 후 다시 시도해 주세요.')
+      setTimeout(() => setToast(null), 3500)
+      return
+    }
     clearTrainingSession(monster.id)
     setTrainSession(null)
     setTrainTimeLeft(0)
@@ -211,10 +284,22 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
   // 타워 탐사 시작
   function handleStartExplore() {
     if (tooTired || busy || towerSession) return
-    // 타워 보상은 아직 서버에 연결되지 않았다(2단계). 새로고침하면 사라지는 가짜 보상을 막기 위해 실제 서비스에서는 잠가 둔다.
     if (!IS_DEV_MOCK) {
-      setToast('🏰 디저트 타워는 서버에 연결하는 중이라 곧 열려요!')
-      setTimeout(() => setToast(null), 3500)
+      setBusy(true)
+      callActivity(monster.id, 'tower_start').then((res) => {
+        setBusy(false)
+        if (!res.ok || !res.session) {
+          setToast(res.message ?? '잠시 후 다시 시도해 주세요.')
+          setTimeout(() => setToast(null), 3500)
+          return
+        }
+        const sess = towerFromServer(monster.id, res.session)
+        setTowerSession(sess)
+        if (typeof res.towerEntriesLeft === 'number') setTowerEntriesLeft(res.towerEntriesLeft)
+        triggerAsmr('kataifi-crunch')
+        setToast(`🏰 ${sess.startFloor}층~${sess.targetFloor}층 탐험 출발! 앱을 꺼도 펫이 스스로 층을 돌파해요.`)
+        setTimeout(() => setToast(null), 3500)
+      })
       return
     }
     const sess = startTowerExpedition(monster.id, towerFloor, battlePower, 3)
@@ -227,10 +312,33 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
   // 타워 탐사 완료 및 전리품 일괄 수령
   async function finishExplore() {
     if (!towerSession) return
-    // 서버에 연결되기 전(2단계)에 남은 로컬 탐험 기록은 보상 없이 정리한다
     if (!IS_DEV_MOCK) {
+      setBusy(true)
+      const res = await callActivity(monster.id, 'tower_finish')
+      setBusy(false)
+      if (!res.ok) {
+        if (res.code === 'no_session') {
+          clearTowerSession(monster.id)
+          setTowerSession(null)
+        }
+        setToast(res.message ?? '잠시 후 다시 시도해 주세요.')
+        setTimeout(() => setToast(null), 3500)
+        return
+      }
       clearTowerSession(monster.id)
       setTowerSession(null)
+      if (typeof res.towerFloor === 'number') setTowerFloor(res.towerFloor)
+      if (res.monster && res.coins !== undefined) onUpdate(res.monster, res.coins, res.foodBag ?? {})
+      const floors = res.floorsCleared ?? 0
+      addRibbonCoins(floors * 20, '타워 탐험 돌파 보상')
+      recordMissionAction('w-tower', floors)
+      playDessertAsmr('wax-pop', 3)
+      setToast(`${res.message ?? '탐험 완료!'} · 🎀 +${floors * 20} 리본`)
+      setTimeout(() => setToast(null), 4500)
+      if (res.leveledUp) {
+        setLevelUpBanner(true)
+        setTimeout(() => setLevelUpBanner(false), 4000)
+      }
       return
     }
     const syn = syncTowerProgress(towerSession)
@@ -1098,10 +1206,12 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                     </div>
                   </div>
                 </div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', fontWeight: 800, fontSize: 11, background: '#FFFFFF', padding: '3px 8px', borderRadius: 8, border: '1px solid #FFE0B2', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-                  <input type="checkbox" checked={fastMode} onChange={(e) => setFastMode(e.target.checked)} />
-                  ⚡ 쾌속 10초
-                </label>
+                {IS_DEV_MOCK && (
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', fontWeight: 800, fontSize: 11, background: '#FFFFFF', padding: '3px 8px', borderRadius: 8, border: '1px solid #FFE0B2', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                    <input type="checkbox" checked={fastMode} onChange={(e) => setFastMode(e.target.checked)} />
+                    ⚡ 쾌속 10초
+                  </label>
+                )}
               </div>
 
               {/* 훈련 효과 및 현재 vs 달성 예측 능력치 프리뷰 */}
@@ -1143,7 +1253,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                 </div>
                 <div style={{ background: '#FFFFFF', padding: '4px 2px', borderRadius: 8, textAlign: 'center', border: '1px solid #FFE0B2' }}>
                   <div style={{ fontSize: 8, color: '#795548', fontWeight: 700 }}>소요 시간</div>
-                  <div style={{ fontSize: 11, fontWeight: 900, color: '#2E7D32' }}>{fastMode ? '10초' : '2분 30초'}</div>
+                  <div style={{ fontSize: 11, fontWeight: 900, color: '#2E7D32' }}>{fastMode ? '10초' : durationLabel(COURSE_DURATIONS[selectedCourse.id] ?? 150)}</div>
                 </div>
               </div>
             </div>
@@ -1152,13 +1262,15 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
             {trainSession ? (
               trainTimeLeft > 0 ? (
                 <div className="row between" style={{ gap: 6 }}>
-                  <button
-                    className="chip honey"
-                    onClick={() => setTrainTimeLeft(0)}
-                    style={{ flex: 1, padding: '7px 0', border: 'none', cursor: 'pointer', fontWeight: 900, fontSize: 11 }}
-                  >
-                    ⚡ 즉시 완료하기
-                  </button>
+                  {IS_DEV_MOCK && (
+                    <button
+                      className="chip honey"
+                      onClick={() => setTrainTimeLeft(0)}
+                      style={{ flex: 1, padding: '7px 0', border: 'none', cursor: 'pointer', fontWeight: 900, fontSize: 11 }}
+                    >
+                      ⚡ 즉시 완료하기
+                    </button>
+                  )}
                   <button
                     disabled
                     style={{ flex: 2, padding: '7px 0', borderRadius: 10, border: 'none', background: '#FFA726', color: '#FFFFFF', fontWeight: 900, fontSize: 11 }}
@@ -1214,7 +1326,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                   boxShadow: '0 3px 8px rgba(255,87,34,0.3)',
                 }}
               >
-                ⚡ {selectedCourse.name} 훈련 출발 ({fastMode ? '10초' : '2분 30초'})
+                ⚡ {selectedCourse.name} 훈련 출발 ({fastMode ? '10초' : durationLabel(COURSE_DURATIONS[selectedCourse.id] ?? 150)})
               </button>
             )}
           </div>
@@ -1349,7 +1461,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                   boxShadow: '0 3px 8px rgba(124,77,255,0.3)',
                 }}
               >
-                🏰 디저트 타워 {towerFloor}층~{towerFloor + 3}층 자율 탐험 출발!
+                🏰 디저트 타워 {towerFloor}층~{towerFloor + 3}층 자율 탐험 출발!{towerEntriesLeft !== null ? ` (오늘 ${towerEntriesLeft}회 남음)` : ''}
               </button>
             )}
           </div>

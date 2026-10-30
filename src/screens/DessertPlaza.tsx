@@ -3,7 +3,7 @@
 // - 펫이 산책하고 이동할 때마다 낙엽 위에 귀여운 젤리 발자국이 찍히고 스르륵 사라지는 감성 모션을 지원합니다.
 // - 4계절(봄·여름·가을·겨울)과 특별 이벤트(할로윈·크리스마스)로 손쉽게 전환할 수 있는 테마 시스템을 탑재했습니다.
 
-import { useEffect, useRef, useState, type PointerEvent, type WheelEvent } from 'react'
+import { useEffect, useRef, useState, type PointerEvent, type WheelEvent, useMemo } from 'react'
 import { addRibbonCoins } from '../config/boutique'
 import { recordMissionAction } from '../config/missions'
 import { ELEMENT_INFO } from '../config/species'
@@ -322,6 +322,8 @@ export default function DessertPlaza({
     moved: boolean
   }>({ active: false, startX: 0, startY: 0, originX: 0, originY: 0, moved: false })
 
+  const canvasRef = useRef<HTMLDivElement | null>(null)
+  const livePanRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 })
   const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map())
   const pinchDistRef = useRef<number | null>(null)
 
@@ -363,6 +365,8 @@ export default function DessertPlaza({
   }, [myMonster.id])
 
   const selectedFriend = entries[selectedIdx] ?? entries[0]
+  // 펫마다 저장소를 읽는 계산은 지인 목록이 바뀔 때만 한다 (드래그·산책 중 매번 다시 하지 않는다)
+  const entryLooks = useMemo(() => entries.map((e) => monsterLook(e.monster)), [entries])
   const selLook = monsterLook(selectedFriend.monster)
   const themeObj = PLAZA_THEMES[currentTheme]
 
@@ -418,6 +422,7 @@ export default function DessertPlaza({
       originY: pan.y,
       moved: false,
     }
+    livePanRef.current = { x: pan.x, y: pan.y }
   }
 
   function handlePointerMove(e: PointerEvent<HTMLDivElement>) {
@@ -442,10 +447,17 @@ export default function DessertPlaza({
     if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
       dragRef.current.moved = true
     }
-    setPan({
+    // 드래그 중에는 React를 다시 그리지 않고 화면 변환값만 바로 바꾼다 (끊김 방지)
+    const next = {
       x: Math.max(-280, Math.min(280, dragRef.current.originX + dx)),
       y: Math.max(-240, Math.min(240, dragRef.current.originY + dy)),
-    })
+    }
+    livePanRef.current = next
+    const el = canvasRef.current
+    if (el) {
+      el.style.transition = 'none'
+      el.style.transform = `translate3d(${next.x}px, ${next.y}px, 0) scale(${zoom})`
+    }
   }
 
   function handlePointerUp(e: PointerEvent<HTMLDivElement>) {
@@ -453,7 +465,12 @@ export default function DessertPlaza({
     if (pointersRef.current.size < 2) {
       pinchDistRef.current = null
     }
+    const wasDragging = dragRef.current.active && dragRef.current.moved
     dragRef.current.active = false
+    if (wasDragging) {
+      if (canvasRef.current) canvasRef.current.style.transition = 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)'
+      setPan(livePanRef.current)
+    }
   }
 
   function handleWheel(e: WheelEvent<HTMLDivElement>) {
@@ -616,10 +633,12 @@ export default function DessertPlaza({
 
         {/* 860x720 대형 2.5D 광장 캔버스 (가을 낙엽 바닥 & 발자국 모션 월드) */}
         <div
+          ref={canvasRef}
           style={{
             position: 'absolute',
             left: '50%',
             top: '50%',
+            willChange: 'transform',
             width: CANVAS_W,
             height: CANVAS_H,
             marginLeft: -CENTER_X,
@@ -770,7 +789,7 @@ export default function DessertPlaza({
             const coord = PLAZA_COORDS[idx]
             const actor = actors[idx] ?? { x: coord.x, y: coord.y, isWalking: false, facingLeft: false, speech: null }
             const isSelected = idx === selectedIdx
-            const fLook = monsterLook(friend.monster)
+            const fLook = entryLooks[idx] ?? monsterLook(friend.monster)
 
             return (
               <div
@@ -781,16 +800,18 @@ export default function DessertPlaza({
                 }}
                 style={{
                   position: 'absolute',
-                  left: actor.x - 55,
-                  top: actor.y - 65,
+                  left: 0,
+                  top: 0,
                   width: 110,
+                  willChange: 'transform',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   cursor: 'pointer',
                   zIndex: isSelected ? 15 : 4,
-                  transform: isSelected ? 'scale(1.15)' : 'scale(1)',
-                  transition: 'left 2.6s ease-in-out, top 2.6s ease-in-out, transform 0.2s ease-out',
+                  transform: `translate3d(${actor.x - 55}px, ${actor.y - 65}px, 0)`,
+                  scale: isSelected ? '1.15' : '1',
+                  transition: 'transform 2.6s ease-in-out, scale 0.2s ease-out',
                 }}
               >
                 {/* 💬 자율 산책 귀여운 말풍선 */}

@@ -98,6 +98,10 @@ interface EggResponse {
 // 서버 시각과 이 기기 시계의 차이. 부화 남은 시간은 항상 서버 시각 기준으로 계산한다.
 let serverOffsetMs = 0
 export const serverNow = () => Date.now() + serverOffsetMs
+// 다른 서버 함수(care 등)의 응답에도 서버 시각이 들어 있으니 기기 시계와의 차이를 같이 갱신한다
+export function syncServerTime(now?: string) {
+  if (now) serverOffsetMs = Date.parse(now) - Date.now()
+}
 
 // 테스트용 부화 시간 (1분 = 60,000ms)
 const TEST_HATCH_MS: Record<Rarity, number> = {
