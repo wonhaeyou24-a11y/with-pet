@@ -24,3 +24,4 @@ dist-ssr
 *.sw?
 
 .env.local
+design/sounds/real-food/비교-*.wav

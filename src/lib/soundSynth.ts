@@ -277,38 +277,6 @@ function swell(m: Mixer, t0: number, dur: number, o: SwellOpts) {
   }
 }
 
-interface BoingOpts {
-  f0: number
-  f1: number
-  dur: number
-  decayMs: number
-  amp: number
-  vibHz?: number
-  vibDepth?: number
-  noiseMix?: number
-  pan?: number
-}
-
-// 음높이가 미끄러지는 탱글·뽀요용 (젤리 탄성, 푸딩 출렁임, 카멜레온 변신)
-function boing(m: Mixer, t0: number, o: BoingOpts) {
-  const sr = m.sr
-  const i0 = Math.floor(t0 * sr)
-  const n = Math.floor(o.dur * sr)
-  const [gl, gr] = panGains(o.pan ?? 0)
-  let phase = 0
-  for (let j = 0; j < n; j++) {
-    const t = j / sr
-    const u = t / o.dur
-    const s = 0.5 - 0.5 * Math.cos(Math.PI * u)
-    let f = o.f0 + (o.f1 - o.f0) * s
-    if (o.vibHz) f *= 1 + (o.vibDepth ?? 0.03) * Math.sin(TAU * o.vibHz * t)
-    phase += (TAU * f) / sr
-    const env = Math.min(1, t / 0.007) * Math.exp(-t / (o.decayMs / 1000)) * (u > 0.88 ? (1 - u) / 0.12 : 1)
-    const body = Math.sin(phase) + 0.25 * Math.sin(2 * phase) + (o.noiseMix ? (m.rand() * 2 - 1) * o.noiseMix : 0)
-    m.add(i0 + j, o.amp * env * body, gl, gr)
-  }
-}
-
 interface FizzOpts {
   density: number // 초당 기포 수(시작)
   decayK: number // 시간이 갈수록 줄어드는 정도
@@ -317,6 +285,7 @@ interface FizzOpts {
   amp: number
   dLo?: number
   dHi?: number
+  noiseMix?: number // 1에 가까울수록 소음(기본 0.3)
 }
 
 // 무작위 미세 기포 — 탄산, 지글지글
@@ -330,7 +299,7 @@ function fizz(m: Mixer, t0: number, dur: number, o: FizzOpts) {
     if (m.rand() < rate) {
       const f = o.fLo * Math.pow(o.fHi / o.fLo, m.rand())
       const d = (o.dLo ?? 0.25) + m.rand() * ((o.dHi ?? 0.8) - (o.dLo ?? 0.25))
-      grain(m, (i0 + i) / sr, f, d, o.amp * (0.25 + 0.75 * m.rand()) * Math.exp(-o.decayK * 0.4 * t), (m.rand() * 2 - 1) * 0.7, 0.3)
+      grain(m, (i0 + i) / sr, f, d, o.amp * (0.25 + 0.75 * m.rand()) * Math.exp(-o.decayK * 0.4 * t), (m.rand() * 2 - 1) * 0.7, o.noiseMix ?? 0.3)
     }
   }
 }
@@ -353,6 +322,42 @@ function scatter(m: Mixer, t0: number, o: ScatterOpts) {
     const t = t0 + ((1 - Math.pow(1 - x, o.p)) * o.spanMs) / 1000
     const f = o.fLo * Math.pow(o.fHi / o.fLo, m.rand())
     grain(m, t, f, o.dMs * (0.7 + 0.6 * m.rand()), o.amp * (0.4 + 0.6 * m.rand()) * Math.exp(-(o.fade ?? 0.8) * x), (m.rand() * 2 - 1) * 0.8, 0.35)
+  }
+}
+
+interface SmackOpts {
+  f: number // 중심 주파수(Hz)
+  q?: number // 낮을수록 넓고 음정이 없다 (기본 1.6)
+  decayMs: number
+  amp: number
+  glide?: number // 끝에서의 주파수 배율 (1보다 크면 올라가며 "쩌-억", 작으면 내려가며 "푸욱")
+  pan?: number
+  color?: NoiseColor
+}
+
+// 짧고 촉촉한 마찰·눌림·떨어짐. 소음에서 만들기 때문에 "삐용"하는 맑은 음정이 생기지 않는다.
+function smack(m: Mixer, t0: number, o: SmackOpts) {
+  const sr = m.sr
+  const i0 = Math.floor(t0 * sr)
+  const dS = Math.max(8, (o.decayMs / 1000) * sr)
+  const len = Math.floor(dS * 5)
+  const noise = makeNoise(o.color ?? 'white', m.rand)
+  const [gl, gr] = panGains(o.pan ?? 0)
+  const q = o.q ?? 1.6
+  const glide = o.glide ?? 1
+  const comp = Math.min(3.2, 0.8 * Math.sqrt(q))
+  const atk = Math.max(6, Math.floor(0.0006 * sr))
+  let z1 = 0
+  let z2 = 0
+  let c = biquadCoef('bp', o.f, q, sr)
+  for (let j = 0; j < len; j++) {
+    if (j % 8 === 0) c = biquadCoef('bp', o.f * Math.pow(glide, Math.min(1, j / dS)), q, sr)
+    const x = noise()
+    const y = c.b0 * x + z1
+    z1 = c.b1 * x - c.a1 * y + z2
+    z2 = c.b2 * x - c.a2 * y
+    const att = j < atk ? (j + 1) / atk : 1
+    m.add(i0 + j, y * comp * att * Math.exp(-j / dS) * o.amp, gl, gr)
   }
 }
 
@@ -509,34 +514,22 @@ export function synthesizeWaxTapVariant(o: WaxTapOpts, sampleRate: number, rand:
 }
 
 const RECIPES: Record<SynthKind, { total: number; finish: FinishOpts; build: Recipe }> = {
-  // 🫧 왁뿌볼: 단단한 왁스 껍질을 꾹 눌러 → 끽 → "아-그-작" 세 번에 나눠 깨지고 → 부스러기 → 속의 말랑한 점액이 쭈욱
+  // 🫧 왁뿌볼: 단단한 왁스 껍질이 와지끈 부서지며(실제 녹음 분석: 5~10ms 간격 밝은 클릭이 앞쪽에 몰렸다 듬성듬성) → 속의 말랑한 점액이 쭈욱 새는 촉촉한 소리
   'wax-pop': {
-    total: 1.05,
-    finish: { reverb: 0.2, level: 1 },
+    total: 1.15,
+    finish: { reverb: 0.05, level: 0.95, highCut: 14000 },
     build: (m) => {
-      // 껍질이 눌리며 삐걱이는 긴장감
-      swell(m, 0, 0.15, { type: 'bp', f0: 240, f1: jit(m, 780), q: 7, attackMs: 18, releaseMs: 55, amp: 0.1, amRate: 26, amDepth: 0.55, color: 'pink', pan: -0.15 })
-      tick(m, 0.085, 2300, 1.1, 0.2, -0.3)
-      tick(m, 0.118, 2900, 1.0, 0.26, 0.25)
-      // 첫 번째 아그작: 두꺼운 껍질이 쩍 갈라지는 큰 소리 + 묵직한 '턱'
-      crackCluster(m, 0.15, { n: 52, spanMs: 40, fLo: 1300, fHi: 5400, dLo: 1.2, dHi: 6.5, amp: 0.95, ampDecay: 2.2, noiseMix: 0.4, panSpread: 0.5 })
-      crackCluster(m, 0.152, { n: 16, spanMs: 36, fLo: 520, fHi: 1500, dLo: 4, dHi: 10, amp: 0.7, ampDecay: 1.8, noiseMix: 0.5, panSpread: 0.3 })
-      thump(m, 0.15, 200, 95, 48, 0.6)
-      // 두 번째, 세 번째 조각이 연달아 아-그-작
-      crackCluster(m, 0.222, { n: 38, spanMs: 32, fLo: 1800, fHi: 6400, dLo: 1.0, dHi: 5, amp: 0.78, ampDecay: 2, panSpread: 0.6, pan: -0.2 })
-      thump(m, 0.222, 240, 120, 30, 0.3, -0.2)
-      crackCluster(m, 0.293, { n: 28, spanMs: 28, fLo: 2200, fHi: 7200, dLo: 0.8, dHi: 4, amp: 0.62, ampDecay: 2, panSpread: 0.6, pan: 0.25 })
-      crackCluster(m, 0.345, { n: 20, spanMs: 24, fLo: 1500, fHi: 5200, dLo: 1.2, dHi: 5, amp: 0.46, ampDecay: 2, panSpread: 0.5 })
-      // 부서진 껍질 부스러기가 후두둑
-      scatter(m, 0.3, { count: 18, spanMs: 260, p: 1.6, fLo: 2800, fHi: 7600, dMs: 1.0, amp: 0.26 })
-      // 속의 말랑한 점액이 눌리며 새어 나옴
-      swell(m, 0.27, 0.36, { type: 'bp', f0: 300, f1: jit(m, 840), q: 5, attackMs: 45, releaseMs: 170, amp: 0.22, amRate: 11, amDepth: 0.45, color: 'pink' })
-      const bubbles = [0.31, 0.375, 0.43, 0.49, 0.545, 0.6]
-      bubbles.forEach((t, i) => bubble(m, t + m.rand() * 0.012, 380 + m.rand() * 600, 1.1 + m.rand() * 0.7, 22 + m.rand() * 26, 0.2 + m.rand() * 0.18, (i % 2 ? 1 : -1) * 0.4))
-      // 끈적하게 떨어지는 마지막 "쩍"
-      tick(m, 0.66, 1700, 9, 0.42, 0.1)
-      bubble(m, 0.665, 300, 2.2, 32, 0.34, 0.1)
-      thump(m, 0.66, 130, 72, 55, 0.3)
+      tick(m, 0, jit(m, 5200), 0.9, 1, -0.1)
+      crackCluster(m, 0.002, { n: 64, spanMs: 640, skew: 2.3, fLo: jit(m, 2800), fHi: jit(m, 9500), dLo: 0.5, dHi: 2.4, amp: 0.95, ampDecay: 1.15, noiseMix: 0.55, panSpread: 0.55 })
+      scatter(m, 0.004, { count: 22, spanMs: 520, p: 1.6, fLo: 7500, fHi: 12500, dMs: 0.6, amp: 0.28 })
+      // 껍질이 뭉개지는 둔탁한 눌림
+      smack(m, 0.01, { f: 420, q: 1.1, decayMs: 26, amp: 0.55, glide: 0.8, color: 'pink' })
+      // 속의 말랑한 점액: 걸쭉하게 흘러나오며 쩝쩝 달라붙는다
+      swell(m, 0.26, 0.5, { type: 'bp', f0: 320, f1: 1000, q: 1.3, attackMs: 70, releaseMs: 200, amp: 0.2, color: 'pink', amRate: 8, amDepth: 0.55 })
+      smack(m, 0.34, { f: 620, q: 1.5, decayMs: 22, amp: 0.4, glide: 1.7, pan: -0.2 })
+      smack(m, 0.5, { f: 520, q: 1.5, decayMs: 24, amp: 0.36, glide: 1.8, pan: 0.2 })
+      smack(m, 0.7, { f: 760, q: 1.6, decayMs: 20, amp: 0.34, glide: 2.0 })
+      smack(m, 0.92, { f: 900, q: 1.7, decayMs: 14, amp: 0.4, glide: 2.2 })
     },
   },
 
@@ -585,93 +578,101 @@ const RECIPES: Record<SynthKind, { total: number; finish: FinishOpts; build: Rec
     },
   },
 
-  // 🍓 유리알탕후루: 얇은 설탕 유리가 "빠작!" 하고 밝게 깨지고 → 과일 과즙이 촉촉하게
+  // 🍓 유리알 탕후루: 얇고 투명한 설탕 껍질이 "빠작!" 하고 날카롭게 깨지며 유리 조각이 흩어지고 → 과즙이 촉촉하게 눌린다
   'sugar-crack': {
-    total: 0.8,
-    finish: { reverb: 0.2, level: 0.95, highCut: 14500 },
+    total: 0.6,
+    finish: { reverb: 0.05, level: 0.95, highCut: 14500 },
     build: (m) => {
-      modal(m, 0, [{ f: jit(m, 3180), d: 38, a: 0.6 }, { f: jit(m, 4720), d: 26, a: 0.5 }, { f: jit(m, 6890), d: 18, a: 0.35 }, { f: jit(m, 9100), d: 12, a: 0.2 }], 0.62, -0.1, 0.5)
-      crackCluster(m, 0, { n: 30, spanMs: 12, fLo: 3800, fHi: 10500, dLo: 0.6, dHi: 1.9, amp: 0.85, ampDecay: 2, noiseMix: 0.35 })
-      modal(m, 0.046, [{ f: jit(m, 3560), d: 30, a: 0.5 }, { f: jit(m, 5300), d: 22, a: 0.4 }, { f: jit(m, 7600), d: 14, a: 0.25 }], 0.45, 0.25, 0.4)
-      crackCluster(m, 0.046, { n: 18, spanMs: 12, fLo: 4200, fHi: 11000, dLo: 0.6, dHi: 1.6, amp: 0.6 })
-      // 잘게 부서지는 유리 조각
-      scatter(m, 0.06, { count: 26, spanMs: 170, p: 1.8, fLo: 5000, fHi: 11500, dMs: 0.5, amp: 0.3 })
-      // 안쪽 과일이 아삭, 과즙이 톡톡
-      crackCluster(m, 0.115, { n: 16, spanMs: 62, fLo: 700, fHi: 2400, dLo: 3, dHi: 7, amp: 0.42, ampDecay: 1.4, noiseMix: 0.5 })
-      swell(m, 0.13, 0.22, { type: 'bp', f0: 900, f1: 1750, q: 3, attackMs: 25, releaseMs: 110, amp: 0.13, color: 'pink' })
-      ;[0.15, 0.2, 0.255, 0.32].forEach((t, i) => bubble(m, t, 520 + m.rand() * 900, 1.4, 16 + m.rand() * 14, 0.24 + m.rand() * 0.1, (i % 2 ? 1 : -1) * 0.35))
+      tick(m, 0, jit(m, 6400), 0.7, 1, -0.1)
+      crackCluster(m, 0.001, { n: 24, spanMs: 34, fLo: jit(m, 3600), fHi: jit(m, 9800), dLo: 0.4, dHi: 1.6, amp: 0.95, ampDecay: 1.6, noiseMix: 0.62, panSpread: 0.5 })
+      // 유리 조각이 사방으로 튀는 소리
+      scatter(m, 0.03, { count: 12, spanMs: 240, p: 1.5, fLo: 4800, fHi: 11000, dMs: 0.5, amp: 0.32 })
+      // 과즙이 터지듯 눌리는 촉촉함
+      smack(m, 0.07, { f: 720, q: 1.4, decayMs: 34, amp: 0.38, glide: 1.5, pan: 0.1 })
+      swell(m, 0.08, 0.14, { type: 'bp', f0: 500, f1: 1500, q: 1.2, attackMs: 20, releaseMs: 70, amp: 0.14, color: 'pink' })
     },
   },
 
-  // 🍡 찹쌀떡모찌: 전분 가루 위로 낮고 포근하게 "푹" → 쫀득하게 늘어나는 소리 → 끈적하게 떨어지는 "쩍"
+  // 🍡 찹쌀떡모찌: 말랑한 반죽이 포근하게 눌리고 → 끈적하게 길게 늘어나다 → "쩍" 하고 떨어지는 소리 (소음으로만 만들어 음정이 없다)
   'mochi-squish': {
     total: 0.95,
-    finish: { reverb: 0.16, level: 0.95, highCut: 9500 },
+    finish: { reverb: 0.06, level: 0.95, highCut: 10500 },
     build: (m) => {
-      thump(m, 0, 88, 55, 95, 0.58)
-      swell(m, 0, 0.22, { type: 'lp', f0: 540, f1: 280, q: 0.8, attackMs: 28, releaseMs: 120, amp: 0.36, color: 'pink' })
-      // 전분 가루가 폭 하고 날리는 보송한 숨결
-      swell(m, 0, 0.2, { type: 'bp', f0: 3400, f1: 5200, q: 0.9, attackMs: 20, releaseMs: 100, amp: 0.07, pan: -0.2 })
-      // 쫀득하게 늘어나는 반죽: 낮은 바디 + 가늘게 우는 끈적임
-      swell(m, 0.14, 0.4, { type: 'bp', f0: 180, f1: 640, q: 3.5, attackMs: 60, releaseMs: 150, amp: 0.3, color: 'pink', amRate: 7.5, amDepth: 0.5 })
-      swell(m, 0.2, 0.28, { type: 'bp', f0: 900, f1: 1750, q: 9, attackMs: 40, releaseMs: 120, amp: 0.05, amRate: 15, amDepth: 0.8, pan: 0.2 })
+      // 포근하게 눌림
+      swell(m, 0, 0.16, { type: 'lp', f0: 900, f1: 380, q: 0.7, attackMs: 24, releaseMs: 90, amp: 0.3, color: 'brown' })
+      smack(m, 0.02, { f: 320, q: 0.9, decayMs: 50, amp: 0.38, glide: 0.8, color: 'pink' })
+      // 쫀득하게 길게 늘어남: 끈적한 실이 가늘어지는 마찰 소음 (주파수가 올라가며 떨림)
+      swell(m, 0.14, 0.42, { type: 'bp', f0: 320, f1: 1500, q: 1.4, attackMs: 70, releaseMs: 160, amp: 0.34, color: 'pink', amRate: 9, amDepth: 0.65 })
+      swell(m, 0.2, 0.3, { type: 'bp', f0: 1800, f1: 3200, q: 1.6, attackMs: 50, releaseMs: 130, amp: 0.06, amRate: 17, amDepth: 0.9, pan: 0.2 })
+      // 늘어나는 중간중간 침 같은 끈적한 방울이 터지는 "쩝"
+      smack(m, 0.3, { f: 560, q: 1.5, decayMs: 20, amp: 0.3, glide: 1.8, pan: -0.25 })
+      smack(m, 0.42, { f: 700, q: 1.5, decayMs: 18, amp: 0.26, glide: 1.9, pan: 0.25 })
       // 손끝에서 떨어지며 "쩍!"
-      tick(m, 0.56, 1800, 10, 0.42, 0.1)
-      bubble(m, 0.56, 300, 2.2, 30, 0.36, 0.1)
-      thump(m, 0.56, 120, 70, 50, 0.3)
+      tick(m, 0.58, 2000, 6, 0.4, 0.1)
+      smack(m, 0.58, { f: 1100, q: 1.3, decayMs: 22, amp: 0.55, glide: 2.0 })
+      smack(m, 0.64, { f: 480, q: 1.2, decayMs: 40, amp: 0.3, glide: 0.8, color: 'pink' })
+      swell(m, 0.02, 0.8, { type: 'bp', f0: 3000, f1: 6800, q: 0.8, attackMs: 70, releaseMs: 280, amp: 0.2, amRate: 9, amDepth: 0.7 })
+      scatter(m, 0.14, { count: 16, spanMs: 440, p: 1.1, fLo: 2500, fHi: 7000, dMs: 0.8, amp: 0.18 })
     },
   },
 
-  // 🍮 말랑푸딩: 숟가락 "탁" → 탱-글-탱-글 네 번 출렁이며 점점 잦아드는 탄성
+  // 🍮 말랑푸딩: 숟가락이 "톡" 닿고 → 부드러운 커스터드가 "푹" 갈라지며 → 촉촉한 "쯥" 하고 숟가락이 빠진다
   'pudding-jiggle': {
-    total: 1.05,
-    finish: { reverb: 0.2, level: 0.95 },
+    total: 0.8,
+    finish: { reverb: 0.08, level: 0.95, highCut: 9000 },
     build: (m) => {
-      // 숟가락 끝이 도자기 접시에 "챙" 닿는 맑은 소리
-      modal(m, 0, [{ f: jit(m, 1500), d: 34, a: 0.7 }, { f: jit(m, 2900), d: 22, a: 0.5 }, { f: jit(m, 4400), d: 14, a: 0.3 }], 0.55, 0, 0.45)
-      thump(m, 0, 150, 105, 34, 0.2)
-      // 탱-글-탱-글: 음높이가 미끄러지는 탄성이 점점 작아진다
-      const amps = [0.6, 0.46, 0.34, 0.22]
-      amps.forEach((a, i) => boing(m, 0.05 + i * 0.15, { f0: 380 + i * 42, f1: 250 + i * 26, dur: 0.15 + i * 0.006, decayMs: 62, amp: a, noiseMix: 0.05, pan: (i % 2 ? 1 : -1) * 0.25 }))
-      swell(m, 0.1, 0.5, { type: 'lp', f0: 900, f1: 600, q: 0.8, attackMs: 40, releaseMs: 200, amp: 0.07, color: 'pink', amRate: 6.2, amDepth: 0.6 })
-      // 카라멜 시럽이 반짝이며 맺히는 작은 방울
-      ;[0.55, 0.66, 0.78].forEach((t, i) => bubble(m, t, 900 + i * 260, 1.3, 18, 0.2 - i * 0.04, (i - 1) * 0.4))
+      tick(m, 0, 2400, 3, 0.32, -0.15)
+      // 푸욱: 낮고 부드럽게 파고드는 소리
+      swell(m, 0.012, 0.2, { type: 'lp', f0: 800, f1: 300, q: 0.7, attackMs: 22, releaseMs: 110, amp: 0.3, color: 'brown' })
+      smack(m, 0.03, { f: 380, q: 0.9, decayMs: 60, amp: 0.4, glide: 0.8, color: 'pink' })
+      // 부드럽게 출렁이는 표면: 아주 낮은 소음의 느린 떨림 (소리가 아니라 숨결)
+      swell(m, 0.1, 0.4, { type: 'bp', f0: 220, f1: 420, q: 0.9, attackMs: 60, releaseMs: 180, amp: 0.14, color: 'pink', amRate: 5.5, amDepth: 0.6 })
+      // 숟가락이 빠지며 공기가 들어가는 촉촉한 소리
+      smack(m, 0.36, { f: 520, q: 1.4, decayMs: 26, amp: 0.4, glide: 1.7, pan: 0.15 })
+      smack(m, 0.45, { f: 360, q: 1.3, decayMs: 22, amp: 0.26, glide: 1.6, pan: -0.15 })
+      swell(m, 0.01, 0.55, { type: 'bp', f0: 2500, f1: 6000, q: 0.7, attackMs: 30, releaseMs: 260, amp: 0.24 })
+      scatter(m, 0.3, { count: 10, spanMs: 260, p: 1.0, fLo: 2200, fHi: 6500, dMs: 0.8, amp: 0.2 })
     },
   },
 
-  // 🐻 쫀득젤리: 쫀득하게 물고 → 고무처럼 "쫘아압" 늘어나며 끼익 → 씹을 때마다 쫀득쫀득
+  // 🐻 쫀득젤리: 탄력 있는 젤리를 "꾹" 깨물면 저항하다 → 쫀득하게 씹히고 → "탁" 튕겨 돌아오는 소리
   'jelly-gummy': {
-    total: 1.0,
-    finish: { reverb: 0.14, level: 0.95, highCut: 11000 },
+    total: 0.85,
+    finish: { reverb: 0.05, level: 0.95, highCut: 11000 },
     build: (m) => {
-      thump(m, 0, 150, 100, 40, 0.26)
-      crackCluster(m, 0, { n: 12, spanMs: 18, fLo: 900, fHi: 2600, dLo: 2, dHi: 5, amp: 0.4, noiseMix: 0.5 })
-      // 고무처럼 팽팽하게 늘어나는 끼익 마찰 (높고 쫀쫀한 소리)
-      swell(m, 0.05, 0.46, { type: 'bp', f0: 620, f1: 2600, q: 14, attackMs: 40, releaseMs: 170, amp: 0.5, amRate: 30, amDepth: 0.35 })
-      boing(m, 0.14, { f0: 1500, f1: 2500, dur: 0.12, decayMs: 100, amp: 0.2 })
-      // 쫀득쫀득 씹는 두 번: 낮은 쿵 대신 말랑하고 통통한 "쯥"
-      ;[0.34, 0.52].forEach((t, i) => {
-        tick(m, t, 1500, 12, 0.5, (i ? 1 : -1) * 0.2)
-        thump(m, t, 170, 115, 40, 0.22)
-        bubble(m, t + 0.01, 420, 1.8, 26, 0.3, (i ? 1 : -1) * 0.3)
-      })
-      boing(m, 0.64, { f0: 2000, f1: 2900, dur: 0.08, decayMs: 55, amp: 0.2, pan: 0.2 })
+      tick(m, 0, 2800, 2.5, 0.48, -0.1)
+      // 이빨에 눌리는 탄성의 저항: 고무가 마찰하듯 가늘고 짧게 떠는 소음
+      swell(m, 0.01, 0.13, { type: 'bp', f0: 1500, f1: 2700, q: 2.6, attackMs: 14, releaseMs: 60, amp: 0.2, amRate: 34, amDepth: 0.55 })
+      smack(m, 0.02, { f: 520, q: 1.2, decayMs: 40, amp: 0.45, glide: 0.8, color: 'pink' })
+      // 쫀득쫀득 씹는 촉촉한 소리 세 번
+      smack(m, 0.17, { f: 1150, q: 1.6, decayMs: 15, amp: 0.4, glide: 1.4, pan: -0.2 })
+      smack(m, 0.27, { f: 950, q: 1.6, decayMs: 15, amp: 0.34, glide: 1.4, pan: 0.2 })
+      smack(m, 0.39, { f: 1350, q: 1.6, decayMs: 14, amp: 0.36, glide: 1.5 })
+      swell(m, 0.15, 0.3, { type: 'bp', f0: 600, f1: 1400, q: 1.1, attackMs: 40, releaseMs: 140, amp: 0.12, color: 'pink', amRate: 11, amDepth: 0.7 })
+      // 탄력 있게 "탁" 튕겨 돌아옴
+      smack(m, 0.52, { f: 2200, q: 1.3, decayMs: 7, amp: 0.45, glide: 1.2 })
+      smack(m, 0.55, { f: 700, q: 1.1, decayMs: 26, amp: 0.3, glide: 0.9, color: 'pink' })
+      swell(m, 0.02, 0.6, { type: 'bp', f0: 3200, f1: 7000, q: 0.8, attackMs: 40, releaseMs: 240, amp: 0.1, amRate: 12, amDepth: 0.5 })
+      scatter(m, 0.16, { count: 12, spanMs: 360, p: 1.0, fLo: 2600, fHi: 8000, dMs: 0.7, amp: 0.1 })
     },
   },
 
-  // 🍫 달콤초코: 따뜻하고 진한 퐁듀가 낮게 흘러내리며 느린 "보글…보글"
+  // 🍫 달콤초코: 따뜻하게 녹은 초콜릿이 걸쭉하게 흐르며 느린 방울이 "꾸륵…꾸륵" 터지는 소리 (낮고 굵은 소음 방울)
   'choco-melt': {
-    total: 1.2,
-    finish: { reverb: 0.26, level: 0.92, highCut: 7500 },
+    total: 1.4,
+    finish: { reverb: 0.1, level: 0.95, highCut: 8500 },
     build: (m) => {
-      swell(m, 0, 0.9, { type: 'lp', f0: 430, f1: 290, q: 0.8, attackMs: 130, releaseMs: 380, amp: 0.46, color: 'brown', amRate: 3.2, amDepth: 0.35 })
-      thump(m, 0.05, 70, 60, 300, 0.17)
-      const t = [0.14, 0.31, 0.44, 0.62, 0.78]
-      const f = [230, 310, 200, 270, 240]
-      const d = [95, 80, 110, 90, 120]
-      const a = [0.5, 0.42, 0.5, 0.38, 0.34]
-      t.forEach((tt, i) => bubble(m, tt, f[i] * (1 + (m.rand() - 0.5) * 0.1), 0.9, d[i], a[i], (i % 2 ? 1 : -1) * 0.35))
-      ;[0.22, 0.52, 0.7].forEach((tt, i) => bubble(m, tt, 560 + i * 110, 1.3, 28, 0.17, (i % 2 ? -1 : 1) * 0.5))
+      // 걸쭉하게 흐르는 숨결
+      swell(m, 0, 1.2, { type: 'lp', f0: 650, f1: 380, q: 0.7, attackMs: 140, releaseMs: 380, amp: 0.2, color: 'brown', amRate: 3, amDepth: 0.4 })
+      // 느리고 큰 방울들: 불규칙한 간격, 낮은 소음 (맑은 음정 없이 "꾸륵")
+      smack(m, 0.08, { f: 240, q: 1.0, decayMs: 65, amp: 0.5, glide: 2.0, color: 'pink' })
+      smack(m, 0.4, { f: 240, q: 1.1, decayMs: 55, amp: 0.55, glide: 2.1, color: 'pink', pan: -0.2 })
+      smack(m, 0.66, { f: 210, q: 1.0, decayMs: 80, amp: 0.5, glide: 2.2, color: 'pink', pan: 0.2 })
+      smack(m, 1.0, { f: 220, q: 1.1, decayMs: 60, amp: 0.5, glide: 2.0, color: 'pink' })
+      // 걸쭉한 표면의 작은 기포들
+      fizz(m, 0.05, 1.2, { density: 26, decayK: 1.1, fLo: 500, fHi: 1700, amp: 0.2, dLo: 1.2, dHi: 3.4, noiseMix: 0.9 })
+      swell(m, 0, 1.2, { type: 'bp', f0: 2400, f1: 5200, q: 0.7, attackMs: 160, releaseMs: 400, amp: 0.17, amRate: 4, amDepth: 0.5 })
+      scatter(m, 0.1, { count: 24, spanMs: 1000, p: 1.0, fLo: 2200, fHi: 7000, dMs: 0.9, amp: 0.16 })
     },
   },
 
@@ -687,16 +688,17 @@ const RECIPES: Record<SynthKind, { total: number; finish: FinishOpts; build: Rec
     },
   },
 
-  // 🌰 콩콩 도토리: 속이 빈 나무처럼 "또각!" 하고 울리고 → 고소한 껍질이 오독
+  // 🌰 콩콩 도토리: 단단한 껍질이 "딱!" 갈라지며 속이 비어 울리는 "톡" → 껍질 조각이 후드득
   'acorn-snap': {
-    total: 0.7,
-    finish: { reverb: 0.2, level: 1 },
+    total: 0.5,
+    finish: { reverb: 0.05, level: 0.95, highCut: 12000 },
     build: (m) => {
-      modal(m, 0, [{ f: jit(m, 640, 0.05), d: 48, a: 1 }, { f: jit(m, 1420, 0.05), d: 30, a: 0.6 }, { f: jit(m, 2310, 0.05), d: 18, a: 0.4 }, { f: jit(m, 3380, 0.05), d: 10, a: 0.2 }], 0.78, 0, 0.5)
-      thump(m, 0, 200, 110, 36, 0.36)
-      crackCluster(m, 0.06, { n: 24, spanMs: 40, fLo: 900, fHi: 3200, dLo: 2, dHi: 6, amp: 0.6, ampDecay: 1.6, noiseMix: 0.5 })
-      crackCluster(m, 0.15, { n: 15, spanMs: 34, fLo: 1000, fHi: 3000, dLo: 2, dHi: 5, amp: 0.4, ampDecay: 1.6, panSpread: 0.5 })
-      scatter(m, 0.2, { count: 8, spanMs: 130, p: 1.5, fLo: 2500, fHi: 6000, dMs: 0.8, amp: 0.2 })
+      tick(m, 0, jit(m, 4200), 0.9, 1, -0.1)
+      crackCluster(m, 0.001, { n: 8, spanMs: 12, fLo: jit(m, 2600), fHi: jit(m, 7200), dLo: 0.5, dHi: 1.8, amp: 0.9, ampDecay: 1.4, noiseMix: 0.6, panSpread: 0.4 })
+      // 속이 빈 열매가 울리는 "톡" (맑은 종소리가 아니라 짧은 소음 덩어리)
+      smack(m, 0.002, { f: 820, q: 2.0, decayMs: 16, amp: 0.7, glide: 0.85 })
+      // 껍질 조각이 떨어지는 소리
+      crackCluster(m, 0.05, { n: 10, spanMs: 150, skew: 1.8, fLo: 1800, fHi: 5500, dLo: 0.8, dHi: 2.6, amp: 0.42, ampDecay: 2, noiseMix: 0.6, panSpread: 0.6 })
     },
   },
 
@@ -716,18 +718,17 @@ const RECIPES: Record<SynthKind, { total: number; finish: FinishOpts; build: Rec
     },
   },
 
-  // 🛡️ 강철등 비스킷: 묵직한 "쿵" → 낮고 거친 "콰드득" 세 조각 + 방패 같은 작은 울림
+  // 🛡️ 강철등 비스킷: 단단하고 두꺼운 통밀 비스킷이 "콰득!" 부러지며 낮은 균열이 퍼지고 → 부스러기가 후두둑
   'biscuit-armor': {
-    total: 0.85,
-    finish: { reverb: 0.12, level: 1, highCut: 9000 },
+    total: 0.75,
+    finish: { reverb: 0.05, level: 0.95, highCut: 11000 },
     build: (m) => {
-      thump(m, 0, 76, 45, 125, 0.78)
-      crackCluster(m, 0.004, { n: 36, spanMs: 52, fLo: 220, fHi: 950, dLo: 6, dHi: 16, amp: 0.95, ampDecay: 1.6, noiseMix: 0.55, panSpread: 0.3 })
-      crackCluster(m, 0.006, { n: 22, spanMs: 46, fLo: 800, fHi: 2400, dLo: 3, dHi: 8, amp: 0.5, ampDecay: 1.7 })
-      crackCluster(m, 0.095, { n: 26, spanMs: 46, fLo: 260, fHi: 1100, dLo: 5, dHi: 13, amp: 0.7, ampDecay: 1.7, noiseMix: 0.55, pan: -0.2 })
-      thump(m, 0.095, 95, 60, 60, 0.4)
-      crackCluster(m, 0.195, { n: 16, spanMs: 40, fLo: 300, fHi: 1200, dLo: 4, dHi: 11, amp: 0.45, ampDecay: 1.7, pan: 0.2 })
-      modal(m, 0.018, [{ f: jit(m, 1850), d: 70, a: 0.5 }, { f: jit(m, 3100), d: 45, a: 0.3 }, { f: jit(m, 4700), d: 30, a: 0.2 }], 0.16, 0.2, 0.1)
+      tick(m, 0, 2400, 1.4, 0.8, -0.1)
+      crackCluster(m, 0.001, { n: 12, spanMs: 34, fLo: jit(m, 1100), fHi: jit(m, 3800), dLo: 1.2, dHi: 4.5, amp: 1, ampDecay: 1.5, noiseMix: 0.6, panSpread: 0.4 })
+      // 두꺼운 반죽이 눌려 부러지는 낮은 "툭"
+      smack(m, 0.004, { f: 360, q: 1.1, decayMs: 30, amp: 0.7, glide: 0.8, color: 'pink' })
+      // 부스러기
+      crackCluster(m, 0.05, { n: 28, spanMs: 340, skew: 1.7, fLo: 1900, fHi: 6500, dLo: 0.6, dHi: 2.6, amp: 0.46, ampDecay: 1.7, noiseMix: 0.62, panSpread: 0.6 })
     },
   },
 
@@ -750,49 +751,53 @@ const RECIPES: Record<SynthKind, { total: number; finish: FinishOpts; build: Rec
     },
   },
 
-  // ✨ 별비늘 별사탕: 맑은 크리스탈이 "팅-챠르르릉" 흩어지며 반짝이는 잔향
+  // ✨ 별비늘 별사탕: 작고 단단한 설탕 결정이 "오도독" 아주 곱고 밝게 부서지는 소리 (맑은 종소리 아님)
   'starlight-ting': {
-    total: 1.6,
-    finish: { reverb: 0.46, level: 0.82, highCut: 16000 },
+    total: 0.95,
+    finish: { reverb: 0.06, level: 0.9, highCut: 15500 },
     build: (m) => {
-      const base = [2093, 2349, 2637, 3136, 3520, 4186]
-      const order = base.map((f) => ({ f, k: m.rand() })).sort((a, b) => a.k - b.k).map((x) => x.f)
-      const times = [0, 0.05, 0.115, 0.19, 0.275, 0.385]
-      const amps = [0.5, 0.42, 0.38, 0.34, 0.3, 0.26]
-      order.forEach((f, i) => {
-        const ff = jit(m, f, 0.012)
-        const d = 150 + m.rand() * 170
-        modal(m, times[i] + m.rand() * 0.008, [{ f: ff, d, a: 1 }, { f: ff * 2.756, d: d * 0.5, a: 0.35 }, { f: ff * 5.404, d: d * 0.25, a: 0.15 }], amps[i], (i / 5) * 1.2 - 0.6, 0.1)
-      })
-      scatter(m, 0, { count: 32, spanMs: 760, p: 0.7, fLo: 7000, fHi: 13500, dMs: 0.4, amp: 0.09, fade: 1.2 })
-      swell(m, 0.02, 0.7, { type: 'bp', f0: 5200, f1: 8800, q: 1.2, attackMs: 70, releaseMs: 320, amp: 0.06 })
+      tick(m, 0, 7600, 0.7, 0.75, -0.1)
+      crackCluster(m, 0.002, { n: 26, spanMs: 260, skew: 1.9, fLo: jit(m, 5200), fHi: jit(m, 12500), dLo: 0.35, dHi: 1.1, amp: 0.85, ampDecay: 1.3, noiseMix: 0.7, panSpread: 0.7 })
+      // 곱게 부서진 설탕 가루가 흩어지는 소리
+      scatter(m, 0.02, { count: 20, spanMs: 520, p: 1.2, fLo: 6500, fHi: 13500, dMs: 0.4, amp: 0.2 })
+      smack(m, 0.01, { f: 1700, q: 1.2, decayMs: 12, amp: 0.2, glide: 0.9 })
     },
   },
 
-  // 🦎 말랑카멜레온: "뽀-요-용" 음높이가 올라갔다 내려오며 색이 변하는 마법 모찌 + 젖은 말랑함
+  // 🦎 말랑 카멜레온: 반죽이 늘어나며 모양이 바뀌는 끈적한 변신 → "뽁" 하고 새 모양으로 튀어나온다
   'chameleon-morph': {
     total: 1.2,
-    finish: { reverb: 0.22, level: 0.95 },
+    finish: { reverb: 0.07, level: 0.95, highCut: 10500 },
     build: (m) => {
-      // 색이 번지듯 길게 미끄러지는 마법 같은 오르내림 (왼쪽에서 오른쪽으로 몸이 변하는 느낌)
-      boing(m, 0, { f0: 150, f1: 900, dur: 0.36, decayMs: 260, amp: 0.5, vibHz: 6, vibDepth: 0.06, pan: -0.6 })
-      boing(m, 0.3, { f0: 900, f1: 300, dur: 0.4, decayMs: 200, amp: 0.4, vibHz: 5.5, vibDepth: 0.05, pan: 0.6 })
-      boing(m, 0.72, { f0: 300, f1: 430, dur: 0.16, decayMs: 80, amp: 0.2 })
-      swell(m, 0.02, 0.6, { type: 'bp', f0: 260, f1: 1100, q: 4, attackMs: 35, releaseMs: 180, amp: 0.2, color: 'pink', amRate: 12, amDepth: 0.5 })
-      // 몸 색이 바뀔 때 반짝이는 작은 알갱이
-      for (let i = 0; i < 6; i++) bubble(m, 0.1 + i * 0.12 + m.rand() * 0.04, 1600 + m.rand() * 2400, 0.8, 7 + m.rand() * 7, 0.1 + m.rand() * 0.1, (m.rand() * 2 - 1) * 0.8)
+      // 반죽이 위로 길게 늘어나는 소리 (소음의 주파수가 올라가며 떨림)
+      swell(m, 0, 0.58, { type: 'bp', f0: 300, f1: 2400, q: 1.1, attackMs: 80, releaseMs: 180, amp: 0.3, color: 'pink', amRate: 8, amDepth: 0.6 })
+      smack(m, 0.1, { f: 520, q: 1.3, decayMs: 18, amp: 0.3, glide: 1.7, pan: -0.3 })
+      smack(m, 0.26, { f: 820, q: 1.3, decayMs: 16, amp: 0.3, glide: 1.8, pan: 0.3 })
+      smack(m, 0.42, { f: 1250, q: 1.3, decayMs: 13, amp: 0.3, glide: 1.9 })
+      // 새 모양으로 "뽁!"
+      tick(m, 0.62, 3200, 3, 0.45, 0)
+      smack(m, 0.62, { f: 1800, q: 1.2, decayMs: 11, amp: 0.6, glide: 2.2 })
+      // 새 모양이 되며 반짝이는 작은 기포들이 사르르 터진다
+      fizz(m, 0.66, 0.5, { density: 46, decayK: 3.2, fLo: 1500, fHi: 6500, amp: 0.18, dLo: 0.4, dHi: 1.3, noiseMix: 0.9 })
+      swell(m, 0.02, 0.75, { type: 'bp', f0: 2600, f1: 6500, q: 0.8, attackMs: 80, releaseMs: 260, amp: 0.1, amRate: 7, amDepth: 0.6 })
+      scatter(m, 0.1, { count: 12, spanMs: 560, p: 1.1, fLo: 2400, fHi: 7500, dMs: 0.8, amp: 0.09 })
     },
   },
 
-  // 🌈 시럽 & 스프링클: 시럽이 졸졸 흐르고 방울이 똑똑 → 스프링클이 통통 튀며 쏟아지는 소리
+  // 🍒 시럽 & 스프링클 토핑: 시럽이 "쪼르륵" 흐르며 작은 기포가 이어 터지고 → 스프링클이 후드득 (소음 기포로만)
   'syrup-drizzle': {
-    total: 1.2,
-    finish: { reverb: 0.24, level: 0.92, highCut: 14000 },
+    total: 1.0,
+    finish: { reverb: 0.07, level: 0.95, highCut: 12500 },
     build: (m) => {
-      swell(m, 0, 0.44, { type: 'bp', f0: 950, f1: 1500, q: 2.2, attackMs: 40, releaseMs: 210, amp: 0.26, amRate: 19, amDepth: 0.5, color: 'pink' })
-      ;[0.12, 0.24, 0.31, 0.44, 0.55].forEach((t, i) => bubble(m, t, 600 + m.rand() * 500, 1.5, 16 + m.rand() * 12, 0.3, (i % 2 ? 1 : -1) * 0.3))
-      scatter(m, 0.38, { count: 24, spanMs: 520, p: 1.9, fLo: 3400, fHi: 7400, dMs: 1.2, amp: 0.48, fade: 0.5 })
-      swell(m, 0.4, 0.5, { type: 'hp', f0: 6000, f1: 6000, q: 0.7, attackMs: 100, releaseMs: 300, amp: 0.035 })
+      // 흐르는 액체
+      swell(m, 0, 0.7, { type: 'bp', f0: 800, f1: 1900, q: 1.1, attackMs: 90, releaseMs: 240, amp: 0.2, color: 'pink', amRate: 12, amDepth: 0.35 })
+      // 작은 기포가 잇달아 터지는 소리 (음정 없는 소음 기포)
+      fizz(m, 0.02, 0.8, { density: 75, decayK: 1.2, fLo: 500, fHi: 2600, amp: 0.26, dLo: 0.6, dHi: 2.2, noiseMix: 0.85 })
+      // 처음 닿을 때와 끝에 고이는 "퐁"
+      smack(m, 0.03, { f: 430, q: 1.3, decayMs: 26, amp: 0.4, glide: 1.7 })
+      smack(m, 0.62, { f: 520, q: 1.3, decayMs: 22, amp: 0.3, glide: 1.8, pan: 0.2 })
+      // 스프링클이 떨어지는 소리
+      scatter(m, 0.5, { count: 14, spanMs: 380, p: 1.4, fLo: 4200, fHi: 9500, dMs: 0.5, amp: 0.2 })
     },
   },
 
