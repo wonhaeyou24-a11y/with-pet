@@ -435,7 +435,14 @@ export function loadMallangCustom(monsterId: string): MallangCustom | null {
   }
 }
 
-export function saveMallangCustom(monsterId: string, custom: MallangCustom): boolean {
+// 실제 서비스에서 Game 이 등록한다: 꾸민 모습을 저장할 때 서버(DB)에도 올려 지인들이 광장에서 보게 한다
+let remoteLookSaver: ((monsterId: string, custom: MallangCustom) => void) | null = null
+export function setRemoteLookSaver(fn: ((monsterId: string, custom: MallangCustom) => void) | null) {
+  remoteLookSaver = fn
+}
+
+// 이 기기에만 저장 (서버에서 받은 값을 내려 받을 때 쓴다)
+export function saveMallangCustomLocal(monsterId: string, custom: MallangCustom): boolean {
   try {
     const clean = sanitizeMallangCustom(custom)
     localStorage.setItem(STORAGE_PREFIX + monsterId, JSON.stringify(clean))
@@ -443,6 +450,12 @@ export function saveMallangCustom(monsterId: string, custom: MallangCustom): boo
   } catch {
     return false
   }
+}
+
+export function saveMallangCustom(monsterId: string, custom: MallangCustom): boolean {
+  const ok = saveMallangCustomLocal(monsterId, custom)
+  if (ok) remoteLookSaver?.(monsterId, sanitizeMallangCustom(custom))
+  return ok
 }
 
 export function sanitizeMallangCustom(input?: MallangCustom | null): MallangCustom {

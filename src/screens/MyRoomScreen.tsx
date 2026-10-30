@@ -22,6 +22,7 @@ import { recordMissionAction } from '../config/missions'
 import { monsterLook, type MonsterRow } from '../lib/api'
 import { IS_DEV_MOCK } from '../lib/devMode'
 import { refreshAccount } from '../lib/shopApi'
+import { guestbookAdd, guestbookDelete, roomGet, roomLike, roomSave, type RoomEntryRaw } from '../lib/roomApi'
 import { miniRoomBgm } from '../lib/bgmPlayer'
 import { playDessertAsmr } from '../lib/sound'
 import Monster3DView from '../monsters/Monster3DView'
@@ -31,11 +32,49 @@ interface Props {
   monster: MonsterRow
   onBack: () => void
   onOpenBoutique: () => void
+  // 지인의 방을 방문할 때: 방 주인 정보 (비우면 내 방)
+  visit?: { ownerId: string; nickname: string; monster: MonsterRow }
 }
 
-export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props) {
-  const [room, setRoom] = useState<RoomCustom>(() => loadRoomCustom())
-  const [guestBook, setGuestBook] = useState<GuestBookEntry[]>(() => loadGuestBook())
+// "방금 전 / N분 전 / N시간 전 / N일 전"
+function relTime(iso: string): string {
+  const sec = Math.max(0, (Date.now() - Date.parse(iso)) / 1000)
+  if (!Number.isFinite(sec) || sec < 60) return '방금 전'
+  if (sec < 3600) return `${Math.floor(sec / 60)}분 전`
+  if (sec < 86400) return `${Math.floor(sec / 3600)}시간 전`
+  return `${Math.floor(sec / 86400)}일 전`
+}
+
+// 서버의 평평한 글 목록을 "글 + 답글" 모양으로 묶는다
+function groupEntries(list: RoomEntryRaw[]): GuestBookEntry[] {
+  const tops = list.filter((e) => !e.parentId)
+  return tops.map((e) => ({
+    id: e.id,
+    authorId: e.authorId,
+    author: e.author,
+    message: e.message,
+    createdAt: relTime(e.createdAt),
+    icon: '✨',
+    replies: list
+      .filter((r) => r.parentId === e.id)
+      .sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt))
+      .map((r) => ({ id: r.id, authorId: r.authorId, author: r.author, message: r.message, createdAt: relTime(r.createdAt), icon: '🍰' })),
+  }))
+}
+
+export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutique, visit }: Props) {
+  // 방 주인의 몬스터 (내 방이면 내 몬스터, 방문이면 지인의 몬스터)
+  const monster = visit?.monster ?? myMonster
+  const isVisitor = !!visit
+  const ownerId = visit?.ownerId
+  const [myId, setMyId] = useState<string | null>(null)
+  const [likedToday, setLikedToday] = useState(false)
+  const [busy, setBusy] = useState(false)
+  // 실제 서비스에서는 서버에서 받아 오기 전까지 빈 방으로 시작한다 (폰 안의 가짜 숫자를 보여 주지 않는다)
+  const [room, setRoom] = useState<RoomCustom>(() =>
+    IS_DEV_MOCK ? loadRoomCustom() : { themeId: 'room-patisserie', placedFurniture: [], bgmId: 'patisserie-sweet', todayVisitors: 0, totalVisitors: 0, likes: 0 },
+  )
+  const [guestBook, setGuestBook] = useState<GuestBookEntry[]>(() => (IS_DEV_MOCK ? loadGuestBook() : []))
   const [ribbonCoins, setCoinsState] = useState<number>(() => getRibbonCoins())
   const [isEditing, setIsEditing] = useState<boolean>(false)
   const [ownedItems, setOwnedItems] = useState<Set<string>>(() => getOwnedBoutiqueItems())
@@ -75,6 +114,55 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
   const currentTheme: RoomThemeDef = ROOM_THEMES.find((t) => t.id === room.themeId) ?? ROOM_THEMES[0]
   const look = monsterLook(monster)
 
+  // 실제 서비스: 방 설정·방명록·좋아요 수는 서버에서 받아 온다
+  const reloadRoom = async () => {
+    const r = await roomGet(ownerId)
+    if (!r.ok) {
+      showToast(r.message ?? '방 정보를 불러오지 못했어요.')
+      return
+    }
+    setMyId(r.me ?? null)
+    setLikedToday(!!r.likedToday)
+    setRoom({
+      themeId: r.theme ?? 'room-patisserie',
+      placedFurniture: r.furniture ?? [],
+      bgmId: 'patisserie-sweet',
+      todayVisitors: r.todayVisitors ?? 0,
+      totalVisitors: r.totalVisitors ?? 0,
+      likes: r.likes ?? 0,
+    })
+    setGuestBook(groupEntries(r.entries ?? []))
+  }
+  useEffect(() => {
+    if (!IS_DEV_MOCK) void reloadRoom()
+    // 방을 열 때(또는 다른 지인의 방으로 바뀔 때) 한 번 받아 온다
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ownerId])
+
+  // 방 꾸미기 저장: 실제 서비스에서는 서버가 산 아이템만 받아 준다
+  const persistRoom = async (next: RoomCustom) => {
+    if (IS_DEV_MOCK) {
+      saveRoomCustom(next)
+      return
+    }
+    const r = await roomSave(next.themeId, next.placedFurniture)
+    if (!r.ok) {
+      showToast(r.message ?? '저장하지 못했어요.')
+      void reloadRoom()
+    }
+  }
+
+  // 글을 지울 수 있는 사람: 방 주인은 모든 글, 작성자는 자기 글
+  const canDelete = (authorId?: string) => !IS_DEV_MOCK && (!isVisitor || (!!authorId && authorId === myId))
+  const handleDelete = async (id: string) => {
+    if (busy) return
+    setBusy(true)
+    const r = await guestbookDelete(id)
+    setBusy(false)
+    showToast(r.ok ? '🗑️ 방명록 글을 지웠어요.' : (r.message ?? '지우지 못했어요.'))
+    void reloadRoom()
+  }
+
   const showToast = (msg: string) => {
     setToast(msg)
     window.setTimeout(() => setToast(null), 3000)
@@ -86,9 +174,10 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
       showToast('아직 구매하지 않은 테마입니다. 부티크에서 구매해보세요!')
       return
     }
+    if (isVisitor) return
     const nextRoom = { ...room, themeId: theme.id }
     setRoom(nextRoom)
-    saveRoomCustom(nextRoom)
+    void persistRoom(nextRoom)
     playDessertAsmr('mochi-squish')
     showToast(`✨ ${theme.name}으로 벽지와 바닥을 바꿨습니다!`)
   }
@@ -104,9 +193,10 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
       ? room.placedFurniture.filter((id) => id !== furn.id)
       : [...room.placedFurniture, furn.id]
 
+    if (isVisitor) return
     const nextRoom = { ...room, placedFurniture: nextList }
     setRoom(nextRoom)
-    saveRoomCustom(nextRoom)
+    void persistRoom(nextRoom)
     playDessertAsmr(furn.soundKind)
     showToast(isPlaced ? `${furn.name}을(를) 보관함에 넣었습니다.` : `🛋️ ${furn.name}을(를) 방에 배치했습니다!`)
   }
@@ -141,19 +231,57 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
   }
 
   // 좋아요(응원 하트) 누르기
-  const handleLikeRoom = () => {
+  const handleLikeRoom = async () => {
+    if (!IS_DEV_MOCK) {
+      if (!ownerId) {
+        showToast('내 방의 하트는 지인들이 눌러 줘요! 💗')
+        return
+      }
+      if (busy) return
+      setBusy(true)
+      const r = await roomLike(ownerId)
+      setBusy(false)
+      if (!r.ok) {
+        showToast(r.message ?? '잠시 후 다시 시도해 주세요.')
+        if (r.code === 'liked') setLikedToday(true)
+        return
+      }
+      playDessertAsmr('sugar-crack')
+      setLikedToday(true)
+      setRoom((cur) => ({ ...cur, likes: r.likes ?? cur.likes + 1 }))
+      showToast('❤️ 룸에 사랑의 하트를 보냈습니다! (+5 🎀 리본 코인)')
+      void refreshAccount().then(() => setCoinsState(getRibbonCoins()))
+      return
+    }
     playDessertAsmr('sugar-crack')
     const nextRoom = { ...room, likes: room.likes + 1 }
     setRoom(nextRoom)
     saveRoomCustom(nextRoom)
     const earned = addRibbonCoins(5, '룸 좋아요')
     setCoinsState(earned)
-    showToast(IS_DEV_MOCK ? '❤️ 룸에 사랑의 하트를 보냈습니다! (+5 🎀 리본 코인)' : '❤️ 룸에 사랑의 하트를 보냈습니다!')
+    showToast('❤️ 룸에 사랑의 하트를 보냈습니다! (+5 🎀 리본 코인)')
   }
 
   // 방명록 등록
-  const handleAddComment = () => {
+  const handleAddComment = async () => {
     if (!newComment.trim()) return
+    if (!IS_DEV_MOCK) {
+      const target = ownerId ?? myId
+      if (!target || busy) return
+      setBusy(true)
+      const r = await guestbookAdd(target, newComment)
+      setBusy(false)
+      if (!r.ok) {
+        showToast(r.message ?? '잠시 후 다시 시도해 주세요.')
+        return
+      }
+      playDessertAsmr('cookie-crisp')
+      setNewComment('')
+      showToast(isVisitor ? '📝 방명록을 남겼습니다! (+10 🎀 리본 코인)' : '📝 방명록을 남겼습니다!')
+      await reloadRoom()
+      void refreshAccount().then(() => setCoinsState(getRibbonCoins()))
+      return
+    }
     playDessertAsmr('cookie-crisp')
     const updated = addGuestBookEntry('나의 절친 파티시에', newComment)
     setGuestBook(updated)
@@ -161,13 +289,31 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
     const earned = addRibbonCoins(10, '방명록 작성')
     setCoinsState(earned)
     recordMissionAction('w-social', 1)
-    showToast(IS_DEV_MOCK ? '📝 방명록을 남겼습니다! (+10 🎀 리본 코인 획득)' : '📝 방명록을 남겼습니다!')
+    showToast('📝 방명록을 남겼습니다! (+10 🎀 리본 코인 획득)')
   }
 
   // 방명록 답글(대댓글) 등록
-  const handleAddReply = (entryId: string) => {
+  const handleAddReply = async (entryId: string) => {
     const text = replyText.trim()
     if (!text) return
+    if (!IS_DEV_MOCK) {
+      const target = ownerId ?? myId
+      if (!target || busy) return
+      setBusy(true)
+      const r = await guestbookAdd(target, text, entryId)
+      setBusy(false)
+      if (!r.ok) {
+        showToast(r.message ?? '잠시 후 다시 시도해 주세요.')
+        return
+      }
+      playDessertAsmr('mochi-squish')
+      setReplyText('')
+      setReplyingToId(null)
+      showToast('💌 답글을 남겼습니다! (+5 🎀 리본 코인)')
+      await reloadRoom()
+      void refreshAccount().then(() => setCoinsState(getRibbonCoins()))
+      return
+    }
     playDessertAsmr('mochi-squish')
     const myName = monster.name ? `${monster.name} 집사` : '방 주인 파티시에'
     const updated = addGuestBookReply(entryId, myName, text)
@@ -176,7 +322,7 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
     setReplyingToId(null)
     const earned = addRibbonCoins(5, '방명록 답글')
     setCoinsState(earned)
-    showToast(IS_DEV_MOCK ? '💌 친구의 방명록에 답글을 남겼습니다! (+5 🎀 리본 코인 획득)' : '💌 친구의 방명록에 답글을 남겼습니다!')
+    showToast('💌 친구의 방명록에 답글을 남겼습니다! (+5 🎀 리본 코인 획득)')
   }
 
   return (
@@ -225,7 +371,7 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <span style={{ fontSize: 13, fontWeight: 900, color: '#9D174D' }}>
-                🏰 {monster.name}의 미니룸
+                🏰 {monster.name}의 미니룸{visit ? ` (${visit.nickname})` : ''}
               </span>
               <span style={{ fontSize: 10, color: '#10B981', fontWeight: 800 }}>● ON</span>
             </div>
@@ -309,6 +455,7 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
           <span style={{ color: '#BE185D' }}>오후 햇살 왈츠 ♬</span>
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {!isVisitor && (
           <button
             onClick={() => setIsEditing(!isEditing)}
             style={{
@@ -324,13 +471,14 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
           >
             {isEditing ? '완료' : '🎨 룸 꾸미기'}
           </button>
+          )}
           <button
             onClick={handleLikeRoom}
             style={{
               padding: '3px 8px',
               borderRadius: 8,
               border: '1px solid #FDA4AF',
-              background: '#FFF1F2',
+              background: likedToday ? '#FDA4AF' : '#FFF1F2',
               color: '#E11D48',
               fontWeight: 800,
               fontSize: 10,
@@ -723,7 +871,7 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
                 type="text"
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                placeholder="친구에게 따뜻한 한마디를 남겨보세요! (+10 🎀)"
+                placeholder={isVisitor ? '친구에게 따뜻한 한마디를 남겨보세요! (+10 🎀)' : '내 방에 온 친구들에게 한마디를 남겨보세요!'}
                 style={{
                   flex: 1,
                   padding: '7px 12px',
@@ -782,7 +930,12 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
                       <span style={{ fontSize: 18 }}>{entry.icon}</span>
                       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{ fontSize: 12, fontWeight: 900, color: '#9D174D' }}>{entry.author}</span>
-                        <span style={{ fontSize: 10, color: '#9CA3AF' }}>{entry.createdAt}</span>
+                        <span style={{ fontSize: 10, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 6 }}>
+                          {entry.createdAt}
+                          {canDelete(entry.authorId) && (
+                            <button onClick={() => void handleDelete(entry.id)} aria-label="글 지우기" style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 14, padding: 2, lineHeight: 1 }}>🗑️</button>
+                          )}
+                        </span>
                       </div>
                     </div>
 
@@ -862,7 +1015,12 @@ export default function MyRoomScreen({ monster, onBack, onOpenBoutique }: Props)
                                 <span>{rep.icon || '🍰'}</span>
                                 <span>{rep.author}</span>
                               </span>
-                              <span style={{ fontSize: 9, color: '#9CA3AF' }}>{rep.createdAt}</span>
+                              <span style={{ fontSize: 9, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                {rep.createdAt}
+                                {canDelete(rep.authorId) && (
+                                  <button onClick={() => void handleDelete(rep.id)} aria-label="답글 지우기" style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, padding: 2, lineHeight: 1 }}>🗑️</button>
+                                )}
+                              </span>
                             </div>
                             <div style={{ color: '#4E342E', fontWeight: 600, paddingLeft: 14, wordBreak: 'break-word' }}>
                               {rep.message}

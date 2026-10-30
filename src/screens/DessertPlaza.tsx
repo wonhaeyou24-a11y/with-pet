@@ -26,6 +26,8 @@ interface Props {
   onCoins?: (coins: number) => void
   onChallenge: (friend: PlazaFriendEntry) => void
   onOpenSkillTree: () => void
+  // 실제 지인의 미니룸 방문 (서버 방명록)
+  onVisit?: (friend: PlazaFriendEntry) => void
   onBack: () => void
 }
 
@@ -194,6 +196,7 @@ export default function DessertPlaza({
   onEarnCoins,
   onCoins,
   onChallenge,
+  onVisit,
   onBack,
 }: Props) {
   const [entries, setEntries] = useState<PlazaFriendEntry[]>(PLAZA_SHOWCASE_FRIENDS)
@@ -1015,9 +1018,19 @@ export default function DessertPlaza({
             className="btn"
             onClick={() => {
               playDessertAsmr('mochi-squish')
+              if (!IS_DEV_MOCK) {
+                // 실제 지인이면 그 방으로 간다. 연습 상대(NPC)는 방이 없다.
+                if (onVisit && isRealMonsterId(selectedFriend.monster.id)) {
+                  onVisit(selectedFriend)
+                } else {
+                  setToast('🏰 연습 상대에게는 미니룸이 없어요. 실제 지인의 방을 방문해 보세요!')
+                  setTimeout(() => setToast(null), 3000)
+                }
+                return
+              }
               addRibbonCoins(10, '친구 미니룸 방문 응원')
               recordMissionAction('w-social', 1)
-              setToast(IS_DEV_MOCK ? `🏰 ${selectedFriend.ownerNickname}님의 미니룸에 방명록 응원을 남겼습니다! (🎀 +10 리본)` : `🏰 ${selectedFriend.ownerNickname}님의 미니룸 방문은 지인 방명록과 함께 곧 열려요!`)
+              setToast(`🏰 ${selectedFriend.ownerNickname}님의 미니룸에 방명록 응원을 남겼습니다! (🎀 +10 리본)`)
               setTimeout(() => setToast(null), 3000)
             }}
             style={{

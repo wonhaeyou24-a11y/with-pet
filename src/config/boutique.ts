@@ -657,6 +657,7 @@ export function saveRoomCustom(data: RoomCustom): void {
 // 6. 싸이월드 감성 방명록(일촌평/방문 한마디 & 답글) 시스템
 export interface GuestBookReply {
   id: string
+  authorId?: string
   author: string
   message: string
   createdAt: string
@@ -665,6 +666,7 @@ export interface GuestBookReply {
 
 export interface GuestBookEntry {
   id: string
+  authorId?: string
   author: string
   message: string
   createdAt: string

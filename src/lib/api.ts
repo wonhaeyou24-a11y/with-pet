@@ -1,5 +1,5 @@
 import { defaultDessertBase } from '../config/species'
-import { loadMallangCustom } from '../monsters/MallangChameleon'
+import { loadMallangCustom, sanitizeMallangCustom, type MallangCustom } from '../monsters/MallangChameleon'
 import type { BodyType, Element, Expression, MonsterLook } from '../monsters/types'
 import { IS_DEV_MOCK } from './devMode'
 import { NETWORK_MESSAGE, readFunctionError, SERVER_TIMEOUT_MS, withTimeout } from './net'
@@ -39,6 +39,8 @@ export interface MonsterRow {
   unlocked_skills?: string[]
   equipped_skills?: string[]
   skill_levels?: Record<string, number>
+  // 서버에 저장된 꾸민 모습 (지인들이 광장·미니룸에서 보는 모습)
+  look_custom?: MallangCustom | null
   battle_stance?: 'aggressive' | 'balanced' | 'defensive' | 'trickster'
   bio?: string
   likes_count?: number
@@ -65,7 +67,7 @@ export interface MonsterRow {
 }
 
 export function monsterLook(m: MonsterRow): MonsterLook {
-  const saved = loadMallangCustom(m.id)
+  const saved = loadMallangCustom(m.id) ?? (m.look_custom ? sanitizeMallangCustom(m.look_custom) : null)
   const fallbackBase = defaultDessertBase(saved?.morphForm ?? m.species)
   const mergedMallang = saved ?? m.parts.mallang ?? { dessertBase: fallbackBase }
   if (!mergedMallang.dessertBase) {

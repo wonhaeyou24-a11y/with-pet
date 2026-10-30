@@ -17,6 +17,8 @@ import HatchReveal from './HatchReveal'
 import MonsterDetail from './MonsterDetail'
 import ServerBattle from './ServerBattle'
 import { refreshAccount } from '../lib/shopApi'
+import { lookSave } from '../lib/roomApi'
+import { saveMallangCustomLocal, setRemoteLookSaver } from '../monsters/MallangChameleon'
 import { isRealMonsterId } from '../lib/battleApi'
 import MonsterHome from './MonsterHome'
 import MyRoomScreen from './MyRoomScreen'
@@ -33,7 +35,7 @@ const EGG_LINES = {
 }
 
 type Limits = { pet: number; warm: number }
-type MonsterSubView = 'home' | 'detail' | 'care' | 'train' | 'skills' | 'plaza' | 'battle' | 'evolution' | 'pokedex' | 'boutique' | 'myroom'
+type MonsterSubView = 'home' | 'detail' | 'care' | 'train' | 'skills' | 'plaza' | 'battle' | 'evolution' | 'pokedex' | 'boutique' | 'myroom' | 'visit'
 
 // 서버에서 받은 알·몬스터 상태에 따라 보여 줄 화면을 고른다 (알 → 부화 → 이름 짓기 → 몬스터 홈 / 돌보기 / 훈련 / 공방)
 export default function Game({ player }: { player: Player }) {
@@ -56,6 +58,8 @@ export default function Game({ player }: { player: Player }) {
   const [hatching, setHatching] = useState<{ rarity: EggRow['rarity']; monster: MonsterRow | null } | null>(null)
   const [subView, setSubView] = useState<MonsterSubView>('home')
   const [battleTarget, setBattleTarget] = useState<PlazaFriendEntry>(PLAZA_SHOWCASE_FRIENDS[0])
+  const [visitTarget, setVisitTarget] = useState<PlazaFriendEntry | null>(null)
+  const hydratedLooksRef = useRef<Set<string>>(new Set())
   const toastTimer = useRef<number | undefined>(undefined)
   const fxTimer = useRef<number | undefined>(undefined)
 
@@ -110,6 +114,26 @@ export default function Game({ player }: { player: Player }) {
     setCoins(next)
     if (!IS_DEV_MOCK) void refreshAccount()
   }
+
+  // 실제 서비스: 꾸민 모습은 저장할 때 서버에도 올리고(서버가 산 장식만 남긴다), 서버에 있는 내 꾸민 모습은 처음 한 번 내려 받는다
+  useEffect(() => {
+    if (IS_DEV_MOCK) return
+    setRemoteLookSaver((id, custom) => {
+      void lookSave(id, custom).then((r) => {
+        if (r.ok && r.look) saveMallangCustomLocal(id, r.look)
+      })
+    })
+    return () => setRemoteLookSaver(null)
+  }, [])
+  useEffect(() => {
+    if (IS_DEV_MOCK) return
+    for (const m of monsters) {
+      if (m.look_custom && !hydratedLooksRef.current.has(m.id)) {
+        hydratedLooksRef.current.add(m.id)
+        saveMallangCustomLocal(m.id, m.look_custom)
+      }
+    }
+  }, [monsters])
 
   // 실제 서비스: 로그인하면 리본 코인·보유 아이템·미션 진행을 서버에서 받아 온다
   useEffect(() => {
@@ -241,6 +265,16 @@ export default function Game({ player }: { player: Player }) {
         />
       )
     }
+    if (subView === 'visit' && visitTarget) {
+      return (
+        <MyRoomScreen
+          monster={monster}
+          visit={{ ownerId: visitTarget.monster.owner, nickname: visitTarget.ownerNickname, monster: visitTarget.monster }}
+          onBack={() => setSubView('plaza')}
+          onOpenBoutique={() => setSubView('boutique')}
+        />
+      )
+    }
     if (subView === 'myroom') {
       return (
         <MyRoomScreen
@@ -296,6 +330,10 @@ export default function Game({ player }: { player: Player }) {
             setSubView('battle')
           }}
           onOpenSkillTree={() => setSubView('skills')}
+          onVisit={(friend) => {
+            setVisitTarget(friend)
+            setSubView('visit')
+          }}
           onBack={() => setSubView('home')}
         />
       )
