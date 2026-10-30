@@ -29,7 +29,7 @@ import {
 import { playDessertAsmr, type DessertSoundKind } from '../lib/sound'
 import MonsterView from '../monsters/MonsterView'
 import { BackIcon } from '../ui/Icons'
-import { StatBars } from '../ui/parts'
+import { StatBars, totalStats } from '../ui/parts'
 
 interface Props {
   monster: MonsterRow
@@ -79,6 +79,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
   const [asmrBubble, setAsmrBubble] = useState<string | null>(null)
   const [levelUpBanner, setLevelUpBanner] = useState(false)
   const [fastMode, setFastMode] = useState(false)
+  const [showCourseStatDetail, setShowCourseStatDetail] = useState(false)
 
   // 1. 파티세리 훈련 실시간 백그라운드 진행 상태
   const [trainSession, setTrainSession] = useState<TrainingSession | null>(() => getActiveTrainingSession(monster.id))
@@ -1279,7 +1280,34 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                 <span style={{ color: '#2E7D32', fontWeight: 900 }}>
                   <b>{monster.stats[selectedCourse.mainStat] + selectedCourse.mainGain}</b> (+{selectedCourse.mainGain}) ✨
                 </span>
+                <button
+                  type="button"
+                  onClick={() => setShowCourseStatDetail((v) => !v)}
+                  style={{
+                    background: '#FFF3E0',
+                    border: '1px solid #FFA726',
+                    borderRadius: 6,
+                    padding: '2px 6px',
+                    fontSize: 9,
+                    fontWeight: 900,
+                    color: '#E65100',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {showCourseStatDetail ? '▲ 접기' : '▼ 6대 능력치'}
+                </button>
               </div>
+
+              {/* 6대 능력치 메인 스타일 2열 바 펼치기 */}
+              {showCourseStatDetail && (
+                <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: 10, border: '1px solid #FFE0B2', gap: 6, display: 'flex', flexDirection: 'column' }}>
+                  <div className="row between" style={{ fontSize: 11, fontWeight: 900, color: '#3E2723' }}>
+                    <span>📊 펫 전체 능력치</span>
+                    <span className="chip" style={{ fontSize: 10, padding: '1px 6px' }}>총점 {totalStats(monster.stats)}</span>
+                  </div>
+                  <StatBars stats={monster.stats} compact />
+                </div>
+              )}
 
               {/* 훈련 효과 뱃지 4종 그리드 (빈 공간 없이 꽉 찬 정보 제공) */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 5 }}>
@@ -1541,11 +1569,108 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
         )}
 
         {/* ======================================================== */}
-        {/* 탭 3: 📊 능력치 레이아웃 */}
+        {/* 탭 3: 📊 능력치 레이아웃 (메인 홈 스타일 2열 컴팩트 그리드 복원) */}
         {/* ======================================================== */}
         {activeTab === 'stats' && (
-          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
-            <StatBars stats={monster.stats} />
+          <div
+            style={{
+              flex: 1,
+              minHeight: 0,
+              overflowY: 'auto',
+              overscrollBehavior: 'contain',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+              padding: '2px 2px 6px',
+            }}
+          >
+            {/* 🌟 메인 홈과 동일한 정갈한 2열 그리드 능력치 요약 카드 */}
+            <div
+              className="card tight"
+              style={{
+                flexShrink: 0,
+                padding: '10px 14px',
+                gap: 8,
+                background: '#FFFFFF',
+                borderRadius: 14,
+                border: '1.5px solid #F0DFB8',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+              }}
+            >
+              <div className="row between" style={{ alignItems: 'center' }}>
+                <h2 className="title" style={{ fontSize: 15, margin: 0, display: 'flex', alignItems: 'center' }}>
+                  능력치 <span className="chip" style={{ fontSize: 12, marginLeft: 6, padding: '2px 8px', fontWeight: 900 }}>총점 {totalStats(monster.stats)}</span>
+                </h2>
+                <span className="chip honey" style={{ fontSize: 11, fontWeight: 900, padding: '2px 8px' }}>
+                  전투력 ⚔️ {battlePower}
+                </span>
+              </div>
+              {/* 메인의 2열 그리드 컴팩트 바 */}
+              <StatBars stats={monster.stats} compact />
+            </div>
+
+            {/* 💡 6대 능력치 단련 가이드 & 훈련 연계 */}
+            <div
+              style={{
+                background: '#FFF9F5',
+                borderRadius: 14,
+                border: '1.5px solid #FFE0B2',
+                padding: '9px 12px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 6,
+              }}
+            >
+              <div style={{ fontSize: 12, fontWeight: 900, color: '#3E2723' }}>
+                💡 능력치별 실전 효과 및 단련 팁
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, fontSize: 10 }}>
+                <div style={{ background: '#FFFFFF', padding: '6px 8px', borderRadius: 8, border: '1px solid #FFE0B2' }}>
+                  <div style={{ fontWeight: 800, color: '#D9534F' }}>❤️ 체력 ({monster.stats.hp})</div>
+                  <div style={{ color: '#795548', fontSize: 9 }}>ASMR 배틀 체력 바 증가</div>
+                </div>
+                <div style={{ background: '#FFFFFF', padding: '6px 8px', borderRadius: 8, border: '1px solid #FFE0B2' }}>
+                  <div style={{ fontWeight: 800, color: '#FF7A59' }}>⚔️ 공격 ({monster.stats.atk})</div>
+                  <div style={{ color: '#795548', fontSize: 9 }}>식감 타격 대미지 극대화</div>
+                </div>
+                <div style={{ background: '#FFFFFF', padding: '6px 8px', borderRadius: 8, border: '1px solid #FFE0B2' }}>
+                  <div style={{ fontWeight: 800, color: '#42A5F5' }}>🛡️ 방어 ({monster.stats.def})</div>
+                  <div style={{ color: '#795548', fontSize: 9 }}>상대 스킬 피해량 감소</div>
+                </div>
+                <div style={{ background: '#FFFFFF', padding: '6px 8px', borderRadius: 8, border: '1px solid #FFE0B2' }}>
+                  <div style={{ fontWeight: 800, color: '#FFA726' }}>⚡ 속도 ({monster.stats.spd})</div>
+                  <div style={{ color: '#795548', fontSize: 9 }}>선공권 및 회피 확률 증가</div>
+                </div>
+                <div style={{ background: '#FFFFFF', padding: '6px 8px', borderRadius: 8, border: '1px solid #FFE0B2' }}>
+                  <div style={{ fontWeight: 800, color: '#AB47BC' }}>🧠 지능 ({monster.stats.int})</div>
+                  <div style={{ color: '#795548', fontSize: 9 }}>크리티컬 및 ASMR 위력</div>
+                </div>
+                <div style={{ background: '#FFFFFF', padding: '6px 8px', borderRadius: 8, border: '1px solid #FFE0B2' }}>
+                  <div style={{ fontWeight: 800, color: '#EC407A' }}>✨ 매력 ({monster.stats.cha})</div>
+                  <div style={{ color: '#795548', fontSize: 9 }}>광장 인기 및 디저트 호감도</div>
+                </div>
+              </div>
+            </div>
+
+            {/* 바로 단련하러 가기 원터치 버튼 */}
+            <button
+              onClick={() => setActiveTab('courses')}
+              style={{
+                width: '100%',
+                minHeight: 46,
+                borderRadius: 14,
+                border: 'none',
+                background: 'linear-gradient(180deg, #FF8A65 0%, #F4511E 100%)',
+                color: '#FFFFFF',
+                fontWeight: 900,
+                fontSize: 14,
+                cursor: 'pointer',
+                boxShadow: '0 3px 0 #BF360C',
+                touchAction: 'manipulation',
+              }}
+            >
+              🏋️ 능력치 단련하러 훈련 코스 가기
+            </button>
           </div>
         )}
       </div>
