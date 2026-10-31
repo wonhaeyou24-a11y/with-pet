@@ -11,6 +11,7 @@ import { monsterLook, type MonsterRow } from '../lib/api'
 import { PLAZA_SHOWCASE_FRIENDS, type PlazaFriendEntry } from '../lib/battleEngine'
 import { playDessertAsmr } from '../lib/sound'
 import { supabase } from '../lib/supabase'
+import { normalizeDessertSpecies } from '../monsters/dessertNormalizer'
 import MonsterView from '../monsters/MonsterView'
 import { callBattle, isRealMonsterId } from '../lib/battleApi'
 import { IS_DEV_MOCK } from '../lib/devMode'
@@ -434,14 +435,27 @@ export default function DessertPlaza({
         const nickMap = new Map<string, string>()
         players?.forEach((p: { id: string; nickname: string }) => nickMap.set(p.id, p.nickname))
 
-        const mapped: PlazaFriendEntry[] = (realMonsters as MonsterRow[]).map((m) => ({
-          ownerNickname: nickMap.get(m.owner) ?? '지인파티시에',
-          badge: '✨ 지인 파티시에',
-          bio: m.bio ?? '정성껏 키운 나만의 디저트 몬스터예요! 🍰',
-          likes: m.likes_count ?? 24,
-          monster: m,
-          comments: [],
-        }))
+        const mapped: PlazaFriendEntry[] = (realMonsters as MonsterRow[]).map((m) => {
+          const normSpecies = normalizeDessertSpecies(m.species)
+          return {
+            ownerNickname: nickMap.get(m.owner) ?? '지인파티시에',
+            badge: '✨ 지인 파티시에',
+            bio: m.bio ?? '정성껏 키운 나만의 디저트 몬스터예요! 🍰',
+            likes: m.likes_count ?? 24,
+            monster: {
+              ...m,
+              species: normSpecies,
+              parts: {
+                ...m.parts,
+                mallang: {
+                  ...m.parts?.mallang,
+                  morphForm: normalizeDessertSpecies(m.parts?.mallang?.morphForm ?? normSpecies),
+                },
+              },
+            },
+            comments: [],
+          }
+        })
 
         setEntries([...mapped, ...PLAZA_SHOWCASE_FRIENDS])
       } catch {

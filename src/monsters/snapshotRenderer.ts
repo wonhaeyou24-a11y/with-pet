@@ -3,6 +3,7 @@
 // 같은 3D 모델을 공용 렌더러 하나로 찍어 두고 <img>로 보여 준다.
 
 import * as THREE from 'three'
+import { normalizeDessertSpecies } from './dessertNormalizer'
 import type { DessertBaseId, MallangCustom } from './MallangChameleon'
 import { build3DCharacterMesh, build3DDessertBase, createPatisserieEnvMap } from './Monster3DView'
 import type { MonsterLook } from './types'
@@ -39,7 +40,7 @@ function getRenderer(): THREE.WebGLRenderer | null {
 export function snapshotKey(look: Look): string {
   const m = look.mallang
   return JSON.stringify([
-    m?.morphForm ?? look.species,
+    normalizeDessertSpecies(m?.morphForm ?? look.species),
     m?.dessertBase ?? 'strawberry-cake',
     m?.skinPalette ?? look.palette ?? 0,
     look.shiny ? 1 : 0,
@@ -59,7 +60,7 @@ export function getMonsterSnapshot(look: Look): string | null {
   const r = getRenderer()
   if (!r || !envTex) return null
 
-  const species = look.mallang?.morphForm ?? look.species
+  const species = normalizeDessertSpecies(look.mallang?.morphForm ?? look.species)
   const dessertBase: DessertBaseId = look.mallang?.dessertBase ?? 'strawberry-cake'
   const scene = new THREE.Scene()
   scene.environment = envTex

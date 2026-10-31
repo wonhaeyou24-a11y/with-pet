@@ -1,4 +1,5 @@
 import { defaultDessertBase } from '../config/species'
+import { normalizeDessertSpecies } from '../monsters/dessertNormalizer'
 import { loadMallangCustom, sanitizeMallangCustom, type MallangCustom } from '../monsters/MallangChameleon'
 import type { BodyType, Element, Expression, MonsterLook } from '../monsters/types'
 import { IS_DEV_MOCK } from './devMode'
@@ -67,14 +68,19 @@ export interface MonsterRow {
 }
 
 export function monsterLook(m: MonsterRow): MonsterLook {
+  const normSpecies = normalizeDessertSpecies(m.species)
   const saved = loadMallangCustom(m.id) ?? (m.look_custom ? sanitizeMallangCustom(m.look_custom) : null)
-  const fallbackBase = defaultDessertBase(saved?.morphForm ?? m.species)
+  const normMorphForm = saved?.morphForm ? normalizeDessertSpecies(saved.morphForm) : normSpecies
+  const fallbackBase = defaultDessertBase(normMorphForm)
   const mergedMallang = saved ?? m.parts.mallang ?? { dessertBase: fallbackBase }
   if (!mergedMallang.dessertBase) {
     mergedMallang.dessertBase = fallbackBase
   }
+  if (mergedMallang.morphForm) {
+    mergedMallang.morphForm = normalizeDessertSpecies(mergedMallang.morphForm)
+  }
   return {
-    species: m.species,
+    species: normSpecies,
     ...m.parts,
     shiny: m.is_shiny || m.parts.shiny,
     mutation: m.mutation ?? m.parts.mutation ?? null,

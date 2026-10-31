@@ -1,5 +1,6 @@
 import { useId, useRef, useState, type PointerEvent } from 'react'
 import { BackDecorations, FrontDecorations } from './Decorations'
+import { normalizeDessertSpecies } from './dessertNormalizer'
 import { CHAMELEON_PALETTES, MorphBodyPaintOverlay, SyrupToppingLayer, UniversalWingLayer } from './MallangChameleon'
 import Monster3DView from './Monster3DView'
 import './monsters.css'
@@ -40,8 +41,8 @@ export default function MonsterView({
   const uid = useId().replace(/:/g, '')
   const svgRef = useRef<SVGSVGElement | null>(null)
   const [fallback2D, setFallback2D] = useState(false)
-  const activeSpecies = look.mallang?.morphForm ?? look.species
-  const def = SPECIES[activeSpecies] ?? SPECIES[look.species]
+  const activeSpecies = normalizeDessertSpecies(look.mallang?.morphForm ?? look.species)
+  const def = SPECIES[activeSpecies] ?? SPECIES['mochi'] ?? Object.values(SPECIES)[0]
   if (!def) return null
 
   const effectiveLook: MonsterLook = {

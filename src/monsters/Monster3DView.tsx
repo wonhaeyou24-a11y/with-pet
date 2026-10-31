@@ -5,6 +5,7 @@
 import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { getSpeciesSoundKind } from '../lib/sound'
+import { normalizeDessertSpecies } from './dessertNormalizer'
 import { CHAMELEON_PALETTES, type DessertBaseId, type MallangCustom } from './MallangChameleon'
 import type { MonsterLook } from './types'
 
@@ -236,16 +237,20 @@ export function build3DCharacterMesh(
   const bodyGroup = new THREE.Group()
   root.add(bodyGroup)
 
+  // 🛡️ 구버전 종족이나 알 수 없는 코드가 유입되어도 100% 매핑된 8대 디저트 펫으로 정규화
+  const validSpecies = normalizeDessertSpecies(species)
+
   const palIdx = look.mallang?.skinPalette ?? look.palette ?? 0
   const basePal = CHAMELEON_PALETTES[palIdx % CHAMELEON_PALETTES.length]
   let innerLiquid: THREE.Object3D | undefined
 
   // 종족 및 외형 성향에 따른 디저트 눈동자 색상 매핑
   const getEyeColor = (sp: string): string => {
-    if (sp === 'dubai-cookie') return '#1A2312' // 쌉싸름한 피스타치오 다크
-    if (sp === 'tanghulu' || sp === 'wax-ball') return '#181026' // 영롱한 유리알 딥블루
-    if (sp === 'pudding') return '#2D1606' // 달콤한 카라멜 앰버
-    if (sp === 'choco' || sp === 'smore' || sp === 'heugyeom') return '#1A0C08' // 진한 다크 카카오
+    const vsp = normalizeDessertSpecies(sp)
+    if (vsp === 'dubai-cookie') return '#1A2312' // 쌉싸름한 피스타치오 다크
+    if (vsp === 'tanghulu' || vsp === 'wax-ball') return '#181026' // 영롱한 유리알 딥블루
+    if (vsp === 'pudding') return '#2D1606' // 달콤한 카라멜 앰버
+    if (vsp === 'choco' || vsp === 'smore') return '#1A0C08' // 진한 다크 카카오
     return '#24141A' // 포근한 로즈 초콜릿 (기본)
   }
 
@@ -255,9 +260,9 @@ export function build3DCharacterMesh(
     faceGroup.position.set(0, yOffset, zOffset)
 
     // 종족 기본 성향 및 커스텀에 따른 풍부한 눈매 표정 매핑
-    const expr = look.expression || (species === 'mochi' ? 'mochi-sparkle' : look.evoBranch === 'crispy-crunch' || look.evoBranch === 'royal-chef' ? 'sharp' : look.evoBranch === 'sweet-melty' ? 'sleepy' : 'round')
+    const expr = look.expression || (validSpecies === 'mochi' ? 'mochi-sparkle' : look.evoBranch === 'crispy-crunch' || look.evoBranch === 'royal-chef' ? 'sharp' : look.evoBranch === 'sweet-melty' ? 'sleepy' : 'round')
     const isRainbowStar = look.evoBranch === 'gourmet-rainbow' || expr === 'star'
-    const eyeColor = getEyeColor(species)
+    const eyeColor = getEyeColor(validSpecies)
 
     const eyeMat = new THREE.MeshPhysicalMaterial({ color: eyeColor, roughness: 0.08, clearcoat: 1.0 })
     const glintMat = new THREE.MeshBasicMaterial({ color: '#FFFFFF' })
@@ -273,7 +278,7 @@ export function build3DCharacterMesh(
       const eyeGroup = new THREE.Group()
       eyeGroup.position.set(xSide, 0.06, 0)
 
-      if (expr === 'mochi-sparkle' || (species === 'mochi' && expr === 'round')) {
+      if (expr === 'mochi-sparkle' || (validSpecies === 'mochi' && expr === 'round')) {
         // 🍡 1. 모찌 전용 땡글 젤리눈: 투명한 앙금이 비치는 그라데이션 + 3단 입체 크리스탈 하이라이트
         const eye = new THREE.Mesh(new THREE.SphereGeometry(0.125, 24, 22), eyeMat)
         eye.scale.set(1.05, 1.15, 0.65)
@@ -383,7 +388,7 @@ export function build3DCharacterMesh(
     bodyGroup.add(faceGroup)
   }
 
-  if (species === 'dubai-cookie') {
+  if (validSpecies === 'dubai-cookie') {
     // 💚 1. 두바이 쫀득쿠키 3D: 다크초코 쿠키 돔 + 피스타치오 스프레드 코어 + 입체 황금 카다이프 면발 수십 가닥
     const cookieMat = new THREE.MeshPhysicalMaterial({
       color: '#4A2C1D',
@@ -455,7 +460,7 @@ export function build3DCharacterMesh(
     bodyGroup.add(topCap)
 
     addCute3DFace(0.92, 0.26, '#FF8A9E')
-  } else if (species === 'wax-ball') {
+  } else if (validSpecies === 'wax-ball') {
     // 🫧 2. 톡톡 과즙 왁싱볼 3D: 반투명 파스텔 밀랍 구슬 + 내부에서 출렁이는 고농축 과일 시럽 코어 & 기포 + 상단 병마개 꼭지
     const waxPalette = [
       { shell: '#F3E5F5', core: '#9C27B0', drop: '#BA68C8' },
@@ -548,7 +553,7 @@ export function build3DCharacterMesh(
     })
 
     addCute3DFace(0.92, 0.06, '#FF8A9E')
-  } else if (species === 'tanghulu') {
+  } else if (validSpecies === 'tanghulu') {
     // 🍓 3. 유리알 설탕 탕후루 3D: 대나무 꼬치 + 생딸기·샤인머스캣 2단 과일 + 영롱한 고굴절 유리 설탕 코팅막
     const stick = new THREE.Mesh(
       new THREE.CylinderGeometry(0.055, 0.055, 2.55, 16),
@@ -611,7 +616,7 @@ export function build3DCharacterMesh(
     }
 
     addCute3DFace(0.82, 0.32, '#FFCDD2')
-  } else if (species === 'pudding') {
+  } else if (validSpecies === 'pudding') {
     // 🍮 4. 말랑말랑 커스터드 푸딩 3D: 사다리꼴 탱글 커스터드 + 윤기 흐르는 카라멜 시럽 모자 + 체리
     const custardMat = new THREE.MeshPhysicalMaterial({
       color: '#FFE066',
@@ -659,7 +664,7 @@ export function build3DCharacterMesh(
     bodyGroup.add(cherry)
 
     addCute3DFace(0.84, -0.02, '#FF8A9E')
-  } else if (species === 'jelly') {
+  } else if (validSpecies === 'jelly') {
     // 🐻 5. 쫀득 구미 젤리베어 3D: 반투명 유리알 젤리 재질 + 배 속에 비치는 하트 과일 코어
     const jellyMat = new THREE.MeshPhysicalMaterial({
       color: basePal.fur,
@@ -702,7 +707,7 @@ export function build3DCharacterMesh(
     innerLiquid = core
 
     addCute3DFace(0.84, 0.18, '#FF80AB')
-  } else if (species === 'smore') {
+  } else if (validSpecies === 'smore') {
     // 🔥 6. 구운 스모어 마시멜로 3D: 노릇하게 토스트된 폭신 마시멜로 원통 + 고양이 귀 + 분홍 젤리 발바닥 육구
     const smoreMat = new THREE.MeshPhysicalMaterial({
       color: '#FFFDF7',
@@ -746,7 +751,7 @@ export function build3DCharacterMesh(
     })
 
     addCute3DFace(0.84, 0.14, '#FF8A9E')
-  } else if (species === 'choco') {
+  } else if (validSpecies === 'choco') {
     // 🍫 7. 달콤 퐁듀 초코 3D: 진한 가나슈 트러플 돔 + 따뜻한 초코 드리즐 + 금박 토핑
     const chocoMat = new THREE.MeshPhysicalMaterial({
       color: '#3E2217',
@@ -776,7 +781,7 @@ export function build3DCharacterMesh(
     bodyGroup.add(goldLeaf)
 
     addCute3DFace(0.94, 0.1, '#FF8A9E')
-  } else if (species === 'mochi') {
+  } else if (validSpecies === 'mochi') {
     // 🍡 8. [시그니처] 쫀득 찹쌀떡 모찌 3D:
     // 바닥에 쫀득하게 착 가라앉으며 퍼진 물방울 찹쌀떡 실루엣 + 뽀얀 전분가루 파우더 질감 + 속 앙금 코어 + 도드라진 쫀득 볼살
     const vividMochiColor = new THREE.Color(basePal.fur).lerp(new THREE.Color('#FF8DA8'), palIdx === 0 ? 0.35 : 0.15)
@@ -1846,7 +1851,7 @@ export default function Monster3DView({
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [webglFailed, setWebglFailed] = useState(false)
 
-  const activeSpecies = look.mallang?.morphForm ?? look.species
+  const activeSpecies = normalizeDessertSpecies(look.mallang?.morphForm ?? look.species)
   const dessertBase: DessertBaseId = look.mallang?.dessertBase ?? 'strawberry-cake'
   const paletteKey = look.mallang?.skinPalette ?? look.palette ?? 0
 
