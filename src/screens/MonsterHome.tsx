@@ -203,6 +203,9 @@ export default function MonsterHome({
   // 백그라운드 현실 시간 훈련 & 타워 세션 상태
   const [trainSess, setTrainSess] = useState<TrainingSession | null>(() => getActiveTrainingSession(monster.id))
   const [towerSess, setTowerSess] = useState<TowerExpeditionSession | null>(() => getActiveTowerSession(monster.id))
+  const towerTotalSec = towerSess ? towerSess.secPerFloor * towerSess.maxFloors : 0
+  const towerElapsedSec = towerSess ? Math.max(0, Math.floor((Date.now() - towerSess.startedAt) / 1000)) : 0
+  const towerDone = !!towerSess && towerElapsedSec >= towerTotalSec
   const [trainLeftSec, setTrainLeftSec] = useState<number>(() => {
     const s = getActiveTrainingSession(monster.id)
     return s ? Math.max(0, Math.ceil((s.finishAt - Date.now()) / 1000)) : 0
@@ -721,15 +724,16 @@ export default function MonsterHome({
                   style={{
                     padding: '3px 8px',
                     borderRadius: 999,
-                    background: '#7C4DFF',
+                    background: towerDone ? 'linear-gradient(135deg, #FFB300, #FF6F00)' : '#7C4DFF',
                     color: '#FFFFFF',
                     fontSize: 10,
                     fontWeight: 900,
-                    boxShadow: '0 2px 8px rgba(124,77,255,0.3)',
+                    boxShadow: towerDone ? '0 2px 10px rgba(255, 160, 0, 0.6)' : '0 2px 8px rgba(124,77,255,0.3)',
                     cursor: 'pointer',
+                    animation: towerDone ? 'bounce 1.5s infinite ease-in-out' : 'none',
                   }}
                 >
-                  🏰 타워 {towerSess.currentFloor}층 등반 중
+                  {towerDone ? '🎉 타워 탐험 완료! (보상 수령)' : `🏰 타워 ${towerSess.currentFloor}층 등반 중`}
                 </div>
               )}
               {evoEligibility.canEvolve && (

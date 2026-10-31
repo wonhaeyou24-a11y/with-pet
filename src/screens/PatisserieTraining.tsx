@@ -673,11 +673,132 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                 }}
               />
 
-              {/* 중앙 스테이지: 탐험 중일 때만 러닝&전투 액션, 대기 중일 때는 성문 앞 출격 대기 */}
+              {/* 중앙 스테이지: 탐험 중일 때만 러닝&전투 액션, 완료 시 승리 세레모니, 대기 중일 때는 성문 앞 출격 대기 */}
               {towerSession ? (
-                <div
-                  style={{
-                    position: 'relative',
+                towerDone ? (
+                  /* 🏆 탐험 완파 승리 스테이지: 러닝/점핑/피격 액션 완전 정지, 황금 전리품 상자 & 승리 세레모니 */
+                  <div
+                    style={{
+                      position: 'relative',
+                      width: '100%',
+                      height: 180,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 20,
+                      zIndex: 10,
+                    }}
+                  >
+                    {/* 상단 완파 축하 배너 */}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: 6,
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        background: 'linear-gradient(135deg, #FFD54F, #FF8F00)',
+                        color: '#3E2723',
+                        fontSize: 12,
+                        fontWeight: 900,
+                        padding: '3px 12px',
+                        borderRadius: 999,
+                        boxShadow: '0 3px 10px rgba(255, 143, 0, 0.5)',
+                        animation: 'pulse 1.2s infinite alternate',
+                        whiteSpace: 'nowrap',
+                        zIndex: 15,
+                      }}
+                    >
+                      👑 {towerSession.maxFloors}개 층 돌파 성공! 전리품 수령 대기
+                    </div>
+
+                    {/* 1. 내 캐릭터 (편안하고 당당한 승리 바운스 포즈 - 더 이상 뛰거나 진격하지 않음!) */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        animation: 'bounce 1.6s ease-in-out infinite',
+                        zIndex: 12,
+                      }}
+                    >
+                      <MonsterView look={look} size={185} title={info?.name} />
+                      <div
+                        style={{
+                          width: 80,
+                          height: 16,
+                          borderRadius: '50%',
+                          background: 'radial-gradient(ellipse, rgba(0,0,0,0.35) 0%, transparent 70%)',
+                          marginTop: -8,
+                        }}
+                      />
+                    </div>
+
+                    {/* 2. 획득한 커다란 황금 전리품 보물상자 & 반짝이 효과 */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        animation: 'pulseGlow 1.4s ease infinite',
+                        zIndex: 12,
+                      }}
+                    >
+                      <div
+                        style={{
+                          position: 'relative',
+                          width: 64,
+                          height: 56,
+                          background: 'linear-gradient(180deg, #FFE082 0%, #FFB300 40%, #FF6F00 100%)',
+                          borderRadius: '14px 14px 12px 12px',
+                          border: '2.5px solid #FFF8E1',
+                          boxShadow: '0 6px 18px rgba(255, 143, 0, 0.6), inset 0 3px 0 rgba(255,255,255,0.8)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: -6,
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            width: 58,
+                            height: 12,
+                            borderRadius: 999,
+                            background: '#FFFFFF',
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                            border: '1.5px solid #FFE082',
+                          }}
+                        />
+                        <div style={{ fontSize: 22, filter: 'drop-shadow(0 2px 4px rgba(216,27,96,0.5))' }}>
+                          🎁
+                        </div>
+                        <div style={{ position: 'absolute', top: -12, right: -8, fontSize: 14, animation: 'pulse 0.8s infinite alternate' }}>
+                          ✨
+                        </div>
+                      </div>
+                      <span
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 900,
+                          color: '#FFE082',
+                          background: 'rgba(0,0,0,0.65)',
+                          padding: '2px 8px',
+                          borderRadius: 8,
+                          marginTop: 4,
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        수령 대기 보물
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      position: 'relative',
                     width: '100%',
                     height: 180,
                     display: 'flex',
@@ -869,6 +990,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                     </span>
                   </div>
                 </div>
+                )
               ) : (
                 /* 출격 대기 상태: 펫이 타워 입구에서 늠름하게 대기 */
                 <div
