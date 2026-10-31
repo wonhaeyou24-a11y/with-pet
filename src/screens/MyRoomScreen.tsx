@@ -92,9 +92,50 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
   const [replyText, setReplyText] = useState<string>('')
   const [petActionState, setPetActionState] = useState<string>('방 안을 총총 거닐며 디저트 향기를 맡고 있어요 🌸')
   const [bouncePet, setBouncePet] = useState<boolean>(false)
+  const [petActivity, setPetActivity] = useState<'idle' | 'sleep' | 'jump' | 'eat' | 'walk'>('idle')
+  const [petPosX, setPetPosX] = useState<number>(0) // -65 ~ +65px
+  const [footprints, setFootprints] = useState<{ id: number; x: number; y: number }[]>([])
+  const [roomTier, setRoomTier] = useState<1 | 2 | 3>(() => {
+    if (monster.level >= 15 || (monster.evo_stage ?? 1) >= 3) return 2
+    return 1
+  })
   const [bgmPlaying, setBgmPlaying] = useState<boolean>(() => miniRoomBgm.getStatus())
   const [currentTrack, setCurrentTrack] = useState<BgmTrack>(() => miniRoomBgm.getTrack())
   const [showBgmPicker, setShowBgmPicker] = useState<boolean>(false)
+
+  // 🐾 발자국 도트 생성 헬퍼 (산책/이동 시 바닥에 달콤한 파티클 남기기)
+  const addFootprint = (x: number) => {
+    const newDot = { id: Date.now() + Math.random(), x, y: 0 }
+    setFootprints((prev) => [...prev.slice(-8), newDot])
+    window.setTimeout(() => {
+      setFootprints((prev) => prev.filter((d) => d.id !== newDot.id))
+    }, 4000)
+  }
+
+  // 🏡 펫 자율 리빙 루틴: 14초마다 스스로 가구로 다가가거나 기지개 켜기
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      if (room.placedFurniture.length === 0) {
+        // 가구가 없을 때는 좌우 가벼운 산책
+        const nextX = (Math.random() - 0.5) * 80
+        setPetPosX(nextX)
+        setPetActivity('walk')
+        addFootprint(nextX)
+        setPetActionState('방 안을 가볍게 사뿐사뿐 산책하고 있어요 🐾')
+        window.setTimeout(() => setPetActivity('idle'), 3500)
+        return
+      }
+
+      // 배치된 가구 중 하나로 자율 이동
+      const randomFurnId = room.placedFurniture[Math.floor(Math.random() * room.placedFurniture.length)]
+      const targetFurn = ROOM_FURNITURE_CATALOG.find((f) => f.id === randomFurnId)
+      if (targetFurn) {
+        handleInteractFurniture(targetFurn, true)
+      }
+    }, 14000)
+
+    return () => window.clearInterval(interval)
+  }, [room.placedFurniture])
 
   // 🎵 미니룸 입장 시 힐링 BGM 자동 재생 & 화면 나갈 때 정리
   useEffect(() => {
@@ -232,32 +273,72 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
     showToast(isPlaced ? `${furn.name}을(를) 보관함에 넣었습니다.` : `🛋️ ${furn.name}을(를) 방에 배치했습니다!`)
   }
 
-  // 가구 터치 시 상호작용 액션
-  const handleInteractFurniture = (furn: RoomFurnitureDef) => {
+  // 가구 터치 시 상호작용 액션 (펫이 직접 해당 가구로 다가가 상호작용)
+  const handleInteractFurniture = (furn: RoomFurnitureDef, isAutonomous = false) => {
     playDessertAsmr(furn.soundKind)
     setBouncePet(true)
-    window.setTimeout(() => setBouncePet(false), 800)
+
+    // 배치된 순서에 따른 가구 X 좌표 계산 (-50 ~ +50px)
+    const idx = room.placedFurniture.indexOf(furn.id)
+    const total = Math.max(1, room.placedFurniture.length)
+    const computedX = total === 1 ? 0 : -55 + (idx / (total - 1)) * 110
+    setPetPosX(computedX)
+    addFootprint(computedX)
 
     if (furn.id === 'trampoline-jelly') {
-      setPetActionState(`🎪 젤리 트램펄린에서 뽀용뽀용 신나게 점프하고 있어요! (+기분 최고 ✨)`)
-    } else if (furn.id === 'sofa-macaron') {
-      setPetActionState(`🛋️ 마카롱 푹신 소파에 기대어 쿨쿨 낮잠을 자고 있어요 💤`)
+      setPetActivity('jump')
+      setPetActionState(
+        isAutonomous
+          ? `🎪 스스로 젤리 트램펄린에 올라가 뽀용뽀용 신나게 점프하고 있어요! (+기분 최고 ✨)`
+          : `🎪 젤리 트램펄린에서 뽀용뽀용 높이 점프하며 깔깔 웃고 있어요! (+행복도 UP ✨)`,
+      )
+      window.setTimeout(() => {
+        setBouncePet(false)
+        setPetActivity('idle')
+      }, 3000)
+    } else if (furn.id === 'sofa-macaron' || furn.id === 'sofa-parfait') {
+      setPetActivity('sleep')
+      setPetActionState(
+        isAutonomous
+          ? `🛋️ 스르륵 폭신한 소파로 걸어가 베개를 베고 쿨쿨 낮잠을 청하고 있어요 💤`
+          : `🛋️ 푹신 소파의 생크림 쿠션에 푹 기대어 쿨쿨 잠이 들었어요 💤 (+피로 회복 중)`,
+      )
+      window.setTimeout(() => setBouncePet(false), 800)
+      window.setTimeout(() => setPetActivity('idle'), 4500)
     } else if (furn.id === 'fountain-choco') {
-      setPetActionState(`⛲ 초코 분수대에서 따뜻한 가나슈를 콕 찍어 먹고 있어요 🍫`)
+      setPetActivity('eat')
+      setPetActionState(`⛲ 초코 분수대 앞으로 달려가 따뜻한 가나슈를 콕 찍어 달콤하게 냠냠 먹고 있어요 🍫 (+포만감 가득)`)
+      window.setTimeout(() => setBouncePet(false), 800)
+      window.setTimeout(() => setPetActivity('idle'), 3500)
     } else if (furn.id === 'table-pretzel') {
-      setPetActionState(`🪑 프레첼 테이블에서 향긋한 딸기 홍차를 마시고 있어요 ☕`)
-    } else if (furn.id === 'sofa-parfait') {
-      setPetActionState(`🍓🛋️ 생딸기 파르페 소파의 도톰한 벨벳 생크림에 푹 파묻혀 뒹굴고 있어요! (+행복도 MAX ✨)`)
+      setPetActivity('eat')
+      setPetActionState(`🪑 프레첼 테이블 앞에 앉아 향긋한 딸기 홍차를 꼴깍 마시며 티타임을 즐겨요 ☕`)
+      window.setTimeout(() => setBouncePet(false), 800)
+      window.setTimeout(() => setPetActivity('idle'), 3500)
     } else if (furn.id === 'lamp-fondue') {
-      setPetActionState(`🫕💡 퐁듀 초콜릿 무드 램프의 따스하고 달콤한 불빛 아래서 온기를 쬐고 있어요 🕯️`)
+      setPetActivity('idle')
+      setPetActionState(`🫕💡 퐁듀 초콜릿 무드 램프 앞으로 다가가 은은한 온기를 쬐며 눈을 반짝여요 🕯️`)
+      window.setTimeout(() => setBouncePet(false), 800)
     } else if (furn.id === 'stool-macaron') {
-      setPetActionState(`🍬🪑 파스텔 마카롱 벨벳 스툴에 총총 올라앉아 다리를 흔들거리고 있어요 🎵`)
+      setPetActivity('jump')
+      setPetActionState(`🍬🪑 파스텔 마카롱 벨벳 스툴에 폴짝 올라앉아 신나게 다리를 흔들거리고 있어요 🎵`)
+      window.setTimeout(() => {
+        setBouncePet(false)
+        setPetActivity('idle')
+      }, 2500)
     } else if (furn.id === 'clock-pretzel') {
-      setPetActionState(`🥨⏰ 골든 프레첼 벽시계가 째깍째깍 울릴 때마다 고개를 갸우뚱거려요 ⏳`)
+      setPetActivity('idle')
+      setPetActionState(`🥨⏰ 골든 프레첼 벽시계가 째깍째깍 울릴 때마다 고개를 좌우로 갸우뚱거려요 ⏳`)
+      window.setTimeout(() => setBouncePet(false), 800)
     } else if (furn.id === 'rug-waffle') {
-      setPetActionState(`🧇🧶 와플 체크 메이플 러그의 달콤한 시럽 향기에 취해 뒹굴뒹굴 누웠어요 🍯`)
+      setPetActivity('sleep')
+      setPetActionState(`🧇🧶 와플 체크 메이플 러그의 달콤한 시럽 향기에 취해 배를 보이고 뒹굴뒹굴 누웠어요 🍯`)
+      window.setTimeout(() => setBouncePet(false), 800)
+      window.setTimeout(() => setPetActivity('idle'), 3500)
     } else {
-      setPetActionState(`💡 ${furn.name}을(를) 호기심 가득한 눈으로 톡톡 건드려봅니다!`)
+      setPetActivity('idle')
+      setPetActionState(`💡 ${furn.name}을(를) 호기심 가득한 눈으로 톡톡 건드리며 탐색해요!`)
+      window.setTimeout(() => setBouncePet(false), 800)
     }
   }
 
@@ -456,7 +537,7 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
         </div>
       </div>
 
-      {/* 2. 감성 BGM 티커 & 편집 토글 바 */}
+      {/* 2. 감성 BGM 티커 & 룸 규격 & 편집 토글 바 */}
       <div
         style={{
           display: 'flex',
@@ -506,7 +587,32 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
             }}
             title="자연의 소리 및 클래식 음악 선택"
           >
-            음악 선택 ▾
+            음악 ▾
+          </button>
+
+          {/* 룸 규격 (1단계 다락방 / 2단계 복층 / 3단계 팰리스) */}
+          <button
+            onClick={() => {
+              const maxTier = (monster.evo_stage ?? 1) >= 3 ? 3 : monster.level >= 15 ? 2 : 1
+              setRoomTier((cur) => {
+                const next = cur >= maxTier ? 1 : ((cur + 1) as 1 | 2 | 3)
+                showToast(`🏰 룸 테라스가 [${next === 1 ? '1단계: 아늑한 다락방' : next === 2 ? '2단계: 복층 카페' : '3단계: 슈가 팰리스'}] 규격으로 변경되었습니다!`)
+                return next
+              })
+            }}
+            style={{
+              padding: '2px 6px',
+              borderRadius: 8,
+              border: '1px solid #FBCFE8',
+              background: '#FFFFFF',
+              color: '#BE185D',
+              fontWeight: 800,
+              fontSize: 10,
+              cursor: 'pointer',
+            }}
+            title="룸 크기 및 테마 확장 변경"
+          >
+            {roomTier === 1 ? '🏠 1단 다락방' : roomTier === 2 ? '🏡 2단 복층카페' : '🏰 3단 팰리스'}
           </button>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -566,14 +672,75 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
           flexShrink: 0,
         }}
       >
-        {/* 상단 벽면 (감성 레이스 창문 & 파티세리 벽면 선반 & 네온 레터링) */}
+        {/* 상단 벽면 (감성 레이스 창문 & 파티세리 벽면 선반 & 복층 계단 난간 & 네온 레터링) */}
         <div style={{ flex: 1, position: 'relative', padding: 8 }}>
+          {/* 복층 계단 & 난간 (2단계 이상 해금 시 렌더링) */}
+          {roomTier >= 2 && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: 90,
+                height: 70,
+                pointerEvents: 'none',
+                opacity: 0.85,
+                zIndex: 1,
+              }}
+            >
+              {/* 복층 2층 바닥 & 난간 라인 */}
+              <div
+                style={{
+                  width: '100%',
+                  height: 12,
+                  background: 'repeating-linear-gradient(90deg, #D97706 0px, #D97706 8px, #FDE68A 8px, #FDE68A 16px)',
+                  borderRadius: '0 0 6px 0',
+                  borderBottom: '2px solid #92400E',
+                  display: 'flex',
+                  alignItems: 'center',
+                  paddingLeft: 4,
+                  fontSize: 8,
+                }}
+              >
+                <span>🌿 2F 테라스</span>
+              </div>
+              {/* 계단 실루엣 */}
+              <div
+                style={{
+                  width: 32,
+                  height: 38,
+                  borderRight: '2px solid #92400E',
+                  borderBottom: '2px solid #92400E',
+                  background: 'rgba(251, 191, 36, 0.2)',
+                  borderRadius: '0 0 4px 0',
+                }}
+              />
+            </div>
+          )}
+
+          {/* 3단계 슈가 팰리스 샹들리에 */}
+          {roomTier === 3 && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                fontSize: 16,
+                filter: 'drop-shadow(0 2px 6px #FDE047)',
+                zIndex: 2,
+              }}
+            >
+              ✨💎✨
+            </div>
+          )}
+
           {/* 1. 감성 레이스 창문 */}
           <div
             style={{
               position: 'absolute',
               top: 8,
-              left: 10,
+              left: roomTier >= 2 ? 72 : 10,
               width: 52,
               height: 46,
               borderRadius: '12px 12px 2px 2px',
@@ -585,6 +752,7 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
+              transition: 'left 0.3s ease',
             }}
           >
             {/* 레이스 커튼 테두리 */}
@@ -620,7 +788,11 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
               whiteSpace: 'nowrap',
             }}
           >
-            💖 Sweet Patisserie Home
+            {roomTier === 1
+              ? '💖 Sweet Patisserie Attic'
+              : roomTier === 2
+                ? '🏡 Duplex Dessert Cafe'
+                : '🏰 Sugar Palace Mansion'}
           </div>
 
           {/* 3. 벽면 디저트 선반 & 미니 액자 */}
@@ -673,7 +845,7 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
             style={{
               position: 'absolute',
               bottom: 4,
-              left: '50%',
+              left: `calc(50% + ${petPosX * 0.4}px)`,
               transform: 'translateX(-50%)',
               width: 140,
               height: 48,
@@ -687,24 +859,111 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
               color: '#EC4899',
               fontSize: 11,
               opacity: 0.85,
+              transition: 'left 0.6s cubic-bezier(0.25, 1, 0.5, 1)',
             }}
           >
             🌸
           </div>
 
-          {/* 5. 중앙 3D 펫 모델 (자유 포즈 & 콩콩 모션) */}
+          {/* 🐾 산책 발자국 파티클 트레일 (Footprints Trail) */}
+          {footprints.map((dot) => (
+            <div
+              key={dot.id}
+              style={{
+                position: 'absolute',
+                bottom: 8,
+                left: `calc(50% + ${dot.x}px)`,
+                fontSize: 9,
+                color: '#F59E0B',
+                pointerEvents: 'none',
+                opacity: 0.75,
+                zIndex: 2,
+                animation: 'mon-twinkle 1.5s infinite',
+              }}
+            >
+              🐾
+            </div>
+          ))}
+
+          {/* 5. 중앙 3D 펫 모델 (자유 포즈 & 실시간 가구 상호작용 & 이동 모션) */}
           <div
             style={{
               position: 'absolute',
               bottom: -4,
-              left: '50%',
-              transform: `translateX(-50%) ${bouncePet ? 'translateY(-14px) scale(1.08)' : 'translateY(0)'}`,
-              transition: 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              left: `calc(50% + ${petPosX}px)`,
+              transform: `translateX(-50%) ${
+                bouncePet
+                  ? 'translateY(-22px) scale(1.12)'
+                  : petActivity === 'sleep'
+                    ? 'translateY(8px) rotate(-6deg)'
+                    : 'translateY(0)'
+              }`,
+              transition: 'left 0.7s cubic-bezier(0.25, 1, 0.5, 1), transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
               width: 175,
               height: 175,
               zIndex: 3,
             }}
           >
+            {/* 펫 머리 위 상태 이모티콘 (낮잠 zzz / 점프 별빛 / 식사 하트) */}
+            {petActivity === 'sleep' && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 10,
+                  right: 25,
+                  fontSize: 14,
+                  fontWeight: 900,
+                  color: '#6366F1',
+                  background: 'rgba(255,255,255,0.9)',
+                  padding: '1px 6px',
+                  borderRadius: 10,
+                  border: '1px solid #C7D2FE',
+                  boxShadow: '0 2px 6px rgba(99,102,241,0.2)',
+                  zIndex: 10,
+                  animation: 'pulse 1.5s infinite',
+                }}
+              >
+                💤 zzz...
+              </div>
+            )}
+            {petActivity === 'jump' && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 8,
+                  left: 20,
+                  fontSize: 13,
+                  fontWeight: 900,
+                  color: '#F59E0B',
+                  background: 'rgba(255,255,255,0.9)',
+                  padding: '1px 6px',
+                  borderRadius: 10,
+                  border: '1px solid #FDE68A',
+                  zIndex: 10,
+                }}
+              >
+                ✨ 뽀용!
+              </div>
+            )}
+            {petActivity === 'eat' && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 12,
+                  right: 20,
+                  fontSize: 13,
+                  fontWeight: 900,
+                  color: '#EC4899',
+                  background: 'rgba(255,255,255,0.9)',
+                  padding: '1px 6px',
+                  borderRadius: 10,
+                  border: '1px solid #FBCFE8',
+                  zIndex: 10,
+                }}
+              >
+                💖 냠냠!
+              </div>
+            )}
             <Monster3DView look={look} size={175} fluid interactive />
           </div>
         </div>

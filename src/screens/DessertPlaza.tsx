@@ -16,6 +16,12 @@ import { callBattle, isRealMonsterId } from '../lib/battleApi'
 import { IS_DEV_MOCK } from '../lib/devMode'
 import MonsterSnapshot from '../monsters/MonsterSnapshot'
 import { BackIcon, ElementIcon } from '../ui/Icons'
+import {
+  createWorldBossMonster,
+  getWorldBossStatus,
+  WORLD_BOSS_CATALOG,
+  type RaidStatus,
+} from '../lib/bossScheduler'
 
 interface Props {
   myMonster: MonsterRow
@@ -237,6 +243,17 @@ export default function DessertPlaza({
   const [toast, setToast] = useState<string | null>(null)
   const [currentTheme, setCurrentTheme] = useState<PlazaThemeId>(() => getAutoPlazaTheme())
   const [showThemeModal, setShowThemeModal] = useState<boolean>(false)
+
+  // 🐉 디저트 월드 보스 레이드 스케줄러 상태 (1초 주기 동기화)
+  const [raidStatus, setRaidStatus] = useState<RaidStatus>(() => getWorldBossStatus())
+  const [showRaidModal, setShowRaidModal] = useState<boolean>(false)
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setRaidStatus(getWorldBossStatus())
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [])
 
   // 🐾 펫 산책 발자국 상태 (CSS fade-out으로 React 리렌더 루프를 제거하여 60FPS 극상의 부드러움 달성)
   const [footprints, setFootprints] = useState<Footprint[]>([])
@@ -631,7 +648,33 @@ export default function DessertPlaza({
           </div>
         </div>
 
-        <div className="row" style={{ gap: 6 }}>
+        <div className="row" style={{ gap: 6, alignItems: 'center' }}>
+          {/* 🐉 디저트 월드 보스 레이드 스케줄러 뱃지 버튼 */}
+          <button
+            onClick={() => setShowRaidModal(true)}
+            style={{
+              padding: '4px 9px',
+              borderRadius: 10,
+              border: raidStatus.isActive ? '1.5px solid #EF4444' : '1.5px solid #F59E0B',
+              background: raidStatus.isActive
+                ? 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)'
+                : '#FFFBEB',
+              color: raidStatus.isActive ? '#FFFFFF' : '#92400E',
+              fontSize: 11,
+              fontWeight: 900,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              cursor: 'pointer',
+              boxShadow: raidStatus.isActive ? '0 0 10px rgba(239,68,68,0.5)' : 'none',
+              animation: raidStatus.isActive ? 'pulse 1.5s infinite' : 'none',
+            }}
+            title="디저트 월드 보스 레이드 일정 및 진입"
+          >
+            <span>{raidStatus.isActive ? '🔥' : '🐉'}</span>
+            <span>{raidStatus.isActive ? '보스 침공 중!!' : '보스 레이드'}</span>
+          </button>
+
           {/* 🍁 현실 사계절 및 이벤트 자동 동기화 뱃지 (지인/방문자는 선택창이 보이지 않고 계절 뱃지만 표시) */}
           <div
             style={{
@@ -1254,6 +1297,187 @@ export default function DessertPlaza({
                 fontWeight: 800,
                 cursor: 'pointer',
                 marginTop: 4,
+              }}
+            >
+              닫기
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 🐉 디저트 월드 거대 보스 레이드 스케줄러 & 토벌 출격 모달 */}
+      {showRaidModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.65)',
+            backdropFilter: 'blur(5px)',
+            zIndex: 100,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+          }}
+          onClick={() => setShowRaidModal(false)}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: 360,
+              background: '#FFFDF9',
+              borderRadius: 20,
+              border: '2px solid #F59E0B',
+              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.35)',
+              padding: 16,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 헤더 */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: '#92400E' }}>
+                  🐉 디저트 월드 보스 레이드
+                </h3>
+                <span style={{ fontSize: 10, color: '#B45309', fontWeight: 700 }}>
+                  DESSERT MAX 4인 협력 파티 토벌전
+                </span>
+              </div>
+              <button
+                onClick={() => setShowRaidModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: 18,
+                  cursor: 'pointer',
+                  color: '#78350F',
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* 실시간 상태 티커 바 */}
+            <div
+              style={{
+                padding: '6px 10px',
+                borderRadius: 12,
+                background: raidStatus.isActive ? '#FEF2F2' : '#FFFBEB',
+                border: raidStatus.isActive ? '1.5px solid #F87171' : '1.5px solid #FCD34D',
+                fontSize: 11,
+                fontWeight: 800,
+                color: raidStatus.isActive ? '#DC2626' : '#B45309',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <span>{raidStatus.isActive ? '🚨' : '⏰'}</span>
+              <span>{raidStatus.statusText}</span>
+            </div>
+
+            {/* 보스 목록 카드 2종 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {WORLD_BOSS_CATALOG.map((boss) => {
+                const isThisBossActive = raidStatus.isActive && raidStatus.currentBoss?.id === boss.id
+                return (
+                  <div
+                    key={boss.id}
+                    style={{
+                      padding: 10,
+                      borderRadius: 14,
+                      border: isThisBossActive ? '2px solid #EF4444' : '1.5px solid #E5E7EB',
+                      background: isThisBossActive
+                        ? 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%)'
+                        : '#FAFAFA',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 4,
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 22 }}>{boss.icon}</span>
+                        <div>
+                          <div style={{ fontSize: 13, fontWeight: 900, color: '#1F2937' }}>
+                            {boss.name}
+                          </div>
+                          <div style={{ fontSize: 9, color: '#6B7280', fontWeight: 600 }}>
+                            {boss.scheduleLabel} · {boss.locationDesc}
+                          </div>
+                        </div>
+                      </div>
+                      <span
+                        style={{
+                          fontSize: 9,
+                          fontWeight: 800,
+                          padding: '2px 6px',
+                          borderRadius: 6,
+                          background: isThisBossActive ? '#EF4444' : '#E5E7EB',
+                          color: isThisBossActive ? '#FFFFFF' : '#4B5563',
+                        }}
+                      >
+                        {isThisBossActive ? '출현 중!' : 'Lv.' + boss.level}
+                      </span>
+                    </div>
+
+                    <div style={{ fontSize: 10, color: '#4B5563', marginTop: 2 }}>
+                      {boss.flavorDesc}
+                    </div>
+
+                    {/* 출격 버튼 */}
+                    <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+                      <button
+                        onClick={() => {
+                          const bossMonster = createWorldBossMonster(boss)
+                          const bossEntry: PlazaFriendEntry = {
+                            ownerNickname: '디저트 월드 서버',
+                            badge: '👑 DESSERT MAX 월드 보스',
+                            bio: boss.flavorDesc,
+                            likes: 9999,
+                            monster: bossMonster,
+                            comments: [],
+                          }
+                          setShowRaidModal(false)
+                          onChallenge(bossEntry)
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: '7px 0',
+                          borderRadius: 10,
+                          border: 'none',
+                          background: isThisBossActive
+                            ? 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)'
+                            : 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                          color: '#FFFFFF',
+                          fontSize: 11,
+                          fontWeight: 900,
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                        }}
+                      >
+                        {isThisBossActive ? '🔥 즉시 협동 토벌 출격!!' : '⚔️ 모의 레이드 훈련'}
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            <button
+              onClick={() => setShowRaidModal(false)}
+              style={{
+                padding: '8px',
+                borderRadius: 10,
+                border: '1px solid #D1D5DB',
+                background: '#FFFFFF',
+                color: '#4B5563',
+                fontSize: 12,
+                fontWeight: 800,
+                cursor: 'pointer',
               }}
             >
               닫기

@@ -40,6 +40,7 @@ export const DECO_ITEMS: DecoItemDef[] = [
   { id: 'wizard-hat', slot: 'head', name: '별마법사 모자', rarity: 'legendary', charm: 35, icon: '🧙‍♂️', desc: '금빛 별무늬와 방울이 달린 마법사 고깔모자' },
   { id: 'berry-beret', slot: 'head', name: '딸기 베레모', rarity: 'common', charm: 12, icon: '🍓', desc: '상큼한 딸기 꼭지가 달린 폭신한 베레모' },
   { id: 'star-crown', slot: 'head', name: '별빛 미니 왕관', rarity: 'rare', charm: 24, icon: '👑', desc: '보석이 박힌 앙증맞은 황금 왕관' },
+  { id: 'crown-emoji-floating', slot: 'head', name: '감정 이모티콘 크라운', rarity: 'rare', charm: 40, icon: '💖', desc: '펫의 기분에 맞춰 하트와 별빛이 퐁퐁 솟아오르는 이모티콘 크라운' },
   // 2. 얼굴 (face)
   { id: 'alchemy-glasses', slot: 'face', name: '연금술 동글안경', rarity: 'rare', charm: 20, icon: '👓', desc: '지적인 매력을 더해주는 황금 테 안경' },
   { id: 'sleep-mask', slot: 'face', name: '포근 수면안대', rarity: 'common', charm: 10, icon: '💤', desc: '이마에 살짝 얹은 구름결 수면안대' },
@@ -50,6 +51,7 @@ export const DECO_ITEMS: DecoItemDef[] = [
   { id: 'bell-ribbon', slot: 'neck', name: '별방울 리본', rarity: 'common', charm: 12, icon: '🎀', desc: '움직일 때마다 딸랑거리는 금방울 리본' },
   // 4. 등 (back)
   { id: 'meteor-wings', slot: 'back', name: '유성 날개 망토', rarity: 'legendary', charm: 32, icon: '🪽', desc: '별똥별 궤적이 흐르는 반투명 천사 날개' },
+  { id: 'wings-meringue-angel', slot: 'back', name: '천사 머랭 날개', rarity: 'legendary', charm: 45, icon: '🪽', desc: '바삭하고 폭신한 순백의 슈가 머랭 깃털 날개' },
   { id: 'explorer-pack', slot: 'back', name: '탐험가 미니 배낭', rarity: 'common', charm: 14, icon: '🎒', desc: '나침반과 지도가 든 작은 가죽 배낭' },
   // 5. 손 (hand)
   { id: 'lollipop-wand', slot: 'hand', name: '롤리팝 캔디봉', rarity: 'rare', charm: 26, icon: '🍭', desc: '달콤한 파스텔 소용돌이 막대사탕' },
@@ -61,6 +63,8 @@ export const DECO_ITEMS: DecoItemDef[] = [
   // 7. 이펙트 (effect)
   { id: 'constellation-aura', slot: 'effect', name: '황금 별자리 오라', rarity: 'legendary', charm: 36, icon: '✨', desc: '몸 주위를 맴도는 황금빛 별자리 궤도' },
   { id: 'blossom-breeze', slot: 'effect', name: '봄바람 꽃보라', rarity: 'rare', charm: 22, icon: '🌸', desc: '포근하게 흩날리는 분홍 벚꽃잎 이펙트' },
+  { id: 'aura-galaxy-orbit', slot: 'effect', name: '영롱한 궤도 오라', rarity: 'legendary', charm: 50, icon: '💫', desc: '은하수 궤도를 따라 마카롱 위성과 별빛이 펫 주변을 공전하는 환상 오라' },
+  { id: 'footprint-honey-dew', slot: 'effect', name: '달콤 슈가 발자국', rarity: 'rare', charm: 35, icon: '🐾', desc: '발걸음마다 촉촉한 꿀물 방울과 슈가파우더가 퐁퐁 피어나는 발자국 FX' },
 ]
 
 // 배경(bg) & 뒤쪽 이펙트 + 등(back) 장식 렌더링 (몬스터 몸통 뒤에 그려짐)
@@ -98,8 +102,50 @@ export function BackDecorations({ deco }: { deco?: MonsterDecorations }) {
           <ellipse cx={120} cy={142} rx={96} ry={32} fill="none" stroke="#FBBF24" strokeWidth={2} opacity={0.55} transform="rotate(-14 120 142)" />
         </g>
       )}
+      {deco.effect === 'aura-galaxy-orbit' && (
+        <g className="mon-twinkle">
+          {/* 은하수 궤도 타원 2겹 */}
+          <ellipse cx={120} cy={138} rx={102} ry={38} fill="none" stroke="#C084FC" strokeWidth={2.4} strokeDasharray="4 6" opacity={0.75} transform="rotate(-18 120 138)" />
+          <ellipse cx={120} cy={138} rx={90} ry={30} fill="none" stroke="#F472B6" strokeWidth={1.8} strokeDasharray="6 4" opacity={0.6} transform="rotate(22 120 138)" />
+          {/* 뒤편 공전 위성 (미니 마카롱 & 별) */}
+          <circle cx={40} cy={118} r={6} fill="#FDE047" opacity={0.8} />
+          <circle cx={40} cy={118} r={3} fill="#FFFFFF" />
+          <circle cx={198} cy={156} r={5} fill="#67E8F9" opacity={0.85} />
+        </g>
+      )}
 
       {/* 4. 등 장식 (back) */}
+      {deco.back === 'wings-meringue-angel' && (
+        <g stroke={INK} strokeWidth={2.8} strokeLinejoin="round">
+          {/* 왼쪽 폭신한 천사 머랭 날개 */}
+          <path
+            d="M 76 130 C 38 96 12 110 8 138 C 4 162 26 178 52 170 C 64 166 72 156 76 142 Z"
+            fill="#FFFDF7"
+          />
+          <path
+            d="M 52 120 C 32 108 20 118 18 136 C 30 142 46 138 58 130 Z"
+            fill="#FEE2E2"
+            opacity={0.7}
+            strokeWidth={0}
+          />
+          <circle cx={28} cy={132} r={3} fill="#FDE047" strokeWidth={0} />
+          <circle cx={44} cy={144} r={2.5} fill="#FDE047" strokeWidth={0} />
+
+          {/* 오른쪽 폭신한 천사 머랭 날개 */}
+          <path
+            d="M 164 130 C 202 96 228 110 232 138 C 236 162 214 178 188 170 C 176 166 168 156 164 142 Z"
+            fill="#FFFDF7"
+          />
+          <path
+            d="M 188 120 C 208 108 220 118 222 136 C 210 142 194 138 182 130 Z"
+            fill="#FEE2E2"
+            opacity={0.7}
+            strokeWidth={0}
+          />
+          <circle cx={212} cy={132} r={3} fill="#FDE047" strokeWidth={0} />
+          <circle cx={196} cy={144} r={2.5} fill="#FDE047" strokeWidth={0} />
+        </g>
+      )}
       {deco.back === 'meteor-wings' && (
         <g stroke={INK} strokeWidth={2.8} strokeLinejoin="round">
           {/* 왼쪽 유성 날개 */}
@@ -311,6 +357,21 @@ export function FrontDecorations({
           <circle cx={120} cy={21} r={3} fill="#FF7A59" strokeWidth={0} />
         </g>
       )}
+      {deco?.head === 'crown-emoji-floating' && (
+        <g className="mon-twinkle">
+          {/* 황금 미니 티아라 베이스 */}
+          <path d="M 104 46 L 108 28 L 115 36 L 120 22 L 125 36 L 132 28 L 136 46 Z" fill="#FDE047" stroke="#B45309" strokeWidth={2} strokeLinejoin="round" />
+          <circle cx={120} cy={22} r={3} fill="#F43F5E" />
+          {/* 머리 위로 떠오르는 감정 이모티콘 (하트, 별, 음표) */}
+          {/* 하트 */}
+          <path d="M 94 22 C 90 14 96 8 102 14 C 108 8 114 14 110 22 C 106 28 102 30 102 30 C 102 30 98 28 94 22 Z" fill="#EC4899" opacity={0.9} />
+          {/* 별빛 */}
+          <path d="M 138 18 l 3 6 l 6 3 l -6 3 l -3 6 l -3 -6 l -6 -3 l 6 -3 Z" fill="#FBBF24" opacity={0.9} />
+          {/* 미니 음표 */}
+          <circle cx={124} cy={10} r={2.5} fill="#38BDF8" />
+          <path d="M 126 10 L 126 3 L 132 5" fill="none" stroke="#38BDF8" strokeWidth={1.5} strokeLinecap="round" />
+        </g>
+      )}
 
       {/* 5. 손 장식 (hand) */}
       {deco?.hand === 'lantern-staff' && (
@@ -356,6 +417,30 @@ export function FrontDecorations({
           <ellipse cx={196} cy={72} rx={6.5} ry={3.8} transform="rotate(25 196 72)" />
           <ellipse cx={36} cy={162} rx={5.5} ry={3.2} transform="rotate(40 36 162)" />
           <ellipse cx={202} cy={156} rx={6} ry={3.5} transform="rotate(-20 202 156)" />
+        </g>
+      )}
+      {deco?.effect === 'aura-galaxy-orbit' && (
+        <g className="mon-twinkle">
+          {/* 앞쪽을 가로지르는 은하수 펄과 공전 마카롱 */}
+          <circle cx={202} cy={122} r={7} fill="#F472B6" stroke="#FFFFFF" strokeWidth={1.5} />
+          <circle cx={202} cy={122} r={3.5} fill="#FDE047" />
+          <path d="M 48 168 l 3 6 l 6 3 l -6 3 l -3 6 l -3 -6 l -6 -3 l 6 -3 Z" fill="#FDE047" />
+          <circle cx={88} cy={186} r={4} fill="#C084FC" opacity={0.85} />
+          <circle cx={152} cy={182} r={3} fill="#67E8F9" opacity={0.9} />
+        </g>
+      )}
+      {deco?.effect === 'footprint-honey-dew' && (
+        <g className="mon-twinkle">
+          {/* 발밑 주변에 몽실몽실 떠오르는 달콤한 꿀물 방울 & 벚꽃 슈가 파우더 */}
+          {/* 꿀물 방울 */}
+          <circle cx={84} cy={218} r={5.5} fill="#F59E0B" opacity={0.8} />
+          <circle cx={82} cy={216} r={2} fill="#FFFBEB" />
+          <circle cx={156} cy={220} r={6} fill="#F59E0B" opacity={0.8} />
+          <circle cx={154} cy={218} r={2} fill="#FFFBEB" />
+          <circle cx={120} cy={228} r={4.5} fill="#FBBF24" opacity={0.85} />
+          {/* 슈가 벚꽃잎 & 펄 */}
+          <ellipse cx={68} cy={222} rx={4} ry={2.5} fill="#F472B6" opacity={0.7} transform="rotate(25 68 222)" />
+          <ellipse cx={172} cy={224} rx={4} ry={2.5} fill="#F472B6" opacity={0.7} transform="rotate(-20 172 224)" />
         </g>
       )}
     </g>

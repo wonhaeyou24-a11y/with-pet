@@ -28,6 +28,7 @@ import DessertSoundStudioModal from './DessertSoundStudioModal'
 import { ChevronIcon, ElementIcon, SparkleIcon } from '../ui/Icons'
 import { totalStats } from '../ui/parts'
 import { getSensoryReactionClass, SensoryBurst } from '../ui/SensoryFx'
+import { getWorldBossStatus, type RaidStatus } from '../lib/bossScheduler'
 
 type Props = {
   nickname: string
@@ -196,6 +197,16 @@ export default function MonsterHome({
 
   // 펫의 능동적 자율 제안 상태
   const [suggestion, setSuggestion] = useState<PetAutonomousSuggestion | null>(null)
+
+  // 🐉 디저트 월드 보스 레이드 스케줄러 상태
+  const [raidStatus, setRaidStatus] = useState<RaidStatus>(() => getWorldBossStatus())
+
+  useEffect(() => {
+    const rTimer = window.setInterval(() => {
+      setRaidStatus(getWorldBossStatus())
+    }, 2000)
+    return () => window.clearInterval(rTimer)
+  }, [])
 
   // 진화 가능 여부 및 추천 분기 산출
   const evoEligibility = useMemo(() => checkEvolutionEligibility(monster), [monster])
@@ -599,8 +610,33 @@ export default function MonsterHome({
               pointerEvents: 'none',
             }}
           >
-            {/* 좌측: 탐험 중 뱃지 or 훈련 뱃지 */}
-            <div style={{ display: 'flex', gap: 4, pointerEvents: 'auto' }}>
+            {/* 좌측: 탐험 중 뱃지 or 훈련 뱃지 or 월드 보스 침공 뱃지 */}
+            <div style={{ display: 'flex', gap: 4, pointerEvents: 'auto', flexWrap: 'wrap' }}>
+              {raidStatus.isActive && (
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onOpenPlaza?.()
+                  }}
+                  style={{
+                    padding: '3px 9px',
+                    borderRadius: 999,
+                    background: 'linear-gradient(90deg, #EF4444, #DC2626)',
+                    color: '#FFFFFF',
+                    fontSize: 10,
+                    fontWeight: 900,
+                    boxShadow: '0 0 10px rgba(239,68,68,0.5)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 3,
+                    animation: 'pulse 1.5s infinite',
+                  }}
+                  title="터치하면 광장 보스 레이드로 이동합니다"
+                >
+                  <span>🔥 [보스 침공!] {raidStatus.currentBoss?.name}</span>
+                </div>
+              )}
               {isExploring && (
                 <div
                   onClick={(e) => {

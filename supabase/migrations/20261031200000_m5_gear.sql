@@ -54,13 +54,13 @@ insert into public.gear_enhance_rules (level, chance, cost) values
   (1, 100, 50),
   (2, 100, 100),
   (3, 100, 150),
-  (4, 60, 300),
-  (5, 60, 450),
-  (6, 50, 600),
-  (7, 35, 1000),
-  (8, 25, 1400),
-  (9, 15, 1800),
-  (10, 5, 3500);
+  (4, 50, 300),
+  (5, 40, 450),
+  (6, 30, 600),
+  (7, 20, 1000),
+  (8, 10, 1500),
+  (9, 5, 2500),
+  (10, 1, 5000);
 
 delete from public.gear_drop_rules;
 insert into public.gear_drop_rules (min_floor, grade, weight) values
@@ -68,8 +68,8 @@ insert into public.gear_drop_rules (min_floor, grade, weight) values
   (5, 'fine', 70),
   (15, 'fine', 60),
   (15, 'rare', 40),
-  (30, 'rare', 85),
-  (30, 'legend', 15);
+  (30, 'rare', 99),
+  (30, 'legend', 1);
 
 -- 2. 소유 장비: 읽기는 로그인한 누구나(지인 카드에 보여 줄 수 있게), 쓰기는 아래 함수만
 create table if not exists public.gear_items (

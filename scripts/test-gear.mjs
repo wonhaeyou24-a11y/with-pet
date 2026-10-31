@@ -41,8 +41,8 @@ test('등급이 높을수록 같은 칸 장비의 능력치 합이 커지고, �
 })
 test('강화 표가 기획서와 같다: +1~3 100%, +4~6 70%, +7~9 40%, +10 20%, 비용 50/100/150/300/400/500/800/1000/1200/2000', () => {
   assert.equal(GEAR_ENHANCE.length, GEAR_MAX_LEVEL)
-  assert.deepEqual(GEAR_ENHANCE.map((r) => r.chance), [100, 100, 100, 60, 60, 50, 35, 25, 15, 5])
-  assert.deepEqual(GEAR_ENHANCE.map((r) => r.cost), [50, 100, 150, 300, 450, 600, 1000, 1400, 1800, 3500])
+  assert.deepEqual(GEAR_ENHANCE.map((r) => r.chance), [100, 100, 100, 50, 40, 30, 20, 10, 5, 1])
+  assert.deepEqual(GEAR_ENHANCE.map((r) => r.cost), [50, 100, 150, 300, 450, 600, 1000, 1500, 2500, 5000])
 })
 test('단계마다 능력치 +5% (반올림), 0단계는 기본값', () => {
   assert.equal(gearStatValue(20, 0), 20)
