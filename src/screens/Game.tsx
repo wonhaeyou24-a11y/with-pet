@@ -60,6 +60,7 @@ export default function Game({ player }: { player: Player }) {
   const [hatching, setHatching] = useState<{ rarity: EggRow['rarity']; monster: MonsterRow | null } | null>(null)
   const [subView, setSubView] = useState<MonsterSubView>('home')
   const [battleTarget, setBattleTarget] = useState<PlazaFriendEntry>(PLAZA_SHOWCASE_FRIENDS[0])
+  const [battleMode, setBattleMode] = useState<'friendly' | 'boss-raid'>('friendly')
   const [visitTarget, setVisitTarget] = useState<PlazaFriendEntry | null>(null)
   const hydratedLooksRef = useRef<Set<string>>(new Set())
   const toastTimer = useRef<number | undefined>(undefined)
@@ -333,8 +334,9 @@ export default function Game({ player }: { player: Player }) {
           coins={coins}
           onEarnCoins={earnLocalCoins}
           onCoins={setCoinsFromServer}
-          onChallenge={(friend) => {
+          onChallenge={(friend, mode = 'friendly') => {
             setBattleTarget(friend)
+            setBattleMode(mode)
             setSubView('battle')
           }}
           onOpenSkillTree={() => setSubView('skills')}
@@ -354,6 +356,7 @@ export default function Game({ player }: { player: Player }) {
             challenger={monster}
             defender={battleTarget.monster}
             defenderOwnerName={battleTarget.ownerNickname}
+            battleMode={battleMode}
             onCoins={setCoinsFromServer}
             onBack={() => setSubView('plaza')}
           />
@@ -364,6 +367,7 @@ export default function Game({ player }: { player: Player }) {
           challenger={monster}
           defender={battleTarget.monster}
           defenderOwnerName={battleTarget.ownerNickname}
+          battleMode={battleMode}
           onRewardClaimed={earnLocalCoins}
           onBack={() => setSubView('plaza')}
         />

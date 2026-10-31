@@ -22,6 +22,7 @@ interface Props {
   challenger: MonsterRow
   defender: MonsterRow
   defenderOwnerName: string
+  battleMode?: 'friendly' | 'boss-raid'
   initialSeed?: number
   // 실제 서비스: 서버가 정한 결과(시드·턴 기록)를 그대로 재생한다
   precomputed?: BattleSimulationResult
@@ -34,6 +35,7 @@ export default function AsmrBattleArena({
   challenger,
   defender,
   defenderOwnerName,
+  battleMode,
   initialSeed,
   precomputed,
   onRematch,
@@ -45,8 +47,19 @@ export default function AsmrBattleArena({
   const [playing, setPlaying] = useState<boolean>(true)
   const [rewarded, setRewarded] = useState<boolean>(false)
 
-  // 👑 거대 보스 맥스 배틀 vs 1:1 클래식 배틀 모드 토글 (기본값: 거대 맥스 레이드 모드)
-  const [battleViewMode, setBattleViewMode] = useState<'raid-max' | 'classic'>('raid-max')
+  // 👑 보스 대전 vs 1:1 친선 대전 판정
+  // - defender가 월드 보스이거나 battleMode가 'boss-raid'인 경우에만 보스 레이드 모드 적용
+  // - 그 외 일반 지인/친구/NPC와의 대전은 무조건 1:1 친선 대전 모드로 분리
+  const isBossRaidTarget = Boolean(
+    battleMode === 'boss-raid' ||
+    defender.id.startsWith('world-boss-') ||
+    defender.name?.includes('거대 보스')
+  )
+
+  // 뷰 모드: 보스 레이드는 'raid-max', 친선 대전은 무조건 'classic' 1:1 구도로 시작
+  const [battleViewMode, setBattleViewMode] = useState<'raid-max' | 'classic'>(() =>
+    isBossRaidTarget ? 'raid-max' : 'classic'
+  )
 
   // ⚡ DESSERT MAX 게이지 (0% ~ 100%) & 맥스 스트라이크 보너스 대미지
   const [maxGauge, setMaxGauge] = useState<number>(35)
@@ -377,7 +390,7 @@ export default function AsmrBattleArena({
     return null
   }, [currentTurn, stepIdx, maxStrikeFloating])
 
-  const isRaid = battleViewMode === 'raid-max'
+  const isRaid = isBossRaidTarget && battleViewMode === 'raid-max'
 
   return (
     <main
@@ -453,51 +466,71 @@ export default function AsmrBattleArena({
           <BackIcon size={16} />
         </button>
 
-        {/* 뷰 모드 토글 (거대 보스 맥스 배틀 vs 1:1 클래식) */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            background: isRaid ? 'rgba(0,0,0,0.5)' : '#EFEBE9',
-            borderRadius: 999,
-            padding: '2px',
-            border: isRaid ? '1.5px solid #FF4081' : '1px solid #D7CCC8',
-          }}
-        >
-          <button
-            onClick={() => setBattleViewMode('raid-max')}
+        {/* 보스 대전 vs 1:1 친선 대전 상단 헤더 구분 */}
+        {isBossRaidTarget ? (
+          <div
             style={{
-              padding: '3px 8px',
-              borderRadius: 999,
-              border: 'none',
-              background: isRaid ? 'linear-gradient(90deg, #E91E63, #FF4081)' : 'transparent',
-              color: isRaid ? '#FFFFFF' : '#8D6E63',
-              fontSize: 10,
-              fontWeight: 900,
-              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: 3,
-            }}
-          >
-            👑 거대 맥스 로우앵글
-          </button>
-          <button
-            onClick={() => setBattleViewMode('classic')}
-            style={{
-              padding: '3px 8px',
+              background: 'rgba(0,0,0,0.5)',
               borderRadius: 999,
-              border: 'none',
-              background: !isRaid ? '#5D4037' : 'transparent',
-              color: !isRaid ? '#FFFFFF' : '#B39DDB',
-              fontSize: 10,
-              fontWeight: 900,
-              cursor: 'pointer',
+              padding: '2px',
+              border: '1.5px solid #FF4081',
             }}
           >
-            ⚔️ 1:1 클래식
-          </button>
-        </div>
+            <button
+              onClick={() => setBattleViewMode('raid-max')}
+              style={{
+                padding: '3px 8px',
+                borderRadius: 999,
+                border: 'none',
+                background: isRaid ? 'linear-gradient(90deg, #E91E63, #FF4081)' : 'transparent',
+                color: isRaid ? '#FFFFFF' : '#8D6E63',
+                fontSize: 10,
+                fontWeight: 900,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 3,
+              }}
+            >
+              👑 거대 맥스 로우앵글
+            </button>
+            <button
+              onClick={() => setBattleViewMode('classic')}
+              style={{
+                padding: '3px 8px',
+                borderRadius: 999,
+                border: 'none',
+                background: !isRaid ? '#5D4037' : 'transparent',
+                color: !isRaid ? '#FFFFFF' : '#B39DDB',
+                fontSize: 10,
+                fontWeight: 900,
+                cursor: 'pointer',
+              }}
+            >
+              ⚔️ 1:1 클래식
+            </button>
+          </div>
+        ) : (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              background: '#FFFDF9',
+              borderRadius: 999,
+              padding: '3px 12px',
+              border: '1.5px solid #FFB74D',
+              boxShadow: '0 2px 6px rgba(255, 183, 77, 0.25)',
+            }}
+          >
+            <span style={{ fontSize: 13 }}>🤝</span>
+            <span style={{ fontSize: 11.5, fontWeight: 900, color: '#D84315' }}>
+              1:1 친선 대전 ({defenderOwnerName})
+            </span>
+          </div>
+        )}
 
         <span
           className="chip"
@@ -509,7 +542,7 @@ export default function AsmrBattleArena({
             color: isRaid ? '#FFE082' : '#795548',
           }}
         >
-          #{seed}
+          {isBossRaidTarget ? '🐉 보스 레이드' : `#{seed}`}
         </span>
       </div>
 
@@ -1193,19 +1226,21 @@ export default function AsmrBattleArena({
         >
           {isFinished ? (
             <span style={{ color: sim.winner === 'challenger' || dHp <= 0 ? '#4CAF50' : '#FF4081' }}>
-              {sim.winner === 'challenger' || dHp <= 0 ? '🏆 거대 맥스 레이드 격파 승리!' : '👏 멋진 맥스 레이드 승부!'}
+              {sim.winner === 'challenger' || dHp <= 0
+                ? isBossRaidTarget ? '🏆 거대 맥스 레이드 격파 승리!' : '🎉 1:1 친선 대전 승리!'
+                : isBossRaidTarget ? '👏 멋진 맥스 레이드 승부!' : '👏 지인과의 달콤한 친선 승부!'}
             </span>
           ) : currentTurn ? (
             <span>
               턴 {currentTurn.turn}/{sim.turns.length} · 🔊 {currentTurn.onomatopoeia}
             </span>
           ) : (
-            <span>🍮 거대 맥스 보스 식감 대치 중!</span>
+            <span>{isBossRaidTarget ? '🍮 거대 맥스 보스 식감 대치 중!' : '🍮 1:1 친선 대전 식감 대치 중!'}</span>
           )}
         </div>
       </div>
 
-      {/* 4. ⚡ DESSERT MAX 게이지 바 & 발동 컨트롤 */}
+      {/* 4. ⚡ DESSERT MAX 게이지 바 (보스전) / 식감 피버 게이지 바 (친선전) */}
       <div
         style={{
           width: '100%',
@@ -1220,8 +1255,8 @@ export default function AsmrBattleArena({
       >
         <div className="row between" style={{ fontSize: 10, fontWeight: 900, marginBottom: 3 }}>
           <span style={{ color: maxGauge >= 100 ? '#FFEB3B' : isRaid ? '#FF80AB' : '#D84315', display: 'flex', alignItems: 'center', gap: 4 }}>
-            <span>⚡ DESSERT MAX GAUGE</span>
-            {maxGauge >= 100 && <span style={{ color: '#FF1744' }}>(MAX READY!)</span>}
+            <span>{isBossRaidTarget ? '⚡ DESSERT MAX GAUGE' : '✨ 식감 피버 게이지 (FEVER)'}</span>
+            {maxGauge >= 100 && <span style={{ color: '#FF1744' }}>{isBossRaidTarget ? '(MAX READY!)' : '(FEVER READY!)'}</span>}
           </span>
           <span style={{ color: isRaid ? '#FFE082' : '#795548' }}>{Math.round(maxGauge)}% / 100%</span>
         </div>
@@ -1247,14 +1282,14 @@ export default function AsmrBattleArena({
       <div
         className="card"
         style={{
-          background: isRaid ? 'rgba(25, 12, 38, 0.85)' : '#FFFDF9',
+          background: isRaid ? 'rgba(255, 255, 255, 0.95)' : '#FFFDF9',
           border: isRaid ? '1.5px solid #AB47BC' : '1.5px solid #F0DFB8',
           padding: '5px 8px',
           gap: 5,
           flexShrink: 0,
         }}
       >
-        {/* MAX 스트라이크 버튼 (100% 충전 시) or 터치 응원 버튼 */}
+        {/* 필살기 버튼 (100% 충전 시) or 터치 응원 버튼 */}
         {!isFinished && (
           <div className="row between" style={{ gap: 6 }}>
             {maxGauge >= 100 ? (
@@ -1278,7 +1313,9 @@ export default function AsmrBattleArena({
                   gap: 5,
                 }}
               >
-                ⚡ 거대 디저트 MAX 스트라이크!! 💥 (협력 총공격)
+                {isBossRaidTarget
+                  ? '⚡ 거대 디저트 MAX 스트라이크!! 💥 (협력 총공격)'
+                  : '✨ 식감 피버 MAX 버스트!! 💥 (필살 일격)'}
               </button>
             ) : (
               <button
@@ -1302,7 +1339,9 @@ export default function AsmrBattleArena({
                   gap: 4,
                 }}
               >
-                💖 파티 응원 터치! (+12% MAX) {cheerCount > 0 ? `(${cheerCount})` : ''}
+                {isBossRaidTarget
+                  ? `💖 파티 응원 터치! (+12% MAX) ${cheerCount > 0 ? `(${cheerCount})` : ''}`
+                  : `💖 펫 응원 터치! (+12% 피버) ${cheerCount > 0 ? `(${cheerCount})` : ''}`}
               </button>
             )}
 
@@ -1393,13 +1432,23 @@ export default function AsmrBattleArena({
             <div style={{ fontSize: 36 }}>{sim.winner === 'challenger' || dHp <= 0 ? '🎉👑🏆' : '👏🍮✨'}</div>
             <div style={{ fontSize: 15.5, fontWeight: 900, color: '#3E2723' }}>
               {sim.winner === 'challenger' || dHp <= 0
-                ? `승리! [${challenger.name || cInfo?.name}] 거대 보스 토벌!`
-                : `명승부! [${defender.name || dInfo?.name}] 치열한 레이드 접전!`}
+                ? isBossRaidTarget
+                  ? `승리! [${challenger.name || cInfo?.name}] 거대 보스 토벌!`
+                  : `승리! [${challenger.name || cInfo?.name}] 친선 대전 승리!`
+                : isBossRaidTarget
+                  ? `명승부! [${defender.name || dInfo?.name}] 치열한 레이드 접전!`
+                  : `무승부/패배! [${defender.name || dInfo?.name}] 지인과의 명승부!`}
             </div>
             <div style={{ fontSize: 11.5, color: '#795548', lineHeight: 1.4 }}>
-              달콤한 식감 ASMR 맥스 배틀이 마무리되었습니다.<br />
+              {isBossRaidTarget
+                ? '달콤한 DESSERT MAX 보스 레이드 토벌이 마무리되었습니다.'
+                : `지인 ${defenderOwnerName}님과의 1:1 친선 대전이 마무리되었습니다.`}<br />
               <b style={{ color: '#E65100' }}>
-                {sim.winner === 'challenger' || dHp <= 0 ? '보상: +35 리본코인 획득! 🎀' : '보상: +12 리본코인 획득! 🎀'}
+                {sim.winner === 'challenger' || dHp <= 0
+                  ? isBossRaidTarget
+                    ? '보상: +35 리본코인 획득! 🎀'
+                    : '보상: +25 코인 & +15 리본 획득! 🎀'
+                  : '보상: +12 리본코인 획득! 🎀'}
               </b>
             </div>
 

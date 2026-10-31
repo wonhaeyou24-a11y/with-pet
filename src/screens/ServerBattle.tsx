@@ -11,11 +11,12 @@ interface Props {
   challenger: MonsterRow
   defender: MonsterRow
   defenderOwnerName: string
+  battleMode?: 'friendly' | 'boss-raid'
   onCoins: (coins: number) => void
   onBack: () => void
 }
 
-export default function ServerBattle({ challenger, defender, defenderOwnerName, onCoins, onBack }: Props) {
+export default function ServerBattle({ challenger, defender, defenderOwnerName, battleMode, onCoins, onBack }: Props) {
   const [result, setResult] = useState<BattleSimulationResult | null>(null)
   const [battleKey, setBattleKey] = useState(0)
   const [error, setError] = useState<string | null>(null)
@@ -52,6 +53,7 @@ export default function ServerBattle({ challenger, defender, defenderOwnerName, 
         challenger={challenger}
         defender={defender}
         defenderOwnerName={defenderOwnerName}
+        battleMode={battleMode}
         precomputed={result}
         onRematch={fight}
         onBack={onBack}

@@ -30,7 +30,7 @@ interface Props {
   onEarnCoins: (delta: number) => void
   // 서버가 알려 준 코인 총액 (한입 투표 보상)
   onCoins?: (coins: number) => void
-  onChallenge: (friend: PlazaFriendEntry) => void
+  onChallenge: (friend: PlazaFriendEntry, mode?: 'friendly' | 'boss-raid') => void
   onOpenSkillTree: () => void
   // 실제 지인의 미니룸 방문 (서버 방명록)
   onVisit?: (friend: PlazaFriendEntry) => void
@@ -1135,7 +1135,7 @@ export default function DessertPlaza({
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginTop: 2 }}>
           <button
             className="btn"
-            onClick={() => onChallenge(selectedFriend)}
+            onClick={() => onChallenge(selectedFriend, 'friendly')}
             style={{
               padding: '12px 6px',
               fontSize: 14,
@@ -1442,7 +1442,7 @@ export default function DessertPlaza({
                             comments: [],
                           }
                           setShowRaidModal(false)
-                          onChallenge(bossEntry)
+                          onChallenge(bossEntry, 'boss-raid')
                         }}
                         style={{
                           flex: 1,

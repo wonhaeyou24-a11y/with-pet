@@ -23,6 +23,7 @@ import Naming from '../screens/Naming'
 import Nickname from '../screens/Nickname'
 import PatisserieTraining from '../screens/PatisserieTraining'
 import SkillTreeScreen from '../screens/SkillTreeScreen'
+import { createWorldBossMonster, WORLD_BOSS_CATALOG } from '../lib/bossScheduler'
 
 const egg: EggRow = {
   id: 'e1',
@@ -146,11 +147,22 @@ const SCREENS: Record<string, () => ReactNode> = {
       onBack={noop}
     />
   ),
-  '식감 ASMR 대전(M3)': () => (
+  '1:1 지인 친선 대전': () => (
     <AsmrBattleArena
       challenger={{ ...shiny, name: '두바이쫀득', level: 8 }}
       defender={{ ...monster, name: '딸기모찌', level: 7 }}
       defenderOwnerName="유리알집사"
+      battleMode="friendly"
+      onRewardClaimed={noop}
+      onBack={noop}
+    />
+  ),
+  'DESSERT MAX 월드 보스 레이드': () => (
+    <AsmrBattleArena
+      challenger={{ ...shiny, name: '두바이쫀득', level: 15 }}
+      defender={createWorldBossMonster(WORLD_BOSS_CATALOG[0])}
+      defenderOwnerName="광장 중앙 슈가 분수"
+      battleMode="boss-raid"
       onRewardClaimed={noop}
       onBack={noop}
     />
