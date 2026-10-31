@@ -66,13 +66,13 @@ export const GEAR_ENHANCE: { level: number; chance: number; cost: number }[] = [
   { level: 1, chance: 100, cost: 50 },
   { level: 2, chance: 100, cost: 100 },
   { level: 3, chance: 100, cost: 150 },
-  { level: 4, chance: 70, cost: 300 },
-  { level: 5, chance: 70, cost: 400 },
-  { level: 6, chance: 70, cost: 500 },
-  { level: 7, chance: 40, cost: 800 },
-  { level: 8, chance: 40, cost: 1000 },
-  { level: 9, chance: 40, cost: 1200 },
-  { level: 10, chance: 20, cost: 2000 },
+  { level: 4, chance: 60, cost: 300 },
+  { level: 5, chance: 60, cost: 450 },
+  { level: 6, chance: 50, cost: 600 },
+  { level: 7, chance: 35, cost: 1000 },
+  { level: 8, chance: 25, cost: 1400 },
+  { level: 9, chance: 15, cost: 1800 },
+  { level: 10, chance: 5, cost: 3500 },
 ]
 
 // 타워 보스 층(5층마다)에서 나오는 장비 등급. 그 층 이상 규칙 중 가장 높은 단계를 쓴다. weight 는 서로의 비율.
@@ -82,8 +82,8 @@ export const GEAR_DROPS: { minFloor: number; grade: GearGrade; weight: number }[
   { minFloor: 5, grade: 'fine', weight: 70 },
   { minFloor: 15, grade: 'fine', weight: 60 },
   { minFloor: 15, grade: 'rare', weight: 40 },
-  { minFloor: 30, grade: 'rare', weight: 70 },
-  { minFloor: 30, grade: 'legend', weight: 30 },
+  { minFloor: 30, grade: 'rare', weight: 85 },
+  { minFloor: 30, grade: 'legend', weight: 15 },
 ]
 
 // 가방에 둘 수 있는 장비 수

@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { STAT_BAR_MAX, STAT_INFO } from '../config/species'
+import { STAT_INFO } from '../config/species'
 import type { Stats } from '../lib/api'
 import type { DessertBaseId } from '../monsters/MallangChameleon'
 import { LockIcon, PawIcon } from './Icons'
@@ -25,11 +25,17 @@ export function TopBar({ nickname, onLogout }: { nickname: string; onLogout?: ()
   )
 }
 
-export function StatBars({ stats, compact = false }: { stats: Stats; compact?: boolean }) {
+export function StatBars({ stats, compact = false, evoStage = 1 }: { stats: Stats; compact?: boolean; evoStage?: number }) {
+  // 🌟 진화 및 장비 성장에 따른 동적 한계 확장 (1단계: 100, 2단계: 180, 3단계: 300, 스탯 초과 시 자동 확장)
+  const baseLimit = evoStage === 3 ? 300 : evoStage === 2 ? 180 : 100
+  const maxVal = Math.max(...Object.values(stats))
+  const dynamicMax = Math.max(baseLimit, Math.ceil(maxVal / 20) * 20)
+
   return (
     <div className={compact ? 'stats-grid' : 'stack'} style={compact ? undefined : { gap: 14 }}>
       {STAT_INFO.map(({ key, label, color }) => {
         const v = stats[key]
+        const pct = Math.min(100, Math.round((v / dynamicMax) * 100))
         return (
           <div className="stat-row" key={key}>
             <div className="stat-head">
@@ -38,11 +44,11 @@ export function StatBars({ stats, compact = false }: { stats: Stats; compact?: b
                 {label}
               </span>
               <span className="stat-num" style={{ color }}>
-                {v} <small>/ {STAT_BAR_MAX}</small>
+                {v} <small>/ {dynamicMax}</small>
               </span>
             </div>
-            <div className="bar" role="progressbar" aria-label={label} aria-valuenow={v} aria-valuemax={STAT_BAR_MAX}>
-              <span style={{ width: `${Math.min(100, (v / STAT_BAR_MAX) * 100)}%`, backgroundColor: color }} />
+            <div className="bar" role="progressbar" aria-label={label} aria-valuenow={v} aria-valuemax={dynamicMax}>
+              <span style={{ width: `${pct}%`, backgroundColor: color }} />
             </div>
           </div>
         )

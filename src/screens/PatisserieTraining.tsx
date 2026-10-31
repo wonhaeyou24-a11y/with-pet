@@ -1395,7 +1395,7 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                     <span>📊 펫 전체 능력치</span>
                     <span className="chip" style={{ fontSize: 9, padding: '1px 5px' }}>총점 {totalStats(monster.stats)}</span>
                   </div>
-                  <StatBars stats={monster.stats} compact />
+                  <StatBars stats={monster.stats} compact evoStage={monster.evo_stage ?? 1} />
                 </div>
               )}
 

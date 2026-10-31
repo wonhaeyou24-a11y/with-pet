@@ -708,7 +708,7 @@ export default function MonsterHome({
               }}
               style={{
                 position: 'absolute',
-                top: isExploring || trainSess || towerSess || evoEligibility.canEvolve ? 30 : 6,
+                top: isExploring || trainSess || towerSess || evoEligibility.canEvolve ? 26 : 2,
                 zIndex: 13,
                 maxWidth: '88%',
                 padding: '6px 14px',
@@ -761,7 +761,7 @@ export default function MonsterHome({
           <div
             key={`home-react-${burstKey}`}
             className={burstKey > 0 ? getSensoryReactionClass(soundKind) : ''}
-            style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 10 }}
+            style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 34 }}
           >
             {/* 🌟 메인 디저트 펫 강조: 145px ➔ 210px 짤림 없이 시원하게 표시 */}
             <MonsterView look={look} size={210} title={info?.name} />
@@ -771,14 +771,35 @@ export default function MonsterHome({
         {/* 캐릭터 이름 및 종족·속성·레벨 뱃지 (캐릭터와 절대 겹치지 않게 분리) */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, width: '100%', flexShrink: 0, marginTop: 4 }}>
           <h1 className="title-xl" style={{ fontSize: 18, margin: 0, lineHeight: 1.1 }}>{monster.name}</h1>
-          <div className="row wrap center" style={{ gap: 4 }}>
-            <span className="chip" style={{ fontSize: 11, padding: '2px 7px' }}>{info?.name ?? monster.species}</span>
-            {info?.textureLabel && <span className="chip honey" style={{ fontSize: 11, padding: '2px 7px' }}>{info.textureLabel}</span>}
-            <span className="chip" style={{ fontSize: 11, padding: '2px 7px' }}>
-              <ElementIcon element={monster.element} size={13} />
-              {ELEMENT_INFO[monster.element].label}
+          {/* 🌟 1줄 일렬 정렬: 종족 · 식감 · 속성 · 레벨 뱃지 */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexWrap: 'nowrap',
+              gap: 4,
+              width: '100%',
+              maxWidth: 380,
+              padding: '0 4px',
+              boxSizing: 'border-box',
+            }}
+          >
+            <span className="chip" style={{ fontSize: 10.5, padding: '2px 6px', whiteSpace: 'nowrap' }}>
+              {info?.name ?? monster.species}
             </span>
-            <span className="chip coral" style={{ fontSize: 11, padding: '2px 7px' }}>Lv.{monster.level}</span>
+            {info?.textureLabel && (
+              <span className="chip honey" style={{ fontSize: 10.5, padding: '2px 6px', whiteSpace: 'nowrap' }}>
+                {info.textureLabel}
+              </span>
+            )}
+            <span className="chip" style={{ fontSize: 10.5, padding: '2px 6px', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+              <ElementIcon element={monster.element} size={12} />
+              <span>{ELEMENT_INFO[monster.element].label}</span>
+            </span>
+            <span className="chip coral" style={{ fontSize: 10.5, padding: '2px 6px', whiteSpace: 'nowrap', fontWeight: 900 }}>
+              Lv.{monster.level}
+            </span>
           </div>
         </div>
       </div>
