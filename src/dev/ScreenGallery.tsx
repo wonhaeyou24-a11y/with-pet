@@ -18,6 +18,7 @@ import Login from '../screens/Login'
 import MissionModal from '../screens/MissionModal'
 import MonsterDetail from '../screens/MonsterDetail'
 import MonsterHome from '../screens/MonsterHome'
+import Monster3DView from '../monsters/Monster3DView'
 import MyRoomScreen from '../screens/MyRoomScreen'
 import Naming from '../screens/Naming'
 import Nickname from '../screens/Nickname'
@@ -159,8 +160,8 @@ const SCREENS: Record<string, () => ReactNode> = {
   ),
   '1:1 지인 친선 대전 (승리)': () => (
     <AsmrBattleArena
-      challenger={{ ...shiny, name: '두바이쫀득', level: 25, atk: 120, def: 90 }}
-      defender={{ ...monster, name: '딸기모찌', level: 2, hp: 20 }}
+      challenger={{ ...shiny, name: '두바이쫀득', level: 30 }}
+      defender={{ ...monster, name: '딸기모찌', level: 1 }}
       defenderOwnerName="유리알집사"
       battleMode="friendly"
       onRewardClaimed={noop}
@@ -201,6 +202,79 @@ const SCREENS: Record<string, () => ReactNode> = {
       onBack={noop}
       onOpenMyRoom={noop}
     />
+  ),
+  '✨ 3대 개성 꾸미기 (마카롱베레모·웨이퍼롤핀·딸기시럽드리즐)': () => (
+    <div style={{ padding: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#FFFDF9' }}>
+      <div style={{ textAlign: 'center', marginBottom: 12 }}>
+        <h2 style={{ margin: 0, fontSize: 17, fontWeight: 900, color: '#880E4F' }}>🍓 디저트 펫 3대 시그니처 꾸미기</h2>
+        <p style={{ margin: '4px 0 0', fontSize: 11.5, color: '#AD1457', fontWeight: 800 }}>
+          프렌치 마카롱 베레모 + 볼살 바닐라 웨이퍼 롤 핀 + 생딸기 퐁듀 드리즐
+        </p>
+      </div>
+      <div style={{ width: 280, height: 320, background: 'radial-gradient(circle, #FFF0F5 0%, #FCE4EC 100%)', borderRadius: 24, boxShadow: '0 12px 28px rgba(233,30,99,0.18)', border: '2.5px solid #F8BBD0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Monster3DView
+          look={{
+            species: 'mochi',
+            palette: 0,
+            bodyType: 'normal',
+            scale: 1,
+            ears: 0,
+            tail: 0,
+            top: 0,
+            expression: 'mochi-sparkle',
+            patternSeed: 42,
+            shiny: false,
+            evoStage: 2,
+            evoBranch: 'sweet-melty',
+            decorations: {
+              head: 'macaron-beret',
+              face: 'wafer-roll-pin',
+              effect: 'syrup-drizzle-strawberry',
+            },
+            mallang: {
+              dessertBase: 'strawberry-cake',
+            },
+          }}
+          size={270}
+        />
+      </div>
+    </div>
+  ),
+  '✨ 3대 개성 꾸미기 (24K순금박파우더·달콤딸기잼발자국)': () => (
+    <div style={{ padding: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#FFFDF9' }}>
+      <div style={{ textAlign: 'center', marginBottom: 12 }}>
+        <h2 style={{ margin: 0, fontSize: 17, fontWeight: 900, color: '#E65100' }}>👑 순금박 슈가 파우더 & 딸기잼 발자국</h2>
+        <p style={{ margin: '4px 0 0', fontSize: 11.5, color: '#D84315', fontWeight: 800 }}>
+          360도 반짝이는 24K 순금박 플레이크 + 바닥에 사르르 번지는 젤리 딸기잼 풋프린트
+        </p>
+      </div>
+      <div style={{ width: 280, height: 320, background: 'radial-gradient(circle, #FFFDE7 0%, #FFF8E1 100%)', borderRadius: 24, boxShadow: '0 12px 28px rgba(255,160,0,0.18)', border: '2.5px solid #FFE082', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Monster3DView
+          look={{
+            species: 'mochi',
+            palette: 0,
+            bodyType: 'normal',
+            scale: 1,
+            ears: 0,
+            tail: 0,
+            top: 0,
+            expression: 'mochi-sparkle',
+            patternSeed: 99,
+            shiny: false,
+            evoStage: 2,
+            evoBranch: 'sweet-melty',
+            decorations: {
+              face: 'gold-sugar-powder',
+              effect: 'footprint-strawberry-jam',
+            },
+            mallang: {
+              dessertBase: 'macaron-cushion',
+            },
+          }}
+          size={270}
+        />
+      </div>
+    </div>
   ),
   '나만의 미니룸': () => (
     <MyRoomScreen

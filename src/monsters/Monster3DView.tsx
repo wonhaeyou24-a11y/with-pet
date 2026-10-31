@@ -1251,6 +1251,50 @@ function add3DDecorations(
     beret.position.set(0.1, 1.02, 0)
     beret.rotation.z = -0.18
     bodyGroup.add(beret)
+  } else if (deco?.head === 'macaron-beret') {
+    // 🧁 프렌치 마카롱 베레모: 도톰한 파스텔 꼬끄 + 크림 필링 + 민트 꼭지
+    const beretGroup = new THREE.Group()
+    beretGroup.position.set(0.22, 1.05, 0.05)
+    beretGroup.rotation.z = -0.28
+    beretGroup.rotation.x = 0.12
+
+    const coqMat = new THREE.MeshPhysicalMaterial({
+      color: '#F48FB1',
+      roughness: 0.35,
+      clearcoat: 0.6,
+      sheen: 0.8,
+      sheenColor: '#FCE4EC',
+    })
+    const creamMat = new THREE.MeshPhysicalMaterial({
+      color: '#FFF9C4',
+      roughness: 0.2,
+      clearcoat: 0.8,
+    })
+
+    // 상단 꼬끄 (볼록한 반구형)
+    const topCoq = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.58, 0.18, 24), coqMat)
+    topCoq.position.y = 0.12
+    beretGroup.add(topCoq)
+
+    // 크림 필링 레이어
+    const creamLayer = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.52, 0.1, 24), creamMat)
+    beretGroup.add(creamLayer)
+
+    // 하단 꼬끄
+    const botCoq = new THREE.Mesh(new THREE.CylinderGeometry(0.58, 0.55, 0.16, 24), coqMat)
+    botCoq.position.y = -0.12
+    beretGroup.add(botCoq)
+
+    // 베레모 꼭지 (민트 잎)
+    const leaf = new THREE.Mesh(
+      new THREE.SphereGeometry(0.08, 8, 8),
+      new THREE.MeshPhysicalMaterial({ color: '#81C784', roughness: 0.3 }),
+    )
+    leaf.scale.set(1.5, 0.4, 0.8)
+    leaf.position.set(0, 0.24, 0)
+    beretGroup.add(leaf)
+
+    bodyGroup.add(beretGroup)
   }
 
   // 2. 얼굴 장식 (face) - 1.5배 큼직하게
@@ -1315,6 +1359,67 @@ function add3DDecorations(
     patchGroup.add(patchOrbitStars)
 
     bodyGroup.add(patchGroup)
+  } else if (deco?.face === 'wafer-roll-pin') {
+    // 🥖 바닐라 웨이퍼 롤 피어싱: 양 볼에 비스듬히 꽂힌 바삭한 스트라이프 웨이퍼 롤 과자
+    const pinGroup = new THREE.Group()
+    const waferMat = new THREE.MeshPhysicalMaterial({
+      color: '#FFE0B2',
+      roughness: 0.55,
+      clearcoat: 0.2,
+    })
+    const chocoLineMat = new THREE.MeshPhysicalMaterial({
+      color: '#5D4037',
+      roughness: 0.4,
+    })
+
+    ;[-0.62, 0.62].forEach((px) => {
+      const rollGroup = new THREE.Group()
+      rollGroup.position.set(px, -0.05, 0.86)
+      rollGroup.rotation.z = px > 0 ? -0.45 : 0.45
+      rollGroup.rotation.y = px > 0 ? 0.3 : -0.3
+
+      // 웨이퍼 롤 본체 (바삭한 원통)
+      const roll = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.065, 0.45, 12), waferMat)
+      rollGroup.add(roll)
+
+      // 초콜릿 회전 스트라이프 링 2개
+      ;[-0.1, 0.1].forEach((yo) => {
+        const stripe = new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.015, 8, 16), chocoLineMat)
+        stripe.position.y = yo
+        stripe.rotation.x = Math.PI / 2
+        rollGroup.add(stripe)
+      })
+
+      pinGroup.add(rollGroup)
+    })
+    bodyGroup.add(pinGroup)
+  } else if (deco?.face === 'gold-sugar-powder') {
+    // ✨ 24K 순금박 슈가 파우더: 양 볼과 이마에 영롱하게 흩뿌려진 다채로운 황금 플레이크 조각들
+    const goldGroup = new THREE.Group()
+    goldGroup.name = 'goldSugarPowder'
+    const goldFlakeMat = new THREE.MeshPhysicalMaterial({
+      color: '#FFD700',
+      emissive: '#FFA000',
+      emissiveIntensity: 0.95,
+      metalness: 0.98,
+      roughness: 0.08,
+      clearcoat: 1.0,
+    })
+
+    // 볼과 이마에 입체 플레이크 10개 배치
+    const flakeOffsets = [
+      [-0.45, 0.02, 0.94], [-0.55, 0.12, 0.88], [-0.38, -0.08, 0.96],
+      [0.45, 0.02, 0.94], [0.55, 0.12, 0.88], [0.38, -0.08, 0.96],
+      [0, 0.52, 0.92], [-0.18, 0.45, 0.94], [0.18, 0.45, 0.94], [0, 0.35, 0.98]
+    ]
+
+    flakeOffsets.forEach(([fx, fy, fz], fi) => {
+      const flake = new THREE.Mesh(new THREE.OctahedronGeometry(fi % 2 === 0 ? 0.055 : 0.038, 0), goldFlakeMat)
+      flake.position.set(fx, fy, fz)
+      flake.rotation.set(fi * 0.5, fi * 0.7, fi * 0.3)
+      goldGroup.add(flake)
+    })
+    bodyGroup.add(goldGroup)
   }
 
   // 3. 목 장식 (neck) - 풍성한 볼륨감
@@ -1606,6 +1711,123 @@ function add3DDecorations(
       effectGroup.add(drop)
     }
     rootGroup.add(effectGroup)
+  } else if (deco?.effect?.startsWith('syrup-drizzle-')) {
+    // 🍓 1. 시럽 & 슈가 드리즐링 (Drizzling Aura & Syrup Fondue)
+    const isStrawberry = deco.effect === 'syrup-drizzle-strawberry'
+    const isChoco = deco.effect === 'syrup-drizzle-choco'
+
+    const syrupColor = isStrawberry ? '#E91E63' : isChoco ? '#3E2723' : '#FFF9C4'
+    const syrupEmissive = isStrawberry ? '#C2185B' : isChoco ? '#211005' : '#FFF59D'
+
+    const eff = new THREE.Group()
+    eff.name = 'syrupDrizzleGroup'
+
+    const syrupMat = new THREE.MeshPhysicalMaterial({
+      color: syrupColor,
+      emissive: syrupEmissive,
+      emissiveIntensity: 0.45,
+      roughness: 0.05,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.05,
+      transparent: true,
+      opacity: 0.92,
+    })
+
+    // 1) 펫 정수리 퐁듀 캡 (머리 위에 쫀득하게 얹힌 시럽 덩어리)
+    const cap = new THREE.Mesh(new THREE.SphereGeometry(0.72, 22, 16, 0, Math.PI * 2, 0, Math.PI * 0.52), syrupMat)
+    cap.position.set(0, 0.65, 0)
+    cap.scale.set(1.15, 0.45, 1.15)
+    eff.add(cap)
+
+    // 2) 어깨와 얼굴 옆으로 주르륵 흘러내리는 4가닥 물줄기 드립 (Syrup Drips)
+    const dripAngles = [0.35, 1.45, 2.75, 4.35]
+    dripAngles.forEach((ang, di) => {
+      const drip = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.08, 0.42 + (di % 2) * 0.18, 10), syrupMat)
+      const rad = 0.74
+      drip.position.set(Math.cos(ang) * rad, 0.4 - (di % 2) * 0.08, Math.sin(ang) * rad)
+      drip.rotation.x = Math.sin(ang) * 0.25
+      drip.rotation.z = -Math.cos(ang) * 0.25
+      eff.add(drip)
+    })
+
+    // 3) 머리 위에서 똑똑 떨어지는 낙하 시럽 방울들 (Falling Droplets)
+    const dropsGroup = new THREE.Group()
+    dropsGroup.name = 'syrupDrops'
+    for (let di = 0; di < 4; di++) {
+      const drop = new THREE.Mesh(new THREE.SphereGeometry(0.085, 12, 12), syrupMat)
+      drop.scale.set(0.85, 1.45, 0.85) // 물방울 형태
+      drop.position.set((di % 2 === 0 ? 0.22 : -0.22) * ((di + 1) * 0.35), 1.2 + di * 0.32, di > 1 ? 0.12 : -0.12)
+      dropsGroup.add(drop)
+    }
+    eff.add(dropsGroup)
+
+    effectGroup = eff
+    rootGroup.add(effectGroup)
+  } else if (deco?.effect === 'footprint-strawberry-jam') {
+    // 🍓 3. 달콤 딸기잼 발자국 (Sweet Jam Decals)
+    const eff = new THREE.Group()
+    eff.name = 'jamFootprints'
+    eff.position.y = -0.76
+
+    const jamMat = new THREE.MeshPhysicalMaterial({
+      color: '#E91E63',
+      emissive: '#AD1457',
+      emissiveIntensity: 0.5,
+      roughness: 0.1,
+      clearcoat: 1.0,
+      transparent: true,
+      opacity: 0.85,
+    })
+
+    // 중앙 메인 잼 번짐 웅덩이
+    const mainPuddle = new THREE.Mesh(new THREE.CircleGeometry(0.68, 24), jamMat)
+    mainPuddle.rotation.x = -Math.PI / 2
+    eff.add(mainPuddle)
+
+    // 통통 튈 때 퍼지는 4개의 하트 모양 잼 발자국
+    ;[-0.55, 0.55].forEach((jx, ji) => {
+      const foot = new THREE.Mesh(new THREE.CircleGeometry(0.24, 16), jamMat)
+      foot.rotation.x = -Math.PI / 2
+      foot.position.set(jx, 0.01, ji === 0 ? 0.25 : -0.2)
+      eff.add(foot)
+
+      // 미니 잼 스플래시 물방울 2개씩
+      for (let si = 0; si < 2; si++) {
+        const splash = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), jamMat)
+        splash.scale.set(1.2, 0.4, 1.2)
+        splash.position.set(jx * 1.35 + si * 0.15, 0.02, (ji === 0 ? 0.35 : -0.3) + si * 0.1)
+        eff.add(splash)
+      }
+    })
+
+    effectGroup = eff
+    rootGroup.add(effectGroup)
+  } else if (deco?.effect === 'footprint-macaron-crumbs') {
+    // 🌈 3. 무지개 마카롱 가루 발자국 (Macaron Crumbs Decals)
+    const eff = new THREE.Group()
+    eff.name = 'macaronCrumbs'
+    eff.position.y = -0.76
+
+    const colors = ['#F48FB1', '#81C784', '#FFF59D', '#80DEEA', '#CE93D8']
+    // 바닥에 흩어진 16개의 알록달록 마카롱 크럼블 가루 조각
+    for (let ci = 0; ci < 16; ci++) {
+      const ang = (ci / 16) * Math.PI * 2 + (ci % 3) * 0.4
+      const dist = 0.55 + (ci % 5) * 0.18
+      const crumbMat = new THREE.MeshPhysicalMaterial({
+        color: colors[ci % colors.length],
+        roughness: 0.6,
+        sheen: 0.8,
+        sheenColor: '#FFFFFF',
+      })
+      const crumb = new THREE.Mesh(new THREE.SphereGeometry(0.05 + (ci % 3) * 0.025, 8, 8), crumbMat)
+      crumb.scale.set(1.3, 0.45, 1.1)
+      crumb.position.set(Math.cos(ang) * dist, 0.01 + (ci % 2) * 0.01, Math.sin(ang) * dist)
+      crumb.rotation.y = ci * 0.6
+      eff.add(crumb)
+    }
+
+    effectGroup = eff
+    rootGroup.add(effectGroup)
   }
 
   return effectGroup
@@ -1876,9 +2098,41 @@ export default function Monster3DView({
 
         // 전체 이펙트 그룹의 은은한 부유 애니메이션
         effectGroup.position.y = Math.sin(t * 2.4) * 0.03
+
+        // 🍓 1) 시럽 & 슈가 드리즐링: 머리 위에서 똑똑 떨어지는 낙하 물방울 순환 애니메이션
+        const syrupDrops = effectGroup.getObjectByName('syrupDrops')
+        if (syrupDrops) {
+          syrupDrops.children.forEach((drop, idx) => {
+            drop.position.y -= dt * (0.55 + idx * 0.12)
+            if (drop.position.y < 0.65) {
+              drop.position.y = 1.75 + (idx % 2) * 0.2
+            }
+          })
+        }
+
+        // 🍓 2) 달콤 딸기잼 발자국: 통통 튀는 바운스에 맞춘 젤리 펄스
+        const jamFootprints = effectGroup.getObjectByName('jamFootprints')
+        if (jamFootprints) {
+          const pulse = 1.0 + Math.sin(t * 3.6) * 0.06
+          jamFootprints.scale.set(pulse, 1, pulse)
+        }
+
+        // 🌈 3) 무지개 마카롱 가루 발자국: 크럼블 가루 미세 반짝임
+        const macaronCrumbs = effectGroup.getObjectByName('macaronCrumbs')
+        if (macaronCrumbs) {
+          macaronCrumbs.rotation.y += dt * 0.15
+        }
       }
 
-      // 유성 별빛 스티커 파티클 실시간 공전 & 반짝임
+      // 🥖 순금박 슈가 파우더 & 별빛 스티커 파티클 실시간 자전 & 공전
+      const goldPowder = bodyGroup.getObjectByName('goldSugarPowder')
+      if (goldPowder) {
+        goldPowder.children.forEach((flake, fi) => {
+          flake.rotation.y += dt * (1.5 + fi * 0.2)
+          flake.rotation.x += dt * (1.2 + fi * 0.15)
+        })
+      }
+
       const patchOrbit = bodyGroup.getObjectByName('patchOrbitStars')
       if (patchOrbit) {
         patchOrbit.rotation.y += dt * 1.8
