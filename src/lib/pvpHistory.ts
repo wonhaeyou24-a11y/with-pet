@@ -117,3 +117,4 @@ export function formatTimeAgo(timestamp: number): string {
   const diffDay = Math.floor(diffHour / 24)
   return `${diffDay}일 전`
 }
+

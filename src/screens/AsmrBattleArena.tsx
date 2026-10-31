@@ -107,30 +107,39 @@ export default function AsmrBattleArena({
   const cInfo = SPECIES_INFO[cLook.mallang?.morphForm ?? challenger.species] ?? SPECIES_INFO[challenger.species]
   const dInfo = SPECIES_INFO[dLook.mallang?.morphForm ?? defender.species] ?? SPECIES_INFO[defender.species]
 
-  // 🛡️ 거대 보스 레이드에 참여한 모든 지인들의 펫 (옹기종기 응원단)
-  const raidAllies = useMemo(
+  // ⚔️ 거대 보스 레이드에 먼저 참전하여 공격을 완료한 지인 펫들 (비동기 협동 레이드 참여 전우들)
+  const raidParticipants = useMemo(
     () => [
       {
-        id: 'ally-1',
-        ownerName: '몽실 님 펫',
+        id: 'participant-1',
+        ownerName: '몽실 님',
+        petName: '딸기몽실',
+        damage: 420,
+        statusText: '타격완료',
         icon: '🍓',
         look: { species: 'mongsil', palette: 1, bodyType: 'normal', scale: 0.85, ears: 0, tail: 0, top: 0, expression: 'round', patternSeed: 12, shiny: false, evoStage: 2, evoBranch: 'sweet-melty' } as MonsterLook,
-        left: '4%',
+        left: '3%',
         bottom: '8%',
         delay: '0s',
       },
       {
-        id: 'ally-2',
-        ownerName: '별비늘 님 펫',
+        id: 'participant-2',
+        ownerName: '별비늘 님',
+        petName: '카멜레온',
+        damage: 580,
+        statusText: '극딜완료',
         icon: '✨',
         look: { species: 'byeolbineul', palette: 3, bodyType: 'normal', scale: 0.8, ears: 0, tail: 0, top: 1, expression: 'round', patternSeed: 88, shiny: false, evoStage: 2, evoBranch: 'gourmet-rainbow' } as MonsterLook,
-        left: '17%',
+        left: '16%',
         bottom: '13%',
         delay: '0.4s',
       },
       {
-        id: 'ally-3',
-        ownerName: '슈슈 님 펫',
+        id: 'participant-3',
+        ownerName: '슈슈 님',
+        petName: '탕후루',
+        damage: 350,
+        statusText: '치명타완료',
         icon: '🍬',
         look: { species: 'tanghulu', palette: 0, bodyType: 'normal', scale: 0.8, ears: 0, tail: 0, top: 0, expression: 'sharp', patternSeed: 55, shiny: false, evoStage: 2, evoBranch: 'crispy-crunch' } as MonsterLook,
         left: '29%',
@@ -138,8 +147,11 @@ export default function AsmrBattleArena({
         delay: '0.8s',
       },
       {
-        id: 'ally-4',
-        ownerName: '마포 님 펫',
+        id: 'participant-4',
+        ownerName: '마포 님',
+        petName: '두바이쿠키',
+        damage: 610,
+        statusText: 'MVP타격',
         icon: '🍫',
         look: { species: 'dubai-cookie', palette: 2, bodyType: 'normal', scale: 0.85, ears: 1, tail: 0, top: 0, expression: 'round', patternSeed: 33, shiny: false, evoStage: 2, evoBranch: 'sweet-melty' } as MonsterLook,
         right: '29%',
@@ -147,25 +159,36 @@ export default function AsmrBattleArena({
         delay: '0.2s',
       },
       {
-        id: 'ally-5',
-        ownerName: '흑염 님 펫',
+        id: 'participant-5',
+        ownerName: '흑염 님',
+        petName: '흑염소룡',
+        damage: 490,
+        statusText: '화염타격',
         icon: '🔥',
         look: { species: 'heugyeom', palette: 1, bodyType: 'normal', scale: 0.8, ears: 1, tail: 1, top: 0, expression: 'sharp', patternSeed: 77, shiny: false, evoStage: 2, evoBranch: 'royal-chef' } as MonsterLook,
-        right: '17%',
+        right: '16%',
         bottom: '13%',
         delay: '0.6s',
       },
       {
-        id: 'ally-6',
-        ownerName: '콩콩 님 펫',
+        id: 'participant-6',
+        ownerName: '콩콩 님',
+        petName: '초코콩콩',
+        damage: 380,
+        statusText: '타격완료',
         icon: '🍪',
         look: { species: 'kongkong', palette: 2, bodyType: 'normal', scale: 0.85, ears: 1, tail: 1, top: 0, expression: 'sharp', patternSeed: 44, shiny: false, evoStage: 2, evoBranch: 'crispy-crunch' } as MonsterLook,
-        right: '4%',
+        right: '3%',
         bottom: '8%',
         delay: '1.0s',
       },
     ],
     [],
+  )
+
+  const totalAllyDmg = useMemo(
+    () => raidParticipants.reduce((sum, p) => sum + p.damage, 0),
+    [raidParticipants],
   )
 
   const cHp = currentTurn ? currentTurn.challengerHp : sim.challengerMaxHp
@@ -445,6 +468,10 @@ export default function AsmrBattleArena({
           0%, 100% { transform: translateY(0) scale(1); }
           50% { transform: translateY(-7px) scale(1.05); }
         }
+        @keyframes raidParticipantStance {
+          0%, 100% { transform: translateY(0) scale(1); filter: brightness(1); }
+          50% { transform: translateY(-3px) scale(1.02); filter: brightness(1.08) drop-shadow(0 0 6px rgba(255, 64, 129, 0.4)); }
+        }
         @keyframes maxGaugeGlow {
           0%, 100% { box-shadow: 0 0 10px rgba(255, 64, 129, 0.6), inset 0 0 6px #FF80AB; }
           50% { box-shadow: 0 0 22px rgba(255, 215, 0, 0.9), inset 0 0 10px #FFD700; }
@@ -586,7 +613,7 @@ export default function AsmrBattleArena({
               {challenger.name || cInfo?.name}
             </span>
             <span style={{ color: isRaid ? '#FFD54F' : '#D84315', fontSize: 10 }}>
-              {isRaid ? '4인 파티 리더' : `나 · Lv.${challenger.level}`}
+              {isRaid ? `참전 7인 연합 (지인 누적 -${totalAllyDmg})` : `나 · Lv.${challenger.level}`}
             </span>
           </div>
           <div style={{ height: 9, borderRadius: 999, background: isRaid ? 'rgba(255,255,255,0.15)' : '#F5E8C9', overflow: 'hidden' }}>
@@ -999,40 +1026,47 @@ export default function AsmrBattleArena({
                 zIndex: 20,
               }}
             >
-              {/* 1. 지인 참여자 펫들 (옹기종기 관전 및 응원단, 크기 34px로 아기자기하게 겹침 없이 분산 배치) */}
-              {raidAllies.map((ally) => (
+              {/* 1. 먼저 참전하여 공격을 성공적으로 마친 지인 펫들 (비동기 협동 레이드 옹기종기 주둔 진형) */}
+              {raidParticipants.map((participant) => (
                 <div
-                  key={ally.id}
+                  key={participant.id}
                   style={{
                     position: 'absolute',
-                    left: ally.left,
-                    right: ally.right,
-                    bottom: ally.bottom,
+                    left: participant.left,
+                    right: participant.right,
+                    bottom: participant.bottom,
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    animation: `partyCheerBounce 2.6s ease-in-out infinite`,
-                    animationDelay: ally.delay,
+                    animation: `raidParticipantStance 3.2s ease-in-out infinite`,
+                    animationDelay: participant.delay,
                     zIndex: 21,
                   }}
                 >
+                  {/* 지인 펫 머리 위 참여 및 누적 공격 피해량 뱃지 */}
                   <div
                     style={{
-                      background: 'rgba(0,0,0,0.72)',
-                      border: '1px solid rgba(255, 255, 255, 0.4)',
+                      background: 'rgba(15, 8, 26, 0.88)',
+                      border: '1.2px solid #FF80AB',
                       color: '#FFF8E1',
                       fontSize: 8,
-                      fontWeight: 800,
-                      padding: '1px 5px',
+                      fontWeight: 900,
+                      padding: '1px 6px',
                       borderRadius: 999,
                       marginBottom: 2,
                       whiteSpace: 'nowrap',
-                      boxShadow: '0 2px 5px rgba(0,0,0,0.4)',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.5)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 3,
                     }}
                   >
-                    {ally.icon} {ally.ownerName}
+                    <span>{participant.icon} {participant.ownerName}</span>
+                    <span style={{ color: '#FF5252', background: 'rgba(255,23,68,0.2)', padding: '0 3px', borderRadius: 4 }}>
+                      -{participant.damage}
+                    </span>
                   </div>
-                  <MonsterView look={ally.look} size={34} />
+                  <MonsterView look={participant.look} size={34} />
                 </div>
               ))}
 
@@ -1119,7 +1153,7 @@ export default function AsmrBattleArena({
                     border: '1px solid #FFFFFF',
                   }}
                 >
-                  {cHp <= 0 ? '😵 탈진... (쓰러짐)' : `⚔️ 단독 돌격 중: ${challenger.name || cInfo?.name}`}
+                  {cHp <= 0 ? '😵 탈진... (기여 완료!)' : `⚔️ 현재 공격 순번: ${challenger.name || cInfo?.name} (탈진까지 맹공!)`}
                 </div>
 
                 {/* 전면 돌격 파이터 (크기 72px) */}
