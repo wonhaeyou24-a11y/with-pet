@@ -10,11 +10,13 @@ export type Element = 'fire' | 'water' | 'grass' | 'electric' | 'wind' | 'earth'
 
 // 대전에 필요한 몬스터 정보만 (화면의 MonsterRow와 서버의 DB 행이 모두 들어맞는다)
 export interface BattleMonster {
+  id?: string | null
   name: string | null
   species: string
   element: Element
   level: number
   stats: Stats
+  trait?: string | null
   battle_stance?: string | null
   unlocked_skills?: string[] | null
   equipped_skills?: string[] | null
@@ -115,7 +117,14 @@ export function simulateAsmrBattle(
   if (dSkills.length === 0) dSkills.push(fallbackSkill)
 
   const turns: BattleTurnLog[] = []
-  const maxTurns = 12 // 무한 루프 방지 가드: 최대 12턴 내 승부 판정
+  const isBossRaid = Boolean(
+    defender.id?.startsWith('world-boss') ||
+    defender.name?.includes('보스') ||
+    defender.trait?.includes('보스') ||
+    defender.trait?.includes('월드')
+  )
+  // 일반 대전은 12턴, 거대 보스 비동기 레이드는 펫이 탈진(HP 0)할 때까지 공격 (최대 40턴 가드)
+  const maxTurns = isBossRaid ? 40 : 12
 
   function pickSkill(skills: SkillNodeDef[], stance: BattleStanceId, hpRatio: number): SkillNodeDef {
     if (stance === 'defensive' && hpRatio < 0.65) {

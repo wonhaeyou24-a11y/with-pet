@@ -231,7 +231,7 @@ export function build3DDessertBase(baseId: DessertBaseId): THREE.Group {
 export function build3DCharacterMesh(
   species: string,
   look: MonsterLook & { mallang?: MallangCustom },
-): { root: THREE.Group; bodyGroup: THREE.Group; innerLiquid?: THREE.Object3D } {
+): { root: THREE.Group; bodyGroup: THREE.Group; innerLiquid?: THREE.Object3D; effectGroup?: THREE.Group } {
   const root = new THREE.Group()
   const bodyGroup = new THREE.Group()
   root.add(bodyGroup)
@@ -752,9 +752,9 @@ export function build3DCharacterMesh(
     addCute3DFace(0.92, 0.15, '#FF8A9E')
   }
 
-  add3DDecorations(bodyGroup, root, look)
+  const effectGroup = add3DDecorations(bodyGroup, root, look)
   add3DEvolutionVisuals(bodyGroup, root, look)
-  return { root, bodyGroup, innerLiquid }
+  return { root, bodyGroup, innerLiquid, effectGroup: effectGroup || undefined }
 }
 
 // M4: 디저트 몬스터 3단계 진화 외형 & 4대 분기별 3D 비주얼 생성
@@ -1006,6 +1006,30 @@ function add3DDecorations(
     )
     mask.position.set(0, 0.35, 0.96)
     bodyGroup.add(mask)
+  } else if (deco?.face === 'star-patch') {
+    // 🌟 유성 별빛 스티커 3D: 양 볼에 입체적인 골드 스타 패치 & 반짝임 큐브
+    const patchGroup = new THREE.Group()
+    const starMat = new THREE.MeshPhysicalMaterial({
+      color: '#FFE082',
+      emissive: '#FFB300',
+      emissiveIntensity: 0.85,
+      metalness: 0.85,
+      roughness: 0.15,
+      clearcoat: 1.0,
+    })
+    ;[-0.48, 0.48].forEach((xSide) => {
+      // 볼 중앙의 메인 스타
+      const star = new THREE.Mesh(new THREE.OctahedronGeometry(0.14, 0), starMat)
+      star.position.set(xSide, 0.04, 0.92)
+      star.rotation.z = xSide > 0 ? 0.25 : -0.25
+      patchGroup.add(star)
+
+      // 양옆 보조 반짝임 별
+      const subStar = new THREE.Mesh(new THREE.OctahedronGeometry(0.075, 0), starMat)
+      subStar.position.set(xSide * 1.28, 0.14, 0.86)
+      patchGroup.add(subStar)
+    })
+    bodyGroup.add(patchGroup)
   }
 
   // 3. 목 장식 (neck) - 풍성한 볼륨감
@@ -1159,23 +1183,155 @@ function add3DDecorations(
     bodyGroup.add(handGroup)
   }
 
-  // 6. 이펙트 장식 (effect) - 화려한 더블 아우라 링
+  // 6. 이펙트 장식 (effect) - 실시간으로 공전·발광·펄스하는 화려한 3D 아우라 & 궤도
+  let effectGroup: THREE.Group | null = null
+
   if (deco?.effect === 'constellation-aura') {
-    const aura = new THREE.Mesh(
-      new THREE.TorusGeometry(1.85, 0.045, 16, 64),
-      new THREE.MeshBasicMaterial({ color: '#FFD54F', transparent: true, opacity: 0.75 }),
-    )
+    effectGroup = new THREE.Group()
+    effectGroup.position.y = 0.15
+
+    // 메인 황금빛 궤도 링 (빛나는 emissive)
+    const auraMat = new THREE.MeshPhysicalMaterial({
+      color: '#FFD54F',
+      emissive: '#FFA000',
+      emissiveIntensity: 0.75,
+      transparent: true,
+      opacity: 0.85,
+      roughness: 0.2,
+      clearcoat: 1.0,
+    })
+    const aura = new THREE.Mesh(new THREE.TorusGeometry(1.85, 0.05, 16, 64), auraMat)
     aura.rotation.x = Math.PI / 2.3
-    aura.position.y = 0.12
-    rootGroup.add(aura)
-    const subAura = new THREE.Mesh(
-      new THREE.TorusGeometry(1.65, 0.025, 12, 48),
-      new THREE.MeshBasicMaterial({ color: '#FF80AB', transparent: true, opacity: 0.6 }),
-    )
-    subAura.rotation.x = Math.PI / 1.9
-    subAura.position.y = 0.25
-    rootGroup.add(subAura)
+    effectGroup.add(aura)
+
+    // 반대 각도로 기울어진 핑크빛 서브 궤도 링
+    const subMat = new THREE.MeshPhysicalMaterial({
+      color: '#FF80AB',
+      emissive: '#FF4081',
+      emissiveIntensity: 0.65,
+      transparent: true,
+      opacity: 0.75,
+      roughness: 0.2,
+    })
+    const subAura = new THREE.Mesh(new THREE.TorusGeometry(1.65, 0.035, 12, 48), subMat)
+    subAura.rotation.x = Math.PI / 1.85
+    subAura.rotation.y = Math.PI / 6
+    effectGroup.add(subAura)
+
+    // 궤도를 공전하는 4개의 황금 별자리 위성
+    const starMat = new THREE.MeshPhysicalMaterial({
+      color: '#FFF176',
+      emissive: '#FFD700',
+      emissiveIntensity: 0.95,
+      metalness: 0.9,
+      roughness: 0.1,
+    })
+    ;[0, Math.PI / 2, Math.PI, (Math.PI * 3) / 2].forEach((ang, idx) => {
+      const sat = new THREE.Mesh(new THREE.OctahedronGeometry(idx % 2 === 0 ? 0.16 : 0.11, 0), starMat)
+      sat.position.set(Math.cos(ang) * 1.85, Math.sin(ang) * 0.45, Math.sin(ang) * 1.7)
+      effectGroup!.add(sat)
+    })
+
+    rootGroup.add(effectGroup)
+  } else if (deco?.effect === 'aura-galaxy-orbit') {
+    effectGroup = new THREE.Group()
+    effectGroup.position.y = 0.18
+
+    // 신비로운 은하수 보랏빛 궤도 링
+    const galaxyMat = new THREE.MeshPhysicalMaterial({
+      color: '#BA68C8',
+      emissive: '#9C27B0',
+      emissiveIntensity: 0.8,
+      transparent: true,
+      opacity: 0.85,
+      roughness: 0.15,
+      clearcoat: 1.0,
+    })
+    const ring1 = new THREE.Mesh(new THREE.TorusGeometry(1.95, 0.05, 16, 64), galaxyMat)
+    ring1.rotation.x = Math.PI / 2.2
+    ring1.rotation.z = -Math.PI / 8
+    effectGroup.add(ring1)
+
+    // 에메랄드/시안빛 내측 궤도 링
+    const cyanMat = new THREE.MeshPhysicalMaterial({
+      color: '#4DD0E1',
+      emissive: '#00E5FF',
+      emissiveIntensity: 0.75,
+      transparent: true,
+      opacity: 0.8,
+      roughness: 0.15,
+    })
+    const ring2 = new THREE.Mesh(new THREE.TorusGeometry(1.7, 0.038, 14, 48), cyanMat)
+    ring2.rotation.x = Math.PI / 1.75
+    ring2.rotation.y = Math.PI / 5
+    effectGroup.add(ring2)
+
+    // 궤도를 공전하는 미니 3D 마카롱 위성!
+    const macaronGroup = new THREE.Group()
+    const shellMat = new THREE.MeshPhysicalMaterial({ color: '#F48FB1', roughness: 0.35, clearcoat: 0.8 })
+    const creamMat = new THREE.MeshPhysicalMaterial({ color: '#FFF9C4', roughness: 0.2 })
+    const topShell = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 12), shellMat)
+    topShell.scale.set(1, 0.45, 1)
+    topShell.position.y = 0.05
+    macaronGroup.add(topShell)
+    const bottomShell = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 12), shellMat)
+    bottomShell.scale.set(1, 0.45, 1)
+    bottomShell.position.y = -0.05
+    macaronGroup.add(bottomShell)
+    const cream = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.04, 16), creamMat)
+    macaronGroup.add(cream)
+    macaronGroup.position.set(1.92, 0.3, 0)
+    effectGroup.add(macaronGroup)
+
+    // 반대편을 공전하는 시안 크리스탈 별빛
+    const starSat = new THREE.Mesh(new THREE.OctahedronGeometry(0.15, 0), cyanMat)
+    starSat.position.set(-1.88, -0.25, 0)
+    effectGroup.add(starSat)
+
+    rootGroup.add(effectGroup)
+  } else if (deco?.effect === 'blossom-breeze') {
+    effectGroup = new THREE.Group()
+    effectGroup.position.y = 0.2
+    const petalMat = new THREE.MeshPhysicalMaterial({
+      color: '#F8BBD0',
+      emissive: '#EC4899',
+      emissiveIntensity: 0.5,
+      transparent: true,
+      opacity: 0.9,
+      roughness: 0.3,
+    })
+    for (let pi = 0; pi < 7; pi++) {
+      const ang = (pi / 7) * Math.PI * 2
+      const rad = 1.35 + (pi % 3) * 0.25
+      const petal = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 8), petalMat)
+      petal.scale.set(1.4, 0.28, 0.8)
+      petal.position.set(Math.cos(ang) * rad, -0.4 + (pi % 4) * 0.35, Math.sin(ang) * rad)
+      petal.rotation.set(0.3 * pi, 0.5 * pi, 0.2 * pi)
+      effectGroup.add(petal)
+    }
+    rootGroup.add(effectGroup)
+  } else if (deco?.effect === 'footprint-honey-dew') {
+    effectGroup = new THREE.Group()
+    const honeyMat = new THREE.MeshPhysicalMaterial({
+      color: '#FFB300',
+      emissive: '#FFA000',
+      emissiveIntensity: 0.65,
+      transparent: true,
+      opacity: 0.85,
+      roughness: 0.1,
+      clearcoat: 1.0,
+    })
+    for (let hi = 0; hi < 6; hi++) {
+      const ang = (hi / 6) * Math.PI * 2
+      const drop = new THREE.Mesh(new THREE.SphereGeometry(0.1, 12, 12), honeyMat)
+      drop.scale.set(0.8, 1.3, 0.8)
+      drop.position.set(Math.cos(ang) * 1.3, -0.65, Math.sin(ang) * 1.3)
+      effectGroup.add(drop)
+    }
+    rootGroup.add(effectGroup)
   }
+
+  return effectGroup
 }
 
 // 브라우저의 동시 WebGL 컨텍스트 한도(최대 16개) 초과로 인한 컨텍스트 소실을 완벽 차단하기 위한 안전 카운터
@@ -1292,7 +1448,7 @@ export default function Monster3DView({
     const baseGroup = build3DDessertBase(dessertBase)
     stageGroup.add(baseGroup)
 
-    const { root: charRoot, bodyGroup, innerLiquid } = build3DCharacterMesh(activeSpecies, look)
+    const { root: charRoot, bodyGroup, innerLiquid, effectGroup } = build3DCharacterMesh(activeSpecies, look)
     charRoot.position.y = 0.08
     stageGroup.add(charRoot)
 
@@ -1413,6 +1569,14 @@ export default function Monster3DView({
         c.mesh.rotation.y += c.rotVel.y * dt
         const s = 1 - c.life / c.maxLife
         c.mesh.scale.setScalar(Math.max(0.01, s))
+      }
+
+      // 6) 3D 신비로운 아우라 궤도 실시간 회전 & 펄스 발광 애니메이션
+      if (effectGroup) {
+        effectGroup.rotation.y += dt * 1.15
+        effectGroup.rotation.z = Math.sin(t * 1.6) * 0.12
+        const pulse = 1 + Math.sin(t * 3.2) * 0.045
+        effectGroup.scale.set(pulse, pulse, pulse)
       }
 
       renderer.render(scene, camera)

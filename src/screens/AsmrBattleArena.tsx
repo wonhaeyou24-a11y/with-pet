@@ -964,37 +964,40 @@ export default function AsmrBattleArena({
             </div>
           </div>
 
-          {/* 🛡️ [하단 전면] 4인 협력 레이드 파티 구도 (포켓몬고 3번 씬) */}
+          {/* 🛡️ [하단 전면] 거대 보스 앞 옹기종기 모인 아군 파티 (겹침 완전 차단 & 비동기 레이드 구도) */}
           {isRaid ? (
             <div
               style={{
                 position: 'absolute',
-                bottom: '10%',
+                bottom: '4%',
                 left: 0,
                 right: 0,
-                height: 120,
+                height: 110,
                 zIndex: 20,
+                display: 'flex',
+                alignItems: 'flex-end',
+                justifyContent: 'center',
+                gap: 8,
+                padding: '0 8px',
                 pointerEvents: 'none',
               }}
             >
-              {/* [좌측 파티원 1] 🍓 생크림 몽실이 (서포터) */}
+              {/* [파티원 1] 🍓 생크림 몽실이 (지인 서포터) */}
               <div
                 style={{
-                  position: 'absolute',
-                  left: '6%',
-                  bottom: '12%',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   animation: 'partyCheerBounce 2.5s ease-in-out infinite',
+                  transform: 'translateY(-10px)',
                 }}
               >
                 <div
                   style={{
-                    background: 'rgba(0,0,0,0.6)',
+                    background: 'rgba(0,0,0,0.65)',
                     border: '1px solid #FF80AB',
                     color: '#FFD1DC',
-                    fontSize: 8,
+                    fontSize: 7.5,
                     fontWeight: 800,
                     padding: '1px 5px',
                     borderRadius: 999,
@@ -1002,21 +1005,46 @@ export default function AsmrBattleArena({
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  🍓 몽실 (서포터)
+                  🍓 몽실 님
                 </div>
-                <MonsterView look={allyMongsil} size={66} />
+                <MonsterView look={allyMongsil} size={50} />
               </div>
 
-              {/* [중앙 전면 리더] 🌟 내 메인 펫 */}
+              {/* [파티원 2] ✨ 별비늘 카멜레온 (지인 가드) */}
               <div
                 style={{
-                  position: 'absolute',
-                  left: '50%',
-                  bottom: '0%',
-                  transform: 'translateX(-50%)',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
+                  animation: 'partyCheerBounce 3.1s ease-in-out infinite',
+                  transform: 'translateY(-14px)',
+                }}
+              >
+                <div
+                  style={{
+                    background: 'rgba(0,0,0,0.65)',
+                    border: '1px solid #B388FF',
+                    color: '#EDE7F6',
+                    fontSize: 7.5,
+                    fontWeight: 800,
+                    padding: '1px 5px',
+                    borderRadius: 999,
+                    marginBottom: 2,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  ✨ 별비늘 님
+                </div>
+                <MonsterView look={allyByeolbineul} size={48} />
+              </div>
+
+              {/* [중앙 메인 리더] 👑 내 펫 (전면 중앙 타격 리더) */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  position: 'relative',
                   zIndex: 25,
                 }}
               >
@@ -1026,7 +1054,7 @@ export default function AsmrBattleArena({
                     key={`c-float-${stepIdx}`}
                     style={{
                       position: 'absolute',
-                      top: '-34%',
+                      top: '-36%',
                       zIndex: 35,
                       display: 'flex',
                       flexDirection: 'column',
@@ -1057,7 +1085,7 @@ export default function AsmrBattleArena({
                     )}
                     <div
                       style={{
-                        fontSize: challengerFloating.type === 'crit' ? 26 : 22,
+                        fontSize: challengerFloating.type === 'crit' ? 24 : 20,
                         fontWeight: 900,
                         color: challengerFloating.type === 'heal' ? '#00E676' : '#FF5252',
                         textShadow: '0 2px 8px rgba(0,0,0,0.6), 0 0 6px #FFFFFF',
@@ -1069,27 +1097,11 @@ export default function AsmrBattleArena({
                   </div>
                 )}
 
-                {/* 리더 발판 */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    bottom: 6,
-                    width: 140,
-                    height: 44,
-                    borderRadius: '50%',
-                    background: 'radial-gradient(ellipse, rgba(255, 183, 77, 0.5) 0%, transparent 100%)',
-                    border: '1.5px solid rgba(255, 167, 38, 0.5)',
-                    transform: 'rotateX(55deg)',
-                    pointerEvents: 'none',
-                    zIndex: 2,
-                  }}
-                />
-
                 <div
                   style={{
                     background: 'linear-gradient(90deg, #FF6F00, #FFA000)',
                     color: '#210C1B',
-                    fontSize: 8.5,
+                    fontSize: 8,
                     fontWeight: 900,
                     padding: '1px 6px',
                     borderRadius: 999,
@@ -1098,12 +1110,12 @@ export default function AsmrBattleArena({
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  ⭐ 파티 리더
+                  👑 내 펫 (Lv.{challenger.level})
                 </div>
 
                 <BattleFighter
                   look={cLook}
-                  size={120}
+                  size={74}
                   title={challenger.name ?? cInfo?.name}
                   pose={cPose}
                   hitClass={cHitReaction || undefined}
@@ -1113,24 +1125,22 @@ export default function AsmrBattleArena({
                 />
               </div>
 
-              {/* [우측 파티원 2] 🍪 두바이 콩콩이 (크런치 딜러) */}
+              {/* [파티원 3] 🍪 두바이 콩콩이 (지인 딜러) */}
               <div
                 style={{
-                  position: 'absolute',
-                  right: '6%',
-                  bottom: '12%',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   animation: 'partyCheerBounce 2.8s ease-in-out infinite',
+                  transform: 'translateY(-10px)',
                 }}
               >
                 <div
                   style={{
-                    background: 'rgba(0,0,0,0.6)',
+                    background: 'rgba(0,0,0,0.65)',
                     border: '1px solid #FFB74D',
                     color: '#FFE0B2',
-                    fontSize: 8,
+                    fontSize: 7.5,
                     fontWeight: 800,
                     padding: '1px 5px',
                     borderRadius: 999,
@@ -1138,40 +1148,9 @@ export default function AsmrBattleArena({
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  🍪 콩콩 (딜러)
+                  🍪 콩콩 님
                 </div>
-                <MonsterView look={allyKongkong} size={66} />
-              </div>
-
-              {/* [중앙 후방 파티원 3] ⭐ 별비늘 카멜레온 (가드 밸런서) */}
-              <div
-                style={{
-                  position: 'absolute',
-                  left: '26%',
-                  bottom: '22%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  opacity: 0.9,
-                  animation: 'partyCheerBounce 3.1s ease-in-out infinite',
-                }}
-              >
-                <div
-                  style={{
-                    background: 'rgba(0,0,0,0.6)',
-                    border: '1px solid #B388FF',
-                    color: '#EDE7F6',
-                    fontSize: 7.5,
-                    fontWeight: 800,
-                    padding: '1px 4px',
-                    borderRadius: 999,
-                    marginBottom: 1,
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  ✨ 별비늘 (가드)
-                </div>
-                <MonsterView look={allyByeolbineul} size={56} />
+                <MonsterView look={allyKongkong} size={50} />
               </div>
             </div>
           ) : (
@@ -1201,11 +1180,11 @@ export default function AsmrBattleArena({
           )}
         </div>
 
-        {/* 1줄 미니멀 실시간 ASMR 사운드 뱃지 */}
+        {/* 1줄 미니멀 실시간 ASMR 사운드 뱃지 (보스전에서는 옹기종기 파티 위쪽에 배치) */}
         <div
           style={{
             position: 'absolute',
-            bottom: 4,
+            bottom: isRaid ? 148 : 4,
             left: '50%',
             transform: 'translateX(-50%)',
             background: isRaid ? 'rgba(25, 12, 38, 0.92)' : 'rgba(255, 255, 255, 0.95)',
@@ -1429,28 +1408,50 @@ export default function AsmrBattleArena({
               gap: 10,
             }}
           >
-            <div style={{ fontSize: 36 }}>{sim.winner === 'challenger' || dHp <= 0 ? '🎉👑🏆' : '👏🍮✨'}</div>
+            <div style={{ fontSize: 36 }}>{sim.winner === 'challenger' || dHp <= 0 ? '🎉👑🏆' : isBossRaidTarget ? '⚔️🛡️✨' : '👏🍮✨'}</div>
             <div style={{ fontSize: 15.5, fontWeight: 900, color: '#3E2723' }}>
-              {sim.winner === 'challenger' || dHp <= 0
-                ? isBossRaidTarget
-                  ? `승리! [${challenger.name || cInfo?.name}] 거대 보스 토벌!`
-                  : `승리! [${challenger.name || cInfo?.name}] 친선 대전 승리!`
-                : isBossRaidTarget
-                  ? `명승부! [${defender.name || dInfo?.name}] 치열한 레이드 접전!`
-                  : `무승부/패배! [${defender.name || dInfo?.name}] 지인과의 명승부!`}
-            </div>
-            <div style={{ fontSize: 11.5, color: '#795548', lineHeight: 1.4 }}>
               {isBossRaidTarget
-                ? '달콤한 DESSERT MAX 보스 레이드 토벌이 마무리되었습니다.'
-                : `지인 ${defenderOwnerName}님과의 1:1 친선 대전이 마무리되었습니다.`}<br />
-              <b style={{ color: '#E65100' }}>
-                {sim.winner === 'challenger' || dHp <= 0
-                  ? isBossRaidTarget
-                    ? '보상: +35 리본코인 획득! 🎀'
-                    : '보상: +25 코인 & +15 리본 획득! 🎀'
-                  : '보상: +12 리본코인 획득! 🎀'}
-              </b>
+                ? sim.winner === 'challenger' || dHp <= 0
+                  ? `토벌 성공! [${defender.name || dInfo?.name}] 격파!`
+                  : `비동기 레이드 작전 완료!`
+                : sim.winner === 'challenger'
+                  ? `승리! [${challenger.name || cInfo?.name}] 친선 대전 승리!`
+                  : `명승부! [${defender.name || dInfo?.name}] 지인과의 명승부!`}
             </div>
+            {isBossRaidTarget ? (
+              <div
+                style={{
+                  background: '#FFF8E1',
+                  borderRadius: 14,
+                  padding: '9px 12px',
+                  border: '1px solid #FFE082',
+                  fontSize: 11,
+                  textAlign: 'left',
+                  lineHeight: 1.55,
+                  color: '#4E342E',
+                }}
+              >
+                <div>💥 <b>내 기여 데미지</b>: <span style={{ color: '#D81B60', fontWeight: 900 }}>{Math.max(1, sim.defenderMaxHp - dHp).toLocaleString()} DMG</span> ({Math.min(100, Math.round(((sim.defenderMaxHp - dHp) / sim.defenderMaxHp) * 100))}%)</div>
+                <div>🤝 <b>지인 비동기 레이드</b>: 누적 4명 동참 중</div>
+                <div style={{ fontSize: 9.5, color: '#795548', marginTop: 2 }}>
+                  {cHp <= 0
+                    ? '🛡️ 펫이 끝까지 용감하게 맞서 공격하고 안전하게 복귀했습니다!'
+                    : '👑 보스에게 막대한 피해를 입히고 성공적인 공격을 완수했습니다!'}
+                </div>
+                <div style={{ marginTop: 4, fontWeight: 900, color: '#E65100' }}>
+                  🎁 비동기 협동 보상: +35 리본코인 획득! 🎀
+                </div>
+              </div>
+            ) : (
+              <div style={{ fontSize: 11.5, color: '#795548', lineHeight: 1.4 }}>
+                지인 {defenderOwnerName}님과의 1:1 친선 대전이 마무리되었습니다.<br />
+                <b style={{ color: '#E65100' }}>
+                  {sim.winner === 'challenger'
+                    ? '보상: +25 코인 & +15 리본 획득! 🎀'
+                    : '보상: +12 리본코인 획득! 🎀'}
+                </b>
+              </div>
+            )}
 
             {/* 명장면 리플레이 짤 버튼 */}
             <button

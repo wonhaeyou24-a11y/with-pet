@@ -953,28 +953,25 @@ export default function DessertPlaza({
                   </div>
                 )}
 
-                {/* 머리 위 순위 & 승률 배지 */}
+                {/* 머리 위 따뜻한 좋아요(👍) 배지 (순위·승률 경쟁 대신 호감도 표현) */}
                 <div
                   style={{
-                    padding: '2px 8px',
+                    padding: '2px 9px',
                     borderRadius: 999,
-                    background:
-                      coord.rank === 1
-                        ? 'linear-gradient(90deg, #FFD700, #FFA000)'
-                        : coord.rank === 2
-                          ? 'linear-gradient(90deg, #E0E0E0, #BDBDBD)'
-                          : coord.rank === 3
-                            ? 'linear-gradient(90deg, #FFAB91, #D84315)'
-                            : '#5D4037',
-                    color: coord.rank <= 2 ? '#3E2723' : '#FFFFFF',
+                    background: 'linear-gradient(135deg, #FF7043, #FF5722)',
+                    color: '#FFFFFF',
                     fontSize: 10,
                     fontWeight: 900,
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                    boxShadow: '0 2px 6px rgba(255,87,34,0.3)',
                     whiteSpace: 'nowrap',
                     marginBottom: 3,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 3,
                   }}
                 >
-                  {coord.rank === 1 ? '👑 1위' : `${coord.rank}위`} · 승률 {coord.winRate}%
+                  <span>👍</span>
+                  <span>{friend.likes.toLocaleString()}</span>
                 </div>
 
                 {/* 🌟 실제 3D Three.js 디저트 몬스터 & 부드러운 발밑 타원 그림자 */}

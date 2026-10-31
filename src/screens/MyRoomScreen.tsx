@@ -847,8 +847,8 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
               bottom: 4,
               left: `calc(50% + ${petPosX * 0.4}px)`,
               transform: 'translateX(-50%)',
-              width: 140,
-              height: 48,
+              width: 104,
+              height: 36,
               borderRadius: '50%',
               background: 'radial-gradient(ellipse, #FCE7F3 0%, #FBCFE8 65%, transparent 70%)',
               border: '1.5px dashed #F472B6',
@@ -857,7 +857,7 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
               alignItems: 'center',
               justifyContent: 'center',
               color: '#EC4899',
-              fontSize: 11,
+              fontSize: 10,
               opacity: 0.85,
               transition: 'left 0.6s cubic-bezier(0.25, 1, 0.5, 1)',
             }}
@@ -885,22 +885,22 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
             </div>
           ))}
 
-          {/* 5. 중앙 3D 펫 모델 (자유 포즈 & 실시간 가구 상호작용 & 이동 모션) */}
+          {/* 5. 중앙 3D 펫 모델 (미니룸 가구와 어울리는 아담하고 귀여운 황금 비율 115px) */}
           <div
             style={{
               position: 'absolute',
-              bottom: -4,
+              bottom: 2,
               left: `calc(50% + ${petPosX}px)`,
               transform: `translateX(-50%) ${
                 bouncePet
-                  ? 'translateY(-22px) scale(1.12)'
+                  ? 'translateY(-16px) scale(1.1)'
                   : petActivity === 'sleep'
-                    ? 'translateY(8px) rotate(-6deg)'
+                    ? 'translateY(6px) rotate(-6deg)'
                     : 'translateY(0)'
               }`,
               transition: 'left 0.7s cubic-bezier(0.25, 1, 0.5, 1), transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
-              width: 175,
-              height: 175,
+              width: 115,
+              height: 115,
               zIndex: 3,
             }}
           >
@@ -909,13 +909,13 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
               <div
                 style={{
                   position: 'absolute',
-                  top: 10,
-                  right: 25,
-                  fontSize: 14,
+                  top: 2,
+                  right: 12,
+                  fontSize: 12,
                   fontWeight: 900,
                   color: '#6366F1',
-                  background: 'rgba(255,255,255,0.9)',
-                  padding: '1px 6px',
+                  background: 'rgba(255,255,255,0.92)',
+                  padding: '1px 5px',
                   borderRadius: 10,
                   border: '1px solid #C7D2FE',
                   boxShadow: '0 2px 6px rgba(99,102,241,0.2)',
@@ -930,13 +930,13 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
               <div
                 style={{
                   position: 'absolute',
-                  top: 8,
-                  left: 20,
-                  fontSize: 13,
+                  top: 0,
+                  left: 10,
+                  fontSize: 11.5,
                   fontWeight: 900,
                   color: '#F59E0B',
-                  background: 'rgba(255,255,255,0.9)',
-                  padding: '1px 6px',
+                  background: 'rgba(255,255,255,0.92)',
+                  padding: '1px 5px',
                   borderRadius: 10,
                   border: '1px solid #FDE68A',
                   zIndex: 10,
@@ -949,13 +949,13 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
               <div
                 style={{
                   position: 'absolute',
-                  top: 12,
-                  right: 20,
-                  fontSize: 13,
+                  top: 2,
+                  right: 10,
+                  fontSize: 11.5,
                   fontWeight: 900,
                   color: '#EC4899',
-                  background: 'rgba(255,255,255,0.9)',
-                  padding: '1px 6px',
+                  background: 'rgba(255,255,255,0.92)',
+                  padding: '1px 5px',
                   borderRadius: 10,
                   border: '1px solid #FBCFE8',
                   zIndex: 10,
@@ -964,7 +964,7 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
                 💖 냠냠!
               </div>
             )}
-            <Monster3DView look={look} size={175} fluid interactive />
+            <Monster3DView look={look} size={115} fluid interactive />
           </div>
         </div>
 
