@@ -42,10 +42,10 @@ export default function WorldBoss3DView({
     const container = mountRef.current
     if (!container) return
 
-    // 1. Three.js Scene, Camera, Renderer 초기화
+    // 1. Three.js Scene, Camera, Renderer 초기화 (카메라 거리를 4.0으로 전진시켜 웅장한 볼륨감 극대화)
     const scene = new THREE.Scene()
     const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100)
-    camera.position.set(0, 0.4, 4.4)
+    camera.position.set(0, 0.35, 4.0)
     camera.lookAt(0, 0.1, 0)
 
     let renderer: THREE.WebGLRenderer

@@ -801,7 +801,7 @@ export default function DessertPlaza({
             </div>
           ))}
 
-          {/* 👑 광장 상단에 직접 출현한 3D 거대 월드 보스 (터치 시 즉시 협동 레이드 토벌 출격) */}
+          {/* 👑 광장 상단에 직접 출현한 3D 거대 월드 보스 (일반 펫 대비 압도적인 거대 스케일) */}
           <div
             onClick={(e) => {
               e.stopPropagation()
@@ -810,9 +810,9 @@ export default function DessertPlaza({
             }}
             style={{
               position: 'absolute',
-              left: CENTER_X - 80,
-              top: 55,
-              width: 160,
+              left: CENTER_X - 110,
+              top: 36,
+              width: 220,
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
@@ -831,9 +831,9 @@ export default function DessertPlaza({
                 color: '#FFE082',
                 fontSize: 9.5,
                 fontWeight: 900,
-                padding: '3px 10px',
+                padding: '3px 12px',
                 borderRadius: 999,
-                boxShadow: '0 0 16px rgba(255, 23, 68, 0.8), 0 2px 8px rgba(0,0,0,0.5)',
+                boxShadow: '0 0 18px rgba(255, 23, 68, 0.85), 0 2px 8px rgba(0,0,0,0.5)',
                 whiteSpace: 'nowrap',
                 marginBottom: 2,
                 display: 'flex',
@@ -852,21 +852,22 @@ export default function DessertPlaza({
             {/* 거대 보스 이름 및 레벨 */}
             <div
               style={{
-                background: 'rgba(20, 10, 30, 0.85)',
+                background: 'rgba(20, 10, 30, 0.88)',
                 color: '#FFF8E1',
-                fontSize: 8.5,
+                fontSize: 9,
                 fontWeight: 800,
-                padding: '1px 6px',
-                borderRadius: 6,
+                padding: '1.5px 8px',
+                borderRadius: 8,
                 border: '1px solid #FF80AB',
                 whiteSpace: 'nowrap',
                 marginBottom: 2,
+                boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
               }}
             >
               마그마 초코 퐁듀 슈가 드래곤 (Lv.50)
             </div>
 
-            {/* 3D 거대 보스 모델 (WorldBoss3DView) */}
+            {/* 3D 거대 보스 모델 (일반 펫 90px 대비 압도적인 210px 초대형 스케일) */}
             <div style={{ position: 'relative' }}>
               {/* 발밑 끓어오르는 용암 퐁듀 분화구 풀 */}
               <div
@@ -875,18 +876,18 @@ export default function DessertPlaza({
                   bottom: -6,
                   left: '50%',
                   transform: 'translateX(-50%)',
-                  width: 140,
-                  height: 38,
+                  width: 195,
+                  height: 48,
                   borderRadius: '50%',
-                  background: 'radial-gradient(ellipse, rgba(255, 23, 68, 0.6) 0%, rgba(136, 14, 79, 0.2) 65%, transparent 80%)',
+                  background: 'radial-gradient(ellipse, rgba(255, 23, 68, 0.65) 0%, rgba(136, 14, 79, 0.25) 65%, transparent 80%)',
                   border: '1.5px solid #FF1744',
-                  boxShadow: '0 0 20px #FF1744',
+                  boxShadow: '0 0 24px #FF1744',
                   zIndex: 1,
                   pointerEvents: 'none',
                 }}
               />
               <div style={{ position: 'relative', zIndex: 3 }}>
-                <WorldBoss3DView size={135} pose="idle" />
+                <WorldBoss3DView size={210} pose="idle" />
               </div>
             </div>
           </div>
