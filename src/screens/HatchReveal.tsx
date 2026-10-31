@@ -79,8 +79,8 @@ export default function HatchReveal({ rarity, monster, onNext }: { rarity: Rarit
       </div>
 
       <div className="stack center-text" style={{ gap: 8, alignItems: 'center' }}>
-        <h1 className="title-xl">태어났어요!</h1>
-        <p className="sub">따뜻한 보살핌 속에서 달콤한 디저트 친구가 깨어났어요</p>
+        <h1 className="title-xl">퐁~! 순백의 디저트 펫 탄생!</h1>
+        <p className="sub">아무것도 묻지 않은 뽀얗고 순수한 아기 반죽이에요. 나중에 공방에서 자유롭게 꾸밀 수 있어요!</p>
         <div className="chip" style={{ fontSize: 17, padding: '8px 16px', gap: 10 }}>
           {info?.name ?? monster.species}
           <span style={{ color: 'var(--border)' }}>|</span>

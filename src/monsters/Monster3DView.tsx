@@ -634,65 +634,75 @@ export function build3DCharacterMesh(
 
     addCute3DFace(0.82, 0.32, '#FFCDD2')
   } else if (validSpecies === 'pudding') {
-    // 🍮 4. 말랑말랑 커스터드 푸딩 3D: 사다리꼴 탱글 커스터드 + 윤기 흐르는 카라멜 시럽 모자 + 체리
+    // 🍮 4. 순백의 탱글 밀크 푸딩 도우 3D (White Milk Pudding):
+    // 윗면이 살짝 평평하고 아랫단이 부드럽게 퍼진 탱글 밀크 푸딩 돔 + 맑은 우유빛 광택
+    const isPureWhite = palIdx === 0
+    const puddingColor = isPureWhite ? new THREE.Color('#FFFDF8') : new THREE.Color('#FFE066')
     const custardMat = new THREE.MeshPhysicalMaterial({
-      color: '#FFE066',
-      roughness: 0.09,
+      color: puddingColor,
+      roughness: 0.1,
       clearcoat: 1.0,
       clearcoatRoughness: 0.04,
-      transmission: 0.22,
-      thickness: 0.8,
+      transmission: isPureWhite ? 0.28 : 0.22,
+      thickness: 0.85,
+      sheen: isPureWhite ? 0.8 : 0.2,
+      sheenColor: new THREE.Color('#FFFFFF'),
     })
-    const puddingBody = new THREE.Mesh(new THREE.CylinderGeometry(0.68, 0.98, 1.38, 40), custardMat)
+    const puddingBody = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 1.02, 1.35, 40), custardMat)
     puddingBody.position.y = -0.05
     bodyGroup.add(puddingBody)
 
-    // 상단 둥근 베벨 돔
-    const topDome = new THREE.Mesh(new THREE.SphereGeometry(0.68, 36, 24), custardMat)
+    // 상단 둥근 베벨 돔 (모나지 않은 부드러운 곡면)
+    const topDome = new THREE.Mesh(new THREE.SphereGeometry(0.72, 36, 24), custardMat)
     topDome.scale.set(1, 0.38, 1)
     topDome.position.y = 0.62
     bodyGroup.add(topDome)
 
-    // 진한 카라멜 시럽 모자 & 흘러내리는 시럽 물방울 6개
-    const caramelMat = new THREE.MeshPhysicalMaterial({
-      color: '#6D2E00',
-      roughness: 0.04,
-      clearcoat: 1.0,
-    })
-    const caramelCap = new THREE.Mesh(new THREE.SphereGeometry(0.7, 36, 24), caramelMat)
-    caramelCap.scale.set(1.02, 0.35, 1.02)
-    caramelCap.position.y = 0.66
-    bodyGroup.add(caramelCap)
+    // 순백 기본 상태에서는 기성 카라멜 모자와 체리를 제거하여 도화지 베이스로 완성!
+    if (!isPureWhite) {
+      const caramelMat = new THREE.MeshPhysicalMaterial({
+        color: '#6D2E00',
+        roughness: 0.04,
+        clearcoat: 1.0,
+      })
+      const caramelCap = new THREE.Mesh(new THREE.SphereGeometry(0.7, 36, 24), caramelMat)
+      caramelCap.scale.set(1.02, 0.35, 1.02)
+      caramelCap.position.y = 0.66
+      bodyGroup.add(caramelCap)
 
-    for (let i = 0; i < 6; i++) {
-      const ang = (i / 6) * Math.PI * 2 + 0.3
-      const drip = new THREE.Mesh(new THREE.SphereGeometry(0.15, 16, 16), caramelMat)
-      drip.scale.set(0.8, 1.65, 0.8)
-      drip.position.set(Math.cos(ang) * 0.66, 0.48, Math.sin(ang) * 0.66)
-      bodyGroup.add(drip)
+      for (let i = 0; i < 6; i++) {
+        const ang = (i / 6) * Math.PI * 2 + 0.3
+        const drip = new THREE.Mesh(new THREE.SphereGeometry(0.15, 16, 16), caramelMat)
+        drip.scale.set(0.8, 1.65, 0.8)
+        drip.position.set(Math.cos(ang) * 0.66, 0.48, Math.sin(ang) * 0.66)
+        bodyGroup.add(drip)
+      }
+
+      // 꼭대기 빨간 체리
+      const cherry = new THREE.Mesh(
+        new THREE.SphereGeometry(0.2, 20, 18),
+        new THREE.MeshPhysicalMaterial({ color: '#E11D48', roughness: 0.08, clearcoat: 1.0 }),
+      )
+      cherry.position.set(0, 0.94, 0)
+      bodyGroup.add(cherry)
     }
 
-    // 꼭대기 빨간 체리
-    const cherry = new THREE.Mesh(
-      new THREE.SphereGeometry(0.2, 20, 18),
-      new THREE.MeshPhysicalMaterial({ color: '#E11D48', roughness: 0.08, clearcoat: 1.0 }),
-    )
-    cherry.position.set(0, 0.94, 0)
-    bodyGroup.add(cherry)
-
-    addCute3DFace(0.84, -0.02, '#FF8A9E')
+    addCute3DFace(0.86, -0.02, '#FF8A9E')
   } else if (validSpecies === 'jelly') {
-    // 🐻 5. 쫀득 구미 젤리베어 3D: 반투명 유리알 젤리 재질 + 배 속에 비치는 하트 과일 코어
+    // 🐻 5. 순백의 화이트 밀크 젤리 도우 3D (White Milk Jelly):
+    // 뽀얗고 맑은 반투명 우유 젤리 질감 + 동글동글 곰돌이 귀와 말랑 손
+    const isPureWhite = palIdx === 0
+    const jellyColor = isPureWhite ? new THREE.Color('#FFFFFF') : new THREE.Color(basePal.fur)
     const jellyMat = new THREE.MeshPhysicalMaterial({
-      color: basePal.fur,
-      transmission: 0.65,
+      color: jellyColor,
+      transmission: isPureWhite ? 0.75 : 0.65,
       thickness: 1.1,
-      ior: 1.48,
-      roughness: 0.06,
+      ior: 1.46,
+      roughness: 0.05,
       clearcoat: 1.0,
       clearcoatRoughness: 0.03,
       transparent: true,
-      opacity: 0.92,
+      opacity: 0.94,
     })
     const torso = new THREE.Mesh(new THREE.SphereGeometry(0.88, 40, 36), jellyMat)
     torso.scale.set(1.02, 1.06, 0.94)
@@ -710,12 +720,12 @@ export function build3DCharacterMesh(
       bodyGroup.add(arm)
     })
 
-    // 반투명 젤리 배 속에서 반짝이는 과일 시럽 코어
+    // 반투명 젤리 배 속에서 은은하게 빛나는 코어
     const core = new THREE.Mesh(
       new THREE.SphereGeometry(0.42, 24, 24),
       new THREE.MeshPhysicalMaterial({
-        color: '#FF4081',
-        emissive: new THREE.Color('#FF4081').multiplyScalar(0.32),
+        color: isPureWhite ? '#FFF9C4' : '#FF4081',
+        emissive: new THREE.Color(isPureWhite ? '#FFF59D' : '#FF4081').multiplyScalar(0.25),
         roughness: 0.15,
       }),
     )
@@ -769,71 +779,78 @@ export function build3DCharacterMesh(
 
     addCute3DFace(0.84, 0.14, '#FF8A9E')
   } else if (validSpecies === 'choco') {
-    // 🍫 7. 달콤 퐁듀 초코 3D: 진한 가나슈 트러플 돔 + 따뜻한 초코 드리즐 + 금박 토핑
+    // 🍫 7. 순백의 화이트초코 큐브 도우 3D (White Choco Cube Dough):
+    // 모나지 않고 부드럽게 둥글려진 순백의 화이트 가나슈 블록 + 부드러운 생초콜릿 윤기
+    const isPureWhite = palIdx === 0
+    const chocoColor = isPureWhite ? new THREE.Color('#FFFDF5') : new THREE.Color('#3E2217')
     const chocoMat = new THREE.MeshPhysicalMaterial({
-      color: '#3E2217',
-      roughness: 0.12,
-      clearcoat: 0.95,
-      clearcoatRoughness: 0.06,
+      color: chocoColor,
+      roughness: isPureWhite ? 0.22 : 0.12,
+      clearcoat: 0.85,
+      clearcoatRoughness: 0.08,
+      sheen: isPureWhite ? 0.6 : 0.1,
+      sheenColor: new THREE.Color('#FFFFFF'),
     })
     const dome = new THREE.Mesh(new THREE.SphereGeometry(0.94, 40, 36), chocoMat)
     dome.scale.set(1.08, 0.92, 1.0)
     bodyGroup.add(dome)
 
-    // 녹아내리는 밀크초코 퐁듀 모자
-    const fondueCap = new THREE.Mesh(
-      new THREE.SphereGeometry(0.76, 32, 24),
-      new THREE.MeshPhysicalMaterial({ color: '#6D4C41', roughness: 0.08, clearcoat: 1.0 }),
-    )
-    fondueCap.scale.set(1.06, 0.48, 1.04)
-    fondueCap.position.y = 0.56
-    bodyGroup.add(fondueCap)
+    // 순백 기본 상태에서는 기성 퐁듀 모자와 금박을 제거하여 순수한 도화지 상태로 완성!
+    if (!isPureWhite) {
+      const fondueCap = new THREE.Mesh(
+        new THREE.SphereGeometry(0.76, 32, 24),
+        new THREE.MeshPhysicalMaterial({ color: '#6D4C41', roughness: 0.08, clearcoat: 1.0 }),
+      )
+      fondueCap.scale.set(1.06, 0.48, 1.04)
+      fondueCap.position.y = 0.56
+      bodyGroup.add(fondueCap)
 
-    // 반짝이는 식용 금박 포인트
-    const goldLeaf = new THREE.Mesh(
-      new THREE.OctahedronGeometry(0.14, 0),
-      new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.9, roughness: 0.15, clearcoat: 1.0 }),
-    )
-    goldLeaf.position.set(0.22, 0.86, 0.18)
-    bodyGroup.add(goldLeaf)
+      const goldLeaf = new THREE.Mesh(
+        new THREE.OctahedronGeometry(0.14, 0),
+        new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.9, roughness: 0.15, clearcoat: 1.0 }),
+      )
+      goldLeaf.position.set(0.22, 0.86, 0.18)
+      bodyGroup.add(goldLeaf)
+    }
 
     addCute3DFace(0.94, 0.1, '#FF8A9E')
   } else if (validSpecies === 'mochi') {
-    // 🍡 8. [시그니처] 쫀득 찹쌀떡 모찌 3D:
-    // 바닥에 쫀득하게 착 가라앉으며 퍼진 물방울 찹쌀떡 실루엣 + 뽀얀 전분가루 파우더 질감 + 속 앙금 코어 + 도드라진 쫀득 볼살
-    const vividMochiColor = new THREE.Color(basePal.fur).lerp(new THREE.Color('#FF8DA8'), palIdx === 0 ? 0.35 : 0.15)
+    // 🍡 [시그니처] 순백의 쫀득 찹쌀떡 도우 3D (White Mochi Dough):
+    // 갓 빚어낸 순백의 찹쌀가루 전분 질감 + 바닥에 쫀득하게 가라앉은 동글동글 실루엣 + 말랑 볼살
+    const isPureWhite = palIdx === 0
+    const mochiColor = isPureWhite ? new THREE.Color('#FFFDF9') : new THREE.Color(basePal.fur)
     const mochiMat = new THREE.MeshPhysicalMaterial({
-      color: vividMochiColor,
+      color: mochiColor,
       roughness: 0.28, // 뽀송뽀송한 전분 찹쌀가루 질감
-      transmission: 0.28,
-      thickness: 1.15,
-      ior: 1.38,
-      clearcoat: 0.55,
+      transmission: 0.22,
+      thickness: 1.1,
+      ior: 1.36,
+      clearcoat: 0.5,
       clearcoatRoughness: 0.2,
-      sheen: 1.0, // 표면에 묻어나는 하얀 찹쌀 파우더 광택
-      sheenRoughness: 0.3,
+      sheen: 1.0, // 표면에 묻어나는 뽀얀 찹쌀 파우더 광택
+      sheenRoughness: 0.35,
       sheenColor: new THREE.Color('#FFFFFF'),
     })
 
-    // 바닥에 넓고 쫀득하게 가라앉은 찹쌀떡 메인 반죽
+    // 바닥에 넓고 쫀득하게 가라앉은 순백 찹쌀떡 메인 반죽
     const mochiBody = new THREE.Mesh(new THREE.SphereGeometry(0.96, 44, 40), mochiMat)
     mochiBody.scale.set(1.18, 0.82, 1.14)
     mochiBody.position.y = -0.06
     bodyGroup.add(mochiBody)
 
-    // 찹쌀떡 안쪽에 비치는 달콤한 팥/딸기 앙금 코어
-    const beanFilling = new THREE.Mesh(
+    // 찹쌀떡 안쪽에 비치는 달콤한 우유/바닐라 크림 코어
+    const creamFilling = new THREE.Mesh(
       new THREE.SphereGeometry(0.52, 24, 20),
       new THREE.MeshPhysicalMaterial({
-        color: palIdx === 0 ? '#C2185B' : '#4E342E',
+        color: isPureWhite ? '#FFF9E6' : '#C2185B',
         roughness: 0.35,
         clearcoat: 0.3,
       }),
     )
-    beanFilling.scale.set(1.05, 0.72, 0.95)
-    beanFilling.position.set(0, -0.15, 0.05)
-    bodyGroup.add(beanFilling)
-    innerLiquid = beanFilling
+    creamFilling.scale.set(1.05, 0.72, 0.95)
+    creamFilling.position.set(0, -0.15, 0.05)
+    bodyGroup.add(creamFilling)
+    innerLiquid = creamFilling
 
     // 쫀득하게 양옆으로 도드라져 흘러내리는 찹쌀떡 볼살 몰드
     ;[-0.62, 0.62].forEach((xSide) => {
@@ -854,30 +871,17 @@ export function build3DCharacterMesh(
       bodyGroup.add(hand)
     })
 
-    // 포근한 우유빛 배 패치
+    // 포근한 우유빛 배 패치 (더 부드럽고 자연스럽게 블렌딩)
     const belly = new THREE.Mesh(
       new THREE.SphereGeometry(0.64, 32, 28),
-      new THREE.MeshPhysicalMaterial({ color: '#FFFDF9', roughness: 0.35, clearcoat: 0.4 }),
+      new THREE.MeshPhysicalMaterial({ color: '#FFFFFF', roughness: 0.3, clearcoat: 0.35 }),
     )
     belly.scale.set(1.08, 0.74, 0.42)
     belly.position.set(0, -0.22, 0.82)
     bodyGroup.add(belly)
 
-    // 머리 위 똬리 생크림 쿠션 + 반짝이는 3D 생딸기 토핑
-    const creamDollop = new THREE.Mesh(
-      new THREE.TorusGeometry(0.22, 0.08, 14, 24),
-      new THREE.MeshPhysicalMaterial({ color: '#FFFDF9', roughness: 0.25, clearcoat: 0.6 }),
-    )
-    creamDollop.rotation.x = Math.PI / 2
-    creamDollop.position.set(0, 0.72, 0.05)
-    bodyGroup.add(creamDollop)
-
-    const topBerry = new THREE.Mesh(
-      new THREE.ConeGeometry(0.22, 0.38, 20),
-      new THREE.MeshPhysicalMaterial({ color: '#FF2E55', roughness: 0.12, clearcoat: 1.0 }),
-    )
-    topBerry.position.set(0, 0.92, 0.05)
-    bodyGroup.add(topBerry)
+    // ✨ 대표님 피드백 반영: 머리 위 강제 기성 딸기/생크림 토핑을 완전히 제거하여,
+    // 갓 태어난 순백의 도화지 상태로 완성! 토핑은 파티세리 공방에서 자유롭게 얹을 수 있음.
 
     addCute3DFace(0.96, 0.08, '#FF8A9E')
   } else if (species === 'mongsil') {

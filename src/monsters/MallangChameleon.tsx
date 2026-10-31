@@ -397,12 +397,13 @@ export const MALLANG_PRESETS: { id: string; name: string; icon: string; custom: 
 
 // 말랑 카멜레온 기본 젤리·모찌 피부 팔레트 6종
 export const CHAMELEON_PALETTES: Palette[] = [
+  // 0번: 갓 부화한 순백의 뽀얀 찹쌀떡·도우 (Pure White Dough)
+  { fur: '#FFFDF9', shade: '#F5EFE6', belly: '#FFFFFF', inner: '#FFE4E8', accent: '#FF8A80', accent2: '#FFE082', pad: '#F0E5D8', blush: '#FFB2BE', pattern: '#EFE5D8', eye: '#2C1D11' },
   { fur: '#C8F4DC', shade: '#8AD8B2', belly: '#FFFDF6', inner: '#FFB6B9', accent: '#FF8A65', accent2: '#FFE082', pad: '#76C7A2', blush: '#FF8A9E', pattern: '#68C49A', eye: '#3B2F2F' },
   { fur: '#FFF5E6', shade: '#F5D6B8', belly: '#FFFFFF', inner: '#FFAB91', accent: '#FF8A65', accent2: '#81D4FA', pad: '#E6B89C', blush: '#FF8A80', pattern: '#E8C29E', eye: '#3B2F2F' },
   { fur: '#FFE4EE', shade: '#F8BBD0', belly: '#FFFDFD', inner: '#F48FB1', accent: '#AB47BC', accent2: '#FFF59D', pad: '#F092B0', blush: '#FF6090', pattern: '#F092B0', eye: '#3B2F2F' },
   { fur: '#E1F5FE', shade: '#90CAF9', belly: '#FFFFFF', inner: '#F8BBD0', accent: '#29B6F6', accent2: '#FFF176', pad: '#64B5F6', blush: '#FF8A9E', pattern: '#64B5F6', eye: '#283593' },
   { fur: '#F3E5F5', shade: '#CE93D8', belly: '#FFFFFF', inner: '#F48FB1', accent: '#7E57C2', accent2: '#80DEEA', pad: '#BA68C8', blush: '#FF80AB', pattern: '#AB47BC', eye: '#311B92' },
-  { fur: '#FFF9C4', shade: '#FFD54F', belly: '#FFFFFF', inner: '#FFAB91', accent: '#FF7043', accent2: '#81C784', pad: '#FBC02D', blush: '#FF7043', pattern: '#F9A825', eye: '#3E2723' },
 ]
 
 // 원조 말랑 카멜레온(쫀득한 모찌 젤리 체형) 몸통·머리 경로
