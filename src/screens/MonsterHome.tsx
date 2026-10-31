@@ -742,7 +742,7 @@ export default function MonsterHome({
             </div>
           </div>
 
-          {/* 펫의 자율 생각 말풍선 (크기 확대, 또렷한 굵은 폰트, 말풍선 꼬리표 부착, 펫과 겹치지 않는 헤드룸 위치) */}
+          {/* 펫의 자율 생각 말풍선 (상단 보스침공/탐험 배지와 겹치지 않도록 동적 안전 헤드룸 적용) */}
           {!asmrBubble && suggestion && (
             <div
               onClick={(e) => {
@@ -751,15 +751,15 @@ export default function MonsterHome({
               }}
               style={{
                 position: 'absolute',
-                top: isExploring || trainSess || towerSess || evoEligibility.canEvolve ? 26 : 2,
+                top: (raidStatus.isActive || isExploring || trainSess || towerSess || evoEligibility.canEvolve) ? 34 : 6,
                 zIndex: 13,
                 maxWidth: '88%',
-                padding: '6px 14px',
+                padding: '5px 12px',
                 borderRadius: 16,
                 background: '#FFFDF5',
                 border: '2px solid #FF9800',
                 color: '#3E2723',
-                fontSize: 13,
+                fontSize: 12.5,
                 fontWeight: 900,
                 lineHeight: 1.35,
                 textAlign: 'center',
@@ -804,7 +804,15 @@ export default function MonsterHome({
           <div
             key={`home-react-${burstKey}`}
             className={burstKey > 0 ? getSensoryReactionClass(soundKind) : ''}
-            style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 34 }}
+            style={{
+              position: 'relative',
+              zIndex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingTop: (!asmrBubble && suggestion) ? 44 : 26,
+              transition: 'padding-top 0.3s ease',
+            }}
           >
             {/* 🌟 메인 디저트 펫 강조: 145px ➔ 210px 짤림 없이 시원하게 표시 */}
             <MonsterView look={look} size={210} title={info?.name} />

@@ -249,81 +249,114 @@ export function build3DCharacterMesh(
     return '#24141A' // 포근한 로즈 초콜릿 (기본)
   }
 
-  // 공통 3D 초롱초롱 눈 + 하이라이트 + 볼터치 + 입 부착 헬퍼 (5대 개성 눈매 시스템: round, sleepy, sharp, star, twinkle)
+  // 공통 3D 초롱초롱 눈 + 하이라이트 + 볼터치 + 입 부착 헬퍼 (8대 개성 눈매 시스템: mochi, heart, winking, smile, sleepy, sharp, star, round)
   const addCute3DFace = (zOffset: number, yOffset: number, cheekColor = '#FF8A9E') => {
     const faceGroup = new THREE.Group()
     faceGroup.position.set(0, yOffset, zOffset)
 
-    const expr = look.expression || (look.evoBranch === 'crispy-crunch' || look.evoBranch === 'royal-chef' ? 'sharp' : look.evoBranch === 'sweet-melty' ? 'sleepy' : 'round')
-    const isRainbowStar = look.evoBranch === 'gourmet-rainbow'
+    // 종족 기본 성향 및 커스텀에 따른 풍부한 눈매 표정 매핑
+    const expr = look.expression || (species === 'mochi' ? 'mochi-sparkle' : look.evoBranch === 'crispy-crunch' || look.evoBranch === 'royal-chef' ? 'sharp' : look.evoBranch === 'sweet-melty' ? 'sleepy' : 'round')
+    const isRainbowStar = look.evoBranch === 'gourmet-rainbow' || expr === 'star'
     const eyeColor = getEyeColor(species)
 
     const eyeMat = new THREE.MeshPhysicalMaterial({ color: eyeColor, roughness: 0.08, clearcoat: 1.0 })
     const glintMat = new THREE.MeshBasicMaterial({ color: '#FFFFFF' })
+    const heartMat = new THREE.MeshPhysicalMaterial({ color: '#FF4081', emissive: '#F50057', emissiveIntensity: 0.6 })
     const cheekMat = new THREE.MeshPhysicalMaterial({
       color: cheekColor,
       roughness: 0.4,
       transparent: true,
-      opacity: 0.82,
+      opacity: 0.85,
     })
 
     ;[-0.34, 0.34].forEach((xSide) => {
       const eyeGroup = new THREE.Group()
       eyeGroup.position.set(xSide, 0.06, 0)
 
-      if (expr === 'sleepy') {
-        // 😴 1. 슬리피 (포근한 반달 아치형 눈: 느긋하고 달콤하게 감긴 눈)
+      if (expr === 'mochi-sparkle' || (species === 'mochi' && expr === 'round')) {
+        // 🍡 1. 모찌 전용 땡글 젤리눈: 투명한 앙금이 비치는 그라데이션 + 3단 입체 크리스탈 하이라이트
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.125, 24, 22), eyeMat)
+        eye.scale.set(1.05, 1.15, 0.65)
+        eyeGroup.add(eye)
+
+        // 메인 상단 왕별빛 하이라이트
+        const glint1 = new THREE.Mesh(new THREE.SphereGeometry(0.046, 12, 12), glintMat)
+        glint1.position.set(xSide * -0.035, 0.075, 0.075)
+        eyeGroup.add(glint1)
+
+        // 하단 달콤한 시럽 반사광 글린트
+        const glint2 = new THREE.Mesh(new THREE.SphereGeometry(0.024, 10, 10), glintMat)
+        glint2.position.set(xSide * 0.038, -0.02, 0.075)
+        eyeGroup.add(glint2)
+
+        const glint3 = new THREE.Mesh(new THREE.SphereGeometry(0.016, 8, 8), glintMat)
+        glint3.position.set(xSide * -0.01, -0.045, 0.07)
+        eyeGroup.add(glint3)
+      } else if (expr === 'heart') {
+        // 💖 2. 하트눈: 사랑에 푹 빠진 디저트 하트 보석 눈매
+        const heartL = new THREE.Mesh(new THREE.SphereGeometry(0.065, 14, 12), heartMat)
+        heartL.position.set(-0.035, 0.02, 0.05)
+        eyeGroup.add(heartL)
+        const heartR = new THREE.Mesh(new THREE.SphereGeometry(0.065, 14, 12), heartMat)
+        heartR.position.set(0.035, 0.02, 0.05)
+        eyeGroup.add(heartR)
+        const heartTip = new THREE.Mesh(new THREE.ConeGeometry(0.075, 0.12, 12), heartMat)
+        heartTip.rotation.z = Math.PI
+        heartTip.position.set(0, -0.045, 0.05)
+        eyeGroup.add(heartTip)
+      } else if (expr === 'winking' && xSide > 0) {
+        // 😉 3. 윙크: 한쪽 눈은 감은 초승달 + 별빛 찡긋
+        const wEye = new THREE.Mesh(new THREE.TorusGeometry(0.095, 0.024, 12, 24, Math.PI), eyeMat)
+        wEye.rotation.z = Math.PI
+        wEye.position.set(0, 0, 0.06)
+        eyeGroup.add(wEye)
+        // 윙크 별빛
+        const star = new THREE.Mesh(new THREE.OctahedronGeometry(0.038, 0), glintMat)
+        star.position.set(0.08, 0.06, 0.08)
+        eyeGroup.add(star)
+      } else if (expr === 'sleepy') {
+        // 😴 4. 슬리피 (포근한 반달 아치형 눈: 느긋하고 달콤하게 감긴 눈)
         const eye = new THREE.Mesh(new THREE.SphereGeometry(0.12, 18, 16), eyeMat)
         eye.scale.set(1.25, 0.45, 0.6)
         eye.rotation.z = -xSide * 0.12
         eyeGroup.add(eye)
 
-        // 아치형 눈꼬리 아래 작은 별빛 글린트
         const glint = new THREE.Mesh(new THREE.SphereGeometry(0.026, 10, 10), glintMat)
         glint.position.set(xSide * 0.04, -0.015, 0.055)
         eyeGroup.add(glint)
       } else if (expr === 'sharp') {
-        // 😼 2. 샤프 (도도하고 카리스마 있는 캣아이: 위로 22도 올라간 날렵한 눈매)
+        // 😼 5. 샤프 (도도하고 카리스마 있는 캣아이: 위로 날렵한 눈매)
         const eye = new THREE.Mesh(new THREE.SphereGeometry(0.115, 20, 18), eyeMat)
         eye.scale.set(0.88, 1.25, 0.6)
         eye.rotation.z = (xSide > 0 ? 1 : -1) * 0.38
         eyeGroup.add(eye)
 
-        // 날렵한 다이아몬드형 글린트
         const glint1 = new THREE.Mesh(new THREE.SphereGeometry(0.038, 10, 10), glintMat)
         glint1.scale.set(0.7, 1.3, 0.8)
         glint1.position.set(xSide * -0.02, 0.08, 0.065)
         eyeGroup.add(glint1)
       } else if (isRainbowStar) {
-        // ⭐ 3. 스타 레인보우 (별빛 글린트 눈: 만화풍 반짝이 십자 별빛 눈)
+        // ⭐ 6. 스타 레인보우 (십자 별빛 반짝이 눈)
         const eye = new THREE.Mesh(new THREE.SphereGeometry(0.12, 22, 20), eyeMat)
         eye.scale.set(1.05, 1.15, 0.65)
         eyeGroup.add(eye)
 
-        // 십자 별빛 하이라이트 (가로/세로 막대)
-        const starV = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.06, 0.02), glintMat)
+        const starV = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.065, 0.02), glintMat)
         starV.position.set(xSide * -0.02, 0.05, 0.07)
         eyeGroup.add(starV)
-        const starH = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.02, 0.02), glintMat)
+        const starH = new THREE.Mesh(new THREE.BoxGeometry(0.065, 0.02, 0.02), glintMat)
         starH.position.set(xSide * -0.02, 0.05, 0.07)
         eyeGroup.add(starH)
-
-        // 작은 보조 하이라이트
-        const glintSub = new THREE.Mesh(new THREE.SphereGeometry(0.022, 10, 10), glintMat)
-        glintSub.position.set(xSide * 0.03, -0.025, 0.07)
-        eyeGroup.add(glintSub)
       } else {
-        // 🥺 4. 라운드 (기본 순수한 왕방울 눈: 듀얼 원형 하이라이트)
+        // 🥺 7. 라운드 (기본 순수한 왕방울 눈: 듀얼 원형 하이라이트)
         const eye = new THREE.Mesh(new THREE.SphereGeometry(0.115, 20, 18), eyeMat)
         eye.scale.set(1, 1.08, 0.65)
         eyeGroup.add(eye)
 
-        // 큰 반짝이 하이라이트
         const glint1 = new THREE.Mesh(new THREE.SphereGeometry(0.042, 12, 12), glintMat)
         glint1.position.set(xSide * -0.032, 0.07, 0.068)
         eyeGroup.add(glint1)
 
-        // 작은 보조 하이라이트
         const glint2 = new THREE.Mesh(new THREE.SphereGeometry(0.022, 10, 10), glintMat)
         glint2.position.set(xSide * 0.035, -0.015, 0.068)
         eyeGroup.add(glint2)
@@ -331,7 +364,7 @@ export function build3DCharacterMesh(
 
       faceGroup.add(eyeGroup)
 
-      // 말랑 볼터치
+      // 말랑 볼터치 (찹쌀떡처럼 통통한 솜사탕 핑크)
       const cheek = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 14), cheekMat)
       cheek.scale.set(1.25, 0.68, 0.45)
       cheek.position.set(xSide * 1.48, -0.08, -0.04)
@@ -743,9 +776,233 @@ export function build3DCharacterMesh(
     bodyGroup.add(goldLeaf)
 
     addCute3DFace(0.94, 0.1, '#FF8A9E')
+  } else if (species === 'mochi') {
+    // 🍡 8. [시그니처] 쫀득 찹쌀떡 모찌 3D:
+    // 바닥에 쫀득하게 착 가라앉으며 퍼진 물방울 찹쌀떡 실루엣 + 뽀얀 전분가루 파우더 질감 + 속 앙금 코어 + 도드라진 쫀득 볼살
+    const vividMochiColor = new THREE.Color(basePal.fur).lerp(new THREE.Color('#FF8DA8'), palIdx === 0 ? 0.35 : 0.15)
+    const mochiMat = new THREE.MeshPhysicalMaterial({
+      color: vividMochiColor,
+      roughness: 0.28, // 뽀송뽀송한 전분 찹쌀가루 질감
+      transmission: 0.28,
+      thickness: 1.15,
+      ior: 1.38,
+      clearcoat: 0.55,
+      clearcoatRoughness: 0.2,
+      sheen: 1.0, // 표면에 묻어나는 하얀 찹쌀 파우더 광택
+      sheenRoughness: 0.3,
+      sheenColor: new THREE.Color('#FFFFFF'),
+    })
+
+    // 바닥에 넓고 쫀득하게 가라앉은 찹쌀떡 메인 반죽
+    const mochiBody = new THREE.Mesh(new THREE.SphereGeometry(0.96, 44, 40), mochiMat)
+    mochiBody.scale.set(1.18, 0.82, 1.14)
+    mochiBody.position.y = -0.06
+    bodyGroup.add(mochiBody)
+
+    // 찹쌀떡 안쪽에 비치는 달콤한 팥/딸기 앙금 코어
+    const beanFilling = new THREE.Mesh(
+      new THREE.SphereGeometry(0.52, 24, 20),
+      new THREE.MeshPhysicalMaterial({
+        color: palIdx === 0 ? '#C2185B' : '#4E342E',
+        roughness: 0.35,
+        clearcoat: 0.3,
+      }),
+    )
+    beanFilling.scale.set(1.05, 0.72, 0.95)
+    beanFilling.position.set(0, -0.15, 0.05)
+    bodyGroup.add(beanFilling)
+    innerLiquid = beanFilling
+
+    // 쫀득하게 양옆으로 도드라져 흘러내리는 찹쌀떡 볼살 몰드
+    ;[-0.62, 0.62].forEach((xSide) => {
+      const cheekJowl = new THREE.Mesh(new THREE.SphereGeometry(0.32, 24, 20), mochiMat)
+      cheekJowl.scale.set(1.1, 0.85, 0.95)
+      cheekJowl.position.set(xSide, -0.12, 0.45)
+      bodyGroup.add(cheekJowl)
+
+      // 앙증맞은 말랑 귀 & 찹쌀떡 손
+      const ear = new THREE.Mesh(new THREE.SphereGeometry(0.22, 18, 16), mochiMat)
+      ear.scale.set(1.1, 0.9, 0.85)
+      ear.position.set(xSide * 0.92, 0.68, 0)
+      bodyGroup.add(ear)
+
+      const hand = new THREE.Mesh(new THREE.SphereGeometry(0.2, 18, 16), mochiMat)
+      hand.scale.set(1.0, 0.8, 1.15)
+      hand.position.set(xSide * 1.35, -0.16, 0.62)
+      bodyGroup.add(hand)
+    })
+
+    // 포근한 우유빛 배 패치
+    const belly = new THREE.Mesh(
+      new THREE.SphereGeometry(0.64, 32, 28),
+      new THREE.MeshPhysicalMaterial({ color: '#FFFDF9', roughness: 0.35, clearcoat: 0.4 }),
+    )
+    belly.scale.set(1.08, 0.74, 0.42)
+    belly.position.set(0, -0.22, 0.82)
+    bodyGroup.add(belly)
+
+    // 머리 위 똬리 생크림 쿠션 + 반짝이는 3D 생딸기 토핑
+    const creamDollop = new THREE.Mesh(
+      new THREE.TorusGeometry(0.22, 0.08, 14, 24),
+      new THREE.MeshPhysicalMaterial({ color: '#FFFDF9', roughness: 0.25, clearcoat: 0.6 }),
+    )
+    creamDollop.rotation.x = Math.PI / 2
+    creamDollop.position.set(0, 0.72, 0.05)
+    bodyGroup.add(creamDollop)
+
+    const topBerry = new THREE.Mesh(
+      new THREE.ConeGeometry(0.22, 0.38, 20),
+      new THREE.MeshPhysicalMaterial({ color: '#FF2E55', roughness: 0.12, clearcoat: 1.0 }),
+    )
+    topBerry.position.set(0, 0.92, 0.05)
+    bodyGroup.add(topBerry)
+
+    addCute3DFace(0.96, 0.08, '#FF8A9E')
+  } else if (species === 'mongsil') {
+    // ☁️ 9. 폭신폭신 구름 솜사탕 양 몽실 3D: 4중 솜사탕 털뭉치 구름 실루엣 + 마카롱 뿔
+    const cottonMat = new THREE.MeshPhysicalMaterial({
+      color: basePal.fur,
+      roughness: 0.65,
+      sheen: 1.0,
+      sheenColor: new THREE.Color('#FFFFFF'),
+      clearcoat: 0.15,
+    })
+    const mainBody = new THREE.Mesh(new THREE.SphereGeometry(0.92, 36, 32), cottonMat)
+    bodyGroup.add(mainBody)
+
+    // 4중 구름 솜사탕 털뭉치 메쉬들
+    ;[
+      [-0.45, 0.35, -0.2, 0.48],
+      [0.45, 0.35, -0.2, 0.48],
+      [0, 0.65, -0.25, 0.44],
+      [-0.55, -0.15, 0.15, 0.42],
+      [0.55, -0.15, 0.15, 0.42],
+      [0, -0.35, -0.35, 0.46],
+    ].forEach(([cx, cy, cz, cr]) => {
+      const puff = new THREE.Mesh(new THREE.SphereGeometry(cr, 20, 18), cottonMat)
+      puff.position.set(cx, cy, cz)
+      bodyGroup.add(puff)
+    })
+
+    // 돌돌 말린 핑크빛 마카롱 양 뿔
+    const hornMat = new THREE.MeshPhysicalMaterial({ color: '#F48FB1', roughness: 0.25, clearcoat: 0.8 })
+    ;[-0.58, 0.58].forEach((xSide) => {
+      const horn = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.065, 12, 24, Math.PI * 1.5), hornMat)
+      horn.position.set(xSide, 0.72, 0)
+      horn.rotation.y = xSide > 0 ? 0.3 : -0.3
+      horn.rotation.z = xSide > 0 ? -0.2 : 0.2
+      bodyGroup.add(horn)
+    })
+
+    addCute3DFace(0.88, 0.12, '#FF80AB')
+  } else if (species === 'kongkong') {
+    // 🌰 10. 도토리 쿠키 다람쥐 콩콩 3D: 커다란 도토리 깍지 모자 + 빵빵한 볼주머니 + 비스킷 꼬리
+    const cookieMat = new THREE.MeshPhysicalMaterial({ color: '#8D6E63', roughness: 0.45, clearcoat: 0.2 })
+    const mainBody = new THREE.Mesh(new THREE.SphereGeometry(0.9, 36, 32), cookieMat)
+    bodyGroup.add(mainBody)
+
+    // 커다란 3D 도토리 깍지 모자
+    const acornCapMat = new THREE.MeshPhysicalMaterial({ color: '#4E342E', roughness: 0.65 })
+    const acornCap = new THREE.Mesh(new THREE.SphereGeometry(0.85, 32, 20), acornCapMat)
+    acornCap.scale.set(1.08, 0.48, 1.08)
+    acornCap.position.set(0, 0.68, 0)
+    bodyGroup.add(acornCap)
+
+    const capStem = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 0.28, 12), acornCapMat)
+    capStem.position.set(0, 1.02, 0)
+    bodyGroup.add(capStem)
+
+    // 빵빵한 도토리 볼주머니
+    const cheekMat = new THREE.MeshPhysicalMaterial({ color: '#D7CCC8', roughness: 0.35 })
+    ;[-0.52, 0.52].forEach((xSide) => {
+      const pouch = new THREE.Mesh(new THREE.SphereGeometry(0.34, 20, 18), cheekMat)
+      pouch.position.set(xSide, -0.08, 0.52)
+      bodyGroup.add(pouch)
+    })
+
+    // 등에 솟아오른 바삭한 비스킷 꼬리
+    const tail = new THREE.Mesh(new THREE.ConeGeometry(0.42, 1.25, 20), cookieMat)
+    tail.rotation.x = -Math.PI / 3.2
+    tail.position.set(0, 0.2, -0.75)
+    bodyGroup.add(tail)
+
+    addCute3DFace(0.9, 0.1, '#FFAB91')
+  } else if (species === 'byeolbineul') {
+    // ✨ 11. 은하수 별사탕 아기 드래곤 별비늘 3D: 이마의 별자리 뿔 + 요정 날개 + 별사탕 꼬리
+    const dragonMat = new THREE.MeshPhysicalMaterial({
+      color: basePal.fur,
+      transmission: 0.35,
+      thickness: 1.0,
+      roughness: 0.12,
+      clearcoat: 1.0,
+      sheen: 0.8,
+      sheenColor: new THREE.Color('#80DEEA'),
+    })
+    const mainBody = new THREE.Mesh(new THREE.SphereGeometry(0.92, 40, 36), dragonMat)
+    bodyGroup.add(mainBody)
+
+    // 이마의 황금빛 크리스탈 별자리 뿔
+    const hornMat = new THREE.MeshPhysicalMaterial({
+      color: '#FFE082',
+      emissive: '#FFB300',
+      emissiveIntensity: 0.8,
+      metalness: 0.8,
+      roughness: 0.1,
+    })
+    ;[-0.32, 0.32].forEach((xSide) => {
+      const horn = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.48, 12), hornMat)
+      horn.position.set(xSide, 0.82, 0.25)
+      horn.rotation.z = xSide > 0 ? -0.25 : 0.25
+      horn.rotation.x = -0.15
+      bodyGroup.add(horn)
+    })
+
+    // 등 뒤에 달린 반투명 요정 크리스탈 날개
+    const wingMat = new THREE.MeshPhysicalMaterial({
+      color: '#E0F7FA',
+      transmission: 0.8,
+      roughness: 0.05,
+      clearcoat: 1.0,
+    })
+    ;[-0.65, 0.65].forEach((xSide) => {
+      const wing = new THREE.Mesh(new THREE.SphereGeometry(0.45, 18, 14), wingMat)
+      wing.scale.set(0.3, 1.2, 0.7)
+      wing.position.set(xSide, 0.25, -0.65)
+      wing.rotation.y = xSide > 0 ? 0.35 : -0.35
+      bodyGroup.add(wing)
+    })
+
+    // 꼬리 끝에 달린 반짝이는 별사탕 구슬
+    const starBead = new THREE.Mesh(new THREE.OctahedronGeometry(0.18, 0), hornMat)
+    starBead.position.set(0, -0.25, -0.95)
+    bodyGroup.add(starBead)
+
+    addCute3DFace(0.92, 0.12, '#80DEEA')
+  } else if (species === 'heugyeom') {
+    // 🔥 12. 다크초코 플람베 사자 흑염 3D: 8갈래 초콜릿 불꽃 갈기 + 붉은 용암 뿔
+    const lionMat = new THREE.MeshPhysicalMaterial({ color: '#212121', roughness: 0.35, clearcoat: 0.5 })
+    const mainBody = new THREE.Mesh(new THREE.SphereGeometry(0.92, 40, 36), lionMat)
+    bodyGroup.add(mainBody)
+
+    // 얼굴을 둘러싼 8갈래 다크초코 플람베 불꽃 갈기
+    const maneMat = new THREE.MeshPhysicalMaterial({
+      color: '#D84315',
+      emissive: '#FF3D00',
+      emissiveIntensity: 0.65,
+      roughness: 0.2,
+      clearcoat: 0.8,
+    })
+    for (let i = 0; i < 8; i++) {
+      const ang = (i / 8) * Math.PI * 2
+      const flame = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.55, 12), maneMat)
+      flame.position.set(Math.cos(ang) * 0.95, Math.sin(ang) * 0.95, -0.15)
+      flame.rotation.z = ang - Math.PI / 2
+      bodyGroup.add(flame)
+    }
+
+    addCute3DFace(0.94, 0.1, '#FF3D00')
   } else {
-    // 🍡🦎 8. 쫀득 찹쌀떡 모찌 & 말랑 카멜레온 & 클래식 체형 3D:
-    // 통통하고 입체감 있는 반투명 찹쌀떡 젤리 재질 + 3D 생딸기 생크림 토핑
+    // 🦎 13. 말랑 카멜레온 & 클래식 체형 3D
     const vividMochiColor = new THREE.Color(basePal.fur).lerp(new THREE.Color('#FF8DA8'), palIdx === 0 ? 0.35 : 0.15)
     const mochiMat = new THREE.MeshPhysicalMaterial({
       color: vividMochiColor,
@@ -754,61 +1011,16 @@ export function build3DCharacterMesh(
       thickness: 1.1,
       ior: 1.38,
       clearcoat: 0.9,
-      clearcoatRoughness: 0.1,
-      sheen: 0.85,
-      sheenRoughness: 0.25,
-      sheenColor: new THREE.Color('#FFF0F5'),
     })
     const mochiBody = new THREE.Mesh(new THREE.SphereGeometry(0.95, 44, 40), mochiMat)
-    // 통통하고 쫀득한 3D 모찌 비율
     mochiBody.scale.set(1.06, 0.96, 1.02)
     mochiBody.position.y = 0.02
     bodyGroup.add(mochiBody)
 
-    // 포근한 우유빛 배 패치
-    const belly = new THREE.Mesh(
-      new THREE.SphereGeometry(0.62, 32, 28),
-      new THREE.MeshPhysicalMaterial({ color: '#FFFDF9', roughness: 0.25, clearcoat: 0.6 }),
-    )
-    belly.scale.set(1.05, 0.84, 0.45)
-    belly.position.set(0, -0.14, 0.76)
-    bodyGroup.add(belly)
-
-    // 말랑 찹쌀떡 귀 & 앞손
-    ;[-0.56, 0.56].forEach((x) => {
-      const ear = new THREE.Mesh(new THREE.SphereGeometry(0.24, 20, 18), mochiMat)
-      ear.scale.set(1.05, 0.95, 0.9)
-      ear.position.set(x, 0.78, 0)
-      bodyGroup.add(ear)
-
-      const hand = new THREE.Mesh(new THREE.SphereGeometry(0.21, 20, 18), mochiMat)
-      hand.scale.set(0.95, 0.88, 1.1)
-      hand.position.set(x * 1.32, -0.08, 0.62)
-      bodyGroup.add(hand)
-    })
-
-    // 카멜레온 체형일 때 돌돌 말린 3D 젤리 꼬리 추가
-    if (species === 'chameleon') {
-      const tail = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.12, 16, 32, Math.PI * 1.65), mochiMat)
-      tail.position.set(0.82, -0.25, -0.35)
-      bodyGroup.add(tail)
-    }
-
-    // 머리 위 생크림 쿠션 + 반짝이는 3D 생딸기 토핑
-    const creamDollop = new THREE.Mesh(
-      new THREE.TorusGeometry(0.18, 0.07, 14, 24),
-      new THREE.MeshPhysicalMaterial({ color: '#FFFDF9', roughness: 0.25, clearcoat: 0.5 }),
-    )
-    creamDollop.rotation.x = Math.PI / 2
-    creamDollop.position.set(0, 0.88, 0.05)
-    bodyGroup.add(creamDollop)
-
-    const topBerry = new THREE.Mesh(
-      new THREE.ConeGeometry(0.19, 0.34, 20),
-      new THREE.MeshPhysicalMaterial({ color: '#FF2E55', roughness: 0.12, clearcoat: 1.0 }),
-    )
-    topBerry.position.set(0, 1.04, 0.05)
-    bodyGroup.add(topBerry)
+    // 카멜레온 돌돌 말린 꼬리
+    const tail = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.12, 16, 32, Math.PI * 1.65), mochiMat)
+    tail.position.set(0.82, -0.25, -0.35)
+    bodyGroup.add(tail)
 
     addCute3DFace(0.92, 0.15, '#FF8A9E')
   }
@@ -1090,6 +1302,18 @@ function add3DDecorations(
       subStar.position.set(xSide * 1.28, 0.14, 0.86)
       patchGroup.add(subStar)
     })
+
+    // 펫 주변으로 사르르 반짝이며 공전하는 4개의 3D 유성 별빛 파티클
+    const patchOrbitStars = new THREE.Group()
+    patchOrbitStars.name = 'patchOrbitStars'
+    for (let si = 0; si < 4; si++) {
+      const ang = (si / 4) * Math.PI * 2
+      const fStar = new THREE.Mesh(new THREE.OctahedronGeometry(0.085, 0), starMat)
+      fStar.position.set(Math.cos(ang) * 1.35, 0.05 + (si % 2) * 0.22, Math.sin(ang) * 1.35)
+      patchOrbitStars.add(fStar)
+    }
+    patchGroup.add(patchOrbitStars)
+
     bodyGroup.add(patchGroup)
   }
 
@@ -1244,110 +1468,102 @@ function add3DDecorations(
     bodyGroup.add(handGroup)
   }
 
-  // 6. 이펙트 장식 (effect) - 실시간으로 공전·발광·펄스하는 화려한 3D 아우라 & 궤도
+  // 6. 이펙트 장식 (effect) - 펫을 가리지 않고 뒤에서 위로 뿜어지는 포스 아우라 & 머리 위 끊임없이 도는 천사 고리 & 반짝이는 별빛 공전
   let effectGroup: THREE.Group | null = null
 
-  if (deco?.effect === 'constellation-aura') {
+  if (deco?.effect === 'constellation-aura' || deco?.effect === 'aura-galaxy-orbit') {
+    const isGalaxy = deco?.effect === 'aura-galaxy-orbit'
     effectGroup = new THREE.Group()
-    effectGroup.position.y = 0.15
 
-    // 메인 황금빛 궤도 링 (빛나는 emissive)
-    const auraMat = new THREE.MeshPhysicalMaterial({
-      color: '#FFD54F',
-      emissive: '#FFA000',
-      emissiveIntensity: 0.75,
-      transparent: true,
-      opacity: 0.85,
-      roughness: 0.2,
+    // ✨ 1) [펫 머리 위 천사의 엔젤링 고리 (Angel Halo)]
+    // 펫 몸통통을 가리지 않고 머리 위 정수리에 비스듬히 떠서 끊임없이 360도 회전!
+    const haloMat = new THREE.MeshPhysicalMaterial({
+      color: isGalaxy ? '#E1BEE7' : '#FFF59D',
+      emissive: isGalaxy ? '#BA68C8' : '#FFD700',
+      emissiveIntensity: 0.95,
+      metalness: 0.85,
+      roughness: 0.15,
       clearcoat: 1.0,
-    })
-    const aura = new THREE.Mesh(new THREE.TorusGeometry(1.85, 0.05, 16, 64), auraMat)
-    aura.rotation.x = Math.PI / 2.3
-    effectGroup.add(aura)
-
-    // 반대 각도로 기울어진 핑크빛 서브 궤도 링
-    const subMat = new THREE.MeshPhysicalMaterial({
-      color: '#FF80AB',
-      emissive: '#FF4081',
-      emissiveIntensity: 0.65,
       transparent: true,
-      opacity: 0.75,
-      roughness: 0.2,
+      opacity: 0.95,
     })
-    const subAura = new THREE.Mesh(new THREE.TorusGeometry(1.65, 0.035, 12, 48), subMat)
-    subAura.rotation.x = Math.PI / 1.85
-    subAura.rotation.y = Math.PI / 6
-    effectGroup.add(subAura)
+    const halo = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.042, 16, 48), haloMat)
+    halo.name = 'angelHalo'
+    halo.position.set(0, 1.34, 0.05)
+    halo.rotation.x = Math.PI / 4.2
+    effectGroup.add(halo)
 
-    // 궤도를 공전하는 4개의 황금 별자리 위성
+    // 🌟 2) [위로 뿜어져 올라오는 포스 형태의 밝은 빛 (Ascending Radiant Force Aura)]
+    // 펫의 몸통통을 가리지 않도록 펫 뒤편(-0.45)에 배치되어 바닥에서부터 하늘로 솟구치는 환한 에너지 빔!
+    const forceGroup = new THREE.Group()
+    forceGroup.name = 'forceAura'
+    forceGroup.position.set(0, 0.2, -0.42)
+
+    const beamColor = isGalaxy ? '#BA68C8' : '#FFCA28'
+    const forceBeamMat = new THREE.MeshBasicMaterial({
+      color: beamColor,
+      transparent: true,
+      opacity: 0.42,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    })
+
+    // 위로 넓어지는 원뿔형 솟구치는 빛기둥 (1차 코어 빔)
+    const beam1 = new THREE.Mesh(new THREE.CylinderGeometry(1.35, 0.45, 2.4, 32, 1, true), forceBeamMat)
+    beam1.position.y = 0.35
+    forceGroup.add(beam1)
+
+    // 반대 결로 교차하는 서브 포스 빔 (2차 외곽 광배)
+    const subBeamMat = new THREE.MeshBasicMaterial({
+      color: isGalaxy ? '#4DD0E1' : '#FF80AB',
+      transparent: true,
+      opacity: 0.3,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    })
+    const beam2 = new THREE.Mesh(new THREE.CylinderGeometry(1.55, 0.65, 2.6, 24, 1, true), subBeamMat)
+    beam2.position.y = 0.45
+    forceGroup.add(beam2)
+
+    // 바닥에서부터 솟구치는 원형 방사 에너지 링
+    const basePulseRing = new THREE.Mesh(
+      new THREE.RingGeometry(0.65, 1.45, 32),
+      new THREE.MeshBasicMaterial({
+        color: beamColor,
+        transparent: true,
+        opacity: 0.55,
+        side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending,
+      }),
+    )
+    basePulseRing.rotation.x = -Math.PI / 2
+    basePulseRing.position.y = -0.75
+    forceGroup.add(basePulseRing)
+
+    effectGroup.add(forceGroup)
+
+    // 🪐 3) [펫 주변을 반짝이며 공전하는 별빛 입자들 (Twinkling Stardust Orbit)]
+    const orbitStarsGroup = new THREE.Group()
+    orbitStarsGroup.name = 'orbitStars'
     const starMat = new THREE.MeshPhysicalMaterial({
-      color: '#FFF176',
-      emissive: '#FFD700',
+      color: isGalaxy ? '#E0F7FA' : '#FFF9C4',
+      emissive: isGalaxy ? '#00E5FF' : '#FFD700',
       emissiveIntensity: 0.95,
       metalness: 0.9,
       roughness: 0.1,
     })
-    ;[0, Math.PI / 2, Math.PI, (Math.PI * 3) / 2].forEach((ang, idx) => {
-      const sat = new THREE.Mesh(new THREE.OctahedronGeometry(idx % 2 === 0 ? 0.16 : 0.11, 0), starMat)
-      sat.position.set(Math.cos(ang) * 1.85, Math.sin(ang) * 0.45, Math.sin(ang) * 1.7)
-      effectGroup!.add(sat)
-    })
 
-    rootGroup.add(effectGroup)
-  } else if (deco?.effect === 'aura-galaxy-orbit') {
-    effectGroup = new THREE.Group()
-    effectGroup.position.y = 0.18
-
-    // 신비로운 은하수 보랏빛 궤도 링
-    const galaxyMat = new THREE.MeshPhysicalMaterial({
-      color: '#BA68C8',
-      emissive: '#9C27B0',
-      emissiveIntensity: 0.8,
-      transparent: true,
-      opacity: 0.85,
-      roughness: 0.15,
-      clearcoat: 1.0,
-    })
-    const ring1 = new THREE.Mesh(new THREE.TorusGeometry(1.95, 0.05, 16, 64), galaxyMat)
-    ring1.rotation.x = Math.PI / 2.2
-    ring1.rotation.z = -Math.PI / 8
-    effectGroup.add(ring1)
-
-    // 에메랄드/시안빛 내측 궤도 링
-    const cyanMat = new THREE.MeshPhysicalMaterial({
-      color: '#4DD0E1',
-      emissive: '#00E5FF',
-      emissiveIntensity: 0.75,
-      transparent: true,
-      opacity: 0.8,
-      roughness: 0.15,
-    })
-    const ring2 = new THREE.Mesh(new THREE.TorusGeometry(1.7, 0.038, 14, 48), cyanMat)
-    ring2.rotation.x = Math.PI / 1.75
-    ring2.rotation.y = Math.PI / 5
-    effectGroup.add(ring2)
-
-    // 궤도를 공전하는 미니 3D 마카롱 위성!
-    const macaronGroup = new THREE.Group()
-    const shellMat = new THREE.MeshPhysicalMaterial({ color: '#F48FB1', roughness: 0.35, clearcoat: 0.8 })
-    const creamMat = new THREE.MeshPhysicalMaterial({ color: '#FFF9C4', roughness: 0.2 })
-    const topShell = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 12), shellMat)
-    topShell.scale.set(1, 0.45, 1)
-    topShell.position.y = 0.05
-    macaronGroup.add(topShell)
-    const bottomShell = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 12), shellMat)
-    bottomShell.scale.set(1, 0.45, 1)
-    bottomShell.position.y = -0.05
-    macaronGroup.add(bottomShell)
-    const cream = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.04, 16), creamMat)
-    macaronGroup.add(cream)
-    macaronGroup.position.set(1.92, 0.3, 0)
-    effectGroup.add(macaronGroup)
-
-    // 반대편을 공전하는 시안 크리스탈 별빛
-    const starSat = new THREE.Mesh(new THREE.OctahedronGeometry(0.15, 0), cyanMat)
-    starSat.position.set(-1.88, -0.25, 0)
-    effectGroup.add(starSat)
+    const starCount = isGalaxy ? 7 : 6
+    for (let i = 0; i < starCount; i++) {
+      const ang = (i / starCount) * Math.PI * 2
+      const rad = 1.65 + (i % 3) * 0.22
+      const star = new THREE.Mesh(new THREE.OctahedronGeometry(i % 2 === 0 ? 0.13 : 0.08, 0), starMat)
+      star.position.set(Math.cos(ang) * rad, -0.3 + (i % 4) * 0.28, Math.sin(ang) * rad)
+      orbitStarsGroup.add(star)
+    }
+    effectGroup.add(orbitStarsGroup)
 
     rootGroup.add(effectGroup)
   } else if (deco?.effect === 'blossom-breeze') {
@@ -1632,12 +1848,41 @@ export default function Monster3DView({
         c.mesh.scale.setScalar(Math.max(0.01, s))
       }
 
-      // 6) 3D 신비로운 아우라 궤도 실시간 회전 & 펄스 발광 애니메이션
+      // 6) 3D 신비로운 아우라: 끊임없이 360도 회전하는 천사 엔젤링 고리 & 위로 뿜어지는 포스 빛기둥 & 공전 별빛
       if (effectGroup) {
-        effectGroup.rotation.y += dt * 1.15
-        effectGroup.rotation.z = Math.sin(t * 1.6) * 0.12
-        const pulse = 1 + Math.sin(t * 3.2) * 0.045
-        effectGroup.scale.set(pulse, pulse, pulse)
+        const angelHalo = effectGroup.getObjectByName('angelHalo')
+        if (angelHalo) {
+          // 천사의 고리는 머리 위에서 끊임없이 360도 연속 회전
+          angelHalo.rotation.y += dt * 2.4
+          angelHalo.rotation.z += dt * 1.8
+          angelHalo.position.y = 1.34 + Math.sin(t * 3.2) * 0.04
+        }
+
+        const forceAura = effectGroup.getObjectByName('forceAura')
+        if (forceAura) {
+          // 펫 뒤편 바닥에서부터 위로 뿜어져 올라오는 포스 펄스
+          const pulseY = 1.0 + Math.sin(t * 4.2) * 0.12
+          const pulseXZ = 1.0 + Math.sin(t * 2.8) * 0.06
+          forceAura.scale.set(pulseXZ, pulseY, pulseXZ)
+          forceAura.rotation.y += dt * 0.4
+        }
+
+        const orbitStars = effectGroup.getObjectByName('orbitStars')
+        if (orbitStars) {
+          // 펫 주변을 반짝이며 공전하는 별빛 입자들
+          orbitStars.rotation.y += dt * 1.25
+          orbitStars.rotation.x = Math.sin(t * 1.5) * 0.1
+        }
+
+        // 전체 이펙트 그룹의 은은한 부유 애니메이션
+        effectGroup.position.y = Math.sin(t * 2.4) * 0.03
+      }
+
+      // 유성 별빛 스티커 파티클 실시간 공전 & 반짝임
+      const patchOrbit = bodyGroup.getObjectByName('patchOrbitStars')
+      if (patchOrbit) {
+        patchOrbit.rotation.y += dt * 1.8
+        patchOrbit.position.y = Math.sin(t * 3.5) * 0.04
       }
 
       renderer.render(scene, camera)

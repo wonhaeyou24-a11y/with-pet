@@ -2,7 +2,7 @@ import type { FC } from 'react'
 import type { MallangCustom } from './MallangChameleon'
 
 export type BodyType = 'chubby' | 'normal' | 'slim'
-export type Expression = 'round' | 'sleepy' | 'sharp'
+export type Expression = 'round' | 'sleepy' | 'sharp' | 'star' | 'mochi-sparkle' | 'heart' | 'winking'
 export type Element = 'fire' | 'water' | 'grass' | 'electric' | 'wind' | 'earth'
 export type MutationType = 'crystal' | 'shadow' | 'gold'
 

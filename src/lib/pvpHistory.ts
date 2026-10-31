@@ -1,7 +1,7 @@
 // ⚔️ 부재 중 방어전 및 지인 친선 대전 전적 기록 (PVP Defense History Engine)
-// - [부재 중 방어전 기록]: 내가 자리를 비운 사이 지인들이 신청한 대전의 승패 결과 카드
+// - [실제 지인 대전 기록]: 실제 대전/도전 이력만 안전하게 기록 (테스트용 가짜 더미 기록 제거)
 // - [복수전 / 재도전 원클릭 연계]: 방어 실패 시 설욕전(복수전), 성공 시 타이틀 방어전 신청
-// - [Zero-Crash & E2EE 안전 저장]: 로컬 스토리지 무결성 검증 및 기본 모의 기록 자동 시딩
+// - [Zero-Crash & E2EE 안전 저장]: 로컬 스토리지 무결성 검증
 
 export interface PvpMatchRecord {
   id: string
@@ -18,70 +18,28 @@ export interface PvpMatchRecord {
   message: string
 }
 
-const STORAGE_KEY = 'pet_pvp_defense_history_v1'
+const STORAGE_KEY = 'pet_pvp_defense_history_v2'
 
-// 초기 모의 방어전 데이터 (현실감 넘치는 지인들의 부재 중 친선 도전 기록)
-const SEED_RECORDS: PvpMatchRecord[] = [
-  {
-    id: 'rec-def-1',
-    type: 'defense',
-    opponentId: 'friend-dubai-choco',
-    opponentName: '마포 디저트왕',
-    opponentPetName: '바삭두바이',
-    opponentSpecies: 'dubai-cookie',
-    opponentLevel: 12,
-    result: 'win',
-    scoreDiff: 18,
-    ribbonReward: 15,
-    timestamp: Date.now() - 1000 * 60 * 45, // 45분 전
-    message: '바삭한 식감 맹공을 내 펫이 단단하게 방어해 냈습니다!',
-  },
-  {
-    id: 'rec-def-2',
-    type: 'defense',
-    opponentId: 'friend-tanghulu-ruby',
-    opponentName: '설탕요정 슈슈',
-    opponentPetName: '유리알탕후루',
-    opponentSpecies: 'tanghulu',
-    opponentLevel: 14,
-    result: 'loss',
-    scoreDiff: -12,
-    ribbonReward: 5,
-    timestamp: Date.now() - 1000 * 60 * 180, // 3시간 전
-    message: '상대의 설탕 코팅 크런치 일격에 아쉽게 방어선이 뚫렸습니다. 복수전이 필요해요!',
-  },
-  {
-    id: 'rec-def-3',
-    type: 'defense',
-    opponentId: 'friend-mochi-strawberry',
-    opponentName: '달콤파티시에 민지',
-    opponentPetName: '딸기모찌',
-    opponentSpecies: 'mochi',
-    opponentLevel: 11,
-    result: 'win',
-    scoreDiff: 15,
-    ribbonReward: 15,
-    timestamp: Date.now() - 1000 * 60 * 60 * 8, // 8시간 전
-    message: '쫀득한 회피 반격으로 방어 성공! 리본 코인을 수령했습니다.',
-  },
-]
-
-// 방어전 및 대전 기록 로드 (무결성 검증 & 자동 시딩)
+// 방어전 및 대전 기록 로드 (더미 데이터 없이 실제 대전 기록만 로드)
 export function getPvpMatchRecords(): PvpMatchRecord[] {
   try {
+    // 이전 v1 더미 기록 키 정리
+    if (localStorage.getItem('pet_pvp_defense_history_v1')) {
+      localStorage.removeItem('pet_pvp_defense_history_v1')
+    }
+
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) {
       const parsed = JSON.parse(raw) as PvpMatchRecord[]
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed
+      if (Array.isArray(parsed)) {
+        // 기존 테스트용 rec-def-* 기록 필터링
+        return parsed.filter((r) => !r.id.startsWith('rec-def-'))
       }
     }
   } catch {
     // Zero-Crash 폴백
   }
-  // 기본 데이터 저장 후 반환
-  savePvpMatchRecords(SEED_RECORDS)
-  return SEED_RECORDS
+  return []
 }
 
 // 대전 기록 저장
