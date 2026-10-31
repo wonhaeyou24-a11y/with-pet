@@ -157,6 +157,16 @@ const SCREENS: Record<string, () => ReactNode> = {
       onBack={noop}
     />
   ),
+  '1:1 지인 친선 대전 (승리)': () => (
+    <AsmrBattleArena
+      challenger={{ ...shiny, name: '두바이쫀득', level: 25, atk: 120, def: 90 }}
+      defender={{ ...monster, name: '딸기모찌', level: 2, hp: 20 }}
+      defenderOwnerName="유리알집사"
+      battleMode="friendly"
+      onRewardClaimed={noop}
+      onBack={noop}
+    />
+  ),
   'DESSERT MAX 월드 보스 레이드': () => (
     <AsmrBattleArena
       challenger={{ ...shiny, name: '두바이쫀득', level: 15 }}

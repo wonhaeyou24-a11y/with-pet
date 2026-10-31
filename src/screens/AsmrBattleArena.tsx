@@ -90,6 +90,13 @@ export default function AsmrBattleArena({
   const currentTurn = stepIdx > 0 ? sim.turns[stepIdx - 1] : null
   const isFinished = stepIdx >= sim.turns.length
 
+  // ⏩ 배틀 스킵 (결과 바로보기): 전투를 즉시 완료하고 결과창으로 이동
+  const handleSkipToResult = () => {
+    setStepIdx(sim.turns.length)
+    setPlaying(false)
+    playDessertAsmr('sugar-crack', 2)
+  }
+
   // 대전 중 가장 극적이었던 하이라이트 턴 산출
   const bestHighlight = useMemo(() => {
     if (!sim.turns || sim.turns.length === 0) return null
@@ -637,18 +644,43 @@ export default function AsmrBattleArena({
           </div>
         )}
 
-        <span
-          className="chip"
-          style={{
-            fontSize: 9.5,
-            fontWeight: 800,
-            padding: '2px 6px',
-            background: isRaid ? 'rgba(255,255,255,0.1)' : '#FFF8E1',
-            color: isRaid ? '#FFE082' : '#795548',
-          }}
-        >
-          {isBossRaidTarget ? '🐉 보스 레이드' : `#{seed}`}
-        </span>
+        {/* 우측: ⏩ 배틀 스킵 (결과 바로보기) 또는 모드 뱃지 */}
+        {!isFinished ? (
+          <button
+            onClick={handleSkipToResult}
+            style={{
+              padding: '4px 10px',
+              borderRadius: 999,
+              border: 'none',
+              background: 'linear-gradient(135deg, #FF7043 0%, #D84315 100%)',
+              color: '#FFFFFF',
+              fontSize: 10.5,
+              fontWeight: 900,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 3,
+              boxShadow: '0 2px 6px rgba(216,67,21,0.35)',
+              touchAction: 'manipulation',
+            }}
+          >
+            <span>⏩</span>
+            <span>스킵</span>
+          </button>
+        ) : (
+          <span
+            className="chip"
+            style={{
+              fontSize: 9.5,
+              fontWeight: 800,
+              padding: '2px 6px',
+              background: isRaid ? 'rgba(255,255,255,0.1)' : '#FFF8E1',
+              color: isRaid ? '#FFE082' : '#795548',
+            }}
+          >
+            {isBossRaidTarget ? '🐉 보스 레이드' : `#${seed}`}
+          </span>
+        )}
       </div>
 
       {/* 2. 상단 HUD: 참전 연합 vs 거대 보스 체력 상태바 (비율 확대 & 선명한 터치감) */}
@@ -1609,144 +1641,354 @@ export default function AsmrBattleArena({
         )}
       </div>
 
-      {/* 대전 종료 결과 팝업 & 광장 복귀 모달 */}
-      {isFinished && (
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            zIndex: 50,
-            background: 'rgba(0,0,0,0.65)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 16,
-            animation: 'fadeIn 0.25s ease',
-          }}
-        >
+      {/* 🏆 디저트 게임 전용 화려한 대전 종료 결과창 (VICTORY / DEFEAT / RAID RESULT) */}
+      {isFinished && (() => {
+        const isWin = sim.winner === 'challenger' || dHp <= 0
+        const dealtDamage = Math.max(1, sim.defenderMaxHp - dHp)
+        const damagePercent = Math.min(100, Math.round((dealtDamage / sim.defenderMaxHp) * 100))
+
+        return (
           <div
             style={{
-              width: '100%',
-              maxWidth: 310,
-              background: '#FFFDF9',
-              borderRadius: 20,
-              border: '2px solid #FFD54F',
-              boxShadow: '0 12px 32px rgba(0,0,0,0.3)',
-              padding: '16px 14px',
-              textAlign: 'center',
+              position: 'absolute',
+              inset: 0,
+              zIndex: 50,
+              background: 'rgba(15, 7, 25, 0.78)',
+              backdropFilter: 'blur(6px)',
               display: 'flex',
-              flexDirection: 'column',
-              gap: 10,
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '14px',
+              animation: 'fadeIn 0.25s ease',
             }}
           >
-            <div style={{ fontSize: 36 }}>{sim.winner === 'challenger' || dHp <= 0 ? '🎉👑🏆' : isBossRaidTarget ? '⚔️🛡️✨' : '👏🍮✨'}</div>
-            <div style={{ fontSize: 15.5, fontWeight: 900, color: '#3E2723' }}>
-              {isBossRaidTarget
-                ? sim.winner === 'challenger' || dHp <= 0
-                  ? `토벌 성공! [${defender.name || dInfo?.name}] 격파!`
-                  : `비동기 레이드 작전 완료!`
-                : sim.winner === 'challenger'
-                  ? `승리! [${challenger.name || cInfo?.name}] 친선 대전 승리!`
-                  : `명승부! [${defender.name || dInfo?.name}] 지인과의 명승부!`}
-            </div>
-            {isBossRaidTarget ? (
-              <div
-                style={{
-                  background: '#FFF8E1',
-                  borderRadius: 14,
-                  padding: '9px 12px',
-                  border: '1px solid #FFE082',
-                  fontSize: 11,
-                  textAlign: 'left',
-                  lineHeight: 1.55,
-                  color: '#4E342E',
-                }}
-              >
-                <div>💥 <b>내 기여 데미지</b>: <span style={{ color: '#D81B60', fontWeight: 900 }}>{Math.max(1, sim.defenderMaxHp - dHp).toLocaleString()} DMG</span> ({Math.min(100, Math.round(((sim.defenderMaxHp - dHp) / sim.defenderMaxHp) * 100))}%)</div>
-                <div>🤝 <b>지인 비동기 레이드</b>: 누적 4명 동참 중</div>
-                <div style={{ fontSize: 9.5, color: '#795548', marginTop: 2 }}>
-                  {cHp <= 0
-                    ? '🛡️ 펫이 끝까지 용감하게 맞서 공격하고 안전하게 복귀했습니다!'
-                    : '👑 보스에게 막대한 피해를 입히고 성공적인 공격을 완수했습니다!'}
-                </div>
-                <div style={{ marginTop: 4, fontWeight: 900, color: '#E65100' }}>
-                  🎁 비동기 협동 보상: +35 리본코인 획득! 🎀
-                </div>
-              </div>
-            ) : (
-              <div style={{ fontSize: 11.5, color: '#795548', lineHeight: 1.4 }}>
-                지인 {defenderOwnerName}님과의 1:1 친선 대전이 마무리되었습니다.<br />
-                <b style={{ color: '#E65100' }}>
-                  {sim.winner === 'challenger'
-                    ? '보상: +25 코인 & +15 리본 획득! 🎀'
-                    : '보상: +12 리본코인 획득! 🎀'}
-                </b>
-              </div>
-            )}
-
-            {/* 명장면 리플레이 짤 버튼 */}
-            <button
-              onClick={() => {
-                setShowHighlightModal(true)
-                playDessertAsmr('sugar-crack', 2)
-              }}
+            {/* 결과 카드 모달 본체 */}
+            <div
               style={{
                 width: '100%',
-                padding: '8px 12px',
-                borderRadius: 14,
-                border: '2px solid #FF9800',
-                background: 'linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%)',
-                color: '#E65100',
-                fontWeight: 900,
-                fontSize: 11.5,
-                cursor: 'pointer',
+                maxWidth: 326,
+                background: isWin
+                  ? 'linear-gradient(180deg, #FFFDF8 0%, #FFF5EB 100%)'
+                  : 'linear-gradient(180deg, #FFFDF9 0%, #F5F0FF 100%)',
+                borderRadius: 24,
+                border: isWin ? '2.5px solid #FFD54F' : '2.5px solid #CE93D8',
+                boxShadow: isWin
+                  ? '0 16px 36px rgba(255, 160, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.8) inset'
+                  : '0 16px 36px rgba(106, 27, 154, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.8) inset',
+                padding: '0 14px 14px',
+                textAlign: 'center',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 5,
+                flexDirection: 'column',
+                gap: 9,
+                position: 'relative',
               }}
             >
-              <span>🎬</span>
-              <span>배틀 명장면 리플레이 짤 보기 & 공유</span>
-            </button>
-
-            <div className="row wrap center" style={{ gap: 6, marginTop: 2 }}>
-              <button
-                className="chip coral"
-                onClick={handleReplaySameSeed}
-                style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 10.5, padding: '6px 10px' }}
-              >
-                🔄 다시 감상
-              </button>
-              <button
-                className="chip honey"
-                onClick={handleRematchNewSeed}
-                style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 10.5, padding: '6px 10px' }}
-              >
-                ⚔️ 새 시드 대결
-              </button>
-              <button
-                className="btn primary"
-                onClick={onBack}
+              {/* 1. 상단 튀어나온 3D 리본 배너 (Game Victory / Mission Banner) */}
+              <div
                 style={{
-                  width: '100%',
-                  marginTop: 3,
-                  fontWeight: 900,
-                  fontSize: 12.5,
-                  padding: '8px 0',
-                  background: 'linear-gradient(135deg, #FF7043, #D84315)',
-                  border: 'none',
-                  borderRadius: 12,
+                  margin: '-18px auto 2px',
+                  padding: '7px 22px',
+                  borderRadius: 999,
+                  background: isWin
+                    ? 'linear-gradient(180deg, #FFD54F 0%, #FF8F00 100%)'
+                    : isBossRaidTarget
+                      ? 'linear-gradient(180deg, #BA68C8 0%, #7B1FA2 100%)'
+                      : 'linear-gradient(180deg, #FF8A80 0%, #D81B60 100%)',
+                  boxShadow: isWin
+                    ? '0 4px 0 #E65100, 0 6px 14px rgba(230,81,0,0.45)'
+                    : '0 4px 0 #4A148C, 0 6px 14px rgba(74,20,140,0.35)',
+                  border: '2px solid #FFFFFF',
                   color: '#FFFFFF',
+                  fontWeight: 900,
+                  fontSize: 16,
+                  letterSpacing: '1px',
+                  textShadow: '0 1.5px 0 rgba(0,0,0,0.25)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  whiteSpace: 'nowrap',
                 }}
               >
-                🚪 광장으로 돌아가기
+                <span>{isWin ? '🏆' : isBossRaidTarget ? '⚔️' : '🧁'}</span>
+                <span>
+                  {isWin
+                    ? 'V I C T O R Y'
+                    : isBossRaidTarget
+                      ? 'MISSION CLEAR'
+                      : 'SWEET MATCH'}
+                </span>
+                <span>{isWin ? '✨' : '💖'}</span>
+              </div>
+
+              {/* 2. 별점 팡파레 & 한줄 판정 */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' }}>
+                <div style={{ fontSize: 20, letterSpacing: 4 }}>
+                  {isWin ? '⭐ ⭐ ⭐' : isBossRaidTarget ? '🛡️ ⚔️ 🛡️' : '🍪 🧁 🍮'}
+                </div>
+                <div style={{ fontSize: 14.5, fontWeight: 900, color: '#3E2723' }}>
+                  {isBossRaidTarget
+                    ? isWin
+                      ? `🎉 거대 [${defender.name || dInfo?.name}] 완전 격파!`
+                      : `⚡ 비동기 보스 레이드 공격 완료!`
+                    : isWin
+                      ? `🎉 [${challenger.name || cInfo?.name}] 친선 대전 완승!`
+                      : `👏 지인 [${defenderOwnerName}]님과의 명승부!`}
+                </div>
+              </div>
+
+              {/* 3. 배틀 파이터 대진 요약 카드 */}
+              <div
+                style={{
+                  background: 'rgba(255, 255, 255, 0.85)',
+                  borderRadius: 14,
+                  padding: '8px 10px',
+                  border: '1px solid rgba(0,0,0,0.06)',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 6,
+                }}
+              >
+                {/* 도전자 (나) */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, flex: 1 }}>
+                  <div
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: '50%',
+                      background: '#FFF3E0',
+                      border: '1.5px solid #FFB74D',
+                      display: 'grid',
+                      placeItems: 'center',
+                      fontSize: 18,
+                      flexShrink: 0,
+                    }}
+                  >
+                    🍮
+                  </div>
+                  <div style={{ textAlign: 'left', minWidth: 0, overflow: 'hidden' }}>
+                    <div style={{ fontSize: 11, fontWeight: 900, color: '#3E2723', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {challenger.name || cInfo?.name}
+                    </div>
+                    <div style={{ fontSize: 9.5, fontWeight: 800, color: '#D84315' }}>
+                      HP {Math.max(0, Math.round(cHp))} / {sim.challengerMaxHp}
+                    </div>
+                  </div>
+                </div>
+
+                <span style={{ fontSize: 11, fontWeight: 900, color: '#FF7043', flexShrink: 0, padding: '2px 6px', background: '#FFF3E0', borderRadius: 8 }}>
+                  VS
+                </span>
+
+                {/* 방어자 (지인 또는 거대 보스) */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, flex: 1, justifyContent: 'flex-end' }}>
+                  <div style={{ textAlign: 'right', minWidth: 0, overflow: 'hidden' }}>
+                    <div style={{ fontSize: 11, fontWeight: 900, color: '#3E2723', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {defender.name || dInfo?.name}
+                    </div>
+                    <div style={{ fontSize: 9.5, fontWeight: 800, color: isBossRaidTarget ? '#C2185B' : '#795548' }}>
+                      {isBossRaidTarget
+                        ? `${Math.max(0, Math.round(dHp)).toLocaleString()} HP`
+                        : `HP ${Math.max(0, Math.round(dHp))} / ${sim.defenderMaxHp}`}
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: '50%',
+                      background: isBossRaidTarget ? '#FCE4EC' : '#E8F5E9',
+                      border: isBossRaidTarget ? '1.5px solid #F06292' : '1.5px solid #81C784',
+                      display: 'grid',
+                      placeItems: 'center',
+                      fontSize: 18,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {isBossRaidTarget ? '🐲' : '🍰'}
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. 보스전 상세 기여도 또는 친선전 요약 */}
+              {isBossRaidTarget ? (
+                <div
+                  style={{
+                    background: '#FFF8E1',
+                    borderRadius: 14,
+                    padding: '8px 10px',
+                    border: '1.5px solid #FFE082',
+                    fontSize: 10.5,
+                    textAlign: 'left',
+                    lineHeight: 1.5,
+                    color: '#4E342E',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>💥 <b>내 기여 데미지</b>:</span>
+                    <span style={{ color: '#D81B60', fontWeight: 900, fontSize: 12 }}>
+                      {dealtDamage.toLocaleString()} DMG ({damagePercent}%)
+                    </span>
+                  </div>
+                  {/* 기여도 게이지 바 */}
+                  <div style={{ height: 8, borderRadius: 999, background: '#FFE082', overflow: 'hidden', margin: '4px 0 5px' }}>
+                    <div
+                      style={{
+                        width: `${Math.min(100, Math.max(8, damagePercent))}%`,
+                        height: '100%',
+                        background: 'linear-gradient(90deg, #FF4081, #FF1744)',
+                        borderRadius: 999,
+                      }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9.5, color: '#795548' }}>
+                    <span>🤝 <b>비동기 레이드</b>: 지인 4명 누적 참여 중</span>
+                    <span style={{ color: '#E65100', fontWeight: 800 }}>
+                      {cHp <= 0 ? '🛡️ 용감한 공격 완수' : '👑 영웅적 일격 달성'}
+                    </span>
+                  </div>
+                </div>
+              ) : null}
+
+              {/* 5. 🎁 전투 보상 획득 카드 (Game Loot Showcase) */}
+              <div
+                style={{
+                  background: 'linear-gradient(135deg, #FFFDE7 0%, #FFF9C4 100%)',
+                  borderRadius: 14,
+                  border: '1.5px dashed #FBC02D',
+                  padding: '7px 10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-around',
+                  boxShadow: 'inset 0 1px 3px rgba(251,192,45,0.2)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ fontSize: 16 }}>🪙</span>
+                  <div style={{ textAlign: 'left' }}>
+                    <div style={{ fontSize: 8.5, color: '#795548', fontWeight: 800 }}>코인 보상</div>
+                    <div style={{ fontSize: 11.5, fontWeight: 900, color: '#F57F17' }}>
+                      {isBossRaidTarget ? '+0' : isWin ? '+25' : '+0'}
+                    </div>
+                  </div>
+                </div>
+                <div style={{ width: 1, height: 22, background: '#FFE082' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ fontSize: 16 }}>🎀</span>
+                  <div style={{ textAlign: 'left' }}>
+                    <div style={{ fontSize: 8.5, color: '#795548', fontWeight: 800 }}>리본 코인</div>
+                    <div style={{ fontSize: 11.5, fontWeight: 900, color: '#D81B60' }}>
+                      {isBossRaidTarget ? '+35' : isWin ? '+15' : '+12'}
+                    </div>
+                  </div>
+                </div>
+                <div style={{ width: 1, height: 22, background: '#FFE082' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ fontSize: 16 }}>💖</span>
+                  <div style={{ textAlign: 'left' }}>
+                    <div style={{ fontSize: 8.5, color: '#795548', fontWeight: 800 }}>친밀도 UP</div>
+                    <div style={{ fontSize: 11.5, fontWeight: 900, color: '#E91E63' }}>+10</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 6. 🎬 배틀 명장면 리플레이 짤 버튼 */}
+              <button
+                onClick={() => {
+                  setShowHighlightModal(true)
+                  playDessertAsmr('sugar-crack', 2)
+                }}
+                style={{
+                  width: '100%',
+                  padding: '7px 12px',
+                  borderRadius: 12,
+                  border: '1.5px solid #FFB74D',
+                  background: 'linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%)',
+                  color: '#E65100',
+                  fontWeight: 900,
+                  fontSize: 11,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 5,
+                  boxShadow: '0 2px 4px rgba(255,152,0,0.15)',
+                }}
+              >
+                <span>🎬</span>
+                <span>배틀 명장면 리플레이 짤 보기 & 공유</span>
               </button>
+
+              {/* 7. 하단 조작 액션 (다시 감상 / 새 대결 / 메인 광장 복귀) */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 1 }}>
+                <div className="row center" style={{ gap: 6 }}>
+                  <button
+                    className="chip coral"
+                    onClick={handleReplaySameSeed}
+                    style={{
+                      cursor: 'pointer',
+                      border: 'none',
+                      fontWeight: 800,
+                      fontSize: 10.5,
+                      padding: '6px 12px',
+                      flex: 1,
+                      borderRadius: 10,
+                    }}
+                  >
+                    🔄 다시 감상
+                  </button>
+                  <button
+                    className="chip honey"
+                    onClick={handleRematchNewSeed}
+                    style={{
+                      cursor: 'pointer',
+                      border: 'none',
+                      fontWeight: 800,
+                      fontSize: 10.5,
+                      padding: '6px 12px',
+                      flex: 1,
+                      borderRadius: 10,
+                    }}
+                  >
+                    ⚔️ 새 시드 대결
+                  </button>
+                </div>
+
+                {/* 모바일 게임 특화 큼직한 메인 확인 버튼 */}
+                <button
+                  onClick={onBack}
+                  style={{
+                    width: '100%',
+                    fontWeight: 900,
+                    fontSize: 14,
+                    padding: '11px 0',
+                    background: isWin
+                      ? 'linear-gradient(180deg, #FF5252 0%, #D50000 100%)'
+                      : 'linear-gradient(180deg, #7E57C2 0%, #512DA8 100%)',
+                    border: 'none',
+                    borderRadius: 14,
+                    color: '#FFFFFF',
+                    boxShadow: isWin
+                      ? '0 4px 0 #9E0000, 0 6px 14px rgba(213,0,0,0.35)'
+                      : '0 4px 0 #311B92, 0 6px 14px rgba(81,45,168,0.35)',
+                    cursor: 'pointer',
+                    touchAction: 'manipulation',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  <span>🚪</span>
+                  <span>확인 · 광장으로 복귀</span>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* 명장면 리플레이 짤 모달 */}
       {showHighlightModal && bestHighlight && (

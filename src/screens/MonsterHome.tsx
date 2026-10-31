@@ -72,6 +72,9 @@ function MenuTile({
   badge?: string
   onClick?: () => void
 }) {
+  // 숫자로만 구성된 경우 깔끔한 정원(Circle) 뱃지로 렌더링
+  const isCircleBadge = badge && /^\d+$/.test(badge.trim())
+
   return (
     <button
       onClick={onClick}
@@ -119,13 +122,23 @@ function MenuTile({
             position: 'absolute',
             top: -6,
             right: -4,
-            background: '#FF1744',
+            background: isCircleBadge
+              ? 'linear-gradient(135deg, #FF1744 0%, #D50000 100%)'
+              : '#FF1744',
             color: '#FFFFFF',
-            fontSize: 10,
+            fontSize: isCircleBadge ? 11 : 10,
             fontWeight: 900,
-            padding: '2px 7px',
+            minWidth: isCircleBadge ? 21 : 'auto',
+            height: isCircleBadge ? 21 : 'auto',
+            padding: isCircleBadge ? '0 5px' : '2px 7px',
             borderRadius: 999,
-            boxShadow: '0 2px 0 #B71C1C',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.25), 0 2px 0 #B71C1C',
+            border: '2px solid #FFFFFF',
+            lineHeight: 1,
+            zIndex: 5,
           }}
         >
           {badge}
@@ -917,12 +930,12 @@ export default function MonsterHome({
         />
         {/* (5) 광장 · 대전 */}
         <MenuTile icon="🏆" title="광장 · 대전" sub="지인 구경·친선전" from="#FFB74D" to="#F57C00" rim="#E65100" onClick={onOpenPlaza} />
-        {/* (6) 나만의 미니룸 */}
+        {/* (6) 나만의 미니룸 (간단히 진행중/알림 원안 숫자로만 표현) */}
         <MenuTile
           icon="🏰"
           title="나만의 미니룸"
           sub="방명록·꾸미기"
-          badge={guestBookCount > 0 ? `새 글 ${guestBookCount}` : undefined}
+          badge={guestBookCount > 0 ? `${guestBookCount}` : undefined}
           from="#F472B6"
           to="#DB2777"
           rim="#9D174D"
