@@ -174,6 +174,29 @@ const SCREENS: Record<string, () => ReactNode> = {
       defender={createWorldBossMonster(WORLD_BOSS_CATALOG[0])}
       defenderOwnerName="광장 중앙 슈가 분수"
       battleMode="boss-raid"
+      raidParticipantCount={6}
+      onRewardClaimed={noop}
+      onBack={noop}
+    />
+  ),
+  'DESSERT MAX 월드 보스 레이드 (소수정예 3인)': () => (
+    <AsmrBattleArena
+      challenger={{ ...shiny, name: '두바이쫀득', level: 15 }}
+      defender={createWorldBossMonster(WORLD_BOSS_CATALOG[0])}
+      defenderOwnerName="광장 중앙 슈가 분수"
+      battleMode="boss-raid"
+      raidParticipantCount={3}
+      onRewardClaimed={noop}
+      onBack={noop}
+    />
+  ),
+  'DESSERT MAX 월드 보스 레이드 (대규모 12인 연합)': () => (
+    <AsmrBattleArena
+      challenger={{ ...shiny, name: '두바이쫀득', level: 15 }}
+      defender={createWorldBossMonster(WORLD_BOSS_CATALOG[0])}
+      defenderOwnerName="광장 중앙 슈가 분수"
+      battleMode="boss-raid"
+      raidParticipantCount={12}
       onRewardClaimed={noop}
       onBack={noop}
     />

@@ -216,13 +216,30 @@ export function build3DDessertBase(baseId: DessertBaseId): THREE.Group {
     yogurtTop.position.y = 0.02
     group.add(yogurtTop)
   } else {
-    // 기본 포근 타르트 둥지 3D
-    const tart = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.36, 1.16, 0.26, 32),
-      new THREE.MeshPhysicalMaterial({ color: '#C68B59', roughness: 0.65 }),
+    // 🪹 기본 포근 나무 둥지 3D (원목 질감의 바깥 둥지 림 + 푹신한 짚풀 안감)
+    const nestOuter = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.42, 1.18, 0.28, 32),
+      new THREE.MeshPhysicalMaterial({ color: '#8D6E63', roughness: 0.85, bumpScale: 0.05 }),
     )
-    tart.position.y = -0.1
-    group.add(tart)
+    nestOuter.position.y = -0.1
+    group.add(nestOuter)
+
+    // 둥지 테두리 나뭇가지 엮음 림
+    const nestRim = new THREE.Mesh(
+      new THREE.TorusGeometry(1.35, 0.14, 16, 32),
+      new THREE.MeshPhysicalMaterial({ color: '#6D4C41', roughness: 0.9 }),
+    )
+    nestRim.rotation.x = Math.PI / 2
+    nestRim.position.y = 0.04
+    group.add(nestRim)
+
+    // 둥지 내부 푹신한 짚풀 침대
+    const nestBed = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.22, 1.1, 0.12, 32),
+      new THREE.MeshPhysicalMaterial({ color: '#D7CCC8', roughness: 0.7, sheen: 0.3, sheenColor: new THREE.Color('#FFE0B2') }),
+    )
+    nestBed.position.y = -0.02
+    group.add(nestBed)
   }
 
   return group

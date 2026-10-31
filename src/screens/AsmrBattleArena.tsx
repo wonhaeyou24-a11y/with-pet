@@ -19,6 +19,16 @@ import { BackIcon, ElementIcon } from '../ui/Icons'
 import { getSensoryReactionClass, SensoryBurst } from '../ui/SensoryFx'
 import type { MonsterLook } from '../monsters/types'
 
+export interface RaidParticipantItem {
+  id: string
+  ownerName: string
+  petName: string
+  damage: number
+  statusText: string
+  icon: string
+  look: MonsterLook
+}
+
 interface Props {
   challenger: MonsterRow
   defender: MonsterRow
@@ -27,10 +37,208 @@ interface Props {
   initialSeed?: number
   // 실제 서비스: 서버가 정한 결과(시드·턴 기록)를 그대로 재생한다
   precomputed?: BattleSimulationResult
+  raidParticipantCount?: number
+  customParticipants?: RaidParticipantItem[]
   onRematch?: () => void
   onRewardClaimed?: (coinsEarned: number) => void
   onBack: () => void
 }
+
+// 👥 거대 보스 레이드에 참여 가능한 개성 넘치는 지인 펫 12마리 풀
+const RAID_PARTICIPANTS_POOL: RaidParticipantItem[] = [
+  {
+    id: 'participant-1',
+    ownerName: '말랑 님',
+    petName: '딸기모찌',
+    damage: 420,
+    statusText: '타격완료',
+    icon: '🍡',
+    look: { species: 'mochi', palette: 0, bodyType: 'normal', scale: 0.85, ears: 0, tail: 0, top: 0, expression: 'mochi-sparkle', patternSeed: 12, shiny: false, evoStage: 2, evoBranch: 'sweet-melty', mallang: { dessertBase: 'strawberry-cake' } } as MonsterLook,
+  },
+  {
+    id: 'participant-2',
+    ownerName: '젤리 님',
+    petName: '별빛구미',
+    damage: 580,
+    statusText: '극딜완료',
+    icon: '✨',
+    look: { species: 'jelly', palette: 3, bodyType: 'normal', scale: 0.8, ears: 0, tail: 0, top: 1, expression: 'round', patternSeed: 88, shiny: false, evoStage: 2, evoBranch: 'gourmet-rainbow', mallang: { dessertBase: 'macaron-cushion' } } as MonsterLook,
+  },
+  {
+    id: 'participant-3',
+    ownerName: '슈슈 님',
+    petName: '유리알탕후루',
+    damage: 350,
+    statusText: '치명타완료',
+    icon: '🍬',
+    look: { species: 'tanghulu', palette: 0, bodyType: 'normal', scale: 0.8, ears: 0, tail: 0, top: 0, expression: 'sharp', patternSeed: 55, shiny: false, evoStage: 2, evoBranch: 'crispy-crunch', mallang: { dessertBase: 'parfait-cup' } } as MonsterLook,
+  },
+  {
+    id: 'participant-4',
+    ownerName: '마포 님',
+    petName: '두바이쿠키',
+    damage: 610,
+    statusText: 'MVP타격',
+    icon: '🍫',
+    look: { species: 'dubai-cookie', palette: 2, bodyType: 'normal', scale: 0.85, ears: 1, tail: 0, top: 0, expression: 'round', patternSeed: 33, shiny: false, evoStage: 2, evoBranch: 'sweet-melty', mallang: { dessertBase: 'choco-cookie' } } as MonsterLook,
+  },
+  {
+    id: 'participant-5',
+    ownerName: '초코 님',
+    petName: '가나슈퐁듀',
+    damage: 490,
+    statusText: '화염타격',
+    icon: '🔥',
+    look: { species: 'choco', palette: 1, bodyType: 'normal', scale: 0.8, ears: 1, tail: 1, top: 0, expression: 'sharp', patternSeed: 77, shiny: false, evoStage: 2, evoBranch: 'royal-chef', mallang: { dessertBase: 'strawberry-cake' } } as MonsterLook,
+  },
+  {
+    id: 'participant-6',
+    ownerName: '버블 님',
+    petName: '과즙왁싱볼',
+    damage: 380,
+    statusText: '타격완료',
+    icon: '🫧',
+    look: { species: 'wax-ball', palette: 2, bodyType: 'normal', scale: 0.85, ears: 1, tail: 1, top: 0, expression: 'sharp', patternSeed: 44, shiny: false, evoStage: 2, evoBranch: 'crispy-crunch', mallang: { dessertBase: 'parfait-cup' } } as MonsterLook,
+  },
+  {
+    id: 'participant-7',
+    ownerName: '스모어 님',
+    petName: '토스트마시멜로',
+    damage: 310,
+    statusText: '식감공격',
+    icon: '🐱',
+    look: { species: 'smore', palette: 0, bodyType: 'normal', scale: 0.8, ears: 1, tail: 0, top: 0, expression: 'round', patternSeed: 21, shiny: false, evoStage: 1, mallang: { dessertBase: 'choco-cookie' } } as MonsterLook,
+  },
+  {
+    id: 'participant-8',
+    ownerName: '푸딩 님',
+    petName: '커스터드푸딩',
+    damage: 270,
+    statusText: '탱킹완료',
+    icon: '🍮',
+    look: { species: 'pudding', palette: 1, bodyType: 'normal', scale: 0.8, ears: 0, tail: 1, top: 0, expression: 'round', patternSeed: 62, shiny: false, evoStage: 1, mallang: { dessertBase: 'custard-pudding' } } as MonsterLook,
+  },
+  {
+    id: 'participant-9',
+    ownerName: '베리 님',
+    petName: '산딸기타르트',
+    damage: 440,
+    statusText: '극딜완료',
+    icon: '🍓',
+    look: { species: 'mochi', palette: 2, bodyType: 'chubby', scale: 0.85, ears: 0, tail: 0, top: 1, expression: 'round', patternSeed: 19, shiny: false, evoStage: 2, evoBranch: 'sweet-melty', mallang: { dessertBase: 'strawberry-cake' } } as MonsterLook,
+  },
+  {
+    id: 'participant-10',
+    ownerName: '모카 님',
+    petName: '에스프레소쿠키',
+    damage: 510,
+    statusText: '치명타완료',
+    icon: '☕',
+    look: { species: 'dubai-cookie', palette: 1, bodyType: 'normal', scale: 0.8, ears: 0, tail: 0, top: 0, expression: 'sharp', patternSeed: 91, shiny: false, evoStage: 2, evoBranch: 'crispy-crunch', mallang: { dessertBase: 'choco-cookie' } } as MonsterLook,
+  },
+  {
+    id: 'participant-11',
+    ownerName: '밀크 님',
+    petName: '우유푸딩',
+    damage: 330,
+    statusText: '보조완료',
+    icon: '🥛',
+    look: { species: 'pudding', palette: 0, bodyType: 'chubby', scale: 0.8, ears: 1, tail: 0, top: 0, expression: 'round', patternSeed: 48, shiny: false, evoStage: 1, mallang: { dessertBase: 'custard-pudding' } } as MonsterLook,
+  },
+  {
+    id: 'participant-12',
+    ownerName: '크림 님',
+    petName: '생크림파르페',
+    damage: 460,
+    statusText: '타격완료',
+    icon: '🍨',
+    look: { species: 'tanghulu', palette: 1, bodyType: 'normal', scale: 0.85, ears: 0, tail: 1, top: 0, expression: 'round', patternSeed: 73, shiny: false, evoStage: 2, evoBranch: 'gourmet-rainbow', mallang: { dessertBase: 'parfait-cup' } } as MonsterLook,
+  },
+]
+
+// 📐 참여 지인 수에 따른 크기(Scale) 및 지능형 다열 진형(Formation) 동적 계산 알고리즘
+export function computeRaidFormation(list: RaidParticipantItem[]) {
+  const n = list.length
+  if (n === 0) return { items: [], petSize: 28, badgeFontSize: 7.5 }
+
+  // 1. 인원수에 따른 펫 크기 및 뱃지 폰트 동적 스케일링
+  let petSize = 28
+  let badgeFontSize = 7.5
+  if (n <= 3) {
+    petSize = 46 // 소수 정예: 크고 든든한 존재감!
+    badgeFontSize = 9.0
+  } else if (n <= 6) {
+    petSize = 36 // 중규모 분대: 적당하고 쾌적한 포메이션
+    badgeFontSize = 8.0
+  } else if (n <= 10) {
+    petSize = 28 // 대규모 파티: 오밀조밀 귀여운 부대
+    badgeFontSize = 7.5
+  } else {
+    petSize = 22 // 초대형 연합군: 다열 밀집 포메이션
+    badgeFontSize = 6.8
+  }
+
+  // 2. 인원수에 따른 진형(Formation) 좌표 계산
+  const items = list.map((p, idx) => {
+    const delay = `${((idx * 0.35) % 2.0).toFixed(2)}s`
+
+    if (n <= 4) {
+      // 🌟 [1열 와이드 아크 진형] (1~4명): 내 펫 뒤편 좌우로 넉넉하고 시원하게 포진
+      const isLeft = idx % 2 === 0
+      const pairIdx = Math.floor(idx / 2) // 0, 1
+      const xPercent = pairIdx === 0 ? 18 : 6
+      const bottomPercent = 3 + pairIdx * 5
+      return {
+        ...p,
+        left: isLeft ? `${xPercent}%` : undefined,
+        right: !isLeft ? `${xPercent}%` : undefined,
+        bottom: `${bottomPercent}%`,
+        delay,
+        zIndex: 21 + pairIdx,
+        petSize,
+        badgeFontSize,
+      }
+    } else if (n <= 8) {
+      // 🌟 [2열 입체 진형] (5~8명): 앞열 3~4마리, 뒷열 3~4마리 지그재그 교차 배치
+      const isLeft = idx % 2 === 0
+      const row = Math.floor(idx / 2) % 2 // 0: 앞열(7~11%), 1: 뒷열(2~5%)
+      const col = Math.floor(idx / 4) // 0: 안쪽, 1: 바깥쪽
+      const xPercent = 6 + col * 14 + (row === 0 ? 6 : 0)
+      const bottomPercent = row === 0 ? 7 + col * 3 : 2 + col * 2
+      return {
+        ...p,
+        left: isLeft ? `${xPercent}%` : undefined,
+        right: !isLeft ? `${xPercent}%` : undefined,
+        bottom: `${bottomPercent}%`,
+        delay,
+        zIndex: row === 0 ? 23 : 21,
+        petSize,
+        badgeFontSize,
+      }
+    } else {
+      // 🌟 [3열 연합군 파상 진형] (9명 이상): 전열/중열/후열 3단 밀집 포메이션
+      const isLeft = idx % 2 === 0
+      const rank = Math.floor(idx / 2)
+      const row = rank % 3 // 0: 전열(10~13%), 1: 중열(6~9%), 2: 후열(2~5%)
+      const col = Math.floor(rank / 3) // 0, 1, 2
+      const xPercent = 4 + col * 11 + (row * 3)
+      const bottomPercent = 2 + row * 4.2 + (col * 1.5)
+      return {
+        ...p,
+        left: isLeft ? `${xPercent}%` : undefined,
+        right: !isLeft ? `${xPercent}%` : undefined,
+        bottom: `${bottomPercent}%`,
+        delay,
+        zIndex: 20 + row * 2,
+        petSize,
+        badgeFontSize,
+      }
+    }
+  })
+
+  return { items, petSize, badgeFontSize }
+}
+
 
 export default function AsmrBattleArena({
   challenger,
@@ -39,6 +247,8 @@ export default function AsmrBattleArena({
   battleMode,
   initialSeed,
   precomputed,
+  raidParticipantCount,
+  customParticipants,
   onRematch,
   onRewardClaimed,
   onBack,
@@ -114,108 +324,16 @@ export default function AsmrBattleArena({
   const cInfo = SPECIES_INFO[cLook.mallang?.morphForm ?? challenger.species] ?? SPECIES_INFO[challenger.species]
   const dInfo = SPECIES_INFO[dLook.mallang?.morphForm ?? defender.species] ?? SPECIES_INFO[defender.species]
 
-  // ⚔️ 거대 보스 레이드에 먼저 참전하여 공격을 완료한 지인 펫들 (비동기 협동 레이드 참여 전우 8마리)
-  // 공격하는 내 펫(bottom: 22%)의 뒤쪽(bottom: 2%~11%) 좌우 V자 진형으로 배치되어 서로 가리지 않음
-  const raidParticipants = useMemo(
-    () => [
-      {
-        id: 'participant-1',
-        ownerName: '말랑 님',
-        petName: '딸기모찌',
-        damage: 420,
-        statusText: '타격완료',
-        icon: '🍡',
-        look: { species: 'mochi', palette: 0, bodyType: 'normal', scale: 0.85, ears: 0, tail: 0, top: 0, expression: 'mochi-sparkle', patternSeed: 12, shiny: false, evoStage: 2, evoBranch: 'sweet-melty', mallang: { dessertBase: 'strawberry-cake' } } as MonsterLook,
-        left: '3%',
-        bottom: '2%',
-        delay: '0s',
-      },
-      {
-        id: 'participant-2',
-        ownerName: '젤리 님',
-        petName: '별빛구미',
-        damage: 580,
-        statusText: '극딜완료',
-        icon: '✨',
-        look: { species: 'jelly', palette: 3, bodyType: 'normal', scale: 0.8, ears: 0, tail: 0, top: 1, expression: 'round', patternSeed: 88, shiny: false, evoStage: 2, evoBranch: 'gourmet-rainbow', mallang: { dessertBase: 'macaron-cushion' } } as MonsterLook,
-        left: '12%',
-        bottom: '5%',
-        delay: '0.4s',
-      },
-      {
-        id: 'participant-3',
-        ownerName: '슈슈 님',
-        petName: '유리알탕후루',
-        damage: 350,
-        statusText: '치명타완료',
-        icon: '🍬',
-        look: { species: 'tanghulu', palette: 0, bodyType: 'normal', scale: 0.8, ears: 0, tail: 0, top: 0, expression: 'sharp', patternSeed: 55, shiny: false, evoStage: 2, evoBranch: 'crispy-crunch', mallang: { dessertBase: 'parfait-cup' } } as MonsterLook,
-        left: '21%',
-        bottom: '8%',
-        delay: '0.8s',
-      },
-      {
-        id: 'participant-7',
-        ownerName: '스모어 님',
-        petName: '토스트마시멜로',
-        damage: 310,
-        statusText: '식감공격',
-        icon: '🐱',
-        look: { species: 'smore', palette: 0, bodyType: 'normal', scale: 0.8, ears: 1, tail: 0, top: 0, expression: 'round', patternSeed: 21, shiny: false, evoStage: 1, mallang: { dessertBase: 'choco-cookie' } } as MonsterLook,
-        left: '31%',
-        bottom: '11%',
-        delay: '1.2s',
-      },
-      {
-        id: 'participant-8',
-        ownerName: '푸딩 님',
-        petName: '커스터드푸딩',
-        damage: 270,
-        statusText: '탱킹완료',
-        icon: '🍮',
-        look: { species: 'pudding', palette: 1, bodyType: 'normal', scale: 0.8, ears: 0, tail: 1, top: 0, expression: 'round', patternSeed: 62, shiny: false, evoStage: 1, mallang: { dessertBase: 'custard-pudding' } } as MonsterLook,
-        right: '31%',
-        bottom: '11%',
-        delay: '0.3s',
-      },
-      {
-        id: 'participant-4',
-        ownerName: '마포 님',
-        petName: '두바이쿠키',
-        damage: 610,
-        statusText: 'MVP타격',
-        icon: '🍫',
-        look: { species: 'dubai-cookie', palette: 2, bodyType: 'normal', scale: 0.85, ears: 1, tail: 0, top: 0, expression: 'round', patternSeed: 33, shiny: false, evoStage: 2, evoBranch: 'sweet-melty', mallang: { dessertBase: 'choco-cookie' } } as MonsterLook,
-        right: '21%',
-        bottom: '8%',
-        delay: '0.2s',
-      },
-      {
-        id: 'participant-5',
-        ownerName: '초코 님',
-        petName: '가나슈퐁듀',
-        damage: 490,
-        statusText: '화염타격',
-        icon: '🔥',
-        look: { species: 'choco', palette: 1, bodyType: 'normal', scale: 0.8, ears: 1, tail: 1, top: 0, expression: 'sharp', patternSeed: 77, shiny: false, evoStage: 2, evoBranch: 'royal-chef', mallang: { dessertBase: 'strawberry-cake' } } as MonsterLook,
-        right: '12%',
-        bottom: '5%',
-        delay: '0.6s',
-      },
-      {
-        id: 'participant-6',
-        ownerName: '버블 님',
-        petName: '과즙왁싱볼',
-        damage: 380,
-        statusText: '타격완료',
-        icon: '🫧',
-        look: { species: 'wax-ball', palette: 2, bodyType: 'normal', scale: 0.85, ears: 1, tail: 1, top: 0, expression: 'sharp', patternSeed: 44, shiny: false, evoStage: 2, evoBranch: 'crispy-crunch', mallang: { dessertBase: 'parfait-cup' } } as MonsterLook,
-        right: '3%',
-        bottom: '2%',
-        delay: '1.0s',
-      },
-    ],
-    [],
+    // ⚔️ 거대 보스 레이드에 참여한 지인 펫들 (인원수에 따라 크기 및 배치가 자동 최적화됨)
+  const activeCount = raidParticipantCount ?? 8
+  const rawParticipants = useMemo(() => {
+    if (customParticipants && customParticipants.length > 0) return customParticipants
+    return RAID_PARTICIPANTS_POOL.slice(0, Math.min(Math.max(activeCount, 1), RAID_PARTICIPANTS_POOL.length))
+  }, [customParticipants, activeCount])
+
+  const { items: raidParticipants } = useMemo(
+    () => computeRaidFormation(rawParticipants),
+    [rawParticipants],
   )
 
   const totalAllyDmg = useMemo(
@@ -1274,7 +1392,7 @@ export default function AsmrBattleArena({
                 zIndex: 20,
               }}
             >
-              {/* 1. 먼저 참전하여 공격을 성공적으로 마친 지인 펫들 (비동기 협동 레이드 옹기종기 주둔 진형) */}
+              {/* 1. 먼저 참전하여 공격을 마친 지인 펫들: 참여 인원 수에 따라 크기와 배치(1열~3열)가 동적으로 최적화됨 */}
               {raidParticipants.map((participant) => (
                 <div
                   key={participant.id}
@@ -1286,20 +1404,21 @@ export default function AsmrBattleArena({
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    animation: `raidParticipantStance 3.2s ease-in-out infinite`,
+                    animation: 'raidParticipantStance 3.2s ease-in-out infinite',
                     animationDelay: participant.delay,
-                    zIndex: 21,
+                    zIndex: participant.zIndex,
+                    transition: 'all 0.4s ease',
                   }}
                 >
-                  {/* 지인 펫 머리 위 이름 뱃지 (피해량 표시 없이 닉네임만 표시) */}
+                  {/* 지인 펫 머리 위 이름 뱃지 (인원수에 맞춰 폰트와 패딩이 유기적으로 스케일링) */}
                   <div
                     style={{
-                      background: 'rgba(15, 8, 26, 0.88)',
+                      background: 'rgba(15, 8, 26, 0.90)',
                       border: '1px solid #FF80AB',
                       color: '#FFF8E1',
-                      fontSize: 7.5,
+                      fontSize: participant.badgeFontSize,
                       fontWeight: 900,
-                      padding: '1px 5px',
+                      padding: participant.badgeFontSize >= 8.5 ? '2px 6px' : '1px 4px',
                       borderRadius: 999,
                       marginBottom: 1,
                       whiteSpace: 'nowrap',
@@ -1312,8 +1431,8 @@ export default function AsmrBattleArena({
                     <span>{participant.icon}</span>
                     <span>{participant.ownerName}</span>
                   </div>
-                  {/* 참전 지인 펫: 여러 명이 모일 수 있도록 24px 초소형 2D SVG로 앙증맞고 가볍게 주둔 */}
-                  <MonsterView look={participant.look} size={24} prefer2D={true} />
+                  {/* 동적 크기(Scale) 적용: 소수 정예는 큼직하게(46px), 중규모는 36px, 대규모 군단은 앙증맞게(22~28px) */}
+                  <MonsterView look={participant.look} size={participant.petSize} prefer2D={true} />
                 </div>
               ))}
 
