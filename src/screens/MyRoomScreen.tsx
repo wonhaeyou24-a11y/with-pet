@@ -10,6 +10,7 @@ import {
   getRibbonCoins,
   loadGuestBook,
   loadRoomCustom,
+  markGuestBookAsRead,
   ROOM_FURNITURE_CATALOG,
   ROOM_THEMES,
   saveRoomCustom,
@@ -102,6 +103,11 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
   const [bgmPlaying, setBgmPlaying] = useState<boolean>(() => miniRoomBgm.getStatus())
   const [currentTrack, setCurrentTrack] = useState<BgmTrack>(() => miniRoomBgm.getTrack())
   const [showBgmPicker, setShowBgmPicker] = useState<boolean>(false)
+
+  // 📖 미니룸 진입 시 방명록 자동 읽음 처리 (홈 화면 뱃지 초기화)
+  useEffect(() => {
+    markGuestBookAsRead()
+  }, [])
 
   // 🐾 발자국 도트 생성 헬퍼 (산책/이동 시 바닥에 달콤한 파티클 남기기)
   const addFootprint = (x: number) => {

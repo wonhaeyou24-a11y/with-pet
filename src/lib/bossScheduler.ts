@@ -190,3 +190,68 @@ export function createWorldBossMonster(boss: WorldBossDef): MonsterRow {
     },
   }
 }
+
+// ⚔️ 보스 출현당 레이드 최대 참여 횟수 (3회 제한 시스템)
+export const MAX_RAID_ATTEMPTS = 3
+const RAID_ATTEMPTS_STORAGE_KEY = 'withpet_boss_raid_attempts_v1'
+
+interface RaidAttemptRecord {
+  dateStr: string // YYYY-MM-DD
+  bossId: string
+  attempts: number
+}
+
+// 현재 날짜 키 생성 (자정 기준 리셋)
+function getTodayDateString(): string {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+}
+
+/**
+ * 👑 현재 활성 보스에 대한 레이드 참여 횟수 조회
+ */
+export function getRaidAttemptsInfo(bossId: string = 'default'): {
+  used: number
+  max: number
+  left: number
+  canEnter: boolean
+} {
+  try {
+    const today = getTodayDateString()
+    const raw = localStorage.getItem(RAID_ATTEMPTS_STORAGE_KEY)
+    if (!raw) {
+      return { used: 0, max: MAX_RAID_ATTEMPTS, left: MAX_RAID_ATTEMPTS, canEnter: true }
+    }
+    const record: RaidAttemptRecord = JSON.parse(raw)
+    if (record.dateStr !== today || record.bossId !== bossId) {
+      // 날짜가 바뀌었거나 다른 보스 침공이면 초기화
+      return { used: 0, max: MAX_RAID_ATTEMPTS, left: MAX_RAID_ATTEMPTS, canEnter: true }
+    }
+    const used = Math.max(0, Math.min(MAX_RAID_ATTEMPTS, record.attempts || 0))
+    const left = Math.max(0, MAX_RAID_ATTEMPTS - used)
+    return { used, max: MAX_RAID_ATTEMPTS, left, canEnter: left > 0 }
+  } catch {
+    return { used: 0, max: MAX_RAID_ATTEMPTS, left: MAX_RAID_ATTEMPTS, canEnter: true }
+  }
+}
+
+/**
+ * ⚔️ 레이드 전투 시작 시 참여 횟수 1회 소진
+ */
+export function useRaidAttempt(bossId: string = 'default'): boolean {
+  try {
+    const info = getRaidAttemptsInfo(bossId)
+    if (!info.canEnter) return false
+
+    const today = getTodayDateString()
+    const payload: RaidAttemptRecord = {
+      dateStr: today,
+      bossId,
+      attempts: info.used + 1,
+    }
+    localStorage.setItem(RAID_ATTEMPTS_STORAGE_KEY, JSON.stringify(payload))
+    return true
+  } catch {
+    return true
+  }
+}

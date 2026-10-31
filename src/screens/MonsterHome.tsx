@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { getRibbonCoins, loadGuestBook } from '../config/boutique'
+import { getRibbonCoins, getUnreadGuestBookCount, markGuestBookAsRead } from '../config/boutique'
 import { getClaimableMissionsCount } from '../config/missions'
 import { ELEMENT_INFO, SPECIES_INFO } from '../config/species'
 import { monsterLook, serverNow, type MonsterRow } from '../lib/api'
@@ -257,12 +257,14 @@ export default function MonsterHome({
   }, [monster.id])
 
   const isExploring = !!exploreTrip && exploreLeftSec > 0
-  const guestBookCount = useMemo(() => {
-    try {
-      return loadGuestBook().length
-    } catch {
-      return 0
-    }
+  // 📖 신규 미확인 방명록 새 글 카운트 (미니룸 입장 시 자동 읽음 처리되어 0으로 사라짐)
+  const [unreadGuestBookCount, setUnreadGuestBookCount] = useState<number>(() => getUnreadGuestBookCount())
+
+  useEffect(() => {
+    // 3초마다 미확인 방명록 새 글 확인
+    const checkUnread = () => setUnreadGuestBookCount(getUnreadGuestBookCount())
+    const timer = window.setInterval(checkUnread, 3000)
+    return () => window.clearInterval(timer)
   }, [])
 
   useEffect(() => {
@@ -930,16 +932,20 @@ export default function MonsterHome({
         />
         {/* (5) 광장 · 대전 */}
         <MenuTile icon="🏆" title="광장 · 대전" sub="지인 구경·친선전" from="#FFB74D" to="#F57C00" rim="#E65100" onClick={onOpenPlaza} />
-        {/* (6) 나만의 미니룸 (간단히 진행중/알림 원안 숫자로만 표현) */}
+        {/* (6) 나만의 미니룸 (신규 미확인 글이 있을 때만 원안 숫자로 표시, 입장 시 사라짐) */}
         <MenuTile
           icon="🏰"
           title="나만의 미니룸"
           sub="방명록·꾸미기"
-          badge={guestBookCount > 0 ? `${guestBookCount}` : undefined}
+          badge={unreadGuestBookCount > 0 ? `${unreadGuestBookCount}` : undefined}
           from="#F472B6"
           to="#DB2777"
           rim="#9D174D"
-          onClick={onOpenMyRoom}
+          onClick={() => {
+            markGuestBookAsRead()
+            setUnreadGuestBookCount(0)
+            onOpenMyRoom?.()
+          }}
         />
         {/* (7) 부티크 상점 */}
         <MenuTile icon="🛍️" title="부티크 상점" sub="3D 피팅룸" from="#FB7185" to="#E11D48" rim="#9F1239" onClick={onOpenBoutique} />

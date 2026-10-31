@@ -898,9 +898,12 @@ export interface GuestBookEntry {
   author: string
   message: string
   createdAt: string
+  createdAtTs?: number
   icon: string
   replies?: GuestBookReply[]
 }
+
+const GUESTBOOK_LAST_READ_KEY = 'withpet_guestbook_last_read_ts_v1'
 
 export const INITIAL_GUESTBOOK: GuestBookEntry[] = [
   {
@@ -908,6 +911,7 @@ export const INITIAL_GUESTBOOK: GuestBookEntry[] = [
     author: '바삭바삭쿠키맘',
     message: '어머! 룸 테마랑 베레모 코디가 너무 귀여워요~ 방명록 도장 쾅! 🐾❤️',
     createdAt: '1시간 전',
+    createdAtTs: 1000,
     icon: '🍪',
     replies: [
       {
@@ -924,6 +928,7 @@ export const INITIAL_GUESTBOOK: GuestBookEntry[] = [
     author: '민트초코파',
     message: '친선 대전 너무 재밌었습니다! 나중에 또 한판 떠요 ⚔️✨',
     createdAt: '3시간 전',
+    createdAtTs: 1000,
     icon: '🌱',
     replies: [],
   },
@@ -932,6 +937,7 @@ export const INITIAL_GUESTBOOK: GuestBookEntry[] = [
     author: '달콤마카롱러버',
     message: '마카롱 소파에서 꿀잠 자는 모습에 반하고 갑니다 ㅎㅎㅎ',
     createdAt: '어제',
+    createdAtTs: 1000,
     icon: '🧁',
     replies: [],
   },
@@ -950,11 +956,13 @@ export function loadGuestBook(): GuestBookEntry[] {
 export function addGuestBookEntry(author: string, message: string): GuestBookEntry[] {
   try {
     const current = loadGuestBook()
+    const now = Date.now()
     const newEntry: GuestBookEntry = {
-      id: `g-${Date.now()}`,
+      id: `g-${now}`,
       author: author.trim() || '익명의 파티시에',
       message: message.trim(),
       createdAt: '방금 전',
+      createdAtTs: now,
       icon: '✨',
       replies: [],
     }
@@ -963,6 +971,47 @@ export function addGuestBookEntry(author: string, message: string): GuestBookEnt
     return updated
   } catch {
     return INITIAL_GUESTBOOK
+  }
+}
+
+/**
+ * 📖 사용자가 아직 확인하지 않은 신규 미확인 방명록 글 개수 반환
+ */
+export function getUnreadGuestBookCount(): number {
+  try {
+    const list = loadGuestBook()
+    const rawRead = localStorage.getItem(GUESTBOOK_LAST_READ_KEY)
+    if (!rawRead) {
+      // 최초 실행 시 기존 글들을 모두 읽은 상태로 초기화하여 뱃지에 4처럼 뜨지 않도록 처리
+      markGuestBookAsRead()
+      return 0
+    }
+    const lastReadTs = Number(rawRead)
+    const unread = list.filter((item) => {
+      // createdAtTs가 있거나 id에서 타임스탬프 추출
+      let ts = item.createdAtTs
+      if (!ts && item.id.startsWith('g-')) {
+        const parsed = Number(item.id.replace('g-', ''))
+        if (!isNaN(parsed) && parsed > 1000000000) {
+          ts = parsed
+        }
+      }
+      return (ts || 0) > lastReadTs
+    })
+    return unread.length
+  } catch {
+    return 0
+  }
+}
+
+/**
+ * 📖 미니룸에 입장하여 방명록을 열람했을 때 신규 글을 모두 읽음 처리
+ */
+export function markGuestBookAsRead(): void {
+  try {
+    localStorage.setItem(GUESTBOOK_LAST_READ_KEY, String(Date.now()))
+  } catch {
+    // 무시
   }
 }
 

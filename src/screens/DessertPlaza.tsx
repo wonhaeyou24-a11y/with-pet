@@ -22,6 +22,8 @@ import {
   createWorldBossMonster,
   getWorldBossStatus,
   WORLD_BOSS_CATALOG,
+  getRaidAttemptsInfo,
+  useRaidAttempt,
   type RaidStatus,
 } from '../lib/bossScheduler'
 
@@ -843,7 +845,7 @@ export default function DessertPlaza({
               <span>🔥</span>
               <span>{raidStatus.isActive ? '👑 거대 보스 침공 중!!' : '👑 거대 보스 출현'}</span>
               <span style={{ background: '#FFFFFF', color: '#C2185B', padding: '0 5px', borderRadius: 999, fontSize: 8.5 }}>
-                ⚔️ 터치 출격
+                ⚔️ 출격 ({getRaidAttemptsInfo().left}/3)
               </span>
             </div>
 
@@ -1466,7 +1468,7 @@ export default function DessertPlaza({
               </button>
             </div>
 
-            {/* 실시간 상태 티커 바 */}
+            {/* 실시간 상태 티커 바 & 참여 횟수 */}
             <div
               style={{
                 padding: '6px 10px',
@@ -1478,17 +1480,34 @@ export default function DessertPlaza({
                 color: raidStatus.isActive ? '#DC2626' : '#B45309',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 6,
+                justifyContent: 'space-between',
               }}
             >
-              <span>{raidStatus.isActive ? '🚨' : '⏰'}</span>
-              <span>{raidStatus.statusText}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <span>{raidStatus.isActive ? '🚨' : '⏰'}</span>
+                <span>{raidStatus.statusText}</span>
+              </div>
+              <span
+                style={{
+                  background: '#FFFFFF',
+                  padding: '2px 7px',
+                  borderRadius: 999,
+                  fontSize: 10,
+                  fontWeight: 900,
+                  color: getRaidAttemptsInfo().left > 0 ? '#D97706' : '#9CA3AF',
+                  border: '1px solid rgba(0,0,0,0.1)',
+                }}
+              >
+                도전 기회: {getRaidAttemptsInfo().left}/3회
+              </span>
             </div>
 
             {/* 보스 목록 카드 2종 */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {WORLD_BOSS_CATALOG.map((boss) => {
                 const isThisBossActive = raidStatus.isActive && raidStatus.currentBoss?.id === boss.id
+                const attempts = getRaidAttemptsInfo(boss.id)
+
                 return (
                   <div
                     key={boss.id}
@@ -1516,28 +1535,49 @@ export default function DessertPlaza({
                           </div>
                         </div>
                       </div>
-                      <span
-                        style={{
-                          fontSize: 9,
-                          fontWeight: 800,
-                          padding: '2px 6px',
-                          borderRadius: 6,
-                          background: isThisBossActive ? '#EF4444' : '#E5E7EB',
-                          color: isThisBossActive ? '#FFFFFF' : '#4B5563',
-                        }}
-                      >
-                        {isThisBossActive ? '출현 중!' : 'Lv.' + boss.level}
-                      </span>
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        <span
+                          style={{
+                            fontSize: 9,
+                            fontWeight: 800,
+                            padding: '2px 6px',
+                            borderRadius: 6,
+                            background: attempts.canEnter ? '#FEF3C7' : '#F3F4F6',
+                            color: attempts.canEnter ? '#B45309' : '#9CA3AF',
+                            border: '1px solid rgba(0,0,0,0.06)',
+                          }}
+                        >
+                          남은 도전: {attempts.left}회
+                        </span>
+                        <span
+                          style={{
+                            fontSize: 9,
+                            fontWeight: 800,
+                            padding: '2px 6px',
+                            borderRadius: 6,
+                            background: isThisBossActive ? '#EF4444' : '#E5E7EB',
+                            color: isThisBossActive ? '#FFFFFF' : '#4B5563',
+                          }}
+                        >
+                          {isThisBossActive ? '출현 중!' : 'Lv.' + boss.level}
+                        </span>
+                      </div>
                     </div>
 
                     <div style={{ fontSize: 10, color: '#4B5563', marginTop: 2 }}>
                       {boss.flavorDesc}
                     </div>
 
-                    {/* 출격 버튼 */}
+                    {/* 출격 버튼 (3회 제한 적용) */}
                     <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
                       <button
+                        disabled={!attempts.canEnter}
                         onClick={() => {
+                          if (!attempts.canEnter) {
+                            showToast('⚠️ 이번 출현 동안의 레이드 참여 횟수(3회)를 모두 완료했습니다!')
+                            return
+                          }
+                          useRaidAttempt(boss.id)
                           const bossMonster = createWorldBossMonster(boss)
                           const bossEntry: PlazaFriendEntry = {
                             ownerNickname: '디저트 월드 서버',
@@ -1555,17 +1595,24 @@ export default function DessertPlaza({
                           padding: '7px 0',
                           borderRadius: 10,
                           border: 'none',
-                          background: isThisBossActive
-                            ? 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)'
-                            : 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                          background: !attempts.canEnter
+                            ? '#9CA3AF'
+                            : isThisBossActive
+                              ? 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)'
+                              : 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
                           color: '#FFFFFF',
                           fontSize: 11,
                           fontWeight: 900,
-                          cursor: 'pointer',
-                          boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                          cursor: attempts.canEnter ? 'pointer' : 'not-allowed',
+                          boxShadow: attempts.canEnter ? '0 2px 6px rgba(0,0,0,0.15)' : 'none',
+                          opacity: attempts.canEnter ? 1 : 0.75,
                         }}
                       >
-                        {isThisBossActive ? '🔥 즉시 협동 토벌 출격!!' : '⚔️ 모의 레이드 훈련'}
+                        {!attempts.canEnter
+                          ? '🔒 금일 레이드 참여 횟수 소진 (3/3회 완료)'
+                          : isThisBossActive
+                            ? `🔥 즉시 협동 토벌 출격!! (${attempts.left}/3회 남음)`
+                            : `⚔️ 모의 레이드 훈련 (${attempts.left}/3회 남음)`}
                       </button>
                     </div>
                   </div>

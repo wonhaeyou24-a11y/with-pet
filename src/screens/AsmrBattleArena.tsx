@@ -115,6 +115,7 @@ export default function AsmrBattleArena({
   const dInfo = SPECIES_INFO[dLook.mallang?.morphForm ?? defender.species] ?? SPECIES_INFO[defender.species]
 
   // ⚔️ 거대 보스 레이드에 먼저 참전하여 공격을 완료한 지인 펫들 (비동기 협동 레이드 참여 전우 8마리)
+  // 공격하는 내 펫(bottom: 22%)의 뒤쪽(bottom: 2%~11%) 좌우 V자 진형으로 배치되어 서로 가리지 않음
   const raidParticipants = useMemo(
     () => [
       {
@@ -125,8 +126,8 @@ export default function AsmrBattleArena({
         statusText: '타격완료',
         icon: '🍓',
         look: { species: 'mongsil', palette: 1, bodyType: 'normal', scale: 0.85, ears: 0, tail: 0, top: 0, expression: 'round', patternSeed: 12, shiny: false, evoStage: 2, evoBranch: 'sweet-melty' } as MonsterLook,
-        left: '2%',
-        bottom: '8%',
+        left: '3%',
+        bottom: '2%',
         delay: '0s',
       },
       {
@@ -137,8 +138,8 @@ export default function AsmrBattleArena({
         statusText: '극딜완료',
         icon: '✨',
         look: { species: 'byeolbineul', palette: 3, bodyType: 'normal', scale: 0.8, ears: 0, tail: 0, top: 1, expression: 'round', patternSeed: 88, shiny: false, evoStage: 2, evoBranch: 'gourmet-rainbow' } as MonsterLook,
-        left: '11%',
-        bottom: '12%',
+        left: '12%',
+        bottom: '5%',
         delay: '0.4s',
       },
       {
@@ -149,8 +150,8 @@ export default function AsmrBattleArena({
         statusText: '치명타완료',
         icon: '🍬',
         look: { species: 'tanghulu', palette: 0, bodyType: 'normal', scale: 0.8, ears: 0, tail: 0, top: 0, expression: 'sharp', patternSeed: 55, shiny: false, evoStage: 2, evoBranch: 'crispy-crunch' } as MonsterLook,
-        left: '20%',
-        bottom: '16%',
+        left: '21%',
+        bottom: '8%',
         delay: '0.8s',
       },
       {
@@ -161,8 +162,8 @@ export default function AsmrBattleArena({
         statusText: '식감공격',
         icon: '🍡',
         look: { species: 'mongsil', palette: 0, bodyType: 'normal', scale: 0.8, ears: 1, tail: 0, top: 0, expression: 'round', patternSeed: 21, shiny: false, evoStage: 1 } as MonsterLook,
-        left: '28%',
-        bottom: '18%',
+        left: '31%',
+        bottom: '11%',
         delay: '1.2s',
       },
       {
@@ -173,8 +174,8 @@ export default function AsmrBattleArena({
         statusText: '탱킹완료',
         icon: '🍮',
         look: { species: 'kongkong', palette: 1, bodyType: 'normal', scale: 0.8, ears: 0, tail: 1, top: 0, expression: 'round', patternSeed: 62, shiny: false, evoStage: 1 } as MonsterLook,
-        right: '28%',
-        bottom: '18%',
+        right: '31%',
+        bottom: '11%',
         delay: '0.3s',
       },
       {
@@ -185,8 +186,8 @@ export default function AsmrBattleArena({
         statusText: 'MVP타격',
         icon: '🍫',
         look: { species: 'dubai-cookie', palette: 2, bodyType: 'normal', scale: 0.85, ears: 1, tail: 0, top: 0, expression: 'round', patternSeed: 33, shiny: false, evoStage: 2, evoBranch: 'sweet-melty' } as MonsterLook,
-        right: '20%',
-        bottom: '16%',
+        right: '21%',
+        bottom: '8%',
         delay: '0.2s',
       },
       {
@@ -197,8 +198,8 @@ export default function AsmrBattleArena({
         statusText: '화염타격',
         icon: '🔥',
         look: { species: 'heugyeom', palette: 1, bodyType: 'normal', scale: 0.8, ears: 1, tail: 1, top: 0, expression: 'sharp', patternSeed: 77, shiny: false, evoStage: 2, evoBranch: 'royal-chef' } as MonsterLook,
-        right: '11%',
-        bottom: '12%',
+        right: '12%',
+        bottom: '5%',
         delay: '0.6s',
       },
       {
@@ -209,8 +210,8 @@ export default function AsmrBattleArena({
         statusText: '타격완료',
         icon: '🍪',
         look: { species: 'kongkong', palette: 2, bodyType: 'normal', scale: 0.85, ears: 1, tail: 1, top: 0, expression: 'sharp', patternSeed: 44, shiny: false, evoStage: 2, evoBranch: 'crispy-crunch' } as MonsterLook,
-        right: '2%',
-        bottom: '8%',
+        right: '3%',
+        bottom: '2%',
         delay: '1.0s',
       },
     ],
@@ -222,8 +223,8 @@ export default function AsmrBattleArena({
     [raidParticipants],
   )
 
-  // 📊 참전 펫 피해량 박스 펼침/접기 상태
-  const [showDamageBoard, setShowDamageBoard] = useState<boolean>(true)
+  // 📊 참전 펫 피해량 박스 펼침/접기 상태 (기본은 접힘 상태로 보스를 전혀 가리지 않음)
+  const [showDamageBoard, setShowDamageBoard] = useState<boolean>(false)
 
   // 👑 내 펫이 현재까지 보스에게 입힌 실시간 누적 대미지
   const myTotalDamage = useMemo(() => {
@@ -908,13 +909,13 @@ export default function AsmrBattleArena({
             overflow: 'hidden',
           }}
         >
-          {/* 📊 [우측 상단 플로팅] 참전 펫 누적 피해량 박스 (Damage Board) */}
+          {/* 📊 [좌측 상단 모서리 플로팅] 참전 펫 누적 피해량 박스 (Damage Board - 보스를 절대 가리지 않는 안전 배치) */}
           {isRaid && (
             <div
               style={{
                 position: 'absolute',
-                top: 8,
-                right: 8,
+                top: 6,
+                left: 6,
                 zIndex: 32,
                 pointerEvents: 'auto',
                 maxWidth: showDamageBoard ? 165 : 'auto',
@@ -1290,15 +1291,15 @@ export default function AsmrBattleArena({
                     zIndex: 21,
                   }}
                 >
-                  {/* 지인 펫 머리 위 참여 및 누적 공격 피해량 뱃지 (슬림 미니멀) */}
+                  {/* 지인 펫 머리 위 이름 뱃지 (피해량 표시 없이 닉네임만 표시) */}
                   <div
                     style={{
                       background: 'rgba(15, 8, 26, 0.88)',
                       border: '1px solid #FF80AB',
                       color: '#FFF8E1',
-                      fontSize: 7,
+                      fontSize: 7.5,
                       fontWeight: 900,
-                      padding: '1px 4px',
+                      padding: '1px 5px',
                       borderRadius: 999,
                       marginBottom: 1,
                       whiteSpace: 'nowrap',
@@ -1308,21 +1309,19 @@ export default function AsmrBattleArena({
                       gap: 2,
                     }}
                   >
-                    <span>{participant.icon} {participant.ownerName}</span>
-                    <span style={{ color: '#FF5252', background: 'rgba(255,23,68,0.25)', padding: '0 2px', borderRadius: 3 }}>
-                      -{participant.damage}
-                    </span>
+                    <span>{participant.icon}</span>
+                    <span>{participant.ownerName}</span>
                   </div>
                   {/* 참전 지인 펫: 여러 명이 모일 수 있도록 24px 초소형 2D SVG로 앙증맞고 가볍게 주둔 */}
                   <MonsterView look={participant.look} size={24} prefer2D={true} />
                 </div>
               ))}
 
-              {/* 2. [전면 중앙 돌격 리더] 👑 공격하는 나(내 펫) - 탈진할 때까지 거대보스를 홀로 정면 타격! */}
+              {/* 2. [전면 중앙 돌격 리더] 👑 공격하는 나(내 펫) - 전방으로 돌격하여 거대보스를 홀로 정면 타격! (참여자들 앞선 위치) */}
               <div
                 style={{
                   position: 'absolute',
-                  bottom: '2%',
+                  bottom: '22%',
                   left: '50%',
                   transform: cHp <= 0
                     ? 'translateX(-50%) rotate(-85deg) translateY(14px)'
