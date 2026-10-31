@@ -67,31 +67,90 @@ export async function requestNotificationPermission(): Promise<boolean> {
   }
 }
 
-export function sendIdleNotification(title: string, body: string, icon = '/icons/icon-192.png') {
+// 🛡️ 고유 작업별 단일 타이머 맵 (중복 타이머 완벽 차단)
+const activeNotificationTimers = new Map<string, number>()
+
+function scheduleUniqueTimeout(key: string, fn: () => void, delayMs: number) {
+  if (typeof window === 'undefined') return
+  const existing = activeNotificationTimers.get(key)
+  if (existing) {
+    window.clearTimeout(existing)
+    activeNotificationTimers.delete(key)
+  }
+  const timerId = window.setTimeout(() => {
+    activeNotificationTimers.delete(key)
+    fn()
+  }, Math.max(0, delayMs))
+  activeNotificationTimers.set(key, timerId)
+}
+
+export function cancelScheduledNotification(key: string) {
+  const existing = activeNotificationTimers.get(key)
+  if (existing && typeof window !== 'undefined') {
+    window.clearTimeout(existing)
+    activeNotificationTimers.delete(key)
+  }
+}
+
+// 최근 발송된 알림 기록 (동일 title/내용은 15초 내 재발송 차단)
+const recentSentTimestamps = new Map<string, number>()
+
+export function sendIdleNotification(
+  title: string,
+  body: string,
+  uniqueTag?: string,
+  icon = '/icons/icon-192.png',
+) {
   try {
     if (typeof window === 'undefined') return
     if (!('Notification' in window) || Notification.permission !== 'granted') return
 
-    // 🛡️ [규칙]: 알림은 앱을 나가 있거나 꺼져 있을 때만 발송 (게임 중에는 모바일 알림 생략)
+    // 🛡️ 1. 게임 중(화면이 켜져 있을 때)에는 시스템 알림 생략
     if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
       return
     }
 
+    const now = Date.now()
+
+    // 🛡️ 2. 고유 태그가 주어진 경우, 해당 세션에 대한 알림이 이미 발송되었는지 영속 검사
+    if (uniqueTag) {
+      try {
+        const alreadySent = localStorage.getItem(`pet_noti_sent_${uniqueTag}`)
+        if (alreadySent) {
+          return // 이미 보낸 알림은 절대 다시 보내지 않음 (단 1회 발송 보장)
+        }
+      } catch {}
+    }
+
+    // 🛡️ 3. 동일 title/내용에 대한 15초 디바운스 쿨다운 (연속 중복 발송 원천 차단)
+    const contentKey = `${title}::${body}`
+    const lastSentAt = recentSentTimestamps.get(contentKey) ?? 0
+    if (now - lastSentAt < 15_000) {
+      return
+    }
+    recentSentTimestamps.set(contentKey, now)
+
+    if (uniqueTag) {
+      try {
+        localStorage.setItem(`pet_noti_sent_${uniqueTag}`, String(now))
+      } catch {}
+    }
+
+    const tag = uniqueTag ? `pet-${uniqueTag}` : 'pet-together-idle'
     const options = {
       body,
       icon,
       badge: icon,
-      tag: 'pet-together-idle',
+      tag,
     } as NotificationOptions
 
-    // 1. PWA 서비스 워커 백그라운드 푸시 알림 우선 시도 (앱을 나갔을 때도 100% 수신)
+    // PWA 서비스 워커 백그라운드 푸시 알림 우선 시도
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.ready
         .then((reg) => {
-          return reg.showNotification(title, options)
+          reg.showNotification(title, options)
         })
         .catch(() => {
-          // 서비스 워커 실패 시 일반 Notification 폴백
           new Notification(title, options)
         })
     } else {
@@ -102,41 +161,61 @@ export function sendIdleNotification(title: string, body: string, icon = '/icons
   }
 }
 
-// 🔔 진행 중인 훈련 및 타워 탐험 완료 시점을 계산하여 백그라운드 자동 시스템 알림 스케줄링 (100% 자동 동작 보장)
+// 🔔 진행 중인 훈련 및 타워 탐험 완료 시점을 계산하여 백그라운드 자동 시스템 알림 스케줄링 (단일 스케줄러 보장)
 export function scheduleAutoIdleNotifications(monsterId: string, monsterName: string) {
   try {
     if (typeof window === 'undefined' || !('Notification' in window) || Notification.permission !== 'granted') {
       return
     }
 
-    // 1. 훈련 세션 완료 자동 알림
+    // 1. 훈련 세션 완료 자동 알림 (단일 타이머 + 세션 고유 태그)
     const train = getActiveTrainingSession(monsterId)
     if (train && !train.claimed) {
       const remainingMs = train.finishAt - Date.now()
+      const trainKey = `train-${monsterId}-${train.startedAt}`
       if (remainingMs > 0) {
-        setTimeout(() => {
-          sendIdleNotification(
-            `🧁 [${monsterName}] 훈련 완료 소식!`,
-            `디저트 친구가 "${train.courseName}" 훈련을 무사히 마쳤어요! 얼른 돌아와서 능력치 보상을 획득하세요! ✨`,
-          )
-        }, remainingMs)
+        scheduleUniqueTimeout(
+          `train-${monsterId}`,
+          () => {
+            sendIdleNotification(
+              `🧁 [${monsterName}] 훈련 완료 소식!`,
+              `디저트 친구가 "${train.courseName}" 훈련을 무사히 마쳤어요! 얼른 돌아와서 능력치 보상을 획득하세요! ✨`,
+              trainKey,
+            )
+          },
+          remainingMs,
+        )
+      } else {
+        cancelScheduledNotification(`train-${monsterId}`)
       }
+    } else {
+      cancelScheduledNotification(`train-${monsterId}`)
     }
 
-    // 2. 디저트 타워 탐험 완료 자동 알림
+    // 2. 디저트 타워 탐험 완료 자동 알림 (단일 타이머 + 세션 고유 태그)
     const tower = getActiveTowerSession(monsterId)
     if (tower && !tower.claimed) {
       const totalSec = tower.secPerFloor * tower.maxFloors
       const elapsedSec = Math.max(0, Math.floor((Date.now() - tower.startedAt) / 1000))
       const remainingSec = Math.max(0, totalSec - elapsedSec)
+      const towerKey = `tower-${monsterId}-${tower.startedAt}`
       if (remainingSec > 0) {
-        setTimeout(() => {
-          sendIdleNotification(
-            `🏰 [${monsterName}] 디저트 타워 탐험 완료!`,
-            `타워 ${tower.startFloor}층부터 ${tower.targetFloor}층까지 전 층을 돌파했습니다! 풍성한 전리품을 수령하세요! 🎁`,
-          )
-        }, remainingSec * 1000)
+        scheduleUniqueTimeout(
+          `tower-${monsterId}`,
+          () => {
+            sendIdleNotification(
+              `🏰 [${monsterName}] 디저트 타워 탐험 완료!`,
+              `타워 ${tower.startFloor}층부터 ${tower.targetFloor}층까지 전 층을 돌파했습니다! 풍성한 전리품을 수령하세요! 🎁`,
+              towerKey,
+            )
+          },
+          remainingSec * 1000,
+        )
+      } else {
+        cancelScheduledNotification(`tower-${monsterId}`)
       }
+    } else {
+      cancelScheduledNotification(`tower-${monsterId}`)
     }
 
     // 3. 신규 M5 탐험 완료 자동 시스템 알림
@@ -145,7 +224,7 @@ export function scheduleAutoIdleNotifications(monsterId: string, monsterName: st
       if (rawExplore) {
         const trip = JSON.parse(rawExplore)
         if (trip && trip.finishAt) {
-          scheduleExploreNotification(monsterName, trip)
+          scheduleExploreNotification(monsterName, trip, monsterId)
         }
       }
     } catch {}
@@ -158,6 +237,7 @@ export function scheduleAutoIdleNotifications(monsterId: string, monsterName: st
 export function scheduleExploreNotification(
   monsterName: string,
   trip: { region: string; zone: number; finishAt: string },
+  monsterId?: string,
 ) {
   try {
     if (typeof window === 'undefined' || !('Notification' in window) || Notification.permission !== 'granted') {
@@ -165,13 +245,21 @@ export function scheduleExploreNotification(
     }
     const finishMs = Date.parse(trip.finishAt)
     const remainingMs = finishMs - Date.now()
+    const exploreKey = `explore-${monsterId || 'local'}-${trip.finishAt}`
     if (remainingMs > 0) {
-      setTimeout(() => {
-        sendIdleNotification(
-          `🧭 [${monsterName}] 탐험 복귀 완료!`,
-          `펫이 ${trip.region} ${trip.zone}구역 탐험을 마치고 보물과 함께 돌아왔어요! 🎁`,
-        )
-      }, remainingMs)
+      scheduleUniqueTimeout(
+        `explore-${monsterId || 'local'}`,
+        () => {
+          sendIdleNotification(
+            `🧭 [${monsterName}] 탐험 복귀 완료!`,
+            `펫이 ${trip.region} ${trip.zone}구역 탐험을 마치고 보물과 함께 돌아왔어요! 🎁`,
+            exploreKey,
+          )
+        },
+        remainingMs,
+      )
+    } else {
+      cancelScheduledNotification(`explore-${monsterId || 'local'}`)
     }
   } catch {
     // 무중단
@@ -180,12 +268,17 @@ export function scheduleExploreNotification(
 
 // 🔔 백그라운드 3초 후 테스트 알림 예약 발송 (사용자가 앱을 나갔을 때 직접 확인 가능)
 export function scheduleTestIdleNotification(petName: string, delaySec: number = 3) {
-  setTimeout(() => {
-    sendIdleNotification(
-      `🍰 [${petName}] 파티시에님, 디저트 타임이에요!`,
-      `방금 훈련을 마치고 달콤한 보상을 기다리고 있어요. 얼른 돌아와서 칭찬해주세요! ✨`,
-    )
-  }, delaySec * 1000)
+  scheduleUniqueTimeout(
+    'test-noti',
+    () => {
+      sendIdleNotification(
+        `🍰 [${petName}] 파티시에님, 디저트 타임이에요!`,
+        `방금 훈련을 마치고 달콤한 보상을 기다리고 있어요. 얼른 돌아와서 칭찬해주세요! ✨`,
+        `test-${Date.now()}`,
+      )
+    },
+    delaySec * 1000,
+  )
 }
 
 // 2. 훈련 세션 관리 (로컬 영속화 & 실시간 복원)
@@ -218,15 +311,8 @@ export function startTrainingSession(monsterId: string, course: TrainingCourse, 
   }
   try {
     localStorage.setItem(`${TRAINING_KEY_PREFIX}${monsterId}`, JSON.stringify(sess))
-    // 백그라운드 완료 알림 예약
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-      setTimeout(() => {
-        sendIdleNotification(
-          '🧁 [펫과함께] 훈련 완료 소식!',
-          `디저트 친구가 "${course.name}" 훈련을 무사히 마쳤어요! 능력치가 쑥쑥 자라났습니다.`,
-        )
-      }, durationSec * 1000)
-    }
+    // 🛡️ 단일 스케줄러를 통해 중복 없는 단 1개의 타이머만 예약
+    scheduleAutoIdleNotifications(monsterId, '디저트')
   } catch {
     // 로컬 스토리지 실패 시 무중단
   }
@@ -249,15 +335,8 @@ export function saveServerTrainingSession(monsterId: string, course: TrainingCou
   }
   try {
     localStorage.setItem(`${TRAINING_KEY_PREFIX}${monsterId}`, JSON.stringify(sess))
-    const remainMs = finishAt - Date.now()
-    if (remainMs > 0 && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-      setTimeout(() => {
-        sendIdleNotification(
-          '🧁 [펫과함께] 훈련 완료 소식!',
-          `디저트 친구가 "${course.name}" 훈련을 무사히 마쳤어요! 능력치가 쑥쑥 자라났습니다.`,
-        )
-      }, remainMs)
-    }
+    // 🛡️ 단일 스케줄러를 통해 중복 없는 단 1개의 타이머만 예약
+    scheduleAutoIdleNotifications(monsterId, '디저트')
   } catch {
     // 무시
   }
@@ -267,6 +346,7 @@ export function saveServerTrainingSession(monsterId: string, course: TrainingCou
 export function clearTrainingSession(monsterId: string) {
   try {
     localStorage.removeItem(`${TRAINING_KEY_PREFIX}${monsterId}`)
+    cancelScheduledNotification(`train-${monsterId}`)
   } catch {
     // 무시
   }
@@ -320,15 +400,8 @@ export function startTowerExpedition(
   }
   try {
     localStorage.setItem(`${TOWER_KEY_PREFIX}${monsterId}`, JSON.stringify(sess))
-    const totalSec = secPerFloor * maxFloors
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-      setTimeout(() => {
-        sendIdleNotification(
-          '🏰 [펫과함께] 디저트 타워 탐험 완료!',
-          `타워 ${startFloor}층부터 ${targetFloor}층까지 돌파를 마쳤습니다! 전리품을 수령하세요! 🎁`,
-        )
-      }, totalSec * 1000)
-    }
+    // 🛡️ 단일 스케줄러를 통해 중복 없는 단 1개의 타이머만 예약
+    scheduleAutoIdleNotifications(monsterId, '디저트')
   } catch {
     // 무시
   }
@@ -384,15 +457,8 @@ export function saveServerTowerSession(
   }
   try {
     localStorage.setItem(`${TOWER_KEY_PREFIX}${monsterId}`, JSON.stringify(sess))
-    const totalSec = s.secPerFloor * s.maxFloors
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-      setTimeout(() => {
-        sendIdleNotification(
-          '🏰 [펫과함께] 디저트 타워 탐험 완료!',
-          `타워 ${s.startFloor}층부터 ${s.startFloor + s.maxFloors}층까지 돌파를 마쳤습니다! 전리품을 수령하세요! 🎁`,
-        )
-      }, totalSec * 1000)
-    }
+    // 🛡️ 단일 스케줄러를 통해 중복 없는 단 1개의 타이머만 예약
+    scheduleAutoIdleNotifications(monsterId, '디저트')
   } catch {
     // 무시
   }
@@ -402,6 +468,7 @@ export function saveServerTowerSession(
 export function clearTowerSession(monsterId: string) {
   try {
     localStorage.removeItem(`${TOWER_KEY_PREFIX}${monsterId}`)
+    cancelScheduledNotification(`tower-${monsterId}`)
   } catch {
     // 무시
   }
@@ -426,8 +493,15 @@ export function checkPetAutonomousSuggestion(
   const lastSugTime = parseInt(localStorage.getItem(`pet_last_sug_${monsterId}`) || '0', 10)
   if (now - lastSugTime < 120_000) return null
 
+  const markSuggested = () => {
+    try {
+      localStorage.setItem(`pet_last_sug_${monsterId}`, Date.now().toString())
+    } catch {}
+  }
+
   // 1) 노곤함(피로도)이 80 이상일 때 휴식 제안
   if (fatigue >= 80) {
+    markSuggested()
     return {
       id: `sug-rest-${now}`,
       type: 'rest',
@@ -441,6 +515,7 @@ export function checkPetAutonomousSuggestion(
 
   // 2) 당충전(배고픔)이 35 이하일 때 밥 제안
   if (hunger <= 35) {
+    markSuggested()
     return {
       id: `sug-feed-${now}`,
       type: 'feed',
@@ -454,6 +529,7 @@ export function checkPetAutonomousSuggestion(
 
   // 3) 당충전 70 이상 & 피로도 40 이하 & 체력/공격 조건에 따라 훈련 제안
   if (hunger >= 70 && fatigue <= 40) {
+    markSuggested()
     const courses = TRAINING_COURSES
     const randomCourse = courses[Math.floor(Math.random() * courses.length)]
     return {
@@ -470,6 +546,7 @@ export function checkPetAutonomousSuggestion(
 
   // 4) 타워 탐험 제안
   if (fatigue <= 60) {
+    markSuggested()
     return {
       id: `sug-explore-${now}`,
       type: 'explore',
