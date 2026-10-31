@@ -51,7 +51,19 @@ const SPECIES_DEFAULT_ELEMENT: Record<string, 'wind' | 'earth' | 'fire' | 'water
   smore: 'fire',
 }
 
+// 진화 형태 및 종족별 고유 3D 눈매 매핑 (동그란 눈, 졸린 반달 눈, 날렵한 캣아이, 별빛 눈 차별화)
+export function getBranchExpression(branch?: EvoBranchId, _stage?: number, species?: string): 'round' | 'sleepy' | 'sharp' {
+  if (branch === 'crispy-crunch' || branch === 'royal-chef') return 'sharp'
+  if (branch === 'sweet-melty') return 'sleepy'
+  if (branch === 'gourmet-rainbow') return 'round'
+  if (species === 'wax-ball' || species === 'pudding') return 'sleepy'
+  if (species === 'tanghulu' || species === 'choco' || species === 'dubai-cookie') return 'sharp'
+  return 'round'
+}
+
 export default function DessertPokedexScreen({ onBack, onSwitchPet }: Props) {
+  // 🌟 전체 72종 쇼룸 모드 (기본 ON)
+  const [showroomMode, setShowroomMode] = useState<boolean>(true)
   const [filterSpecies, setFilterSpecies] = useState<string>('all')
   const [filterUnlockedOnly, setFilterUnlockedOnly] = useState<boolean>(false)
   const [selectedItem, setSelectedItem] = useState<DexFrameItem | null>(null)
@@ -79,7 +91,7 @@ export default function DessertPokedexScreen({ onBack, onSwitchPet }: Props) {
 
       // 1단계 베이비
       const baseKey = `${spId}_stage1_base`
-      const isBaseUnlocked = discoveredSet.has(baseKey)
+      const isBaseUnlocked = showroomMode || discoveredSet.has(baseKey)
       list.push({
         id: `${spId}-1`,
         species: spId,
@@ -96,7 +108,7 @@ export default function DessertPokedexScreen({ onBack, onSwitchPet }: Props) {
       branches.forEach((bId) => {
         const bMeta = EVO_BRANCHES[bId]
         const key = `${spId}_stage2_${bId}`
-        const isUnlocked = discoveredSet.has(key)
+        const isUnlocked = showroomMode || discoveredSet.has(key)
         list.push({
           id: `${spId}-2-${bId}`,
           species: spId,
@@ -114,7 +126,7 @@ export default function DessertPokedexScreen({ onBack, onSwitchPet }: Props) {
       branches.forEach((bId) => {
         const bMeta = EVO_BRANCHES[bId]
         const key = `${spId}_stage3_${bId}`
-        const isUnlocked = discoveredSet.has(key)
+        const isUnlocked = showroomMode || discoveredSet.has(key)
         list.push({
           id: `${spId}-3-${bId}`,
           species: spId,
@@ -130,7 +142,7 @@ export default function DessertPokedexScreen({ onBack, onSwitchPet }: Props) {
     })
 
     return list
-  }, [discoveredSet])
+  }, [discoveredSet, showroomMode])
 
   // 필터링 적용
   const filteredFrames = useMemo(() => {
@@ -156,7 +168,7 @@ export default function DessertPokedexScreen({ onBack, onSwitchPet }: Props) {
       ears: 0,
       tail: 0,
       top: 0,
-      expression: 'round',
+      expression: getBranchExpression(selectedItem.branch, selectedItem.stage, selectedItem.species),
       patternSeed: 1,
       shiny: selectedItem.stage === 3,
       evoStage: selectedItem.stage,
@@ -210,7 +222,37 @@ export default function DessertPokedexScreen({ onBack, onSwitchPet }: Props) {
         <h1 style={{ fontSize: 16, fontWeight: 900, margin: 0, color: '#4E342E' }}>
           🖼️ 디저트 도감 액자 갤러리
         </h1>
-        <div style={{ width: 64 }} />
+        <button
+          onClick={() => {
+            const next = !showroomMode
+            setShowroomMode(next)
+            playDessertAsmr('mochi-squish')
+            setSwitchToast(
+              next
+                ? '✨ 전체 72종 디저트 펫 쇼룸 모드 활성화! (전 종족 3D 외형과 눈매를 자유롭게 감상해 보세요)'
+                : '🔒 내 도감 수집 모드로 전환되었습니다.',
+            )
+            setTimeout(() => setSwitchToast(null), 3500)
+          }}
+          style={{
+            padding: '5px 10px',
+            borderRadius: 999,
+            border: showroomMode ? '1.5px solid #FF80AB' : '1.5px solid #D7CCC8',
+            background: showroomMode ? 'linear-gradient(90deg, #FCE4EC 0%, #F8BBD0 100%)' : '#FFFDF9',
+            color: showroomMode ? '#C2185B' : '#5D4037',
+            fontSize: 11,
+            fontWeight: 900,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            boxShadow: '0 2px 4px rgba(0,0,0,0.06)',
+          }}
+          title="전체 72종 펫 쇼룸 보기 토글"
+        >
+          <span>👁️</span>
+          <span>{showroomMode ? '72종 쇼룸 ON' : '72종 쇼룸'}</span>
+        </button>
       </header>
 
       {/* 2. 도감 수집률 통계 배너 */}
@@ -329,7 +371,7 @@ export default function DessertPokedexScreen({ onBack, onSwitchPet }: Props) {
             ears: 0,
             tail: 0,
             top: 0,
-            expression: 'round',
+            expression: getBranchExpression(item.branch, item.stage, item.species),
             patternSeed: 1,
             shiny: item.stage === 3,
             evoStage: item.stage,

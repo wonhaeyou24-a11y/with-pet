@@ -240,12 +240,25 @@ export function build3DCharacterMesh(
   const basePal = CHAMELEON_PALETTES[palIdx % CHAMELEON_PALETTES.length]
   let innerLiquid: THREE.Object3D | undefined
 
-  // 공통 3D 초롱초롱 눈 + 하이라이트 + 볼터치 + 입 부착 헬퍼
+  // 종족 및 외형 성향에 따른 디저트 눈동자 색상 매핑
+  const getEyeColor = (sp: string): string => {
+    if (sp === 'dubai-cookie') return '#1A2312' // 쌉싸름한 피스타치오 다크
+    if (sp === 'tanghulu' || sp === 'wax-ball') return '#181026' // 영롱한 유리알 딥블루
+    if (sp === 'pudding') return '#2D1606' // 달콤한 카라멜 앰버
+    if (sp === 'choco' || sp === 'smore' || sp === 'heugyeom') return '#1A0C08' // 진한 다크 카카오
+    return '#24141A' // 포근한 로즈 초콜릿 (기본)
+  }
+
+  // 공통 3D 초롱초롱 눈 + 하이라이트 + 볼터치 + 입 부착 헬퍼 (5대 개성 눈매 시스템: round, sleepy, sharp, star, twinkle)
   const addCute3DFace = (zOffset: number, yOffset: number, cheekColor = '#FF8A9E') => {
     const faceGroup = new THREE.Group()
     faceGroup.position.set(0, yOffset, zOffset)
 
-    const eyeMat = new THREE.MeshPhysicalMaterial({ color: '#231815', roughness: 0.08, clearcoat: 1.0 })
+    const expr = look.expression || (look.evoBranch === 'crispy-crunch' || look.evoBranch === 'royal-chef' ? 'sharp' : look.evoBranch === 'sweet-melty' ? 'sleepy' : 'round')
+    const isRainbowStar = look.evoBranch === 'gourmet-rainbow'
+    const eyeColor = getEyeColor(species)
+
+    const eyeMat = new THREE.MeshPhysicalMaterial({ color: eyeColor, roughness: 0.08, clearcoat: 1.0 })
     const glintMat = new THREE.MeshBasicMaterial({ color: '#FFFFFF' })
     const cheekMat = new THREE.MeshPhysicalMaterial({
       color: cheekColor,
@@ -255,20 +268,68 @@ export function build3DCharacterMesh(
     })
 
     ;[-0.34, 0.34].forEach((xSide) => {
-      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.115, 20, 18), eyeMat)
-      eye.scale.set(1, 1.08, 0.65)
-      eye.position.set(xSide, 0.06, 0)
-      faceGroup.add(eye)
+      const eyeGroup = new THREE.Group()
+      eyeGroup.position.set(xSide, 0.06, 0)
 
-      // 큰 반짝이 하이라이트
-      const glint1 = new THREE.Mesh(new THREE.SphereGeometry(0.042, 12, 12), glintMat)
-      glint1.position.set(xSide - 0.032, 0.1, 0.068)
-      faceGroup.add(glint1)
+      if (expr === 'sleepy') {
+        // 😴 1. 슬리피 (포근한 반달 아치형 눈: 느긋하고 달콤하게 감긴 눈)
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.12, 18, 16), eyeMat)
+        eye.scale.set(1.25, 0.45, 0.6)
+        eye.rotation.z = -xSide * 0.12
+        eyeGroup.add(eye)
 
-      // 작은 보조 하이라이트
-      const glint2 = new THREE.Mesh(new THREE.SphereGeometry(0.022, 10, 10), glintMat)
-      glint2.position.set(xSide + 0.035, 0.02, 0.068)
-      faceGroup.add(glint2)
+        // 아치형 눈꼬리 아래 작은 별빛 글린트
+        const glint = new THREE.Mesh(new THREE.SphereGeometry(0.026, 10, 10), glintMat)
+        glint.position.set(xSide * 0.04, -0.015, 0.055)
+        eyeGroup.add(glint)
+      } else if (expr === 'sharp') {
+        // 😼 2. 샤프 (도도하고 카리스마 있는 캣아이: 위로 22도 올라간 날렵한 눈매)
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.115, 20, 18), eyeMat)
+        eye.scale.set(0.88, 1.25, 0.6)
+        eye.rotation.z = (xSide > 0 ? 1 : -1) * 0.38
+        eyeGroup.add(eye)
+
+        // 날렵한 다이아몬드형 글린트
+        const glint1 = new THREE.Mesh(new THREE.SphereGeometry(0.038, 10, 10), glintMat)
+        glint1.scale.set(0.7, 1.3, 0.8)
+        glint1.position.set(xSide * -0.02, 0.08, 0.065)
+        eyeGroup.add(glint1)
+      } else if (isRainbowStar) {
+        // ⭐ 3. 스타 레인보우 (별빛 글린트 눈: 만화풍 반짝이 십자 별빛 눈)
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.12, 22, 20), eyeMat)
+        eye.scale.set(1.05, 1.15, 0.65)
+        eyeGroup.add(eye)
+
+        // 십자 별빛 하이라이트 (가로/세로 막대)
+        const starV = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.06, 0.02), glintMat)
+        starV.position.set(xSide * -0.02, 0.05, 0.07)
+        eyeGroup.add(starV)
+        const starH = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.02, 0.02), glintMat)
+        starH.position.set(xSide * -0.02, 0.05, 0.07)
+        eyeGroup.add(starH)
+
+        // 작은 보조 하이라이트
+        const glintSub = new THREE.Mesh(new THREE.SphereGeometry(0.022, 10, 10), glintMat)
+        glintSub.position.set(xSide * 0.03, -0.025, 0.07)
+        eyeGroup.add(glintSub)
+      } else {
+        // 🥺 4. 라운드 (기본 순수한 왕방울 눈: 듀얼 원형 하이라이트)
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.115, 20, 18), eyeMat)
+        eye.scale.set(1, 1.08, 0.65)
+        eyeGroup.add(eye)
+
+        // 큰 반짝이 하이라이트
+        const glint1 = new THREE.Mesh(new THREE.SphereGeometry(0.042, 12, 12), glintMat)
+        glint1.position.set(xSide * -0.032, 0.07, 0.068)
+        eyeGroup.add(glint1)
+
+        // 작은 보조 하이라이트
+        const glint2 = new THREE.Mesh(new THREE.SphereGeometry(0.022, 10, 10), glintMat)
+        glint2.position.set(xSide * 0.035, -0.015, 0.068)
+        eyeGroup.add(glint2)
+      }
+
+      faceGroup.add(eyeGroup)
 
       // 말랑 볼터치
       const cheek = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 14), cheekMat)

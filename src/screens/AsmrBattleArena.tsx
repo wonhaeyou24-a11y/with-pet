@@ -107,51 +107,66 @@ export default function AsmrBattleArena({
   const cInfo = SPECIES_INFO[cLook.mallang?.morphForm ?? challenger.species] ?? SPECIES_INFO[challenger.species]
   const dInfo = SPECIES_INFO[dLook.mallang?.morphForm ?? defender.species] ?? SPECIES_INFO[defender.species]
 
-  // 🛡️ 3인의 아군 레이드 협력 파티원 룩 생성 (몽실이, 콩콩이, 별비늘)
-  const allyMongsil: MonsterLook = useMemo(() => ({
-    species: 'mongsil',
-    palette: 1,
-    bodyType: 'normal',
-    scale: 0.9,
-    ears: 0,
-    tail: 0,
-    top: 0,
-    expression: 'round',
-    patternSeed: 12,
-    shiny: false,
-    evoStage: 2,
-    evoBranch: 'sweet-melty',
-  }), [])
-
-  const allyKongkong: MonsterLook = useMemo(() => ({
-    species: 'kongkong',
-    palette: 2,
-    bodyType: 'normal',
-    scale: 0.9,
-    ears: 1,
-    tail: 1,
-    top: 0,
-    expression: 'sharp',
-    patternSeed: 44,
-    shiny: false,
-    evoStage: 2,
-    evoBranch: 'crispy-crunch',
-  }), [])
-
-  const allyByeolbineul: MonsterLook = useMemo(() => ({
-    species: 'byeolbineul',
-    palette: 3,
-    bodyType: 'normal',
-    scale: 0.85,
-    ears: 0,
-    tail: 0,
-    top: 1,
-    expression: 'round',
-    patternSeed: 88,
-    shiny: false,
-    evoStage: 2,
-    evoBranch: 'gourmet-rainbow',
-  }), [])
+  // 🛡️ 거대 보스 레이드에 참여한 모든 지인들의 펫 (옹기종기 응원단)
+  const raidAllies = useMemo(
+    () => [
+      {
+        id: 'ally-1',
+        ownerName: '몽실 님 펫',
+        icon: '🍓',
+        look: { species: 'mongsil', palette: 1, bodyType: 'normal', scale: 0.85, ears: 0, tail: 0, top: 0, expression: 'round', patternSeed: 12, shiny: false, evoStage: 2, evoBranch: 'sweet-melty' } as MonsterLook,
+        left: '4%',
+        bottom: '8%',
+        delay: '0s',
+      },
+      {
+        id: 'ally-2',
+        ownerName: '별비늘 님 펫',
+        icon: '✨',
+        look: { species: 'byeolbineul', palette: 3, bodyType: 'normal', scale: 0.8, ears: 0, tail: 0, top: 1, expression: 'round', patternSeed: 88, shiny: false, evoStage: 2, evoBranch: 'gourmet-rainbow' } as MonsterLook,
+        left: '17%',
+        bottom: '13%',
+        delay: '0.4s',
+      },
+      {
+        id: 'ally-3',
+        ownerName: '슈슈 님 펫',
+        icon: '🍬',
+        look: { species: 'tanghulu', palette: 0, bodyType: 'normal', scale: 0.8, ears: 0, tail: 0, top: 0, expression: 'sharp', patternSeed: 55, shiny: false, evoStage: 2, evoBranch: 'crispy-crunch' } as MonsterLook,
+        left: '29%',
+        bottom: '16%',
+        delay: '0.8s',
+      },
+      {
+        id: 'ally-4',
+        ownerName: '마포 님 펫',
+        icon: '🍫',
+        look: { species: 'dubai-cookie', palette: 2, bodyType: 'normal', scale: 0.85, ears: 1, tail: 0, top: 0, expression: 'round', patternSeed: 33, shiny: false, evoStage: 2, evoBranch: 'sweet-melty' } as MonsterLook,
+        right: '29%',
+        bottom: '16%',
+        delay: '0.2s',
+      },
+      {
+        id: 'ally-5',
+        ownerName: '흑염 님 펫',
+        icon: '🔥',
+        look: { species: 'heugyeom', palette: 1, bodyType: 'normal', scale: 0.8, ears: 1, tail: 1, top: 0, expression: 'sharp', patternSeed: 77, shiny: false, evoStage: 2, evoBranch: 'royal-chef' } as MonsterLook,
+        right: '17%',
+        bottom: '13%',
+        delay: '0.6s',
+      },
+      {
+        id: 'ally-6',
+        ownerName: '콩콩 님 펫',
+        icon: '🍪',
+        look: { species: 'kongkong', palette: 2, bodyType: 'normal', scale: 0.85, ears: 1, tail: 1, top: 0, expression: 'sharp', patternSeed: 44, shiny: false, evoStage: 2, evoBranch: 'crispy-crunch' } as MonsterLook,
+        right: '4%',
+        bottom: '8%',
+        delay: '1.0s',
+      },
+    ],
+    [],
+  )
 
   const cHp = currentTurn ? currentTurn.challengerHp : sim.challengerMaxHp
   const rawDHp = currentTurn ? currentTurn.defenderHp : sim.defenderMaxHp
@@ -974,88 +989,68 @@ export default function AsmrBattleArena({
             </div>
           </div>
 
-          {/* 🛡️ [하단 전면] 거대 보스 앞 옹기종기 모인 아군 파티 (겹침 완전 차단 & 비동기 레이드 구도) */}
+          {/* 🛡️ [하단 전면] 거대 보스 앞 옹기종기 모인 지인 참여자 펫들 + 전면 단독 돌격 공격하는 내 펫 */}
           {isRaid ? (
             <div
               style={{
                 position: 'absolute',
-                bottom: '4%',
-                left: 0,
-                right: 0,
-                height: 110,
-                zIndex: 20,
-                display: 'flex',
-                alignItems: 'flex-end',
-                justifyContent: 'center',
-                gap: 8,
-                padding: '0 8px',
+                inset: 0,
                 pointerEvents: 'none',
+                zIndex: 20,
               }}
             >
-              {/* [파티원 1] 🍓 생크림 몽실이 (지인 서포터) */}
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  animation: 'partyCheerBounce 2.5s ease-in-out infinite',
-                  transform: 'translateY(-10px)',
-                }}
-              >
+              {/* 1. 지인 참여자 펫들 (옹기종기 관전 및 응원단, 크기 34px로 아기자기하게 겹침 없이 분산 배치) */}
+              {raidAllies.map((ally) => (
                 <div
+                  key={ally.id}
                   style={{
-                    background: 'rgba(0,0,0,0.65)',
-                    border: '1px solid #FF80AB',
-                    color: '#FFD1DC',
-                    fontSize: 7.5,
-                    fontWeight: 800,
-                    padding: '1px 5px',
-                    borderRadius: 999,
-                    marginBottom: 2,
-                    whiteSpace: 'nowrap',
+                    position: 'absolute',
+                    left: ally.left,
+                    right: ally.right,
+                    bottom: ally.bottom,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    animation: `partyCheerBounce 2.6s ease-in-out infinite`,
+                    animationDelay: ally.delay,
+                    zIndex: 21,
                   }}
                 >
-                  🍓 몽실 님
+                  <div
+                    style={{
+                      background: 'rgba(0,0,0,0.72)',
+                      border: '1px solid rgba(255, 255, 255, 0.4)',
+                      color: '#FFF8E1',
+                      fontSize: 8,
+                      fontWeight: 800,
+                      padding: '1px 5px',
+                      borderRadius: 999,
+                      marginBottom: 2,
+                      whiteSpace: 'nowrap',
+                      boxShadow: '0 2px 5px rgba(0,0,0,0.4)',
+                    }}
+                  >
+                    {ally.icon} {ally.ownerName}
+                  </div>
+                  <MonsterView look={ally.look} size={34} />
                 </div>
-                <MonsterView look={allyMongsil} size={50} />
-              </div>
+              ))}
 
-              {/* [파티원 2] ✨ 별비늘 카멜레온 (지인 가드) */}
+              {/* 2. [전면 중앙 돌격 리더] 👑 공격하는 나(내 펫) - 탈진할 때까지 거대보스를 홀로 정면 타격! */}
               <div
                 style={{
+                  position: 'absolute',
+                  bottom: '2%',
+                  left: '50%',
+                  transform: cHp <= 0
+                    ? 'translateX(-50%) rotate(-85deg) translateY(14px)'
+                    : 'translateX(-50%) translateY(-6px)',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  animation: 'partyCheerBounce 3.1s ease-in-out infinite',
-                  transform: 'translateY(-14px)',
-                }}
-              >
-                <div
-                  style={{
-                    background: 'rgba(0,0,0,0.65)',
-                    border: '1px solid #B388FF',
-                    color: '#EDE7F6',
-                    fontSize: 7.5,
-                    fontWeight: 800,
-                    padding: '1px 5px',
-                    borderRadius: 999,
-                    marginBottom: 2,
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  ✨ 별비늘 님
-                </div>
-                <MonsterView look={allyByeolbineul} size={48} />
-              </div>
-
-              {/* [중앙 메인 리더] 👑 내 펫 (전면 중앙 타격 리더) */}
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  position: 'relative',
-                  zIndex: 25,
+                  zIndex: 26,
+                  transition: 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                  filter: cHp <= 0 ? 'grayscale(0.7) opacity(0.85)' : undefined,
                 }}
               >
                 {/* 내 캐릭터 플로팅 전투 텍스트 */}
@@ -1064,7 +1059,7 @@ export default function AsmrBattleArena({
                     key={`c-float-${stepIdx}`}
                     style={{
                       position: 'absolute',
-                      top: '-36%',
+                      top: '-42%',
                       zIndex: 35,
                       display: 'flex',
                       flexDirection: 'column',
@@ -1107,60 +1102,37 @@ export default function AsmrBattleArena({
                   </div>
                 )}
 
+                {/* 내 펫 상태 머리말: 공격 중 vs 탈진 */}
                 <div
                   style={{
-                    background: 'linear-gradient(90deg, #FF6F00, #FFA000)',
-                    color: '#210C1B',
-                    fontSize: 8,
+                    background: cHp <= 0
+                      ? 'linear-gradient(90deg, #546E7A, #37474F)'
+                      : 'linear-gradient(90deg, #FF1744, #FF9100)',
+                    color: '#FFFFFF',
+                    fontSize: 8.5,
                     fontWeight: 900,
-                    padding: '1px 6px',
+                    padding: '2px 8px',
                     borderRadius: 999,
                     marginBottom: 2,
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
                     whiteSpace: 'nowrap',
+                    border: '1px solid #FFFFFF',
                   }}
                 >
-                  👑 내 펫 (Lv.{challenger.level})
+                  {cHp <= 0 ? '😵 탈진... (쓰러짐)' : `⚔️ 단독 돌격 중: ${challenger.name || cInfo?.name}`}
                 </div>
 
+                {/* 전면 돌격 파이터 (크기 72px) */}
                 <BattleFighter
                   look={cLook}
-                  size={74}
+                  size={72}
                   title={challenger.name ?? cInfo?.name}
-                  pose={cPose}
+                  pose={cHp <= 0 ? { transform: 'scale(0.85)', ms: 300, ease: 'ease' } : cPose}
                   hitClass={cHitReaction || undefined}
                   hitKey={stepIdx}
                   flash={isHitMoment && isDefenderActor}
                   trail={actionPhase === 'strike' && isChallengerActor}
                 />
-              </div>
-
-              {/* [파티원 3] 🍪 두바이 콩콩이 (지인 딜러) */}
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  animation: 'partyCheerBounce 2.8s ease-in-out infinite',
-                  transform: 'translateY(-10px)',
-                }}
-              >
-                <div
-                  style={{
-                    background: 'rgba(0,0,0,0.65)',
-                    border: '1px solid #FFB74D',
-                    color: '#FFE0B2',
-                    fontSize: 7.5,
-                    fontWeight: 800,
-                    padding: '1px 5px',
-                    borderRadius: 999,
-                    marginBottom: 2,
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  🍪 콩콩 님
-                </div>
-                <MonsterView look={allyKongkong} size={50} />
               </div>
             </div>
           ) : (
