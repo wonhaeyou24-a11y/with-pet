@@ -178,6 +178,16 @@ function runLocalCareFallback(
     if (action === 'feed') {
       const food = DESSERT_FOODS.find((f) => f.id === params.foodId)
       if (!food) return { ok: false, code: 'bad_food', message: '알 수 없는 토핑이에요.' }
+
+      // 🍓 포만감 가드: 당충전이 이미 100%이면 과식 방지
+      if ((m.hunger ?? 80) >= 100) {
+        return {
+          ok: false,
+          code: 'full',
+          message: '😋 배가 빵빵해서 더는 들어가지 않아요! (포만감 100% 달성)',
+        }
+      }
+
       if ((cache.foodBag[food.id] ?? 0) <= 0) {
         return { ok: false, code: 'empty_food', message: `[${food.name}] 토핑이 다 떨어졌어요! 베이커리 상점에서 구해 볼까요?` }
       }
@@ -240,18 +250,22 @@ function runLocalCareFallback(
       let message = ''
 
       if (kind === 'play') {
-        if ((m.fatigue ?? 0) >= 90) {
-          return { ok: false, code: 'tired', message: '💤 너무 노곤해서 놀 힘이 없어요! 먼저 쇼케이스 휴식을 해 주세요.' }
+        if ((m.fatigue ?? 0) >= 80) {
+          return { ok: false, code: 'tired', message: '💤 너무 노곤해서 놀 힘이 없어요! 먼저 쇼케이스 낮잠 휴식을 해 주세요.' }
         }
-        m.mood = clamp((m.mood ?? 80) + 22, 0, 100)
-        m.fatigue = clamp((m.fatigue ?? 0) + 5, 0, 100)
+        m.mood = clamp((m.mood ?? 80) + 20, 0, 100)
+        m.fatigue = clamp((m.fatigue ?? 0) + 16, 0, 100) // 신나게 놀아서 피로도 누적
+        m.hunger = clamp((m.hunger ?? 80) - 8, 0, 100) // 신체 활동으로 당 소모 (선순환)
         m.personality_active = clamp(m.personality_active + 3, -100, 100)
         m.personality_bond = clamp(m.personality_bond + 3, -100, 100)
         expGain = 12
         coinGain = 15
         careCounts.play = (careCounts.play ?? 0) + 1
-        message = '🎈 탱글탱글 볼살을 톡톡 튀기며 신나게 놀았어요! (+15 코인)'
+        message = '🎈 탱글탱글 볼살을 톡톡 튀기며 신나게 놀았어요! (노곤함 +16, 당충전 -8, +15 코인)'
       } else if (kind === 'clean') {
+        if ((m.cleanliness ?? 100) >= 100) {
+          return { ok: false, code: 'already_clean', message: '✨ 이미 온몸이 눈부시게 깨끗해서 더 닦을 부스러기가 없어요!' }
+        }
         m.cleanliness = clamp((m.cleanliness ?? 100) + 35, 0, 100)
         m.mood = clamp((m.mood ?? 80) + 6, 0, 100)
         expGain = 10
@@ -259,13 +273,17 @@ function runLocalCareFallback(
         careCounts.clean = (careCounts.clean ?? 0) + 1
         message = '✨ 부스러기를 털고 반짝반짝 슈가 글레이즈 윤기를 냈어요! (+12 코인)'
       } else {
-        m.fatigue = clamp((m.fatigue ?? 0) - 35, 0, 100)
+        if ((m.fatigue ?? 0) <= 10) {
+          return { ok: false, code: 'not_tired', message: '✨ 지금은 노곤함 없이 아주 쌩쌩해요! (낮잠 휴식 불필요)' }
+        }
+        m.fatigue = clamp((m.fatigue ?? 0) - 40, 0, 100)
+        m.hunger = clamp((m.hunger ?? 80) - 10, 0, 100) // 푹 자고 일어나서 당 소모 (배고픔 발생 -> 먹이기 선순환)
         m.mood = clamp((m.mood ?? 80) + 5, 0, 100)
         m.personality_active = clamp(m.personality_active - 3, -100, 100)
         expGain = 8
         coinGain = 10
         careCounts.rest = (careCounts.rest ?? 0) + 1
-        message = '🌙 시원한 파티세리 쇼케이스에서 푹 쉬며 쫀득한 탄력을 되찾았어요! (+10 코인)'
+        message = '🌙 시원한 쇼케이스에서 푹 자고 쫀득한 탄력을 되찾았어요! (노곤함 -40, 당충전 -10, +10 코인)'
       }
 
       m.care_counts = careCounts

@@ -390,11 +390,16 @@ export default function CarePantry({ monster, coins, foodBag, onUpdate, onBack }
                   {count > 0 ? (
                     <button
                       className="btn"
-                      disabled={busy}
+                      disabled={busy || (monster.hunger ?? 80) >= 100}
                       onClick={() => handleFeed(food.id, food.asmr)}
-                      style={{ padding: '8px 14px', fontSize: 12, flexShrink: 0 }}
+                      style={{
+                        padding: '8px 14px',
+                        fontSize: 12,
+                        flexShrink: 0,
+                        opacity: (monster.hunger ?? 80) >= 100 ? 0.6 : 1,
+                      }}
                     >
-                      🥄 먹이기
+                      {(monster.hunger ?? 80) >= 100 ? '배부름' : '🥄 먹이기'}
                     </button>
                   ) : (
                     <button
@@ -436,14 +441,32 @@ export default function CarePantry({ monster, coins, foodBag, onUpdate, onBack }
                   </div>
                   <div style={{ fontSize: 12, color: '#7A6A60', marginTop: 2 }}>{act.desc}</div>
                 </div>
-                <button
-                  className="btn"
-                  disabled={busy}
-                  onClick={() => handleCareAction(act.id, act.asmr)}
-                  style={{ padding: '9px 14px', fontSize: 12, flexShrink: 0 }}
-                >
-                  실행
-                </button>
+                {(() => {
+                  const isPlay = act.id === 'play'
+                  const isClean = act.id === 'clean'
+                  const isRest = act.id === 'rest'
+                  const cantPlay = isPlay && (monster.fatigue ?? 0) >= 80
+                  const cantClean = isClean && (monster.cleanliness ?? 100) >= 100
+                  const cantRest = isRest && (monster.fatigue ?? 0) <= 10
+                  const isBlocked = cantPlay || cantClean || cantRest
+                  const label = cantPlay ? '지침' : cantClean ? '깨끗함' : cantRest ? '쌩쌩함' : '실행'
+
+                  return (
+                    <button
+                      className="btn"
+                      disabled={busy || isBlocked}
+                      onClick={() => handleCareAction(act.id, act.asmr)}
+                      style={{
+                        padding: '9px 14px',
+                        fontSize: 12,
+                        flexShrink: 0,
+                        opacity: isBlocked ? 0.6 : 1,
+                      }}
+                    >
+                      {label}
+                    </button>
+                  )
+                })()}
               </div>
             ))}
           </div>

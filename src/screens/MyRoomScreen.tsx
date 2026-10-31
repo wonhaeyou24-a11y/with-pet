@@ -24,7 +24,7 @@ import { IS_DEV_MOCK } from '../lib/devMode'
 import { refreshAccount } from '../lib/shopApi'
 import { guestbookAdd, guestbookDelete, roomGet, roomLike, roomSave, type RoomEntryRaw } from '../lib/roomApi'
 import { miniRoomBgm, BGM_TRACKS, type BgmTrack } from '../lib/bgmPlayer'
-import { playDessertAsmr } from '../lib/sound'
+import { getSpeciesSoundKind, playDessertAsmr } from '../lib/sound'
 import Monster3DView from '../monsters/Monster3DView'
 import { BackIcon } from '../ui/Icons'
 
@@ -340,6 +340,37 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
       setPetActionState(`💡 ${furn.name}을(를) 호기심 가득한 눈으로 톡톡 건드리며 탐색해요!`)
       window.setTimeout(() => setBouncePet(false), 800)
     }
+  }
+
+  // 🐾 펫 직접 터치 상호작용 (고유 디저트 ASMR 사운드 & 뽀용 바운스 & 지인 방명록 응원 연계)
+  const handleTouchPet = () => {
+    const activeSpecies = look.mallang?.morphForm ?? monster.species
+    const soundKind = getSpeciesSoundKind(activeSpecies, look.mallang?.dessertBase)
+    playDessertAsmr(soundKind, 1)
+    setBouncePet(true)
+    setPetActivity('jump')
+
+    if (isVisitor) {
+      const visitorTargetName = visit?.nickname ?? '지인'
+      addRibbonCoins(5, '지인 펫 쓰다듬기 교감')
+      setPetActionState(`${visitorTargetName}님의 펫을 쓰다듬어 주었어요! 꼬리를 흔들며 기분 좋게 그르릉거려요 🍰 (🎀 +5 리본)`)
+      showToast(`💖 ${visitorTargetName}님의 펫을 쓰다듬고 디저트 ASMR 소리를 들었습니다! (+5 리본)`)
+    } else {
+      const petTouchChatters = [
+        '토닥토닥 쓰다듬어 주니 쫀득하게 부풀어 올랐어요! 💖',
+        '기분 좋은 디저트 ASMR 소리를 내며 품에 쏙 안겨요! ✨',
+        '보들보들한 볼살을 부비며 행복해하고 있어요! 🌸',
+        '달콤한 향기를 풍기며 방 안을 콩콩 뛰어요! 🐾',
+      ]
+      const randomChatter = petTouchChatters[Math.floor(Math.random() * petTouchChatters.length)]
+      setPetActionState(randomChatter)
+      showToast('💖 펫을 다정하게 쓰다듬었습니다!')
+    }
+
+    window.setTimeout(() => {
+      setBouncePet(false)
+      setPetActivity('idle')
+    }, 2400)
   }
 
   // 좋아요(응원 하트) 누르기
@@ -885,8 +916,10 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
             </div>
           ))}
 
-          {/* 5. 중앙 3D 펫 모델 (미니룸 가구와 어울리는 아담하고 귀여운 황금 비율 115px) */}
+          {/* 5. 중앙 3D 펫 모델 (터치 시 고유 디저트 ASMR 사운드 재생 & 뽀용 바운스 반응) */}
           <div
+            onClick={handleTouchPet}
+            title="터치하여 펫 고유 디저트 ASMR 듣기 & 쓰다듬기"
             style={{
               position: 'absolute',
               bottom: 2,
@@ -902,6 +935,7 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
               width: 115,
               height: 115,
               zIndex: 3,
+              cursor: 'pointer',
             }}
           >
             {/* 펫 머리 위 상태 이모티콘 (낮잠 zzz / 점프 별빛 / 식사 하트) */}

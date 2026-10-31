@@ -14,6 +14,7 @@ import { supabase } from '../lib/supabase'
 import MonsterView from '../monsters/MonsterView'
 import { callBattle, isRealMonsterId } from '../lib/battleApi'
 import { IS_DEV_MOCK } from '../lib/devMode'
+import { getPvpMatchRecords, formatTimeAgo, type PvpMatchRecord } from '../lib/pvpHistory'
 import MonsterSnapshot from '../monsters/MonsterSnapshot'
 import { BackIcon, ElementIcon } from '../ui/Icons'
 import {
@@ -247,6 +248,10 @@ export default function DessertPlaza({
   // 🐉 디저트 월드 보스 레이드 스케줄러 상태 (1초 주기 동기화)
   const [raidStatus, setRaidStatus] = useState<RaidStatus>(() => getWorldBossStatus())
   const [showRaidModal, setShowRaidModal] = useState<boolean>(false)
+
+  // ⚔️ 부재 중 방어전 기록 카드 모달 상태
+  const [showDefenseHistoryModal, setShowDefenseHistoryModal] = useState<boolean>(false)
+  const [pvpRecords] = useState<PvpMatchRecord[]>(() => getPvpMatchRecords())
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -824,6 +829,11 @@ export default function DessertPlaza({
             const myLook = myLookMemo
             return (
               <div
+                onClick={(e) => {
+                  e.stopPropagation()
+                  playDessertAsmr('acorn-snap')
+                  setShowDefenseHistoryModal(true)
+                }}
                 style={{
                   position: 'absolute',
                   left: CENTER_X - 55,
@@ -833,24 +843,32 @@ export default function DessertPlaza({
                   flexDirection: 'column',
                   alignItems: 'center',
                   zIndex: Math.floor(CENTER_Y),
-                  pointerEvents: 'none',
+                  cursor: 'pointer',
+                  transform: 'scale(1)',
+                  transition: 'transform 0.2s ease',
                 }}
               >
-                {/* 내 펫 뱃지 */}
+                {/* 내 펫 뱃지 (방어전 전적 확인 유도) */}
                 <div
                   style={{
-                    padding: '2px 8px',
+                    padding: '3px 8px',
                     borderRadius: 999,
                     background: 'linear-gradient(90deg, #FF7043, #D84315)',
                     color: '#FFFFFF',
-                    fontSize: 10,
+                    fontSize: 9.5,
                     fontWeight: 900,
                     boxShadow: '0 2px 6px rgba(216,67,21,0.3)',
                     whiteSpace: 'nowrap',
                     marginBottom: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 3,
                   }}
                 >
-                  ⭐ 내 파트너 (Lv.{myMonster.level})
+                  <span>⭐ 내 파트너</span>
+                  <span style={{ background: '#FFF', color: '#D84315', padding: '0 4px', borderRadius: 999, fontSize: 8.5 }}>
+                    📜 전적
+                  </span>
                 </div>
 
                 {/* 실제 3D Three.js 몬스터 및 발밑 그림자 */}
@@ -1105,6 +1123,32 @@ export default function DessertPlaza({
                 <span style={{ color: '#6D4C41', fontSize: 10, lineHeight: 1.25, wordBreak: 'keep-all' }}>
                   {selectedFriend.bio}
                 </span>
+                {/* ⚔️ 상대와의 최근 전적 카드 미니 뱃지 */}
+                {(() => {
+                  const match = pvpRecords.find((r) => r.opponentName === selectedFriend.ownerNickname)
+                  if (!match) return null
+                  const isWin = match.result === 'win'
+                  return (
+                    <span
+                      style={{
+                        marginTop: 2,
+                        padding: '1px 6px',
+                        borderRadius: 6,
+                        fontSize: 9.5,
+                        fontWeight: 800,
+                        background: isWin ? '#E8F5E9' : '#FBE9E7',
+                        color: isWin ? '#2E7D32' : '#C62828',
+                        border: isWin ? '1px solid #A5D6A7' : '1px solid #FFAB91',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 3,
+                        width: 'fit-content',
+                      }}
+                    >
+                      {isWin ? '🛡️ 최근 방어전: 승리 (+18 RP)' : '💔 최근 방어전: 패배 (설욕전 추천!)'}
+                    </span>
+                  )
+                })()}
               </div>
             </div>
           </div>
@@ -1474,6 +1518,244 @@ export default function DessertPlaza({
                 color: '#4B5563',
                 fontSize: 12,
                 fontWeight: 800,
+                cursor: 'pointer',
+              }}
+            >
+              닫기
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 📜 부재 중 나에게 온 대전 기록 (방어전 카드) & 복수전/재도전 모달 */}
+      {showDefenseHistoryModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.65)',
+            backdropFilter: 'blur(5px)',
+            zIndex: 110,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+            animation: 'fadeIn 0.2s ease',
+          }}
+          onClick={() => setShowDefenseHistoryModal(false)}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: 360,
+              maxHeight: '84vh',
+              background: '#FFFDF9',
+              borderRadius: 22,
+              border: '2px solid #FF8A65',
+              boxShadow: '0 14px 36px rgba(0, 0, 0, 0.35)',
+              padding: '16px 14px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 10,
+              overflow: 'hidden',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 모달 헤더 */}
+            <div className="row between" style={{ borderBottom: '1.5px solid #FBE9E7', paddingBottom: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 20 }}>📜</span>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#3E2723' }}>
+                    나에게 온 대전 기록 (방어전)
+                  </h3>
+                  <div style={{ fontSize: 10, color: '#8D6E63' }}>
+                    부재 중 지인들이 신청한 대전과 승패 카드입니다.
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowDefenseHistoryModal(false)}
+                style={{
+                  border: 'none',
+                  background: '#EFEBE9',
+                  borderRadius: '50%',
+                  width: 26,
+                  height: 26,
+                  cursor: 'pointer',
+                  fontWeight: 900,
+                  color: '#5D4037',
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* 내 방어전 통계 요약 바 */}
+            <div
+              style={{
+                background: 'linear-gradient(90deg, #FFF3E0 0%, #FFE0B2 100%)',
+                borderRadius: 14,
+                padding: '8px 12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                border: '1px solid #FFCC80',
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 800, color: '#D84315' }}>총 방어 전적</div>
+                <div style={{ fontSize: 13, fontWeight: 900, color: '#BF360C' }}>
+                  {pvpRecords.filter((r) => r.result === 'win').length}승 {pvpRecords.filter((r) => r.result === 'loss').length}패
+                  <span style={{ fontSize: 10, color: '#E65100', marginLeft: 4 }}>
+                    (승률 {Math.round((pvpRecords.filter((r) => r.result === 'win').length / Math.max(1, pvpRecords.length)) * 100)}%)
+                  </span>
+                </div>
+              </div>
+              <div
+                style={{
+                  background: '#FFFFFF',
+                  borderRadius: 10,
+                  padding: '4px 8px',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.06)',
+                  textAlign: 'right',
+                }}
+              >
+                <div style={{ fontSize: 9, color: '#795548', fontWeight: 800 }}>방어 누적 획득</div>
+                <div style={{ fontSize: 11, fontWeight: 900, color: '#BE185D' }}>
+                  🎀 +{pvpRecords.reduce((sum, r) => sum + r.ribbonReward, 0)} 리본
+                </div>
+              </div>
+            </div>
+
+            {/* 전적 카드 스크롤 목록 */}
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+                overflowY: 'auto',
+                paddingRight: 2,
+                flex: 1,
+              }}
+            >
+              {pvpRecords.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '24px 0', color: '#8D6E63', fontSize: 12 }}>
+                  아직 나에게 도착한 대전 신청이 없어요!
+                </div>
+              ) : (
+                pvpRecords.map((rec) => {
+                  const isWin = rec.result === 'win'
+                  return (
+                    <div
+                      key={rec.id}
+                      style={{
+                        background: isWin ? '#F1F8E9' : '#FFF3E0',
+                        border: isWin ? '1.5px solid #AED581' : '1.5px solid #FFAB91',
+                        borderRadius: 14,
+                        padding: '10px 12px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 6,
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                      }}
+                    >
+                      <div className="row between">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span
+                            style={{
+                              padding: '2px 6px',
+                              borderRadius: 6,
+                              fontSize: 10,
+                              fontWeight: 900,
+                              background: isWin ? '#43A047' : '#E64A19',
+                              color: '#FFFFFF',
+                            }}
+                          >
+                            {isWin ? '🛡️ 방어 성공' : '💔 방어 실패'}
+                          </span>
+                          <span style={{ fontSize: 12, fontWeight: 900, color: '#3E2723' }}>
+                            {rec.opponentName}
+                          </span>
+                        </div>
+                        <span style={{ fontSize: 10, fontWeight: 700, color: '#8D6E63' }}>
+                          {formatTimeAgo(rec.timestamp)}
+                        </span>
+                      </div>
+
+                      <div style={{ fontSize: 11, color: '#5D4037', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span>
+                          상대 펫: <strong>{rec.opponentPetName}</strong> (Lv.{rec.opponentLevel})
+                        </span>
+                        <span style={{ fontWeight: 900, color: isWin ? '#2E7D32' : '#C62828' }}>
+                          {rec.scoreDiff > 0 ? `+${rec.scoreDiff} RP` : `${rec.scoreDiff} RP`}
+                        </span>
+                      </div>
+
+                      <div style={{ fontSize: 10, color: '#795548', lineHeight: 1.3 }}>
+                        {rec.message}
+                      </div>
+
+                      {/* 복수전 / 재도전 신청 버튼 */}
+                      <button
+                        onClick={() => {
+                          setShowDefenseHistoryModal(false)
+                          playDessertAsmr('mochi-squish')
+                          // entries에서 해당 상대를 찾거나 생성
+                          const found = entries.find((e) => e.ownerNickname === rec.opponentName)
+                          if (found) {
+                            onChallenge(found, 'friendly')
+                          } else {
+                            // 모의 지인 엔트리로 대전 시작
+                            const fallbackFriend = entries[0] ?? PLAZA_SHOWCASE_FRIENDS[0]
+                            onChallenge(
+                              {
+                                ...fallbackFriend,
+                                ownerNickname: rec.opponentName,
+                                bio: '나에게 친선 대전을 먼저 신청했던 파티시에',
+                                monster: {
+                                  ...fallbackFriend.monster,
+                                  name: rec.opponentPetName,
+                                  level: rec.opponentLevel,
+                                },
+                              },
+                              'friendly',
+                            )
+                          }
+                        }}
+                        style={{
+                          marginTop: 2,
+                          padding: '7px 0',
+                          borderRadius: 10,
+                          border: 'none',
+                          background: isWin
+                            ? 'linear-gradient(90deg, #66BB6A 0%, #43A047 100%)'
+                            : 'linear-gradient(90deg, #FF7043 0%, #E64A19 100%)',
+                          color: '#FFFFFF',
+                          fontSize: 11.5,
+                          fontWeight: 900,
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.12)',
+                        }}
+                      >
+                        {isWin ? '⚔️ 타이틀 방어전 신청' : '⚔️ 설욕의 복수전 신청!!'}
+                      </button>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+
+            <button
+              onClick={() => setShowDefenseHistoryModal(false)}
+              style={{
+                padding: '9px',
+                borderRadius: 12,
+                border: '1px solid #D7CCC8',
+                background: '#FFFFFF',
+                color: '#5D4037',
+                fontSize: 12,
+                fontWeight: 900,
                 cursor: 'pointer',
               }}
             >

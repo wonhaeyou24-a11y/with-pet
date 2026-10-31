@@ -11,6 +11,7 @@ import { SPECIES_INFO } from '../config/species'
 import { monsterLook, type MonsterRow } from '../lib/api'
 import { simulateAsmrBattle, type BattleSimulationResult } from '../lib/battleEngine'
 import { playDessertAsmr } from '../lib/sound'
+import WorldBoss3DView from '../monsters/WorldBoss3DView'
 import BattleFighter, { type Pose } from '../ui/BattleFighter'
 import BattleFx from '../ui/BattleFx'
 import MonsterView from '../monsters/MonsterView'
@@ -546,34 +547,34 @@ export default function AsmrBattleArena({
         </span>
       </div>
 
-      {/* 2. 상단 HUD: 4인 파티 vs 거대 보스 체력 상태바 */}
+      {/* 2. 상단 HUD: 4인 파티 vs 거대 보스 체력 상태바 (비율 확대 & 선명한 터치감) */}
       <div
         style={{
           width: '100%',
-          background: isRaid ? 'rgba(25, 12, 38, 0.85)' : '#FFFDF9',
-          borderRadius: 14,
+          background: isRaid ? 'rgba(25, 12, 38, 0.88)' : '#FFFDF9',
+          borderRadius: 16,
           border: isRaid ? '1.5px solid #AB47BC' : '1.5px solid #F0DFB8',
-          padding: '5px 10px',
+          padding: '8px 12px',
           display: 'flex',
           alignItems: 'center',
-          gap: 8,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+          gap: 10,
+          boxShadow: '0 3px 10px rgba(0,0,0,0.22)',
           backdropFilter: 'blur(6px)',
           flexShrink: 0,
         }}
       >
         {/* 왼쪽: 내 레이드 파티 대표 체력 */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <div className="row between" style={{ fontSize: 10.5, fontWeight: 900 }}>
-            <span style={{ color: isRaid ? '#FFF8E1' : '#3B2F2F', display: 'flex', alignItems: 'center', gap: 3, maxWidth: 95, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              <ElementIcon element={challenger.element} size={11} />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <div className="row between" style={{ fontSize: 11.5, fontWeight: 900 }}>
+            <span style={{ color: isRaid ? '#FFF8E1' : '#3B2F2F', display: 'flex', alignItems: 'center', gap: 4, maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <ElementIcon element={challenger.element} size={13} />
               {challenger.name || cInfo?.name}
             </span>
-            <span style={{ color: isRaid ? '#FFD54F' : '#D84315', fontSize: 9.5 }}>
+            <span style={{ color: isRaid ? '#FFD54F' : '#D84315', fontSize: 10 }}>
               {isRaid ? '4인 파티 리더' : `나 · Lv.${challenger.level}`}
             </span>
           </div>
-          <div style={{ height: 6, borderRadius: 999, background: isRaid ? 'rgba(255,255,255,0.12)' : '#F5E8C9', overflow: 'hidden' }}>
+          <div style={{ height: 9, borderRadius: 999, background: isRaid ? 'rgba(255,255,255,0.15)' : '#F5E8C9', overflow: 'hidden' }}>
             <div
               style={{
                 width: `${cPct}%`,
@@ -584,7 +585,7 @@ export default function AsmrBattleArena({
               }}
             />
           </div>
-          <div style={{ fontSize: 8.5, fontWeight: 800, color: isRaid ? '#CE93D8' : '#7A6A60', textAlign: 'right' }}>
+          <div style={{ fontSize: 9.5, fontWeight: 800, color: isRaid ? '#CE93D8' : '#7A6A60', textAlign: 'right' }}>
             {cHp}/{sim.challengerMaxHp}
           </div>
         </div>
@@ -592,11 +593,11 @@ export default function AsmrBattleArena({
         {/* 중앙: VS / 맥스 레이드 엠블럼 */}
         <div
           style={{
-            padding: '2px 6px',
+            padding: '3px 8px',
             borderRadius: 999,
             background: isRaid ? 'linear-gradient(135deg, #FF1744, #D50000)' : 'linear-gradient(135deg, #FF7043, #D84315)',
             color: '#FFFFFF',
-            fontSize: 9,
+            fontSize: 10,
             fontWeight: 900,
             letterSpacing: '0.5px',
             boxShadow: '0 2px 6px rgba(213,0,0,0.4)',
@@ -607,17 +608,17 @@ export default function AsmrBattleArena({
         </div>
 
         {/* 오른쪽: 거대 맥스 보스 체력 */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <div className="row between" style={{ fontSize: 10.5, fontWeight: 900 }}>
-            <span style={{ color: isRaid ? '#FF80AB' : '#E65100', fontSize: 9.5 }}>
-              {isRaid ? `👑 거대 보스 · ${defenderOwnerName}` : `Lv.${defender.level} · ${defenderOwnerName}`}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <div className="row between" style={{ fontSize: 11.5, fontWeight: 900 }}>
+            <span style={{ color: isRaid ? '#FF80AB' : '#E65100', fontSize: 10 }}>
+              {isRaid ? `👑 거대 보스 · x7` : `Lv.${defender.level} · ${defenderOwnerName}`}
             </span>
-            <span style={{ color: isRaid ? '#FFF8E1' : '#3B2F2F', display: 'flex', alignItems: 'center', gap: 3, maxWidth: 90, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ color: isRaid ? '#FFF8E1' : '#3B2F2F', display: 'flex', alignItems: 'center', gap: 4, maxWidth: 95, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {defender.name || dInfo?.name}
-              <ElementIcon element={defender.element} size={11} />
+              <ElementIcon element={defender.element} size={13} />
             </span>
           </div>
-          <div style={{ height: 6, borderRadius: 999, background: isRaid ? 'rgba(255,255,255,0.12)' : '#F5E8C9', overflow: 'hidden' }}>
+          <div style={{ height: 9, borderRadius: 999, background: isRaid ? 'rgba(255,255,255,0.15)' : '#F5E8C9', overflow: 'hidden' }}>
             <div
               style={{
                 width: `${dPct}%`,
@@ -629,7 +630,7 @@ export default function AsmrBattleArena({
               }}
             />
           </div>
-          <div style={{ fontSize: 8.5, fontWeight: 800, color: isRaid ? '#FF80AB' : '#7A6A60', textAlign: 'left' }}>
+          <div style={{ fontSize: 9.5, fontWeight: 800, color: isRaid ? '#FF80AB' : '#7A6A60', textAlign: 'left' }}>
             {dHp}/{sim.defenderMaxHp}
           </div>
         </div>
@@ -949,18 +950,27 @@ export default function AsmrBattleArena({
               </div>
             )}
 
-            {/* 거대 맥스 보스 3D 뷰 */}
+            {/* 거대 맥스 보스 3D 뷰 (보스 레이드 전용 전용 마그마 초코 퐁듀 슈가 드래곤 3D 모델) */}
             <div style={{ transform: isRaid ? 'scale(1.15)' : 'none', filter: isRaid ? 'drop-shadow(0 10px 24px rgba(233,30,99,0.5))' : undefined }}>
-              <BattleFighter
-                look={dLook}
-                size={isRaid ? 140 : 105}
-                title={defender.name ?? dInfo?.name}
-                pose={dPose}
-                hitClass={dHitReaction || undefined}
-                hitKey={stepIdx}
-                flash={isHitMoment && isChallengerActor}
-                trail={actionPhase === 'strike' && isDefenderActor}
-              />
+              {isRaid ? (
+                <WorldBoss3DView
+                  size={155}
+                  pose={dPose}
+                  hitKey={stepIdx}
+                  flash={isHitMoment && isChallengerActor}
+                />
+              ) : (
+                <BattleFighter
+                  look={dLook}
+                  size={105}
+                  title={defender.name ?? dInfo?.name}
+                  pose={dPose}
+                  hitClass={dHitReaction || undefined}
+                  hitKey={stepIdx}
+                  flash={isHitMoment && isChallengerActor}
+                  trail={actionPhase === 'strike' && isDefenderActor}
+                />
+              )}
             </div>
           </div>
 
@@ -1219,29 +1229,29 @@ export default function AsmrBattleArena({
         </div>
       </div>
 
-      {/* 4. ⚡ DESSERT MAX 게이지 바 (보스전) / 식감 피버 게이지 바 (친선전) */}
+      {/* 4. ⚡ DESSERT MAX 게이지 바 (보스전) / 식감 피버 게이지 바 (친선전) - 비율 확대 */}
       <div
         style={{
           width: '100%',
-          background: isRaid ? 'rgba(30, 15, 45, 0.9)' : '#FFFDF9',
+          background: isRaid ? 'rgba(30, 15, 45, 0.92)' : '#FFFDF9',
           border: isRaid ? '1.5px solid #FF4081' : '1.5px solid #F0DFB8',
           borderRadius: 14,
-          padding: '6px 10px',
+          padding: '8px 12px',
           boxShadow: maxGauge >= 100 ? '0 0 16px rgba(255,64,129,0.8)' : 'none',
           animation: maxGauge >= 100 ? 'maxGaugeGlow 1.2s infinite alternate' : undefined,
           flexShrink: 0,
         }}
       >
-        <div className="row between" style={{ fontSize: 10, fontWeight: 900, marginBottom: 3 }}>
-          <span style={{ color: maxGauge >= 100 ? '#FFEB3B' : isRaid ? '#FF80AB' : '#D84315', display: 'flex', alignItems: 'center', gap: 4 }}>
+        <div className="row between" style={{ fontSize: 11, fontWeight: 900, marginBottom: 4 }}>
+          <span style={{ color: maxGauge >= 100 ? '#FFEB3B' : isRaid ? '#FF80AB' : '#D84315', display: 'flex', alignItems: 'center', gap: 5 }}>
             <span>{isBossRaidTarget ? '⚡ DESSERT MAX GAUGE' : '✨ 식감 피버 게이지 (FEVER)'}</span>
             {maxGauge >= 100 && <span style={{ color: '#FF1744' }}>{isBossRaidTarget ? '(MAX READY!)' : '(FEVER READY!)'}</span>}
           </span>
-          <span style={{ color: isRaid ? '#FFE082' : '#795548' }}>{Math.round(maxGauge)}% / 100%</span>
+          <span style={{ color: isRaid ? '#FFE082' : '#795548', fontSize: 11 }}>{Math.round(maxGauge)}% / 100%</span>
         </div>
 
-        {/* 게이지 바 */}
-        <div style={{ height: 8, borderRadius: 999, background: isRaid ? 'rgba(0,0,0,0.4)' : '#F5E8C9', overflow: 'hidden' }}>
+        {/* 게이지 바 (높이 11px) */}
+        <div style={{ height: 11, borderRadius: 999, background: isRaid ? 'rgba(0,0,0,0.45)' : '#F5E8C9', overflow: 'hidden' }}>
           <div
             style={{
               width: `${Math.min(100, maxGauge)}%`,
@@ -1257,20 +1267,20 @@ export default function AsmrBattleArena({
         </div>
       </div>
 
-      {/* 5. 🎮 하단 직관적 게임 컨트롤 바 */}
+      {/* 5. 🎮 하단 직관적 게임 컨트롤 바 (터치감 향상 & 넉넉한 버튼 비율) */}
       <div
         className="card"
         style={{
-          background: isRaid ? 'rgba(255, 255, 255, 0.95)' : '#FFFDF9',
+          background: isRaid ? 'rgba(255, 255, 255, 0.96)' : '#FFFDF9',
           border: isRaid ? '1.5px solid #AB47BC' : '1.5px solid #F0DFB8',
-          padding: '5px 8px',
-          gap: 5,
+          padding: '8px 10px',
+          gap: 6,
           flexShrink: 0,
         }}
       >
         {/* 필살기 버튼 (100% 충전 시) or 터치 응원 버튼 */}
         {!isFinished && (
-          <div className="row between" style={{ gap: 6 }}>
+          <div className="row between" style={{ gap: 8 }}>
             {maxGauge >= 100 ? (
               <button
                 onClick={handleTriggerMaxStrike}
@@ -1278,10 +1288,10 @@ export default function AsmrBattleArena({
                   flex: 1,
                   cursor: 'pointer',
                   border: '2px solid #FFFFFF',
-                  borderRadius: 10,
+                  borderRadius: 12,
                   fontWeight: 900,
-                  fontSize: 12,
-                  padding: '7px 10px',
+                  fontSize: 13.5,
+                  padding: '11px 14px',
                   background: 'linear-gradient(90deg, #FF1744, #FF4081, #FFD700)',
                   color: '#FFFFFF',
                   boxShadow: '0 4px 14px rgba(255,23,68,0.6)',
@@ -1289,7 +1299,7 @@ export default function AsmrBattleArena({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 5,
+                  gap: 6,
                 }}
               >
                 {isBossRaidTarget
@@ -1303,19 +1313,19 @@ export default function AsmrBattleArena({
                   flex: 1,
                   cursor: 'pointer',
                   border: 'none',
-                  borderRadius: 10,
+                  borderRadius: 12,
                   fontWeight: 900,
-                  fontSize: 10.5,
-                  padding: '6px 10px',
+                  fontSize: 12.5,
+                  padding: '10px 14px',
                   background: isRaid
                     ? 'linear-gradient(90deg, #9C27B0, #E91E63)'
                     : 'linear-gradient(90deg, #FF7043, #FF5722)',
                   color: '#FFFFFF',
-                  boxShadow: '0 2px 6px rgba(233,30,99,0.3)',
+                  boxShadow: '0 2px 8px rgba(233,30,99,0.3)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 4,
+                  gap: 5,
                 }}
               >
                 {isBossRaidTarget
@@ -1327,7 +1337,7 @@ export default function AsmrBattleArena({
             {cheerToast && (
               <span
                 style={{
-                  fontSize: 9.5,
+                  fontSize: 10.5,
                   fontWeight: 800,
                   color: isRaid ? '#FF80AB' : '#D84315',
                   animation: 'pulseGlow 0.8s ease infinite',
@@ -1342,18 +1352,18 @@ export default function AsmrBattleArena({
 
         {/* 조작 버튼 그룹: 대전 종료 시 결과 액션 */}
         {isFinished && (
-          <div className="row between" style={{ gap: 5 }}>
+          <div className="row between" style={{ gap: 6 }}>
             <button
               className="chip coral"
               onClick={handleReplaySameSeed}
-              style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 10.5, flex: 1, padding: '5px 0' }}
+              style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 12, flex: 1, padding: '8px 0' }}
             >
               🔄 다시 보기
             </button>
             <button
               className="chip honey"
               onClick={handleRematchNewSeed}
-              style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 10.5, flex: 1, padding: '5px 0' }}
+              style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 12, flex: 1, padding: '8px 0' }}
             >
               🎲 새 대결
             </button>
@@ -1364,9 +1374,9 @@ export default function AsmrBattleArena({
                 cursor: 'pointer',
                 border: 'none',
                 fontWeight: 800,
-                fontSize: 10.5,
+                fontSize: 12,
                 flex: 1,
-                padding: '5px 0',
+                padding: '8px 0',
                 background: isRaid ? '#7B1FA2' : '#5D4037',
                 color: '#FFFFFF',
               }}
