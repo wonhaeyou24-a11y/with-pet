@@ -16,6 +16,7 @@ import { callBattle, isRealMonsterId } from '../lib/battleApi'
 import { IS_DEV_MOCK } from '../lib/devMode'
 import { getPvpMatchRecords, formatTimeAgo, type PvpMatchRecord } from '../lib/pvpHistory'
 import MonsterSnapshot from '../monsters/MonsterSnapshot'
+import WorldBoss3DView from '../monsters/WorldBoss3DView'
 import { BackIcon, ElementIcon } from '../ui/Icons'
 import {
   createWorldBossMonster,
@@ -654,32 +655,6 @@ export default function DessertPlaza({
         </div>
 
         <div className="row" style={{ gap: 6, alignItems: 'center' }}>
-          {/* 🐉 디저트 월드 보스 레이드 스케줄러 뱃지 버튼 */}
-          <button
-            onClick={() => setShowRaidModal(true)}
-            style={{
-              padding: '4px 9px',
-              borderRadius: 10,
-              border: raidStatus.isActive ? '1.5px solid #EF4444' : '1.5px solid #F59E0B',
-              background: raidStatus.isActive
-                ? 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)'
-                : '#FFFBEB',
-              color: raidStatus.isActive ? '#FFFFFF' : '#92400E',
-              fontSize: 11,
-              fontWeight: 900,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-              cursor: 'pointer',
-              boxShadow: raidStatus.isActive ? '0 0 10px rgba(239,68,68,0.5)' : 'none',
-              animation: raidStatus.isActive ? 'pulse 1.5s infinite' : 'none',
-            }}
-            title="디저트 월드 보스 레이드 일정 및 진입"
-          >
-            <span>{raidStatus.isActive ? '🔥' : '🐉'}</span>
-            <span>{raidStatus.isActive ? '보스 침공 중!!' : '보스 레이드'}</span>
-          </button>
-
           {/* 🍁 현실 사계절 및 이벤트 자동 동기화 뱃지 (지인/방문자는 선택창이 보이지 않고 계절 뱃지만 표시) */}
           <div
             style={{
@@ -823,6 +798,96 @@ export default function DessertPlaza({
               🐾
             </div>
           ))}
+
+          {/* 👑 광장 상단에 직접 출현한 3D 거대 월드 보스 (터치 시 즉시 협동 레이드 토벌 출격) */}
+          <div
+            onClick={(e) => {
+              e.stopPropagation()
+              playDessertAsmr('smore-sizzle')
+              setShowRaidModal(true)
+            }}
+            style={{
+              position: 'absolute',
+              left: CENTER_X - 80,
+              top: 55,
+              width: 160,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              zIndex: 140,
+              cursor: 'pointer',
+              animation: 'pulseGlow 2.4s ease-in-out infinite',
+            }}
+            title="거대 보스를 터치하여 레이드 토벌에 출격하세요!"
+          >
+            {/* 거대 보스 머리 위 네온 레이드 배너 */}
+            <div
+              style={{
+                background: raidStatus.isActive
+                  ? 'linear-gradient(90deg, #D50000, #C2185B, #FF1744)'
+                  : 'linear-gradient(90deg, #E65100, #F57C00)',
+                color: '#FFE082',
+                fontSize: 9.5,
+                fontWeight: 900,
+                padding: '3px 10px',
+                borderRadius: 999,
+                boxShadow: '0 0 16px rgba(255, 23, 68, 0.8), 0 2px 8px rgba(0,0,0,0.5)',
+                whiteSpace: 'nowrap',
+                marginBottom: 2,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                border: '1.5px solid #FFFFFF',
+              }}
+            >
+              <span>🔥</span>
+              <span>{raidStatus.isActive ? '👑 거대 보스 침공 중!!' : '👑 거대 보스 출현'}</span>
+              <span style={{ background: '#FFFFFF', color: '#C2185B', padding: '0 5px', borderRadius: 999, fontSize: 8.5 }}>
+                ⚔️ 터치 출격
+              </span>
+            </div>
+
+            {/* 거대 보스 이름 및 레벨 */}
+            <div
+              style={{
+                background: 'rgba(20, 10, 30, 0.85)',
+                color: '#FFF8E1',
+                fontSize: 8.5,
+                fontWeight: 800,
+                padding: '1px 6px',
+                borderRadius: 6,
+                border: '1px solid #FF80AB',
+                whiteSpace: 'nowrap',
+                marginBottom: 2,
+              }}
+            >
+              마그마 초코 퐁듀 슈가 드래곤 (Lv.50)
+            </div>
+
+            {/* 3D 거대 보스 모델 (WorldBoss3DView) */}
+            <div style={{ position: 'relative' }}>
+              {/* 발밑 끓어오르는 용암 퐁듀 분화구 풀 */}
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: -6,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: 140,
+                  height: 38,
+                  borderRadius: '50%',
+                  background: 'radial-gradient(ellipse, rgba(255, 23, 68, 0.6) 0%, rgba(136, 14, 79, 0.2) 65%, transparent 80%)',
+                  border: '1.5px solid #FF1744',
+                  boxShadow: '0 0 20px #FF1744',
+                  zIndex: 1,
+                  pointerEvents: 'none',
+                }}
+              />
+              <div style={{ position: 'relative', zIndex: 3 }}>
+                <WorldBoss3DView size={135} pose="idle" />
+              </div>
+            </div>
+          </div>
 
           {/* 내 대표 펫 산책 노드 (실제 3D Three.js 디저트 펫 디자인) */}
           {(() => {
@@ -1384,7 +1449,7 @@ export default function DessertPlaza({
                   🐉 디저트 월드 보스 레이드
                 </h3>
                 <span style={{ fontSize: 10, color: '#B45309', fontWeight: 700 }}>
-                  DESSERT MAX 4인 협력 파티 토벌전
+                  DESSERT MAX 지인 연합 비동기 협력 토벌전
                 </span>
               </div>
               <button

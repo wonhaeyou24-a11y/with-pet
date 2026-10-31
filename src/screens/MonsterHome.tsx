@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { getRibbonCoins } from '../config/boutique'
+import { getRibbonCoins, loadGuestBook } from '../config/boutique'
 import { getClaimableMissionsCount } from '../config/missions'
 import { ELEMENT_INFO, SPECIES_INFO } from '../config/species'
 import { monsterLook, serverNow, type MonsterRow } from '../lib/api'
@@ -244,6 +244,13 @@ export default function MonsterHome({
   }, [monster.id])
 
   const isExploring = !!exploreTrip && exploreLeftSec > 0
+  const guestBookCount = useMemo(() => {
+    try {
+      return loadGuestBook().length
+    } catch {
+      return 0
+    }
+  }, [])
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -903,7 +910,16 @@ export default function MonsterHome({
         {/* (5) 광장 · 대전 */}
         <MenuTile icon="🏆" title="광장 · 대전" sub="지인 구경·친선전" from="#FFB74D" to="#F57C00" rim="#E65100" onClick={onOpenPlaza} />
         {/* (6) 나만의 미니룸 */}
-        <MenuTile icon="🏰" title="나만의 미니룸" sub="방명록·꾸미기" from="#F472B6" to="#DB2777" rim="#9D174D" onClick={onOpenMyRoom} />
+        <MenuTile
+          icon="🏰"
+          title="나만의 미니룸"
+          sub="방명록·꾸미기"
+          badge={guestBookCount > 0 ? `새 글 ${guestBookCount}` : undefined}
+          from="#F472B6"
+          to="#DB2777"
+          rim="#9D174D"
+          onClick={onOpenMyRoom}
+        />
         {/* (7) 부티크 상점 */}
         <MenuTile icon="🛍️" title="부티크 상점" sub="3D 피팅룸" from="#FB7185" to="#E11D48" rim="#9F1239" onClick={onOpenBoutique} />
         {/* (8) 디저트 도감 */}

@@ -1,7 +1,7 @@
 // M3 화면 2: ⚔️🎧 리얼 액션 턴제 식감 ASMR 대전 아레나 (포켓몬고 2·3번 씬 스타일 전면 업그레이드)
 // - [거대 보스 3D 원근 로우앵글]: 압도적인 크기의 보스를 올려다보는 깊이감 있는 3D 로우앵글 투시
 // - [다이맥스 거대화 연출]: 보스 머리 위의 3단 다이맥스 회전 구름 링(Dynamax Clouds) 및 맥스 번개 아우라
-// - [4인 협력 레이드 파티 구도]: 전면에 내 펫과 3인의 아군 파티원(몽실이, 콩콩이, 별비늘)이 포위 대치
+// - [지인 연합 비동기 협력 레이드]: 참전 지인 펫들이 거대 보스 앞 옹기종기 모여 주둔, 공격하는 내 펫만 전면 돌격 타격
 // - [DESSERT MAX 게이지 & 필살기]: 공방 및 터치 응원으로 100% 충전 시 [⚡ 거대 디저트 MAX 스트라이크!!] 협력 총공격
 
 import { useEffect, useMemo, useState } from 'react'
@@ -107,7 +107,7 @@ export default function AsmrBattleArena({
   const cInfo = SPECIES_INFO[cLook.mallang?.morphForm ?? challenger.species] ?? SPECIES_INFO[challenger.species]
   const dInfo = SPECIES_INFO[dLook.mallang?.morphForm ?? defender.species] ?? SPECIES_INFO[defender.species]
 
-  // ⚔️ 거대 보스 레이드에 먼저 참전하여 공격을 완료한 지인 펫들 (비동기 협동 레이드 참여 전우들)
+  // ⚔️ 거대 보스 레이드에 먼저 참전하여 공격을 완료한 지인 펫들 (비동기 협동 레이드 참여 전우 8마리)
   const raidParticipants = useMemo(
     () => [
       {
@@ -118,7 +118,7 @@ export default function AsmrBattleArena({
         statusText: '타격완료',
         icon: '🍓',
         look: { species: 'mongsil', palette: 1, bodyType: 'normal', scale: 0.85, ears: 0, tail: 0, top: 0, expression: 'round', patternSeed: 12, shiny: false, evoStage: 2, evoBranch: 'sweet-melty' } as MonsterLook,
-        left: '3%',
+        left: '2%',
         bottom: '8%',
         delay: '0s',
       },
@@ -130,8 +130,8 @@ export default function AsmrBattleArena({
         statusText: '극딜완료',
         icon: '✨',
         look: { species: 'byeolbineul', palette: 3, bodyType: 'normal', scale: 0.8, ears: 0, tail: 0, top: 1, expression: 'round', patternSeed: 88, shiny: false, evoStage: 2, evoBranch: 'gourmet-rainbow' } as MonsterLook,
-        left: '16%',
-        bottom: '13%',
+        left: '11%',
+        bottom: '12%',
         delay: '0.4s',
       },
       {
@@ -142,9 +142,33 @@ export default function AsmrBattleArena({
         statusText: '치명타완료',
         icon: '🍬',
         look: { species: 'tanghulu', palette: 0, bodyType: 'normal', scale: 0.8, ears: 0, tail: 0, top: 0, expression: 'sharp', patternSeed: 55, shiny: false, evoStage: 2, evoBranch: 'crispy-crunch' } as MonsterLook,
-        left: '29%',
+        left: '20%',
         bottom: '16%',
         delay: '0.8s',
+      },
+      {
+        id: 'participant-7',
+        ownerName: '모찌 님',
+        petName: '딸기모찌',
+        damage: 310,
+        statusText: '식감공격',
+        icon: '🍡',
+        look: { species: 'mongsil', palette: 0, bodyType: 'normal', scale: 0.8, ears: 1, tail: 0, top: 0, expression: 'round', patternSeed: 21, shiny: false, evoStage: 1 } as MonsterLook,
+        left: '28%',
+        bottom: '18%',
+        delay: '1.2s',
+      },
+      {
+        id: 'participant-8',
+        ownerName: '푸딩 님',
+        petName: '바닐라푸딩',
+        damage: 270,
+        statusText: '탱킹완료',
+        icon: '🍮',
+        look: { species: 'kongkong', palette: 1, bodyType: 'normal', scale: 0.8, ears: 0, tail: 1, top: 0, expression: 'round', patternSeed: 62, shiny: false, evoStage: 1 } as MonsterLook,
+        right: '28%',
+        bottom: '18%',
+        delay: '0.3s',
       },
       {
         id: 'participant-4',
@@ -154,7 +178,7 @@ export default function AsmrBattleArena({
         statusText: 'MVP타격',
         icon: '🍫',
         look: { species: 'dubai-cookie', palette: 2, bodyType: 'normal', scale: 0.85, ears: 1, tail: 0, top: 0, expression: 'round', patternSeed: 33, shiny: false, evoStage: 2, evoBranch: 'sweet-melty' } as MonsterLook,
-        right: '29%',
+        right: '20%',
         bottom: '16%',
         delay: '0.2s',
       },
@@ -166,8 +190,8 @@ export default function AsmrBattleArena({
         statusText: '화염타격',
         icon: '🔥',
         look: { species: 'heugyeom', palette: 1, bodyType: 'normal', scale: 0.8, ears: 1, tail: 1, top: 0, expression: 'sharp', patternSeed: 77, shiny: false, evoStage: 2, evoBranch: 'royal-chef' } as MonsterLook,
-        right: '16%',
-        bottom: '13%',
+        right: '11%',
+        bottom: '12%',
         delay: '0.6s',
       },
       {
@@ -178,7 +202,7 @@ export default function AsmrBattleArena({
         statusText: '타격완료',
         icon: '🍪',
         look: { species: 'kongkong', palette: 2, bodyType: 'normal', scale: 0.85, ears: 1, tail: 1, top: 0, expression: 'sharp', patternSeed: 44, shiny: false, evoStage: 2, evoBranch: 'crispy-crunch' } as MonsterLook,
-        right: '3%',
+        right: '2%',
         bottom: '8%',
         delay: '1.0s',
       },
@@ -190,6 +214,44 @@ export default function AsmrBattleArena({
     () => raidParticipants.reduce((sum, p) => sum + p.damage, 0),
     [raidParticipants],
   )
+
+  // 📊 참전 펫 피해량 박스 펼침/접기 상태
+  const [showDamageBoard, setShowDamageBoard] = useState<boolean>(true)
+
+  // 👑 내 펫이 현재까지 보스에게 입힌 실시간 누적 대미지
+  const myTotalDamage = useMemo(() => {
+    const fromTurns = sim.turns
+      .slice(0, stepIdx)
+      .reduce((sum, t) => (t.actor === 'challenger' ? sum + t.damage : sum), 0)
+    return fromTurns + bossBonusDamage
+  }, [sim.turns, stepIdx, bossBonusDamage])
+
+  // 🏆 전체 참전 펫(지인 8마리 + 내 펫) 통합 피해량 랭킹 (내림차순 정렬)
+  const damageRankings = useMemo(() => {
+    const list = [
+      ...raidParticipants.map((p) => ({
+        id: p.id,
+        isMe: false,
+        name: p.ownerName,
+        petName: p.petName,
+        icon: p.icon,
+        damage: p.damage,
+      })),
+      {
+        id: 'my-pet',
+        isMe: true,
+        name: '나(내 펫)',
+        petName: challenger.name || cInfo?.name || '내 디저트펫',
+        icon: '👑',
+        damage: myTotalDamage,
+      },
+    ]
+    return list.sort((a, b) => b.damage - a.damage)
+  }, [raidParticipants, myTotalDamage, challenger.name, cInfo?.name])
+
+  const maxDamageInBoard = useMemo(() => {
+    return Math.max(1, ...damageRankings.map((r) => r.damage))
+  }, [damageRankings])
 
   const cHp = currentTurn ? currentTurn.challengerHp : sim.challengerMaxHp
   const rawDHp = currentTurn ? currentTurn.defenderHp : sim.defenderMaxHp
@@ -589,7 +651,7 @@ export default function AsmrBattleArena({
         </span>
       </div>
 
-      {/* 2. 상단 HUD: 4인 파티 vs 거대 보스 체력 상태바 (비율 확대 & 선명한 터치감) */}
+      {/* 2. 상단 HUD: 참전 연합 vs 거대 보스 체력 상태바 (비율 확대 & 선명한 터치감) */}
       <div
         style={{
           width: '100%',
@@ -745,7 +807,7 @@ export default function AsmrBattleArena({
                 💥 거대 디저트 맥스 스트라이크!! 💥
               </div>
               <div style={{ fontSize: 11, fontWeight: 800, color: '#FFF8E1', textShadow: '0 1px 4px #000' }}>
-                4인 전원 협력 ASMR 식감 총공격! -120 HP 초토화!
+                참전 전원 협력 ASMR 식감 총공격! -120 HP 초토화!
               </div>
             </div>
           </div>
@@ -814,6 +876,159 @@ export default function AsmrBattleArena({
             overflow: 'hidden',
           }}
         >
+          {/* 📊 [우측 상단 플로팅] 참전 펫 누적 피해량 박스 (Damage Board) */}
+          {isRaid && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                zIndex: 32,
+                pointerEvents: 'auto',
+                maxWidth: showDamageBoard ? 165 : 'auto',
+              }}
+            >
+              {showDamageBoard ? (
+                <div
+                  style={{
+                    background: 'rgba(15, 8, 28, 0.92)',
+                    border: '1.5px solid #FF80AB',
+                    borderRadius: 14,
+                    padding: '6px 8px',
+                    boxShadow: '0 4px 18px rgba(0,0,0,0.6), inset 0 0 10px rgba(255, 64, 129, 0.25)',
+                    backdropFilter: 'blur(8px)',
+                    color: '#FFF8E1',
+                    fontSize: 10,
+                  }}
+                >
+                  {/* 박스 헤더 */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      borderBottom: '1px solid rgba(255, 128, 171, 0.3)',
+                      paddingBottom: 4,
+                      marginBottom: 4,
+                      gap: 4,
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 3, fontWeight: 900, color: '#FF80AB', fontSize: 10 }}>
+                      <span>⚔️ 참전 펫 피해량</span>
+                      <span style={{ fontSize: 8.5, color: '#FFD54F' }}>({damageRankings.length}마리)</span>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setShowDamageBoard(false)
+                      }}
+                      style={{
+                        background: 'rgba(255,255,255,0.12)',
+                        border: 'none',
+                        color: '#FFF',
+                        borderRadius: 6,
+                        padding: '1px 4px',
+                        fontSize: 9,
+                        cursor: 'pointer',
+                        fontWeight: 900,
+                      }}
+                      title="접기"
+                    >
+                      ▲
+                    </button>
+                  </div>
+
+                  {/* 총합 대미지 요약 */}
+                  <div style={{ fontSize: 8.5, color: '#FFE082', fontWeight: 800, marginBottom: 5 }}>
+                    총 누적 합산: <span style={{ color: '#FF5252', fontWeight: 900 }}>{(totalAllyDmg + myTotalDamage).toLocaleString()}</span> DMG
+                  </div>
+
+                  {/* 참전 펫 랭킹 스크롤 리스트 */}
+                  <div
+                    style={{
+                      maxHeight: 130,
+                      overflowY: 'auto',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 3.5,
+                      paddingRight: 2,
+                    }}
+                  >
+                    {damageRankings.map((item, idx) => {
+                      const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}`
+                      const dmgPercent = Math.min(100, Math.round((item.damage / maxDamageInBoard) * 100))
+                      return (
+                        <div
+                          key={item.id}
+                          style={{
+                            background: item.isMe ? 'rgba(255, 215, 0, 0.16)' : 'rgba(255, 255, 255, 0.05)',
+                            border: item.isMe ? '1px solid #FFD700' : '1px solid rgba(255,255,255,0.08)',
+                            borderRadius: 6,
+                            padding: '2.5px 5px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 2,
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 8.5 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 3, fontWeight: item.isMe ? 900 : 700 }}>
+                              <span style={{ fontSize: 9 }}>{medal}</span>
+                              <span style={{ color: item.isMe ? '#FFD700' : '#FFF' }}>
+                                {item.icon} {item.name}
+                              </span>
+                            </div>
+                            <span style={{ fontWeight: 900, color: item.isMe ? '#FFD54F' : '#FF80AB', fontSize: 8.5 }}>
+                              -{item.damage}
+                            </span>
+                          </div>
+                          {/* 미니 게이지 바 */}
+                          <div style={{ width: '100%', height: 3, background: 'rgba(255,255,255,0.1)', borderRadius: 2, overflow: 'hidden' }}>
+                            <div
+                              style={{
+                                width: `${dmgPercent}%`,
+                                height: '100%',
+                                background: item.isMe
+                                  ? 'linear-gradient(90deg, #FFD54F, #FF6F00)'
+                                  : 'linear-gradient(90deg, #FF4081, #E91E63)',
+                                borderRadius: 2,
+                                transition: 'width 0.3s ease',
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              ) : (
+                /* 접힌 상태 미니 배너 */
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setShowDamageBoard(true)
+                  }}
+                  style={{
+                    background: 'rgba(15, 8, 28, 0.92)',
+                    border: '1.2px solid #FF80AB',
+                    color: '#FFF8E1',
+                    borderRadius: 999,
+                    padding: '4px 8px',
+                    fontSize: 8.5,
+                    fontWeight: 900,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
+                  }}
+                >
+                  <span>⚔️ 피해량 보드</span>
+                  <span style={{ color: '#FFD54F' }}>({damageRankings.length})</span>
+                  <span>▼</span>
+                </button>
+              )}
+            </div>
+          )}
           {/* 바닥 원근감 그리드 라인 */}
           <div
             style={{
@@ -1043,30 +1258,31 @@ export default function AsmrBattleArena({
                     zIndex: 21,
                   }}
                 >
-                  {/* 지인 펫 머리 위 참여 및 누적 공격 피해량 뱃지 */}
+                  {/* 지인 펫 머리 위 참여 및 누적 공격 피해량 뱃지 (슬림 미니멀) */}
                   <div
                     style={{
                       background: 'rgba(15, 8, 26, 0.88)',
-                      border: '1.2px solid #FF80AB',
+                      border: '1px solid #FF80AB',
                       color: '#FFF8E1',
-                      fontSize: 8,
+                      fontSize: 7,
                       fontWeight: 900,
-                      padding: '1px 6px',
+                      padding: '1px 4px',
                       borderRadius: 999,
-                      marginBottom: 2,
+                      marginBottom: 1,
                       whiteSpace: 'nowrap',
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.5)',
+                      boxShadow: '0 1px 4px rgba(0,0,0,0.5)',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 3,
+                      gap: 2,
                     }}
                   >
                     <span>{participant.icon} {participant.ownerName}</span>
-                    <span style={{ color: '#FF5252', background: 'rgba(255,23,68,0.2)', padding: '0 3px', borderRadius: 4 }}>
+                    <span style={{ color: '#FF5252', background: 'rgba(255,23,68,0.25)', padding: '0 2px', borderRadius: 3 }}>
                       -{participant.damage}
                     </span>
                   </div>
-                  <MonsterView look={participant.look} size={34} />
+                  {/* 참전 지인 펫: 여러 명이 모일 수 있도록 24px 초소형 2D SVG로 앙증맞고 가볍게 주둔 */}
+                  <MonsterView look={participant.look} size={24} prefer2D={true} />
                 </div>
               ))}
 
