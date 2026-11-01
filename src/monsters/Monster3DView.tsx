@@ -87,6 +87,11 @@ export function build3DDessertBase(baseId: DessertBaseId): THREE.Group {
   const group = new THREE.Group()
   group.position.y = -0.92
 
+  // 🍰 받침대가 없거나 기본 순백 도우 상태일 때는 아래 기본 접시를 완전히 제거하여 도화지 실루엣만 남김
+  if (!baseId || (baseId as string) === 'none') {
+    return group
+  }
+
   if (baseId === 'strawberry-cake') {
     // 생딸기 홀케이크 3D
     const plate = new THREE.Mesh(
@@ -637,7 +642,7 @@ export function build3DCharacterMesh(
     // 🍮 4. 순백의 탱글 밀크 푸딩 도우 3D (White Milk Pudding):
     // 윗면이 살짝 평평하고 아랫단이 부드럽게 퍼진 탱글 밀크 푸딩 돔 + 맑은 우유빛 광택
     const isPureWhite = palIdx === 0
-    const puddingColor = isPureWhite ? new THREE.Color('#FFFDF8') : new THREE.Color('#FFE066')
+    const puddingColor = isPureWhite ? new THREE.Color('#FFFFFF') : new THREE.Color('#FFE066')
     const custardMat = new THREE.MeshPhysicalMaterial({
       color: puddingColor,
       roughness: 0.1,
@@ -782,7 +787,7 @@ export function build3DCharacterMesh(
     // 🍫 7. 순백의 화이트초코 큐브 도우 3D (White Choco Cube Dough):
     // 모나지 않고 부드럽게 둥글려진 순백의 화이트 가나슈 블록 + 부드러운 생초콜릿 윤기
     const isPureWhite = palIdx === 0
-    const chocoColor = isPureWhite ? new THREE.Color('#FFFDF5') : new THREE.Color('#3E2217')
+    const chocoColor = isPureWhite ? new THREE.Color('#FFFFFF') : new THREE.Color('#3E2217')
     const chocoMat = new THREE.MeshPhysicalMaterial({
       color: chocoColor,
       roughness: isPureWhite ? 0.22 : 0.12,
@@ -818,7 +823,7 @@ export function build3DCharacterMesh(
     // 🍡 [시그니처] 순백의 쫀득 찹쌀떡 도우 3D (White Mochi Dough):
     // 갓 빚어낸 순백의 찹쌀가루 전분 질감 + 바닥에 쫀득하게 가라앉은 동글동글 실루엣 + 말랑 볼살
     const isPureWhite = palIdx === 0
-    const mochiColor = isPureWhite ? new THREE.Color('#FFFDF9') : new THREE.Color(basePal.fur)
+    const mochiColor = isPureWhite ? new THREE.Color('#FFFFFF') : new THREE.Color(basePal.fur)
     const mochiMat = new THREE.MeshPhysicalMaterial({
       color: mochiColor,
       roughness: 0.28, // 뽀송뽀송한 전분 찹쌀가루 질감
@@ -1873,7 +1878,7 @@ export default function Monster3DView({
   const [webglFailed, setWebglFailed] = useState(false)
 
   const activeSpecies = normalizeDessertSpecies(look.mallang?.morphForm ?? look.species)
-  const dessertBase: DessertBaseId = look.mallang?.dessertBase ?? 'strawberry-cake'
+  const dessertBase: DessertBaseId = look.mallang?.dessertBase ?? 'none'
   const paletteKey = look.mallang?.skinPalette ?? look.palette ?? 0
 
   // 스프링 물리 상태 레퍼런스 (포인터 터치·드래그 시 실시간 반응)

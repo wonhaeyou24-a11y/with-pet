@@ -98,8 +98,9 @@ export const SPECIES_INFO: Record<
   },
 }
 
-export function defaultDessertBase(species: string): DessertBaseId {
-  return SPECIES_INFO[species]?.defaultBase ?? 'strawberry-cake'
+export function defaultDessertBase(_species?: string): DessertBaseId {
+  // 🍰 부화 시 기본 형태는 아래 받침대(접시) 없이 순수한 도우만 렌더링
+  return 'none'
 }
 
 export const ELEMENT_INFO: Record<Element, { label: string; color: string }> = {

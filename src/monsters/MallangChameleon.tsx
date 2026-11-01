@@ -23,6 +23,7 @@ export type MorphFormId =
 export type StampKind = 'star' | 'heart' | 'bolt' | 'flame' | 'swirl' | 'clover' | 'melon' | 'cherry' | 'strawberry'
 export type WingKind = 'none' | 'dragon' | 'flame-mane' | 'rock-shell' | 'chameleon-crest'
 export type DessertBaseId =
+  | 'none'
   | 'nest'
   | 'strawberry-cake'
   | 'choco-cookie'
@@ -104,6 +105,7 @@ export const MORPH_FORMS: { id: MorphFormId; name: string; icon: string; desc: s
 
 // Stitch 13번: 케이크·쿠키 디저트 플레이팅 받침대 6종 카탈로그
 export const DESSERT_BASES: { id: DessertBaseId; name: string; icon: string; charm: number; desc: string }[] = [
+  { id: 'none', name: '받침대 없음 (자유 도우)', icon: '✨', charm: 0, desc: '접시 없이 순백의 펫 본연의 실루엣만 표현' },
   { id: 'strawberry-cake', name: '생딸기 홀케이크', icon: '🎂', charm: 25, desc: '폭신한 생크림과 통딸기가 얹힌 홀케이크' },
   { id: 'choco-cookie', name: '오독 초코칩 쿠키', icon: '🍪', charm: 20, desc: '노릇하게 구운 버터 쿠키와 진한 초코칩' },
   { id: 'custard-pudding', name: '탱글 커스터드 푸딩', icon: '🍮', charm: 20, desc: '달콤한 카라멜 시럽이 흐르는 푸딩 접시' },

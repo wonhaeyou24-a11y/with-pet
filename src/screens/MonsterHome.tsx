@@ -21,6 +21,7 @@ import {
 import { getSpeciesSoundKind, playDessertAsmr } from '../lib/sound'
 import MonsterView from '../monsters/MonsterView'
 import CakeBoxShareModal from './CakeBoxShareModal'
+import { DessertPartyScreen, type DessertPartyPackage } from './DessertPartyScreen'
 import MissionModal from './MissionModal'
 import { useAccount } from '../lib/shopApi'
 import DessertShowroomModal from './DessertShowroomModal'
@@ -169,6 +170,7 @@ export default function MonsterHome({
   onLogout,
 }: Props) {
   const [showMissions, setShowMissions] = useState<boolean>(false)
+  const [showDessertParty, setShowDessertParty] = useState<boolean>(false)
   const [showCakeBox, setShowCakeBox] = useState<boolean>(false)
   const [showShowroom, setShowShowroom] = useState<boolean>(false)
   const [showNotifModal, setShowNotifModal] = useState<boolean>(false)
@@ -955,6 +957,16 @@ export default function MonsterHome({
         <MenuTile icon="🛍️" title="부티크 상점" sub="3D 피팅룸" from="#FB7185" to="#E11D48" rim="#9F1239" onClick={onOpenBoutique} />
         {/* (8) 디저트 도감 */}
         <MenuTile icon="📖" title="디저트 도감" sub="모아보기" from="#34D399" to="#059669" rim="#047857" onClick={onOpenDex} />
+        {/* (9) 디저트 파티 플레이팅 */}
+        <MenuTile
+          icon="🎉"
+          title="디저트 파티"
+          sub="함께 꾸미기"
+          from="#EC4899"
+          to="#BE185D"
+          rim="#831843"
+          onClick={() => setShowDessertParty(true)}
+        />
       </div>
 
       {/* 미션 모달 */}
@@ -1199,6 +1211,19 @@ export default function MonsterHome({
           ownerNickname={nickname}
           onClose={() => setShowCakeBox(false)}
         />
+      )}
+
+      {/* 🎉 디저트 파티 플레이팅 풀스크린 모달 */}
+      {showDessertParty && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: '#FFF9F2' }}>
+          <DessertPartyScreen
+            currentMonster={monster}
+            onBack={() => setShowDessertParty(false)}
+            onSaveToMiniroom={(pkg: DessertPartyPackage) => {
+              console.log('미니룸 장식장 저장됨:', pkg)
+            }}
+          />
+        </div>
       )}
 
       {/* ✨ Stitch 디저트 비주얼 에셋 쇼룸 모달 */}

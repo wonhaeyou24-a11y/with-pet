@@ -23,6 +23,7 @@ import MyRoomScreen from '../screens/MyRoomScreen'
 import Naming from '../screens/Naming'
 import Nickname from '../screens/Nickname'
 import PatisserieTraining from '../screens/PatisserieTraining'
+import { DessertPartyScreen } from '../screens/DessertPartyScreen'
 import SkillTreeScreen from '../screens/SkillTreeScreen'
 import { createWorldBossMonster, WORLD_BOSS_CATALOG } from '../lib/bossScheduler'
 
@@ -116,6 +117,12 @@ const SCREENS: Record<string, () => ReactNode> = {
       coins={320}
       foodBag={{ '기본 슈가파우더': 3, '생딸기 슈가시럽': 2, '피스타치오 크림': 2, '황금 카다이프칩': 1 }}
       onUpdate={noop}
+      onBack={noop}
+    />
+  ),
+  '디저트 파티 플레이팅': () => (
+    <DessertPartyScreen
+      currentMonster={{ ...shiny, name: '순백모찌' }}
       onBack={noop}
     />
   ),
