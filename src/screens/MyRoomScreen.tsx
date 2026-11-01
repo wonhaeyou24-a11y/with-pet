@@ -27,6 +27,7 @@ import { guestbookAdd, guestbookDelete, roomGet, roomLike, roomSave, type RoomEn
 import { miniRoomBgm, BGM_TRACKS, type BgmTrack } from '../lib/bgmPlayer'
 import { getSpeciesSoundKind, playDessertAsmr } from '../lib/sound'
 import Monster3DView from '../monsters/Monster3DView'
+import type { DeliveredGiftPackage } from './DessertPartyScreen'
 import { BackIcon } from '../ui/Icons'
 
 interface Props {
@@ -103,6 +104,38 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
   const [bgmPlaying, setBgmPlaying] = useState<boolean>(() => miniRoomBgm.getStatus())
   const [currentTrack, setCurrentTrack] = useState<BgmTrack>(() => miniRoomBgm.getTrack())
   const [showBgmPicker, setShowBgmPicker] = useState<boolean>(false)
+  // 🎁 미니룸 배달 선물함 & 언박싱 상태
+  const [deliveredGifts, setDeliveredGifts] = useState<DeliveredGiftPackage[]>([])
+  const [activeUnboxGift, setActiveUnboxGift] = useState<DeliveredGiftPackage | null>(null)
+  const [isRibbonUntied, setIsRibbonUntied] = useState<boolean>(false)
+  const [isBoxOpened, setIsBoxOpened] = useState<boolean>(false)
+
+  // 배달된 선물 목록 로드
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('pet_together_delivered_gifts_v1')
+      if (raw) {
+        setDeliveredGifts(JSON.parse(raw))
+      }
+    } catch (e) {
+      console.error('배달 선물 로드 오류:', e)
+    }
+  }, [])
+
+  // 선물 터치 시 언박싱 프로세스 시작
+  const handleStartUnboxing = (gift: DeliveredGiftPackage) => {
+    setActiveUnboxGift(gift)
+    setIsRibbonUntied(false)
+    setIsBoxOpened(false)
+  }
+
+  // 리본 풀기 액션
+  const handleUntieRibbon = () => {
+    setIsRibbonUntied(true)
+    setTimeout(() => {
+      setIsBoxOpened(true)
+    }, 600)
+  }
 
   // 📖 미니룸 진입 시 방명록 자동 읽음 처리 (홈 화면 뱃지 초기화)
   useEffect(() => {
@@ -1008,6 +1041,43 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
           </div>
         </div>
 
+        {/* 🎁 미니룸으로 배달된 디저트 선물 상자 오브젝트 */}
+        {deliveredGifts.length > 0 && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 72,
+              right: 18,
+              zIndex: 12,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              cursor: 'pointer',
+              animation: 'bounce 2s infinite',
+            }}
+            onClick={() => handleStartUnboxing(deliveredGifts[0])}
+          >
+            <div
+              style={{
+                fontSize: 9,
+                fontWeight: 900,
+                background: '#EC4899',
+                color: '#FFFFFF',
+                padding: '2px 6px',
+                borderRadius: 8,
+                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                marginBottom: 2,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              🎁 선물 도착!
+            </div>
+            <span style={{ fontSize: 36, filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))' }}>
+              🎁
+            </span>
+          </div>
+        )}
+
         {/* 하단 바닥 레이어 (배치된 가구들) */}
         <div
           style={{
@@ -1534,6 +1604,198 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
                 )
               })}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🎀 선물 리본 언박싱 모달 */}
+      {activeUnboxGift && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 99999,
+            background: 'rgba(0,0,0,0.75)',
+            backdropFilter: 'blur(5px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: 360,
+              background: '#FFF9F2',
+              borderRadius: 24,
+              border: '4px solid #F59E0B',
+              padding: 20,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              textAlign: 'center',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
+              position: 'relative',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+            }}
+          >
+            {/* 닫기 버튼 */}
+            <button
+              onClick={() => setActiveUnboxGift(null)}
+              style={{
+                position: 'absolute',
+                top: 12,
+                right: 12,
+                background: '#E5E7EB',
+                border: 'none',
+                borderRadius: '50%',
+                width: 28,
+                height: 28,
+                fontSize: 14,
+                fontWeight: 900,
+                cursor: 'pointer',
+              }}
+            >
+              ×
+            </button>
+
+            <span style={{ fontSize: 13, fontWeight: 900, color: '#BE185D', marginBottom: 4 }}>
+              💌 {activeUnboxGift.senderName}님이 보낸 선물
+            </span>
+            <h3 style={{ margin: 0, fontSize: 17, fontWeight: 900, color: '#451A03' }}>
+              {activeUnboxGift.title}
+            </h3>
+
+            {/* 🎁 상자 & 리본 언박싱 그래픽 영역 */}
+            <div
+              style={{
+                width: 200,
+                height: 180,
+                margin: '16px 0',
+                background: '#FDF2E9',
+                borderRadius: 20,
+                border: '3px solid #D97706',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
+                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.1)',
+                overflow: 'hidden',
+              }}
+            >
+              {!isBoxOpened ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <span
+                    style={{
+                      fontSize: 64,
+                      transition: 'all 0.5s ease',
+                      transform: isRibbonUntied ? 'scale(1.15) rotate(10deg)' : 'scale(1)',
+                      filter: isRibbonUntied ? 'hue-rotate(90deg)' : 'none',
+                    }}
+                  >
+                    🎁
+                  </span>
+                  <span style={{ fontSize: 11, fontWeight: 900, color: '#92400E', marginTop: 6 }}>
+                    {isRibbonUntied ? '🎀 리본이 스르륵 풀리는 중...' : '포장된 선물 상자'}
+                  </span>
+                </div>
+              ) : (
+                /* 상자가 열리고 속의 펫들이 드러남! */
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <span style={{ fontSize: 24 }}>✨ 🍰 ✨</span>
+                  <span style={{ fontSize: 11, fontWeight: 900, color: '#D97706', marginTop: 4 }}>
+                    상자가 활짝 열렸습니다!
+                  </span>
+                  <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+                    {activeUnboxGift.slots.slice(0, 3).map((s, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: 12,
+                          background: '#FFFFFF',
+                          border: '2px solid #FCD34D',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Monster3DView look={s.look} size={42} interactive={false} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 리본 풀기 버튼 (아직 안 열렸을 때) */}
+            {!isBoxOpened ? (
+              <button
+                type="button"
+                onClick={handleUntieRibbon}
+                disabled={isRibbonUntied}
+                style={{
+                  width: '100%',
+                  padding: '12px 0',
+                  borderRadius: 16,
+                  background: 'linear-gradient(to right, #EC4899, #F43F5E)',
+                  color: '#FFFFFF',
+                  fontWeight: 900,
+                  fontSize: 14,
+                  border: 'none',
+                  cursor: isRibbonUntied ? 'default' : 'pointer',
+                  boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                }}
+              >
+                {isRibbonUntied ? '리본 푸는 중...' : '🎀 리본 풀고 상자 열기'}
+              </button>
+            ) : (
+              /* 상자가 열렸을 때 편지글 및 소장 버튼 */
+              <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {/* 초코펜 편지 메시지 카드 */}
+                <div
+                  style={{
+                    padding: '12px 14px',
+                    borderRadius: 14,
+                    background: '#FEF3C7',
+                    border: '2px dashed #F59E0B',
+                    textAlign: 'left',
+                  }}
+                >
+                  <div style={{ fontSize: 10, fontWeight: 900, color: '#B45309', marginBottom: 4 }}>
+                    🍫 함께 배달된 정성 가득 편지:
+                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: '#78350F', lineHeight: 1.4 }}>
+                    &ldquo;{activeUnboxGift.letterMessage}&rdquo;
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setToast('🏆 미니룸 장식장에 진열되었습니다!')
+                    setActiveUnboxGift(null)
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '12px 0',
+                    borderRadius: 16,
+                    background: 'linear-gradient(to right, #10B981, #059669)',
+                    color: '#FFFFFF',
+                    fontWeight: 900,
+                    fontSize: 13,
+                    border: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  ✨ 미니룸 장식장에 영구 진열하기
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

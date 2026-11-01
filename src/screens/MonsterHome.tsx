@@ -21,7 +21,7 @@ import {
 import { getSpeciesSoundKind, playDessertAsmr } from '../lib/sound'
 import MonsterView from '../monsters/MonsterView'
 import CakeBoxShareModal from './CakeBoxShareModal'
-import { DessertPartyScreen, type DessertPartyPackage } from './DessertPartyScreen'
+import { DessertPartyScreen } from './DessertPartyScreen'
 import MissionModal from './MissionModal'
 import { useAccount } from '../lib/shopApi'
 import DessertShowroomModal from './DessertShowroomModal'
@@ -1218,8 +1218,9 @@ export default function MonsterHome({
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: '#FFF9F2' }}>
           <DessertPartyScreen
             currentMonster={monster}
+            onOpenBoutique={onOpenBoutique}
             onBack={() => setShowDessertParty(false)}
-            onSaveToMiniroom={(pkg: DessertPartyPackage) => {
+            onSaveToMiniroom={(pkg) => {
               console.log('미니룸 장식장 저장됨:', pkg)
             }}
           />
