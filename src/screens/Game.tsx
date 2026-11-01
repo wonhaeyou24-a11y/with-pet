@@ -271,6 +271,7 @@ export default function Game({ player }: { player: Player }) {
           monster={monster}
           onBack={() => setSubView('home')}
           onOpenMyRoom={() => setSubView('myroom')}
+          onUpdate={(updated) => setMonsters((list) => list.map((m) => (m.id === updated.id ? updated : m)))}
         />
       )
     }

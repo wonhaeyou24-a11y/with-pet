@@ -165,8 +165,8 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
       return
     }
 
-    // ✋ 3. 점선 없는 리얼 찰흙 반죽 몰딩 모드
-    if (toolMode === 'mold' || doughShape === 'free-dough') {
+    // ✋ 3. 점선 없는 리얼 찰흙 반죽 몰딩 모드 (💡 2번 피드백: 오직 toolMode가 'mold'일 때만 몰딩 작동!)
+    if (toolMode === 'mold') {
       setIsDrawing(true)
       setDoughShape('free-dough')
       return
@@ -227,8 +227,8 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
       return
     }
 
-    // ✋ 3. 점선 없는 리얼 찰흙 반죽 몰딩 (대표님 피드백: "점선 없이 자연스럽게 돌리고 눌러서 빚기")
-    if (toolMode === 'mold' || doughShape === 'free-dough') {
+    // ✋ 3. 점선 없는 리얼 찰흙 반죽 몰딩 (💡 2번 피드백: 오직 toolMode가 'mold'일 때만 몰딩 작동하고, 브러시/스탬프 모드일 때는 형태 고정 채색!)
+    if (toolMode === 'mold') {
       if (lastPointerPosRef.current) {
         const [curX, curY] = pt
         const [prevX, prevY] = lastPointerPosRef.current
@@ -563,67 +563,6 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
                 </g>
               )}
             </svg>
-          </div>
-
-          {/* 🔍 돋보기 정밀 줌인 컨트롤 바 (1x / 1.5x / 2x / 2.5x & 위치 리셋) */}
-          <div
-            style={{
-              position: 'absolute',
-              bottom: 8,
-              left: 10,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-              background: 'rgba(255,255,255,0.92)',
-              padding: '3px 6px',
-              borderRadius: 12,
-              border: '1.5px solid #FCD34D',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-              zIndex: 10,
-            }}
-          >
-            <span style={{ fontSize: 10, fontWeight: 900, color: '#92400E' }}>🔍 줌:</span>
-            {[1, 1.5, 2, 2.5].map((z) => (
-              <button
-                key={z}
-                type="button"
-                onClick={() => setZoomLevel(z)}
-                style={{
-                  padding: '2px 6px',
-                  borderRadius: 6,
-                  fontSize: 10,
-                  fontWeight: 900,
-                  border: zoomLevel === z ? 'none' : '1px solid #E2E8F0',
-                  background: zoomLevel === z ? '#F59E0B' : '#FFFFFF',
-                  color: zoomLevel === z ? '#FFFFFF' : '#475569',
-                  cursor: 'pointer',
-                }}
-              >
-                {z}x
-              </button>
-            ))}
-            {(zoomLevel > 1 || panOffset.x !== 0 || panOffset.y !== 0) && (
-              <button
-                type="button"
-                onClick={() => {
-                  setZoomLevel(1)
-                  setPanOffset({ x: 0, y: 0 })
-                }}
-                style={{
-                  padding: '2px 6px',
-                  borderRadius: 6,
-                  fontSize: 9,
-                  fontWeight: 800,
-                  background: '#F1F5F9',
-                  border: '1px solid #CBD5E1',
-                  color: '#475569',
-                  cursor: 'pointer',
-                }}
-                title="기본 배율 및 위치 복원"
-              >
-                리셋
-              </button>
-            )}
           </div>
 
           {/* 안내 뱃지 */}

@@ -87,6 +87,9 @@ export function monsterLook(m: MonsterRow): MonsterLook {
   if (!mergedMallang.doughType) {
     mergedMallang.doughType = 'mochi'
   }
+  if (saved?.decorations) {
+    mergedMallang.decorations = saved.decorations
+  }
   mergedMallang.color = '#FFFFFF'
   mergedMallang.baseColor = '#FFFFFF'
 

@@ -30,9 +30,10 @@ interface Props {
   monster: MonsterRow
   onBack: () => void
   onOpenMyRoom: () => void
+  onUpdate?: (updatedMonster: MonsterRow) => void
 }
 
-export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
+export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }: Props) {
   const [tab, setTab] = useState<BoutiqueTab>('fashion')
   const [ribbonCoins, setCoinsState] = useState<number>(() => getRibbonCoins())
   const [ownedItems, setOwnedItems] = useState<Set<string>>(() => getOwnedBoutiqueItems())
@@ -65,6 +66,33 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
   )
   const [selectedFashionItem, setSelectedFashionItem] = useState<BoutiqueItem>(BOUTIQUE_FASHION_ITEMS[0])
   const [selectedPlatingItem, setSelectedPlatingItem] = useState<BoutiqueItem>(BOUTIQUE_PLATING_ITEMS[0])
+  // 💡 대표님 3번 피드백 반영: 상점 아이템 구매 및 착용 시 전체 펫 뷰에 즉시 100% 반영
+  const notifyMonsterUpdate = (nextDeco?: MonsterDecorations, nextBase?: DessertBaseId) => {
+    if (!onUpdate) return
+    const currentCustom = loadMallangCustom(monster.id) ?? {}
+    const updatedDeco = nextDeco ?? previewDeco
+    const updatedBase = nextBase ?? currentBase
+    const updatedMonster: MonsterRow = {
+      ...monster,
+      parts: {
+        ...monster.parts,
+        decorations: updatedDeco,
+        mallang: {
+          ...monster.parts?.mallang,
+          ...currentCustom,
+          decorations: updatedDeco,
+          dessertBase: updatedBase,
+        },
+      },
+      look_custom: {
+        ...currentCustom,
+        decorations: updatedDeco,
+        dessertBase: updatedBase,
+      },
+    }
+    onUpdate(updatedMonster)
+  }
+
   const [selectedTheme, setSelectedTheme] = useState<RoomThemeDef>(ROOM_THEMES[0])
   const [selectedFurniture, setSelectedFurniture] = useState<RoomFurnitureDef | null>(ROOM_FURNITURE_CATALOG[0])
   const [currentBase, setCurrentBase] = useState<DessertBaseId>(() => savedCustom?.dessertBase ?? 'nest')
@@ -89,7 +117,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
   // 플레이팅 받침대 선택 및 실시간 피팅룸 미리보기
   const handleSelectPlatingItem = (item: BoutiqueItem) => {
     setSelectedPlatingItem(item)
-    playDessertAsmr(item.soundKind)
+    playDessertAsmr('wax-tap')
 
     if (item.baseId) {
       setPreviewBase(item.baseId)
@@ -113,7 +141,8 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
     setPreviewBase(item.baseId)
     const currentCustom = loadMallangCustom(monster.id) ?? {}
     saveMallangCustom(monster.id, { ...currentCustom, dessertBase: item.baseId })
-    playDessertAsmr('mochi-squish')
+    notifyMonsterUpdate(undefined, item.baseId)
+    playDessertAsmr('wax-tap')
     showToast(`✨ ${item.name}을(를) 착용했습니다!`)
   }
 
@@ -123,7 +152,8 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
     setPreviewBase('nest')
     const currentCustom = loadMallangCustom(monster.id) ?? {}
     saveMallangCustom(monster.id, { ...currentCustom, dessertBase: 'nest' })
-    playDessertAsmr('smore-sizzle')
+    notifyMonsterUpdate(undefined, 'nest')
+    playDessertAsmr('wax-tap')
     showToast('🪹 기본 포근 나무 둥지로 변경되었습니다.')
   }
 
@@ -144,6 +174,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
         setPreviewBase(item.baseId)
         const currentCustom = loadMallangCustom(monster.id) ?? {}
         saveMallangCustom(monster.id, { ...currentCustom, dessertBase: item.baseId })
+        notifyMonsterUpdate(undefined, item.baseId)
       }
     } else {
       showToast(res.message)
@@ -153,7 +184,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
   // 패션 아이템 미리보기 피팅 및 선택 시 착용/해제 토글
   const handleSelectFashionItem = (item: BoutiqueItem) => {
     setSelectedFashionItem(item)
-    playDessertAsmr(item.soundKind)
+    playDessertAsmr('wax-tap')
 
     if (item.slot) {
       setPreviewDeco((prev) => {
@@ -165,6 +196,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
         }
         const currentCustom = loadMallangCustom(monster.id) ?? {}
         saveMallangCustom(monster.id, { ...currentCustom, decorations: nextDeco })
+        notifyMonsterUpdate(nextDeco)
         return nextDeco
       })
     }
@@ -188,6 +220,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
         setPreviewDeco(nextDeco)
         const currentCustom = loadMallangCustom(monster.id) ?? {}
         saveMallangCustom(monster.id, { ...currentCustom, decorations: nextDeco })
+        notifyMonsterUpdate(nextDeco)
       }
     } else {
       showToast(res.message)
@@ -221,7 +254,8 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
     setPreviewDeco(nextDeco)
     const currentCustom = loadMallangCustom(monster.id) ?? {}
     saveMallangCustom(monster.id, { ...currentCustom, decorations: nextDeco })
-    playDessertAsmr(item.soundKind)
+    notifyMonsterUpdate(nextDeco)
+    playDessertAsmr('wax-tap')
     showToast(isEquipped ? `✨ ${item.name} 장착을 해제했습니다.` : `✨ ${item.name}을(를) 착용했습니다!`)
   }
 
@@ -1007,7 +1041,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom }: Props) {
                   key={furn.id}
                   onClick={() => {
                     setSelectedFurniture(furn)
-                    playDessertAsmr(furn.soundKind)
+                    playDessertAsmr('wax-tap')
                   }}
                   style={{
                     padding: '8px 6px',

@@ -270,87 +270,110 @@ export function build3DCharacterMesh(
   const basePal = CHAMELEON_PALETTES[palIdx % CHAMELEON_PALETTES.length]
   let innerLiquid: THREE.Object3D | undefined
 
-  // 🏆 대표님 피드백 100% 반영: "디저트 펫의 눈만 표현하고, 동글한 조그만한 눈 하나로 통일!
-  // 입이나 볼터치 없이 오직 맑고 조그마한 콩알눈 하나로 통일하고, 기분/상황에 따라 자동으로 찡그림/화남/슬픔/행복 표정 변화!"
-  const addCute3DFace = (zOffset: number, yOffset: number, _cheekColor?: string) => {
+  // 💖 대표님 1번 피드백 100% 복원: 이전의 사랑스럽고 큰 초롱초롱 젤리눈 + 3단 크리스탈 하이라이트 + 볼터치 + 미소 입 시스템
+  const addCute3DFace = (zOffset: number, yOffset: number, cheekColor = '#FF8A9E') => {
     const faceGroup = new THREE.Group()
-    faceGroup.position.set(0, yOffset, zOffset + 0.025)
+    faceGroup.position.set(0, yOffset, zOffset)
 
-    // 기분·상황·커스텀에 따른 감정 상태 추출 (기본: happy/round)
-    const expr = look.expression || 'round'
+    const expr = look.expression || (validSpecies === 'mochi' ? 'mochi-sparkle' : look.evoBranch === 'crispy-crunch' || look.evoBranch === 'royal-chef' ? 'sharp' : look.evoBranch === 'sweet-melty' ? 'sleepy' : 'round')
+    const isRainbowStar = look.evoBranch === 'gourmet-rainbow' || expr === 'star'
+    const eyeColor = '#1A0C08'
 
-    // 💡 1번 피드백 반영: 조명 반사로 콩알눈이 뿌옇고 흐리게 날아가는 문제 완벽 해결!
-    // 빛 반사로 탈색되지 않는 최고 선명도의 칠흑 제트 블랙 MeshBasicMaterial 채택
-    const eyeMat = new THREE.MeshBasicMaterial({
-      color: '#080808',
-      polygonOffset: true,
-      polygonOffsetFactor: -1.0,
-      polygonOffsetUnits: -4.0,
-    })
+    const eyeMat = new THREE.MeshPhysicalMaterial({ color: eyeColor, roughness: 0.08, clearcoat: 1.0 })
     const glintMat = new THREE.MeshBasicMaterial({ color: '#FFFFFF' })
+    const heartMat = new THREE.MeshPhysicalMaterial({ color: '#FF4081', emissive: '#F50057', emissiveIntensity: 0.6 })
+    const cheekMat = new THREE.MeshPhysicalMaterial({
+      color: cheekColor,
+      roughness: 0.4,
+      transparent: true,
+      opacity: 0.85,
+    })
 
-    ;[-0.30, 0.30].forEach((xSide) => {
+    ;[-0.34, 0.34].forEach((xSide) => {
       const eyeGroup = new THREE.Group()
-      eyeGroup.position.set(xSide, 0.04, 0)
+      eyeGroup.position.set(xSide, 0.06, 0)
 
-      if (expr === 'grumpy' || expr === 'angry' || expr === 'sharp') {
-        // 😠 1. 찡그림 / 화남 (미간을 살짝 찡그린 단호하고 앙증맞은 가늘어진 눈매)
-        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.065, 18, 16), eyeMat)
-        eye.scale.set(1.25, 0.42, 0.6)
-        eye.rotation.z = (xSide > 0 ? 1 : -1) * 0.32
+      if (expr === 'mochi-sparkle' || expr === 'round' || expr === 'happy') {
+        // 🍡 1. 모찌 전용 땡글 젤리눈: 투명한 앙금이 비치는 그라데이션 + 3단 입체 크리스탈 하이라이트 (대표님이 가장 사랑하신 귀여운 눈!)
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.125, 24, 22), eyeMat)
+        eye.scale.set(1.05, 1.15, 0.65)
         eyeGroup.add(eye)
 
-        const glint = new THREE.Mesh(new THREE.SphereGeometry(0.016, 8, 8), glintMat)
-        glint.position.set(xSide * -0.015, 0.015, 0.04)
-        eyeGroup.add(glint)
-      } else if (expr === 'sad' || expr === 'crying') {
-        // 🥺 2. 슬픔 / 시무룩 (바깥쪽 아래로 살짝 처져 촉촉하게 글썽이는 눈매)
-        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.068, 18, 16), eyeMat)
-        eye.scale.set(0.85, 1.15, 0.6)
-        eye.rotation.z = (xSide > 0 ? -1 : 1) * 0.28
-        eye.position.y = -0.01
-        eyeGroup.add(eye)
+        // 메인 상단 왕별빛 하이라이트
+        const glint1 = new THREE.Mesh(new THREE.SphereGeometry(0.046, 12, 12), glintMat)
+        glint1.position.set(xSide * -0.035, 0.075, 0.075)
+        eyeGroup.add(glint1)
 
-        const glint = new THREE.Mesh(new THREE.SphereGeometry(0.022, 10, 10), glintMat)
-        glint.position.set(xSide * 0.015, 0.02, 0.042)
-        eyeGroup.add(glint)
-      } else if (expr === 'sleepy' || expr === 'peaceful') {
-        // 😴 3. 포근 / 노곤 (편안하게 낮잠 자듯 감긴 반달 눈 호)
-        const eyeArc = new THREE.Mesh(
-          new THREE.TorusGeometry(0.052, 0.014, 10, 20, Math.PI),
-          eyeMat
-        )
-        eyeArc.rotation.z = Math.PI
-        eyeArc.position.set(0, -0.01, 0.02)
-        eyeGroup.add(eyeArc)
+        // 하단 달콤한 시럽 반사광 글린트
+        const glint2 = new THREE.Mesh(new THREE.SphereGeometry(0.024, 10, 10), glintMat)
+        glint2.position.set(xSide * 0.038, -0.02, 0.075)
+        eyeGroup.add(glint2)
+
+        const glint3 = new THREE.Mesh(new THREE.SphereGeometry(0.016, 8, 8), glintMat)
+        glint3.position.set(xSide * -0.01, -0.045, 0.07)
+        eyeGroup.add(glint3)
+      } else if (expr === 'heart') {
+        // 💖 2. 하트눈: 사랑에 푹 빠진 디저트 하트 보석 눈매
+        const heartL = new THREE.Mesh(new THREE.SphereGeometry(0.065, 14, 12), heartMat)
+        heartL.position.set(-0.035, 0.02, 0.05)
+        eyeGroup.add(heartL)
+        const heartR = new THREE.Mesh(new THREE.SphereGeometry(0.065, 14, 12), heartMat)
+        heartR.position.set(0.035, 0.02, 0.05)
+        eyeGroup.add(heartR)
+        const heartTip = new THREE.Mesh(new THREE.ConeGeometry(0.075, 0.12, 12), heartMat)
+        heartTip.rotation.z = Math.PI
+        heartTip.position.set(0, -0.045, 0.05)
+        eyeGroup.add(heartTip)
       } else if (expr === 'winking' && xSide > 0) {
-        // 😉 4. 윙크 (한쪽 눈 깜빡 찡긋)
-        const eyeArc = new THREE.Mesh(
-          new THREE.TorusGeometry(0.052, 0.014, 10, 20, Math.PI),
-          eyeMat
-        )
-        eyeArc.rotation.z = Math.PI
-        eyeArc.position.set(0, -0.01, 0.02)
-        eyeGroup.add(eyeArc)
-      } else {
-        // 🍡 5. 기본 순수한 동글동글 조그마한 콩알눈 (원형 하이라이트 글린트)
-        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.065, 20, 18), eyeMat)
-        eye.scale.set(1.0, 1.05, 0.7)
-        eyeGroup.add(eye)
-
-        // 메인 상단 맑은 반짝이 글린트
-        const glint = new THREE.Mesh(new THREE.SphereGeometry(0.022, 10, 10), glintMat)
-        glint.position.set(xSide * -0.018, 0.024, 0.045)
+        // 😉 3. 윙크: 한쪽 눈은 감은 초승달 + 별빛 찡긋
+        const wEye = new THREE.Mesh(new THREE.TorusGeometry(0.095, 0.024, 12, 24, Math.PI), eyeMat)
+        wEye.rotation.z = Math.PI
+        wEye.position.set(0, 0, 0.06)
+        eyeGroup.add(wEye)
+      } else if (isRainbowStar) {
+        // ⭐ 4. 무지개 스타눈: 별빛 가득한 영롱한 오망성 눈매
+        const star = new THREE.Mesh(new THREE.OctahedronGeometry(0.12, 0), new THREE.MeshPhysicalMaterial({ color: '#FFD700', emissive: '#FFA000', emissiveIntensity: 0.8 }))
+        star.scale.set(1.2, 1.2, 0.5)
+        eyeGroup.add(star)
+        const glint = new THREE.Mesh(new THREE.SphereGeometry(0.032, 8, 8), glintMat)
+        glint.position.set(0, 0.04, 0.07)
         eyeGroup.add(glint)
+      } else if (expr === 'sleepy') {
+        // 😴 5. 졸린 눈: 아래로 살짝 감긴 힐링 반달 눈
+        const arc = new THREE.Mesh(new THREE.TorusGeometry(0.092, 0.022, 12, 24, Math.PI), eyeMat)
+        arc.position.set(0, 0.02, 0.06)
+        eyeGroup.add(arc)
+      } else {
+        // 🍡 기본 눈매
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.125, 24, 22), eyeMat)
+        eye.scale.set(1.05, 1.15, 0.65)
+        eyeGroup.add(eye)
+        const glint1 = new THREE.Mesh(new THREE.SphereGeometry(0.046, 12, 12), glintMat)
+        glint1.position.set(xSide * -0.035, 0.075, 0.075)
+        eyeGroup.add(glint1)
       }
 
       faceGroup.add(eyeGroup)
     })
 
+    // 발그레한 핑크 딸기우유 볼터치
+    ;[-0.52, 0.52].forEach((xSide) => {
+      const cheek = new THREE.Mesh(new THREE.SphereGeometry(0.085, 14, 12), cheekMat)
+      cheek.scale.set(1.4, 0.85, 0.3)
+      cheek.position.set(xSide, -0.11, 0.03)
+      faceGroup.add(cheek)
+    })
+
+    // 방긋 달콤한 미소 입
+    const mouth = new THREE.Mesh(new THREE.TorusGeometry(0.065, 0.016, 10, 20, Math.PI), eyeMat)
+    mouth.rotation.z = Math.PI
+    mouth.position.set(0, -0.08, 0.05)
+    faceGroup.add(mouth)
+
     bodyGroup.add(faceGroup)
   }
 
-  // 🏆 대표님 피드백 100% 반영: 7대 순백 반죽 모양(Dough Shape) & 4대 질감(Mochi, Pudding, Jelly, Choco)
+    // 🏆 대표님 피드백 100% 반영: 7대 순백 반죽 모양(Dough Shape) & 4대 질감(Mochi, Pudding, Jelly, Choco)
   // 부화 시 100% 순백의 도화지 상태로 탄생하며, 7가지 벤치마킹 반죽 형태를 지원!
   if (isDoughMode) {
     const doughShape: DoughShapeId = look.mallang?.doughShape || 'round-mochi'
