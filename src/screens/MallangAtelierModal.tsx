@@ -69,6 +69,7 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
   const [selectedColor, setSelectedColor] = useState<string>('#E11D48')
   const [brushSize, setBrushSize] = useState<number>(10)
   const [selectedStamp, setSelectedStamp] = useState<StampKind>('strawberry')
+  const [zoomLevel, setZoomLevel] = useState<number>(1) // 🔍 정밀 꾸미기 줌인 (1x, 1.5x, 2x, 2.5x)
 
   // 드로잉 및 반죽 모양 데이터
   const [strokes, setStrokes] = useState<PaintStroke[]>([])
@@ -343,160 +344,214 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
           </button>
         </div>
 
-        {/* 메인 캔버스 영역 (직접 터치로 칠하기) */}
+        {/* 메인 캔버스 영역 (직접 터치로 칠하기 & 🔍 정밀 줌인 지원) */}
         <div
           style={{
             position: 'relative',
             width: '100%',
-            height: 270,
+            height: 290,
             background: 'radial-gradient(circle, #FFFFFF 30%, #FFF8EE 70%, #FDE9D0 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             borderBottom: '1.5px solid #E8D3B0',
-            overflow: 'hidden',
-            touchAction: 'none',
+            overflow: 'auto',
+            touchAction: zoomLevel > 1 ? 'pan-x pan-y' : 'none',
           }}
         >
-          {/* 바탕 몬스터 뷰 (실시간 렌더링) */}
-          <div style={{ width: 220, height: 220, pointerEvents: 'none' }}>
-            <MonsterView look={previewLook} size={220} fluid />
-          </div>
-
-          {/* 터치/마우스 페인팅 레이어 (240x240 좌표계) */}
-          <svg
-            ref={svgRef}
-            viewBox="0 0 240 240"
+          {/* 🔍 줌 레벨이 반영되는 내부 인터랙티브 캔버스 컨테이너 */}
+          <div
             style={{
-              position: 'absolute',
-              width: 220,
-              height: 220,
-              cursor: toolMode === 'stamp' ? 'crosshair' : 'pointer',
-              touchAction: 'none',
+              position: 'relative',
+              width: 220 * zoomLevel,
+              height: 220 * zoomLevel,
+              flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'width 0.2s ease, height 0.2s ease',
             }}
-            onMouseDown={handlePointerDown}
-            onMouseMove={handlePointerMove}
-            onMouseUp={handlePointerUp}
-            onTouchStart={handlePointerDown}
-            onTouchMove={handlePointerMove}
-            onTouchEnd={handlePointerUp}
           >
-            {/* 1. 이전에 그려진 스트로크들 */}
-            {strokes.map((s, idx) => {
-              if (!s.points || s.points.length === 0) return null
-              if (s.points.length === 1) {
-                const [px, py] = s.points[0]
-                return <circle key={idx} cx={px} cy={py} r={s.size / 2} fill={s.color} />
-              }
-              const d = s.points.map(([px, py], i) => `${i === 0 ? 'M' : 'L'} ${px} ${py}`).join(' ')
-              return (
+            {/* 바탕 몬스터 뷰 (실시간 렌더링) */}
+            <div style={{ width: 220 * zoomLevel, height: 220 * zoomLevel, pointerEvents: 'none' }}>
+              <MonsterView look={previewLook} size={220 * zoomLevel} fluid />
+            </div>
+
+            {/* 터치/마우스 페인팅 레이어 (240x240 좌표계) */}
+            <svg
+              ref={svgRef}
+              viewBox="0 0 240 240"
+              style={{
+                position: 'absolute',
+                width: 220 * zoomLevel,
+                height: 220 * zoomLevel,
+                cursor: toolMode === 'stamp' ? 'crosshair' : toolMode === 'mold' ? 'grab' : 'pointer',
+                touchAction: 'none',
+              }}
+              onMouseDown={handlePointerDown}
+              onMouseMove={handlePointerMove}
+              onMouseUp={handlePointerUp}
+              onTouchStart={handlePointerDown}
+              onTouchMove={handlePointerMove}
+              onTouchEnd={handlePointerUp}
+            >
+              {/* 1. 이전에 그려진 스트로크들 */}
+              {strokes.map((s, idx) => {
+                if (!s.points || s.points.length === 0) return null
+                if (s.points.length === 1) {
+                  const [px, py] = s.points[0]
+                  return <circle key={idx} cx={px} cy={py} r={s.size / 2} fill={s.color} />
+                }
+                const d = s.points.map(([px, py], i) => `${i === 0 ? 'M' : 'L'} ${px} ${py}`).join(' ')
+                return (
+                  <path
+                    key={idx}
+                    d={d}
+                    fill="none"
+                    stroke={s.color}
+                    strokeWidth={s.size}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    opacity={0.9}
+                  />
+                )
+              })}
+
+              {/* 2. 찍혀있는 데코 스탬프들 */}
+              {stamps.map((st, idx) => {
+                const emojiMap: Record<string, string> = {
+                  strawberry: '🍓',
+                  cherry: '🍒',
+                  heart: '💖',
+                  star: '⭐',
+                  clover: '🍀',
+                  swirl: '🌀',
+                }
+                return (
+                  <text
+                    key={idx}
+                    x={st.x}
+                    y={st.y}
+                    fontSize={28 * (st.scale || 1)}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    style={{ pointerEvents: 'none', userSelect: 'none' }}
+                  >
+                    {emojiMap[st.kind] || '🍓'}
+                  </text>
+                )
+              })}
+
+              {/* 3. 현재 드로잉 중인 실시간 스트로크 미리보기 */}
+              {isDrawing && currentStroke.length > 1 && (
                 <path
-                  key={idx}
-                  d={d}
+                  d={currentStroke.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x} ${y}`).join(' ')}
                   fill="none"
-                  stroke={s.color}
-                  strokeWidth={s.size}
+                  stroke={toolMode === 'mold' ? '#F59E0B' : toolMode === 'eraser' ? '#FFFFFF' : selectedColor}
+                  strokeWidth={toolMode === 'mold' ? 3 : brushSize}
+                  strokeDasharray={toolMode === 'mold' ? '4 4' : undefined}
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  opacity={0.9}
+                  opacity={0.8}
                 />
-              )
-            })}
+              )}
 
-            {/* 2. 찍혀있는 데코 스탬프들 */}
-            {stamps.map((st, idx) => {
-              const emojiMap: Record<string, string> = {
-                strawberry: '🍓',
-                cherry: '🍒',
-                heart: '💖',
-                star: '⭐',
-                clover: '🍀',
-                swirl: '🌀',
-              }
-              return (
-                <text
-                  key={idx}
-                  x={st.x}
-                  y={st.y}
-                  fontSize={28 * (st.scale || 1)}
-                  textAnchor="middle"
-                  dominantBaseline="central"
-                  style={{ pointerEvents: 'none', userSelect: 'none' }}
-                >
-                  {emojiMap[st.kind] || '🍓'}
-                </text>
-              )
-            })}
+              {/* 4. ✋ 자유 반죽 몰딩 제어점 핸들 및 외곽선 가이드 (doughShape === 'free-dough' 또는 mold 모드) */}
+              {(doughShape === 'free-dough' || toolMode === 'mold') && (
+                <g style={{ pointerEvents: 'none' }}>
+                  {/* 빚어진 반죽 외곽 연결선 */}
+                  <polygon
+                    points={freeDoughPoints.map(([x, y]) => `${x},${y}`).join(' ')}
+                    fill="none"
+                    stroke="#F59E0B"
+                    strokeWidth={2}
+                    strokeDasharray="4 3"
+                    opacity={0.75}
+                  />
+                  {/* 각 꼭짓점 드래그 핸들 */}
+                  {freeDoughPoints.map(([hx, hy], idx) => {
+                    const isActive = activeHandleIndex === idx
+                    return (
+                      <g key={idx}>
+                        <circle
+                          cx={hx}
+                          cy={hy}
+                          r={isActive ? 8 : 5.5}
+                          fill={isActive ? '#EF4444' : '#F59E0B'}
+                          stroke="#FFFFFF"
+                          strokeWidth={2}
+                          opacity={0.9}
+                        />
+                      </g>
+                    )
+                  })}
+                </g>
+              )}
+            </svg>
+          </div>
 
-            {/* 3. 현재 드로잉 중인 실시간 스트로크 미리보기 */}
-            {isDrawing && currentStroke.length > 1 && (
-              <path
-                d={currentStroke.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x} ${y}`).join(' ')}
-                fill="none"
-                stroke={toolMode === 'mold' ? '#F59E0B' : toolMode === 'eraser' ? '#FFFFFF' : selectedColor}
-                strokeWidth={toolMode === 'mold' ? 3 : brushSize}
-                strokeDasharray={toolMode === 'mold' ? '4 4' : undefined}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                opacity={0.8}
-              />
-            )}
-
-            {/* 4. ✋ 자유 반죽 몰딩 제어점 핸들 및 외곽선 가이드 (doughShape === 'free-dough' 또는 mold 모드) */}
-            {(doughShape === 'free-dough' || toolMode === 'mold') && (
-              <g style={{ pointerEvents: 'none' }}>
-                {/* 빚어진 반죽 외곽 연결선 */}
-                <polygon
-                  points={freeDoughPoints.map(([x, y]) => `${x},${y}`).join(' ')}
-                  fill="none"
-                  stroke="#F59E0B"
-                  strokeWidth={2}
-                  strokeDasharray="4 3"
-                  opacity={0.75}
-                />
-                {/* 각 꼭짓점 드래그 핸들 */}
-                {freeDoughPoints.map(([hx, hy], idx) => {
-                  const isActive = activeHandleIndex === idx
-                  return (
-                    <g key={idx}>
-                      <circle
-                        cx={hx}
-                        cy={hy}
-                        r={isActive ? 8 : 5.5}
-                        fill={isActive ? '#EF4444' : '#F59E0B'}
-                        stroke="#FFFFFF"
-                        strokeWidth={2}
-                        opacity={0.9}
-                      />
-                    </g>
-                  )
-                })}
-              </g>
-            )}
-          </svg>
+          {/* 🔍 돋보기 정밀 줌인 컨트롤 바 (1x / 1.5x / 2x / 2.5x) */}
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 8,
+              left: 10,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              background: 'rgba(255,255,255,0.92)',
+              padding: '3px 6px',
+              borderRadius: 12,
+              border: '1.5px solid #FCD34D',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+              zIndex: 10,
+            }}
+          >
+            <span style={{ fontSize: 10, fontWeight: 900, color: '#92400E' }}>🔍 줌:</span>
+            {[1, 1.5, 2, 2.5].map((z) => (
+              <button
+                key={z}
+                type="button"
+                onClick={() => setZoomLevel(z)}
+                style={{
+                  padding: '2px 6px',
+                  borderRadius: 6,
+                  fontSize: 10,
+                  fontWeight: 900,
+                  border: zoomLevel === z ? 'none' : '1px solid #E2E8F0',
+                  background: zoomLevel === z ? '#F59E0B' : '#FFFFFF',
+                  color: zoomLevel === z ? '#FFFFFF' : '#475569',
+                  cursor: 'pointer',
+                }}
+              >
+                {z}x
+              </button>
+            ))}
+          </div>
 
           {/* 도우 안내 뱃지 */}
           <div
             style={{
               position: 'absolute',
-              top: 10,
+              top: 8,
               left: 10,
               fontSize: 10,
               fontWeight: 800,
               color: '#92400E',
-              background: 'rgba(255,255,255,0.9)',
+              background: 'rgba(255,255,255,0.92)',
               padding: '2px 8px',
               borderRadius: 10,
               border: '1px solid #FCD34D',
+              zIndex: 10,
             }}
           >
-            {toolMode === 'mold' || doughShape === 'free-dough'
+            {zoomLevel > 1 ? `🔍 ${zoomLevel}x 정밀 꾸미기 모드 (정밀하게 터치하세요)` : toolMode === 'mold' || doughShape === 'free-dough'
               ? '✋ 반죽 둘레를 드래그하여 나만의 모양으로 빚으세요!'
               : '🖌️ 몸체 위를 직접 터치해 색칠하세요!'}
           </div>
 
           {/* 실행취소 & 리셋 버튼 */}
-          <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', gap: 6 }}>
+          <div style={{ position: 'absolute', top: 8, right: 10, display: 'flex', gap: 6, zIndex: 10 }}>
             <button
               onClick={handleUndo}
               style={{
