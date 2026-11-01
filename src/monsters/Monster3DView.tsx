@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { getSpeciesSoundKind } from '../lib/sound'
 import { normalizeDessertSpecies } from './dessertNormalizer'
-import { CHAMELEON_PALETTES, type DessertBaseId, type MallangCustom } from './MallangChameleon'
+import { CHAMELEON_PALETTES, type DessertBaseId, type DoughShapeId, type MallangCustom } from './MallangChameleon'
 import type { MonsterLook } from './types'
 
 interface Props {
@@ -412,6 +412,152 @@ export function build3DCharacterMesh(
     faceGroup.add(mouth)
 
     bodyGroup.add(faceGroup)
+  }
+
+  // 🏆 대표님 피드백 100% 반영: 7대 순백 반죽 모양(Dough Shape) & 4대 질감(Mochi, Pudding, Jelly, Choco)
+  // 부화 시 100% 순백의 도화지 상태로 탄생하며, 7가지 벤치마킹 반죽 형태를 지원!
+  if (isDoughMode) {
+    const doughShape: DoughShapeId = look.mallang?.doughShape || 'round-mochi'
+    const doughTexture = look.mallang?.doughType || 'mochi'
+
+    // 4대 질감 광택/질감 물리 재질 (모두 100% 순백색)
+    let doughMat: THREE.MeshPhysicalMaterial
+    if (doughTexture === 'pudding') {
+      doughMat = new THREE.MeshPhysicalMaterial({
+        color: '#FFFFFF',
+        roughness: 0.16,
+        clearcoat: 0.9,
+        transmission: 0.28,
+        thickness: 0.9,
+        sheen: 0.8,
+        sheenColor: new THREE.Color('#FFFFFF'),
+      })
+    } else if (doughTexture === 'jelly') {
+      doughMat = new THREE.MeshPhysicalMaterial({
+        color: '#FFFFFF',
+        transmission: 0.72,
+        thickness: 1.2,
+        roughness: 0.08,
+        ior: 1.45,
+        clearcoat: 1.0,
+        transparent: true,
+        opacity: 0.9,
+      })
+    } else if (doughTexture === 'choco') {
+      doughMat = new THREE.MeshPhysicalMaterial({
+        color: '#FFFFFF',
+        roughness: 0.2,
+        clearcoat: 0.85,
+        sheen: 0.6,
+        sheenColor: new THREE.Color('#FFFFFF'),
+      })
+    } else {
+      // mochi (기본 쫀득 찹쌀떡 전분 질감)
+      doughMat = new THREE.MeshPhysicalMaterial({
+        color: '#FFFFFF',
+        roughness: 0.26,
+        transmission: 0.22,
+        thickness: 1.1,
+        ior: 1.36,
+        clearcoat: 0.45,
+        sheen: 1.0,
+        sheenRoughness: 0.35,
+        sheenColor: new THREE.Color('#FFFFFF'),
+      })
+    }
+
+    if (doughShape === 'round-mochi') {
+      // 🍡 1. 동글동글 모찌 돔: 바닥에 쫀득하게 가라앉은 순백 찹쌀떡
+      const mochiBody = new THREE.Mesh(new THREE.SphereGeometry(0.96, 44, 40), doughMat)
+      mochiBody.scale.set(1.18, 0.82, 1.14)
+      mochiBody.position.y = -0.06
+      bodyGroup.add(mochiBody)
+
+      // 양옆 쫀득 볼살 몰드
+      ;[-0.62, 0.62].forEach((xSide) => {
+        const cheekJowl = new THREE.Mesh(new THREE.SphereGeometry(0.32, 24, 20), doughMat)
+        cheekJowl.scale.set(1.1, 0.85, 0.95)
+        cheekJowl.position.set(xSide, -0.12, 0.45)
+        bodyGroup.add(cheekJowl)
+      })
+      addCute3DFace(0.96, 0.08, '#FF8A9E')
+    } else if (doughShape === 'soft-cube') {
+      // 🧊 2. 모나지 않은 부드러운 네모 큐브 (생초코 파베 초콜릿)
+      const cubeGeom = new THREE.BoxGeometry(1.24, 0.94, 1.24, 12, 10, 12)
+      // 모서리 둥글림 스무딩
+      const pos = cubeGeom.attributes.position
+      for (let i = 0; i < pos.count; i++) {
+        let x = pos.getX(i)
+        let y = pos.getY(i)
+        let z = pos.getZ(i)
+        const d = Math.sqrt(x * x + y * y + z * z)
+        const factor = 1 - 0.12 * (d / 1.1)
+        pos.setXYZ(i, x * factor, y * factor, z * factor)
+      }
+      cubeGeom.computeVertexNormals()
+      const cubeMesh = new THREE.Mesh(cubeGeom, doughMat)
+      cubeMesh.position.y = -0.04
+      bodyGroup.add(cubeMesh)
+      addCute3DFace(0.68, 0.06, '#FF8A9E')
+    } else if (doughShape === 'sweet-heart') {
+      // 💖 3. 입체 하트 봉봉 초콜릿 (사진 1, 2, 3 벤치마킹)
+      const heartGroup = new THREE.Group()
+      // 좌/우 둥근 상단 볼 2개
+      ;[-0.38, 0.38].forEach((hx) => {
+        const hTop = new THREE.Mesh(new THREE.SphereGeometry(0.56, 32, 28), doughMat)
+        hTop.position.set(hx, 0.24, 0)
+        heartGroup.add(hTop)
+      })
+      // 하단 수렴 콘 바디
+      const hBot = new THREE.Mesh(new THREE.ConeGeometry(0.88, 1.05, 36), doughMat)
+      hBot.rotation.z = Math.PI
+      hBot.position.set(0, -0.25, 0)
+      heartGroup.add(hBot)
+      // 중앙 부드러운 필링 볼륨
+      const hCenter = new THREE.Mesh(new THREE.SphereGeometry(0.72, 32, 28), doughMat)
+      hCenter.scale.set(1.0, 0.95, 0.75)
+      hCenter.position.set(0, 0.02, 0)
+      heartGroup.add(hCenter)
+
+      bodyGroup.add(heartGroup)
+      addCute3DFace(0.62, 0.02, '#FF8A9E')
+    } else if (doughShape === 'pudding-flan') {
+      // 🍮 4. 탱글 푸딩 플랜형 돔: 아랫단이 넓게 퍼지고 윗면이 살짝 평평한 형태
+      const flanMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.98, 0.88, 36), doughMat)
+      flanMesh.position.y = -0.08
+      bodyGroup.add(flanMesh)
+      const topDome = new THREE.Mesh(new THREE.SphereGeometry(0.74, 32, 16), doughMat)
+      topDome.scale.set(1, 0.3, 1)
+      topDome.position.y = 0.35
+      bodyGroup.add(topDome)
+      addCute3DFace(0.84, 0.08, '#FF8A9E')
+    } else if (doughShape === 'long-roll') {
+      // 🥖 5. 길쭉한 롤 / 에클레어 바: 2칸 차지 디저트 바 (가로 2.2배)
+      const rollMesh = new THREE.Mesh(new THREE.CapsuleGeometry(0.52, 1.35, 24, 32), doughMat)
+      rollMesh.rotation.z = Math.PI / 2
+      rollMesh.position.y = -0.05
+      bodyGroup.add(rollMesh)
+      addCute3DFace(0.58, 0.04, '#FF8A9E')
+    } else if (doughShape === 'drop-meringue') {
+      // 💧 6. 눈물 머랭 / 키세스형: 아래는 빵빵하고 위는 뾰족한 꼬리
+      const dropBase = new THREE.Mesh(new THREE.SphereGeometry(0.88, 36, 28), doughMat)
+      dropBase.scale.set(1.12, 0.78, 1.12)
+      dropBase.position.y = -0.16
+      bodyGroup.add(dropBase)
+      const dropTip = new THREE.Mesh(new THREE.ConeGeometry(0.84, 0.98, 36), doughMat)
+      dropTip.position.set(0, 0.32, 0)
+      bodyGroup.add(dropTip)
+      addCute3DFace(0.8, 0.02, '#FF8A9E')
+    } else if (doughShape === 'donut-ring') {
+      // 🍩 7. 도넛 / 링 타르트형: 가운데가 오목한 링형 디저트
+      const ringMesh = new THREE.Mesh(new THREE.TorusGeometry(0.68, 0.34, 28, 48), doughMat)
+      ringMesh.rotation.x = Math.PI / 6
+      ringMesh.position.y = -0.05
+      bodyGroup.add(ringMesh)
+      addCute3DFace(0.54, 0.06, '#FF8A9E')
+    }
+
+    return { root, bodyGroup, innerLiquid }
   }
 
   if (validSpecies === 'dubai-cookie') {

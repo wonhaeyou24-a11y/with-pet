@@ -124,6 +124,7 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
 
   // 명예의 진열장
   const [showcaseList, setShowcaseList] = useState<OpenPartyRoom[]>([])
+  const [customVersion, setCustomVersion] = useState<number>(0)
 
   // 내 현재 꾸며진 펫 외형 (대표님 피드백: 순백 도우 DIY 커스텀 100% 반영)
   const myCurrentLook = React.useMemo(() => {
@@ -139,7 +140,7 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
         baseColor: '#FFFFFF',
       },
     }
-  }, [currentMonster])
+  }, [currentMonster, customVersion])
 
   // 초기 로드
   useEffect(() => {
@@ -405,163 +406,192 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
     return (
       <div style={{ position: 'relative', width: '100%', maxWidth: 360, margin: '6px auto', boxSizing: 'border-box' }}>
         {/* ================================================================= */}
-        {/* 1. 🎁 수제 초콜릿 선물상자: 옻칠 다크초코 원목 + 샴페인 골드 림 + 금박 유산지 컵 */}
+        {/* 1. 🎁 실제 수제 초콜릿 선물상자 (첨부 사진 1, 2, 3, 4 기반) */}
         {/* ================================================================= */}
         {baseType === 'box' && (
           <div
             style={{
               position: 'relative',
-              padding: 16,
-              borderRadius: 28,
-              background: 'linear-gradient(145deg, #2D150B 0%, #431E10 45%, #1F0D06 100%)',
-              border: '4px solid #C59B27',
-              boxShadow: '0 20px 35px -8px rgba(0,0,0,0.65), inset 0 2px 6px rgba(255,215,0,0.4)',
+              padding: '26px 14px 18px 14px',
+              borderRadius: 22,
+              background: 'linear-gradient(145deg, #1A0D07 0%, #2E170C 50%, #120703 100%)',
+              border: '3.5px solid #C59B27',
+              boxShadow: '0 24px 45px -8px rgba(0,0,0,0.7), inset 0 2px 6px rgba(255,215,0,0.3)',
               boxSizing: 'border-box',
             }}
           >
-            {/* 상자 내부 푹신한 벨벳 크림 안감 쿠션 */}
+            {/* 🎀 실제 선물상자 상단 브라운 실크 리본 & 라벨 (사진 3, 4 벤치마킹) */}
             <div
               style={{
-                padding: 14,
-                borderRadius: 20,
-                background: 'linear-gradient(to bottom, #FFFBF5 0%, #FDF3E3 60%, #F5E5C9 100%)',
-                border: '1.5px solid #E8D3B0',
-                boxShadow: 'inset 0 3px 8px rgba(0,0,0,0.08)',
+                position: 'absolute',
+                top: -13,
+                left: 14,
+                right: 14,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                pointerEvents: 'none',
+                zIndex: 10,
               }}
             >
-              {/* 상자 골드 헤더 */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  background: 'linear-gradient(135deg, #5C3218 0%, #3B1B0A 100%)',
+                  color: '#FFD700',
+                  padding: '4px 12px',
+                  borderRadius: 20,
+                  border: '1.5px solid #C59B27',
+                  boxShadow: '0 4px 10px rgba(0,0,0,0.4)',
+                  fontSize: 11,
+                  fontWeight: 900,
+                  letterSpacing: '0.04em',
+                }}
+              >
+                <span>🎀</span>
+                <span>수제 쇼콜라 컬렉션</span>
+              </div>
+
+              {/* 하얀 선물 태그 카드 */}
+              <div
+                style={{
+                  background: '#FFFFFF',
+                  color: '#2E1A11',
+                  padding: '3px 8px',
+                  borderRadius: 6,
+                  border: '1px solid #D7CCC8',
+                  boxShadow: '0 3px 6px rgba(0,0,0,0.25)',
+                  fontSize: 10,
+                  fontWeight: 900,
+                }}
+              >
+                {capacity}구 골드 트레이
+              </div>
+            </div>
+
+            {/* 상자 내부 골드/다크초코 트레이 (사진 2, 3, 4 기반) */}
+            <div
+              style={{
+                padding: 10,
+                borderRadius: 16,
+                background: 'linear-gradient(to bottom, #26160F 0%, #1A0D08 100%)',
+                border: '2px solid #8D5B2A',
+                boxShadow: 'inset 0 4px 12px rgba(0,0,0,0.8)',
+              }}
+            >
+              {/* 상자 트레이 헤더 정보 */}
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  paddingBottom: 8,
-                  marginBottom: 10,
-                  borderBottom: '1px solid #E8D3B0',
+                  paddingBottom: 6,
+                  marginBottom: 8,
+                  borderBottom: '1px solid #4A2818',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 16 }}>🎁</span>
-                  <span style={{ fontSize: 13, fontWeight: 900, color: '#451A03' }}>
-                    쇼콜라티에 수제 컬렉션
-                  </span>
-                  <span
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 800,
-                      color: '#92400E',
-                      background: '#FEF3C7',
-                      padding: '2px 8px',
-                      borderRadius: 12,
-                      border: '1px solid #FCD34D',
-                    }}
-                  >
-                    {capacity}구 골드 박스
+                  <span style={{ fontSize: 12, fontWeight: 900, color: '#FDE68A' }}>
+                    🍫 프리미엄 수제 봉봉 박스
                   </span>
                 </div>
                 <span
                   style={{
-                    fontSize: 11,
+                    fontSize: 10,
                     fontWeight: 900,
-                    color: '#78350F',
-                    background: '#FFFFFF',
+                    color: '#F59E0B',
+                    background: '#1F1109',
                     padding: '2px 8px',
-                    borderRadius: 12,
-                    border: '1px solid #E8D3B0',
+                    borderRadius: 10,
+                    border: '1px solid #78350F',
                   }}
                 >
-                  {slotsArr.filter((s) => s !== null).length} / {capacity}
+                  {slotsArr.filter((s) => s !== null).length} / {capacity}개 완성
                 </span>
               </div>
 
-              {/* 디저트 컵 그리드: 빈 자리도 텍스트가 아닌 '실제 완성형 금박 초콜릿 몰드'로 렌더링! */}
+              {/* 디저트 컵 그리드: 주름진 유산지 컵(Cup Liner) 및 2칸 가변 슬롯 지원 */}
               <div
                 style={{
                   display: 'grid',
                   gridTemplateColumns: gridCols,
-                  gap: 12,
+                  gap: 8,
                 }}
               >
                 {slotsArr.map((item, idx) => {
                   const isSelected = selectedSlotIndex === idx
+                  const isLongRoll = item?.look?.mallang?.doughShape === 'long-roll'
+
                   return (
                     <div
                       key={idx}
                       onClick={() => interactive && onSlotClick && onSlotClick(idx)}
                       style={{
                         position: 'relative',
+                        gridColumn: isLongRoll ? 'span 2' : 'span 1',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        minHeight: 128,
-                        borderRadius: 20,
-                        padding: 8,
+                        minHeight: 110,
+                        borderRadius: isLongRoll ? 20 : 16,
+                        padding: 6,
                         cursor: 'pointer',
+                        // 주름진 브라운 유산지 컵 (사진 1, 2, 3, 4 동일 질감)
                         background: item
-                          ? 'linear-gradient(to bottom, #FFFDF7 0%, #FFF8E7 50%, #FCE8C3 100%)'
-                          : 'radial-gradient(circle, #FFF9EB 20%, #FDEED0 70%, #F5DEC0 100%)',
+                          ? 'radial-gradient(circle, #3D2214 0%, #201108 80%, #150A05 100%)'
+                          : 'radial-gradient(circle, #2C180E 0%, #1F0F07 80%, #140804 100%)',
                         border: isSelected && interactive
-                          ? '3px solid #EC4899'
-                          : item
-                          ? '2px solid #D4AF37'
-                          : '2px solid rgba(212,175,55,0.7)',
+                          ? '3px solid #F59E0B'
+                          : '2px solid #5C3318',
                         boxShadow: isSelected && interactive
-                          ? '0 0 0 3px rgba(236,72,153,0.35), 0 8px 16px rgba(0,0,0,0.15)'
-                          : '0 3px 8px rgba(0,0,0,0.08), inset 0 2px 4px rgba(212,175,55,0.2)',
+                          ? '0 0 0 3px rgba(245,158,11,0.4), inset 0 3px 8px rgba(0,0,0,0.6)'
+                          : 'inset 0 3px 10px rgba(0,0,0,0.7), 0 2px 4px rgba(0,0,0,0.4)',
                         transform: isSelected && interactive ? 'scale(1.03)' : 'scale(1)',
                         transition: 'all 0.2s ease',
                       }}
                     >
-                      {/* 오목한 금박 유산지 컵 주름 질감 림 */}
-                      <div
-                        style={{
-                          position: 'absolute',
-                          inset: 3,
-                          borderRadius: 16,
-                          border: '1px solid rgba(212,175,55,0.45)',
-                          pointerEvents: 'none',
-                        }}
-                      />
-
                       {item ? (
-                        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-                          {/* 쫀득 숨쉬기 액션 래퍼 */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+                          {/* 실시간 3D 펫 */}
                           <div
                             style={{
-                              width: 66,
-                              height: 66,
+                              width: isLongRoll ? 110 : 64,
+                              height: 64,
                               pointerEvents: 'none',
-                              animation: `breathing-wiggle 3s ease-in-out infinite ${idx * 0.35}s`,
+                              animation: `breathing-wiggle 3s ease-in-out infinite ${idx * 0.3}s`,
                             }}
                           >
-                            <Monster3DView look={item.look} size={66} interactive={false} />
+                            <Monster3DView look={item.look} size={64} interactive={false} />
                           </div>
 
                           <span
                             style={{
-                              fontSize: 11,
+                              fontSize: 10,
                               fontWeight: 900,
-                              color: '#291307',
-                              marginTop: 4,
-                              maxWidth: 85,
+                              color: '#FEF3C7',
+                              marginTop: 2,
+                              maxWidth: isLongRoll ? 120 : 70,
                               whiteSpace: 'nowrap',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
+                              textShadow: '0 1px 2px rgba(0,0,0,0.8)',
                             }}
                           >
                             {item.petName}
                           </span>
                           <span
                             style={{
-                              fontSize: 9,
+                              fontSize: 8,
                               fontWeight: 800,
-                              color: '#BE185D',
-                              background: '#FCE7F3',
-                              padding: '1px 6px',
-                              borderRadius: 10,
-                              marginTop: 2,
-                              border: '1px solid #FBCFE8',
+                              color: '#FCD34D',
+                              background: '#3B1D0E',
+                              padding: '1px 5px',
+                              borderRadius: 6,
+                              marginTop: 1,
+                              border: '1px solid #78350F',
                             }}
                           >
                             by {item.ownerName}
@@ -576,21 +606,21 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                               }}
                               style={{
                                 position: 'absolute',
-                                top: -6,
-                                right: -6,
-                                width: 20,
-                                height: 20,
+                                top: -4,
+                                right: -4,
+                                width: 18,
+                                height: 18,
                                 borderRadius: '50%',
                                 background: '#EF4444',
                                 color: '#FFFFFF',
-                                fontSize: 11,
+                                fontSize: 10,
                                 fontWeight: 900,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 border: 'none',
                                 cursor: 'pointer',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
                               }}
                               title="슬롯 비우기"
                             >
@@ -599,38 +629,37 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                           )}
                         </div>
                       ) : (
-                        /* ✨ 대표님 피드백 반영: 빈 자리도 텍스트가 아닌 '실제 세팅된 고급 금박 몰드 & 마카롱 받침'으로 렌더링! */
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '8px 0' }}>
+                        /* ✨ 실제 세팅된 브라운 주름 유산지 컵 (Fluted Cup) 빈 슬롯 */
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '4px 0' }}>
                           <div
                             style={{
-                              width: 50,
-                              height: 50,
+                              width: 48,
+                              height: 48,
                               borderRadius: '50%',
-                              background: 'radial-gradient(circle, #FFFFFF 30%, #FEF3C7 70%, #FDE68A 100%)',
-                              border: '1.5px solid #F59E0B',
-                              boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06)',
+                              background: 'radial-gradient(circle, #3D2214 30%, #231209 85%, #140804 100%)',
+                              border: '1.5px dashed #C59B27',
+                              boxShadow: 'inset 0 3px 8px rgba(0,0,0,0.7)',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              fontSize: 22,
+                              fontSize: 18,
                             }}
                           >
-                            🧁
+                            🍫
                           </div>
-                          <span style={{ fontSize: 10, fontWeight: 900, color: '#92400E' }}>
-                            {idx + 1}번 금박 받침
+                          <span style={{ fontSize: 9, fontWeight: 900, color: '#D97706' }}>
+                            {idx + 1}번 유산지 컵
                           </span>
                           {interactive && (
                             <span
                               style={{
-                                fontSize: 9,
+                                fontSize: 8,
                                 fontWeight: 900,
-                                color: '#EC4899',
-                                background: '#FFF1F2',
-                                padding: '2px 8px',
-                                borderRadius: 10,
-                                border: '1px solid #FECDD3',
-                                boxShadow: '0 1px 3px rgba(236,72,153,0.15)',
+                                color: '#FDE68A',
+                                background: '#3F2212',
+                                padding: '1px 6px',
+                                borderRadius: 6,
+                                border: '1px solid #78350F',
                               }}
                             >
                               + 내 펫 얹기
@@ -951,9 +980,30 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
         <MallangAtelierModal
           monster={currentMonster}
           onClose={() => setShowAtelierModal(false)}
-          onSaved={() => {
-            // 저장 후 1번 슬롯(내 펫) 자동 업데이트
-            handlePlaceMyPetInSoloSlot(0)
+          onSaved={(savedCustom) => {
+            setCustomVersion((v) => v + 1)
+            const updatedLook: MonsterLook = {
+              ...monsterLook(currentMonster),
+              mallang: {
+                ...loadMallangCustom(currentMonster.id),
+                ...savedCustom,
+                color: '#FFFFFF',
+                baseColor: '#FFFFFF',
+              },
+            }
+            setSoloSlots((prev) => {
+              const copy = [...prev]
+              copy[0] = {
+                slotIndex: 0,
+                ownerName: '나',
+                petName: currentMonster.name || '내 펫',
+                species: currentMonster.species,
+                look: updatedLook,
+                isMine: true,
+                placedAt: new Date().toISOString(),
+              }
+              return copy
+            })
           }}
         />
       )}

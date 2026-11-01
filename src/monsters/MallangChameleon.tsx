@@ -32,6 +32,31 @@ export type DessertBaseId =
   | 'parfait-cup'
 export type SyrupId = 'choco-drizzle' | 'berry-syrup' | 'matcha-powder' | 'rainbow-sprinkles' | 'sugar-powder'
 
+export type DoughShapeId =
+  | 'round-mochi'
+  | 'soft-cube'
+  | 'sweet-heart'
+  | 'pudding-flan'
+  | 'long-roll'
+  | 'drop-meringue'
+  | 'donut-ring'
+
+export const DOUGH_SHAPES: {
+  id: DoughShapeId
+  name: string
+  icon: string
+  desc: string
+  span: 1 | 2
+}[] = [
+  { id: 'round-mochi', name: '동글 모찌', icon: '🍡', desc: '동글동글한 모찌 돔', span: 1 },
+  { id: 'soft-cube', name: '네모 큐브', icon: '🧊', desc: '모나지 않은 파베 초콜릿', span: 1 },
+  { id: 'sweet-heart', name: '하트 봉봉', icon: '💖', desc: '사랑스러운 입체 하트', span: 1 },
+  { id: 'pudding-flan', name: '탱글 푸딩', icon: '🍮', desc: '부드러운 플랜 돔', span: 1 },
+  { id: 'long-roll', name: '에클레어 바', icon: '🥖', desc: '길쭉한 2칸 롤 디저트', span: 2 },
+  { id: 'drop-meringue', name: '눈물 머랭', icon: '💧', desc: '위가 뾰족한 키세스형', span: 1 },
+  { id: 'donut-ring', name: '도넛 링', icon: '🍩', desc: '가운데가 오목한 링형', span: 1 },
+]
+
 export interface PaintStroke {
   color: string
   size: number
@@ -55,6 +80,7 @@ export interface MallangCustom {
   wingKind?: WingKind
   strokes?: PaintStroke[]
   stamps?: PaintStamp[]
+  doughShape?: DoughShapeId
   doughType?: 'mochi' | 'pudding' | 'jelly' | 'choco'
   color?: string
   baseColor?: string

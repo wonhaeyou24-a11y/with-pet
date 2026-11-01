@@ -21,6 +21,8 @@ import {
   type PaintStroke,
   type PaintStamp,
   type StampKind,
+  type DoughShapeId,
+  DOUGH_SHAPES,
 } from '../monsters/MallangChameleon'
 import MonsterView from '../monsters/MonsterView'
 import { monsterLook } from '../lib/api'
@@ -68,9 +70,10 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
   const [brushSize, setBrushSize] = useState<number>(10)
   const [selectedStamp, setSelectedStamp] = useState<StampKind>('strawberry')
 
-  // 드로잉 데이터
+  // 드로잉 및 반죽 모양 데이터
   const [strokes, setStrokes] = useState<PaintStroke[]>([])
   const [stamps, setStamps] = useState<PaintStamp[]>([])
+  const [doughShape, setDoughShape] = useState<DoughShapeId>('round-mochi')
   const [doughType, setDoughType] = useState<'mochi' | 'pudding' | 'jelly' | 'choco'>('mochi')
   const [isDrawing, setIsDrawing] = useState<boolean>(false)
   const [currentStroke, setCurrentStroke] = useState<[number, number][]>([])
@@ -84,6 +87,7 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
       if (saved) {
         if (saved.strokes) setStrokes(saved.strokes)
         if (saved.stamps) setStamps(saved.stamps)
+        if (saved.doughShape) setDoughShape(saved.doughShape)
         if (saved.doughType) setDoughType(saved.doughType as any)
       }
     } catch (e) {
@@ -175,6 +179,7 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
         ...current,
         strokes,
         stamps,
+        doughShape,
         doughType,
         color: '#FFFFFF', // 순백 도우 기본 유지
         baseColor: '#FFFFFF',
@@ -188,11 +193,12 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
     }
   }
 
-  // 실시간 프리뷰 룩 (대표님 피드백: 순백의 도우 바탕에 질감만 살아있는 형태)
+  // 실시간 프리뷰 룩 (대표님 피드백: 순백의 도우 바탕에 7대 반죽 형태 & 질감만 살아있는 형태)
   const previewCustom: MallangCustom = {
     ...loadMallangCustom(monster.id),
     strokes,
     stamps,
+    doughShape,
     doughType,
     color: '#FFFFFF',
     baseColor: '#FFFFFF',
@@ -420,6 +426,62 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
 
         {/* 툴바 & 팔레트 & 데코 서랍 */}
         <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10, overflowY: 'auto' }}>
+          {/* 🍡 7대 반죽 모양 선택 (메챠카멜레온 7자세 벤치마킹) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 11, fontWeight: 900, color: '#451A03' }}>
+                7대 반죽 모양:
+              </span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: '#D97706' }}>
+                {DOUGH_SHAPES.find((s) => s.id === doughShape)?.desc}
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: 5, overflowX: 'auto', paddingBottom: 2 }}>
+              {DOUGH_SHAPES.map((s) => {
+                const isSelected = doughShape === s.id
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => setDoughShape(s.id)}
+                    style={{
+                      flexShrink: 0,
+                      padding: '5px 8px',
+                      borderRadius: 10,
+                      fontSize: 10,
+                      fontWeight: 900,
+                      border: isSelected ? '1.5px solid #E11D48' : '1px solid #E2E8F0',
+                      background: isSelected ? 'linear-gradient(135deg, #FFF1F2, #FFE4E6)' : '#FFFFFF',
+                      color: isSelected ? '#BE185D' : '#475569',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      boxShadow: isSelected ? '0 2px 6px rgba(225,29,72,0.2)' : 'none',
+                    }}
+                  >
+                    <span>{s.icon}</span>
+                    <span>{s.name}</span>
+                    {s.span === 2 && (
+                      <span
+                        style={{
+                          fontSize: 8,
+                          fontWeight: 800,
+                          background: '#FEE2E2',
+                          color: '#DC2626',
+                          padding: '1px 3px',
+                          borderRadius: 6,
+                        }}
+                      >
+                        2칸
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
           {/* ✨ 대표님 피드백 반영: 순백 도우 4대 질감(모찌·푸딩·젤리·초콜릿) 선택 칩 */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ fontSize: 11, fontWeight: 900, color: '#451A03', whiteSpace: 'nowrap' }}>도우 질감:</span>

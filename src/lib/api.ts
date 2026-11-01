@@ -79,6 +79,17 @@ export function monsterLook(m: MonsterRow): MonsterLook {
   if (mergedMallang.morphForm) {
     mergedMallang.morphForm = normalizeDessertSpecies(mergedMallang.morphForm)
   }
+
+  // 🏆 대표님 지시: 전체 유저 펫을 7대 순백 반죽 모양 시스템으로 전면 업그레이드!
+  if (!mergedMallang.doughShape) {
+    mergedMallang.doughShape = 'round-mochi'
+  }
+  if (!mergedMallang.doughType) {
+    mergedMallang.doughType = 'mochi'
+  }
+  mergedMallang.color = '#FFFFFF'
+  mergedMallang.baseColor = '#FFFFFF'
+
   return {
     species: normSpecies,
     ...m.parts,
