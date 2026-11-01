@@ -105,6 +105,7 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
 
   // 1인 모드 상태 (일체형 직관적 뷰)
   const [selectedBase, setSelectedBase] = useState<PartyBaseType>('box')
+  const [boxTheme, setBoxTheme] = useState<'black' | 'walnut' | 'white'>('black')
   const [selectedCapacity, setSelectedCapacity] = useState<SlotCapacity>(4)
   const [soloSlots, setSoloSlots] = useState<(PartySlotItem | null)[]>(() => new Array(4).fill(null))
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number>(0)
@@ -418,19 +419,32 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
         {/* ================================================================= */}
         {/* 1. 🎁 실제 수제 초콜릿 선물상자 (대표님 첨부 실물 우드 & 골드 트레이 사진 100% 동일 재현) */}
         {/* ================================================================= */}
-        {baseType === 'box' && (
-          <div
-            style={{
-              position: 'relative',
-              padding: '16px 12px 14px 12px',
-              borderRadius: 18,
-              // 실물 사진과 동일한 깊이감 있는 월넛 원목 몰딩 프레임
-              background: 'linear-gradient(145deg, #4A2B18 0%, #30190D 40%, #1A0D06 100%)',
-              border: '9px solid #361C0E',
-              boxShadow: '0 24px 50px -10px rgba(0,0,0,0.9), inset 0 2px 4px rgba(255,215,0,0.25), inset 0 -2px 6px rgba(0,0,0,0.9)',
-              boxSizing: 'border-box',
-            }}
-          >
+        {baseType === 'box' && (() => {
+          const isBlackBox = boxTheme === 'black'
+          const isWhiteBox = boxTheme === 'white'
+          return (
+            <div
+              style={{
+                position: 'relative',
+                padding: '16px 12px 14px 12px',
+                borderRadius: 18,
+                // 대표님 첨부 사진 3, 5, 6, 7번 스타일 테마 (블랙 리본 / 월넛 원목 골드 / 퓨어 화이트 하트)
+                background: isBlackBox
+                  ? 'linear-gradient(145deg, #1C1C1C 0%, #111111 60%, #080808 100%)'
+                  : isWhiteBox
+                  ? 'linear-gradient(145deg, #FFFFFF 0%, #F8FAFC 60%, #F1F5F9 100%)'
+                  : 'linear-gradient(145deg, #4A2B18 0%, #30190D 40%, #1A0D06 100%)',
+                border: isBlackBox
+                  ? '8px solid #141414'
+                  : isWhiteBox
+                  ? '8px solid #E2E8F0'
+                  : '9px solid #361C0E',
+                boxShadow: isWhiteBox
+                  ? '0 20px 45px -10px rgba(0,0,0,0.18), inset 0 1px 2px rgba(255,255,255,0.9)'
+                  : '0 24px 50px -10px rgba(0,0,0,0.95), inset 0 2px 4px rgba(255,215,0,0.2), inset 0 -2px 6px rgba(0,0,0,0.9)',
+                boxSizing: 'border-box',
+              }}
+            >
             {/* 🎀 상자 상단 브라운 실크 리본 & 라벨 */}
             <div
               style={{
@@ -705,7 +719,8 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
               </div>
             </div>
           </div>
-        )}
+        )
+      })()}
 
         {/* ================================================================= */}
         {/* 2. 🎂 파티 셀러브레이션 케이크: 순백 생크림 돔 + 딸기/마카롱 테두리 토핑 */}
@@ -1395,6 +1410,45 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                 </div>
 
                 {/* 칸 수 선택: 2구(소수/커플)부터 4구, 6구, 9구, 16구까지 자유 선택 */}
+                
+                {/* 🎨 실물 상자 테마 선택 (대표님 사진 3, 5, 6, 7번 스타일) */}
+                {selectedBase === 'box' && (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 4, borderTop: '1px solid #FFE4E6' }}>
+                    <span style={{ fontSize: 11, fontWeight: 900, color: '#334155' }}>
+                      상자 테마:
+                    </span>
+                    <div style={{ display: 'flex', gap: 5 }}>
+                      {[
+                        { id: 'black', name: '블랙 리본 (사진 5/6)', icon: '🖤', bg: '#1E293B', text: '#FFFFFF' },
+                        { id: 'walnut', name: '월넛 골드 (사진 7)', icon: '🪵', bg: '#451A03', text: '#FEF3C7' },
+                        { id: 'white', name: '화이트 하트 (사진 3)', icon: '🤍', bg: '#F8FAFC', text: '#334155' },
+                      ].map((t) => (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => setBoxTheme(t.id as any)}
+                          style={{
+                            padding: '4px 8px',
+                            borderRadius: 8,
+                            fontSize: 10.5,
+                            fontWeight: 900,
+                            border: boxTheme === t.id ? '2px solid #EC4899' : '1px solid #CBD5E1',
+                            background: boxTheme === t.id ? '#FFF1F2' : '#FFFFFF',
+                            color: boxTheme === t.id ? '#BE185D' : '#475569',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 3,
+                          }}
+                        >
+                          <span>{t.icon}</span>
+                          <span>{t.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: 11, fontWeight: 900, color: '#334155' }}>
                     상자 크기:

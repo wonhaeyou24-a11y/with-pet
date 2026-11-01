@@ -64,12 +64,17 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
   onClose,
   onSaved,
 }) => {
-  // 모드: 'brush'(직접 그리기) | 'stamp'(데코 콕콕 찍기) | 'eraser'(지우개) | 'mold'(자유 반죽 빚기)
-  const [toolMode, setToolMode] = useState<'brush' | 'stamp' | 'eraser' | 'mold'>('brush')
+// 모드: 'brush'(직접 그리기) | 'stamp'(데코 콕콕 찍기) | 'eraser'(지우개) | 'mold'(자유 반죽 빚기) | 'pan'(캔버스 이동)
+  const [toolMode, setToolMode] = useState<'brush' | 'stamp' | 'eraser' | 'mold' | 'pan'>('brush')
   const [selectedColor, setSelectedColor] = useState<string>('#E11D48')
   const [brushSize, setBrushSize] = useState<number>(10)
   const [selectedStamp, setSelectedStamp] = useState<StampKind>('strawberry')
-  const [zoomLevel, setZoomLevel] = useState<number>(1) // 🔍 정밀 꾸미기 줌인 (1x, 1.5x, 2x, 2.5x)
+  
+  // 🔍 핀치 줌 & 팬 이동 상태
+  const [zoomLevel, setZoomLevel] = useState<number>(1) // 1.0 ~ 3.0x
+  const [panOffset, setPanOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
+  const pinchStartRef = useRef<{ dist: number; zoom: number; center: { x: number; y: number }; pan: { x: number; y: number } } | null>(null)
+  const lastPointerPosRef = useRef<[number, number] | null>(null)
 
   // 드로잉 및 반죽 모양 데이터
   const [strokes, setStrokes] = useState<PaintStroke[]>([])
@@ -80,11 +85,30 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
     [120, 36], [165, 48], [200, 88], [206, 138], [182, 185], [142, 204],
     [98, 204], [58, 185], [34, 138], [40, 88], [75, 48], [120, 36]
   ])
-  const [activeHandleIndex, setActiveHandleIndex] = useState<number | null>(null)
   const [isDrawing, setIsDrawing] = useState<boolean>(false)
   const [currentStroke, setCurrentStroke] = useState<[number, number][]>([])
 
   const svgRef = useRef<SVGSVGElement | null>(null)
+
+  // 부드러운 유기적 곡선(Catmull-Rom Spline) SVG 패스 생성 헬퍼
+  const getDoughSplinePath = (pts: [number, number][]): string => {
+    if (pts.length < 3) return ''
+    let d = `M ${pts[0][0]} ${pts[0][1]}`
+    for (let i = 0; i < pts.length; i++) {
+      const p0 = i === 0 ? pts[pts.length - 1] : pts[i - 1]
+      const p1 = pts[i]
+      const p2 = pts[(i + 1) % pts.length]
+      const p3 = pts[(i + 2) % pts.length]
+
+      const cp1x = p1[0] + (p2[0] - p0[0]) / 5.5
+      const cp1y = p1[1] + (p2[1] - p0[1]) / 5.5
+      const cp2x = p2[0] - (p3[0] - p1[0]) / 5.5
+      const cp2y = p2[1] - (p3[1] - p1[1]) / 5.5
+
+      d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2[0]} ${p2[1]}`
+    }
+    return d + ' Z'
+  }
 
   // 초기 저장된 커스텀 로드
   useEffect(() => {
@@ -118,38 +142,38 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
     return [x, y]
   }
 
-  // 드로잉 및 반죽 빚기 시작
+  // 터치 시작 (두 손가락 핀치 줌 / 팬 이동 / 드로잉 / 리얼 찰흙 반죽 몰딩)
   const handlePointerDown = (e: React.MouseEvent | React.TouchEvent) => {
-    const pt = getSvgCoordinates(e)
-    if (!pt) return
-
-    if (toolMode === 'mold' || doughShape === 'free-dough') {
-      // ✋ 자유 반죽 몰딩 모드: 클릭 지점 근처의 가장 가까운 제어점 핸들 찾기
-      const [clickX, clickY] = pt
-      let nearestIdx = -1
-      let minDist = 40 // 터치 감지 반경
-      freeDoughPoints.forEach(([hx, hy], idx) => {
-        const dist = Math.hypot(hx - clickX, hy - clickY)
-        if (dist < minDist) {
-          minDist = dist
-          nearestIdx = idx
-        }
-      })
-
-      if (nearestIdx !== -1) {
-        setActiveHandleIndex(nearestIdx)
-        setDoughShape('free-dough')
-      } else {
-        // 제어점이 아닌 곳을 터치하면 새로운 외곽선 자유 스케치 시작
-        setIsDrawing(true)
-        setCurrentStroke([pt])
-        setDoughShape('free-dough')
-      }
+    // ✌️ 1. 두 손가락 터치 시 핀치 줌 & 팬 모드 활성화
+    if ('touches' in e && e.touches.length === 2) {
+      const t1 = e.touches[0]
+      const t2 = e.touches[1]
+      const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY)
+      const center = { x: (t1.clientX + t2.clientX) / 2, y: (t1.clientY + t2.clientY) / 2 }
+      pinchStartRef.current = { dist, zoom: zoomLevel, center, pan: { ...panOffset } }
+      setIsDrawing(false)
       return
     }
 
+    const pt = getSvgCoordinates(e)
+    if (!pt) return
+    lastPointerPosRef.current = pt
+
+    // ✋ 2. 캔버스 이동 모드일 때
+    if (toolMode === 'pan') {
+      setIsDrawing(true)
+      return
+    }
+
+    // ✋ 3. 점선 없는 리얼 찰흙 반죽 몰딩 모드
+    if (toolMode === 'mold' || doughShape === 'free-dough') {
+      setIsDrawing(true)
+      setDoughShape('free-dough')
+      return
+    }
+
+    // 🍓 4. 스탬프 찍기 모드
     if (toolMode === 'stamp') {
-      // 스탬프 콕 찍기
       const newStamp: PaintStamp = {
         kind: selectedStamp,
         x: pt[0],
@@ -161,52 +185,87 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
       return
     }
 
+    // 🖌️ 5. 일반 브러시 칠하기
     setIsDrawing(true)
     setCurrentStroke([pt])
   }
 
-  // 드로잉 및 제어점 이동 (터치 드래그로 반죽 주무르기)
+  // 터치 이동 (핀치 줌 / 찰흙 누르고 늘리기 / 붓질)
   const handlePointerMove = (e: React.MouseEvent | React.TouchEvent) => {
-    const pt = getSvgCoordinates(e)
-    if (!pt) return
+    // ✌️ 1. 두 손가락 핀치 줌 및 팬 제어
+    if ('touches' in e && e.touches.length === 2 && pinchStartRef.current) {
+      const t1 = e.touches[0]
+      const t2 = e.touches[1]
+      const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY)
+      const center = { x: (t1.clientX + t2.clientX) / 2, y: (t1.clientY + t2.clientY) / 2 }
 
-    if (activeHandleIndex !== null) {
-      // 제어점 드래그하여 반죽 모양 늘리고 줄이기
-      setFreeDoughPoints((prev) => {
-        const copy: [number, number][] = [...prev]
-        copy[activeHandleIndex] = pt
-        return copy
+      const scaleFactor = dist / (pinchStartRef.current.dist || 1)
+      const newZoom = Math.min(3.0, Math.max(1.0, pinchStartRef.current.zoom * scaleFactor))
+      setZoomLevel(Math.round(newZoom * 10) / 10)
+
+      const deltaX = center.x - pinchStartRef.current.center.x
+      const deltaY = center.y - pinchStartRef.current.center.y
+      setPanOffset({
+        x: pinchStartRef.current.pan.x + deltaX,
+        y: pinchStartRef.current.pan.y + deltaY,
       })
       return
     }
 
     if (!isDrawing) return
-    setCurrentStroke((prev) => [...prev, pt])
-  }
+    const pt = getSvgCoordinates(e)
+    if (!pt) return
 
-  // 드로잉 종료
-  const handlePointerUp = () => {
-    if (activeHandleIndex !== null) {
-      setActiveHandleIndex(null)
+    // ✋ 2. 캔버스 이동 모드
+    if (toolMode === 'pan') {
+      if (lastPointerPosRef.current) {
+        const dx = pt[0] - lastPointerPosRef.current[0]
+        const dy = pt[1] - lastPointerPosRef.current[1]
+        setPanOffset((prev) => ({ x: prev.x + dx * zoomLevel, y: prev.y + dy * zoomLevel }))
+      }
+      lastPointerPosRef.current = pt
       return
     }
+
+    // ✋ 3. 점선 없는 리얼 찰흙 반죽 몰딩 (대표님 피드백: "점선 없이 자연스럽게 돌리고 눌러서 빚기")
+    if (toolMode === 'mold' || doughShape === 'free-dough') {
+      if (lastPointerPosRef.current) {
+        const [curX, curY] = pt
+        const [prevX, prevY] = lastPointerPosRef.current
+        const dx = curX - prevX
+        const dy = curY - prevY
+
+        // 손가락 터치 지점 반경 70px 내의 찰흙 외곽 포인트들을 부드럽게 밀고 당기기
+        setFreeDoughPoints((oldPts) =>
+          oldPts.map(([px, py]) => {
+            const dist = Math.hypot(px - curX, py - curY)
+            if (dist < 72) {
+              // 거리에 따른 부드러운 가우시안 감쇠 (찰흙 누름 강도)
+              const influence = Math.pow(Math.max(0, 1 - dist / 72), 1.6) * 1.3
+              const nx = Math.max(20, Math.min(220, px + dx * influence))
+              const ny = Math.max(20, Math.min(220, py + dy * influence))
+              return [nx, ny]
+            }
+            return [px, py]
+          })
+        )
+      }
+      lastPointerPosRef.current = pt
+      return
+    }
+
+    // 🖌️ 4. 일반 브러시 선 긋기
+    setCurrentStroke((prev) => [...prev, pt])
+    lastPointerPosRef.current = pt
+  }
+
+  // 터치 종료
+  const handlePointerUp = () => {
+    pinchStartRef.current = null
+    lastPointerPosRef.current = null
 
     if (!isDrawing) return
     setIsDrawing(false)
-
-    if (toolMode === 'mold' && currentStroke.length >= 8) {
-      // ✋ 자유 스케치로 반죽을 둥글게 둘러싸 빚은 경우 -> 새 자유 반죽 포인트로 리샘플링
-      const sampledPts: [number, number][] = []
-      const step = Math.max(1, Math.floor(currentStroke.length / 12))
-      for (let i = 0; i < currentStroke.length; i += step) {
-        sampledPts.push(currentStroke[i])
-      }
-      if (sampledPts.length >= 6) {
-        setFreeDoughPoints(sampledPts.slice(0, 16))
-      }
-      setCurrentStroke([])
-      return
-    }
 
     if (currentStroke.length > 0) {
       const newStroke: PaintStroke = {
@@ -344,7 +403,7 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
           </button>
         </div>
 
-        {/* 메인 캔버스 영역 (직접 터치로 칠하기 & 🔍 정밀 줌인 지원) */}
+        {/* 메인 캔버스 영역 (직접 터치로 칠하기 & 🔍 핀치 줌 / 팬 이동 지원) */}
         <div
           style={{
             position: 'relative',
@@ -355,37 +414,46 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
             alignItems: 'center',
             justifyContent: 'center',
             borderBottom: '1.5px solid #E8D3B0',
-            overflow: 'auto',
-            touchAction: zoomLevel > 1 ? 'pan-x pan-y' : 'none',
+            overflow: 'hidden',
+            touchAction: 'none',
           }}
         >
-          {/* 🔍 줌 레벨이 반영되는 내부 인터랙티브 캔버스 컨테이너 */}
+          {/* 🔍 줌 & 팬 오프셋이 적용되는 내부 인터랙티브 캔버스 컨테이너 */}
           <div
             style={{
               position: 'relative',
-              width: 220 * zoomLevel,
-              height: 220 * zoomLevel,
+              width: 220,
+              height: 220,
               flexShrink: 0,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              transition: 'width 0.2s ease, height 0.2s ease',
+              transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoomLevel})`,
+              transformOrigin: 'center center',
+              transition: isDrawing ? 'none' : 'transform 0.15s ease-out',
             }}
           >
-            {/* 바탕 몬스터 뷰 (실시간 렌더링) */}
-            <div style={{ width: 220 * zoomLevel, height: 220 * zoomLevel, pointerEvents: 'none' }}>
-              <MonsterView look={previewLook} size={220 * zoomLevel} fluid />
+            {/* 바탕 몬스터 뷰 (실시간 3D/2D 렌더링) */}
+            <div style={{ width: 220, height: 220, pointerEvents: 'none' }}>
+              <MonsterView look={previewLook} size={220} fluid />
             </div>
 
-            {/* 터치/마우스 페인팅 레이어 (240x240 좌표계) */}
+            {/* 터치/마우스 페인팅 및 리얼 찰흙 반죽 레이어 (240x240 좌표계) */}
             <svg
               ref={svgRef}
               viewBox="0 0 240 240"
               style={{
                 position: 'absolute',
-                width: 220 * zoomLevel,
-                height: 220 * zoomLevel,
-                cursor: toolMode === 'stamp' ? 'crosshair' : toolMode === 'mold' ? 'grab' : 'pointer',
+                width: 220,
+                height: 220,
+                cursor:
+                  toolMode === 'pan'
+                    ? 'grab'
+                    : toolMode === 'stamp'
+                    ? 'crosshair'
+                    : toolMode === 'mold'
+                    ? 'move'
+                    : 'pointer',
                 touchAction: 'none',
               }}
               onMouseDown={handlePointerDown}
@@ -395,6 +463,20 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
               onTouchMove={handlePointerMove}
               onTouchEnd={handlePointerUp}
             >
+              {/* ✋ 점선 없이 매끄러운 순백 찰흙 도우 실루엣 (자유 반죽일 때 실시간 반영) */}
+              {(doughShape === 'free-dough' || toolMode === 'mold') && (
+                <path
+                  d={getDoughSplinePath(freeDoughPoints)}
+                  fill="#FFFFFF"
+                  stroke="#F3E8DF"
+                  strokeWidth={1.5}
+                  style={{
+                    filter: 'drop-shadow(0 6px 14px rgba(0,0,0,0.08))',
+                    transition: isDrawing ? 'none' : 'd 0.1s ease',
+                  }}
+                />
+              )}
+
               {/* 1. 이전에 그려진 스트로크들 */}
               {strokes.map((s, idx) => {
                 if (!s.points || s.points.length === 0) return null
@@ -443,54 +525,31 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
               })}
 
               {/* 3. 현재 드로잉 중인 실시간 스트로크 미리보기 */}
-              {isDrawing && currentStroke.length > 1 && (
+              {isDrawing && toolMode === 'brush' && currentStroke.length > 1 && (
                 <path
                   d={currentStroke.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x} ${y}`).join(' ')}
                   fill="none"
-                  stroke={toolMode === 'mold' ? '#F59E0B' : toolMode === 'eraser' ? '#FFFFFF' : selectedColor}
-                  strokeWidth={toolMode === 'mold' ? 3 : brushSize}
-                  strokeDasharray={toolMode === 'mold' ? '4 4' : undefined}
+                  stroke={selectedColor}
+                  strokeWidth={brushSize}
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   opacity={0.8}
                 />
               )}
 
-              {/* 4. ✋ 자유 반죽 몰딩 제어점 핸들 및 외곽선 가이드 (doughShape === 'free-dough' 또는 mold 모드) */}
+              {/* 4. 앙증맞은 동글 콩알눈 (점선 없이 반죽 표면 위에 자연스럽게 표시) */}
               {(doughShape === 'free-dough' || toolMode === 'mold') && (
                 <g style={{ pointerEvents: 'none' }}>
-                  {/* 빚어진 반죽 외곽 연결선 */}
-                  <polygon
-                    points={freeDoughPoints.map(([x, y]) => `${x},${y}`).join(' ')}
-                    fill="none"
-                    stroke="#F59E0B"
-                    strokeWidth={2}
-                    strokeDasharray="4 3"
-                    opacity={0.75}
-                  />
-                  {/* 각 꼭짓점 드래그 핸들 */}
-                  {freeDoughPoints.map(([hx, hy], idx) => {
-                    const isActive = activeHandleIndex === idx
-                    return (
-                      <g key={idx}>
-                        <circle
-                          cx={hx}
-                          cy={hy}
-                          r={isActive ? 8 : 5.5}
-                          fill={isActive ? '#EF4444' : '#F59E0B'}
-                          stroke="#FFFFFF"
-                          strokeWidth={2}
-                          opacity={0.9}
-                        />
-                      </g>
-                    )
-                  })}
+                  <circle cx={104} cy={118} r={3.2} fill="#1A0C08" />
+                  <circle cx={103} cy={117} r={1.0} fill="#FFFFFF" />
+                  <circle cx={136} cy={118} r={3.2} fill="#1A0C08" />
+                  <circle cx={135} cy={117} r={1.0} fill="#FFFFFF" />
                 </g>
               )}
             </svg>
           </div>
 
-          {/* 🔍 돋보기 정밀 줌인 컨트롤 바 (1x / 1.5x / 2x / 2.5x) */}
+          {/* 🔍 돋보기 정밀 줌인 컨트롤 바 (1x / 1.5x / 2x / 2.5x & 위치 리셋) */}
           <div
             style={{
               position: 'absolute',
@@ -527,9 +586,31 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
                 {z}x
               </button>
             ))}
+            {(zoomLevel > 1 || panOffset.x !== 0 || panOffset.y !== 0) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setZoomLevel(1)
+                  setPanOffset({ x: 0, y: 0 })
+                }}
+                style={{
+                  padding: '2px 6px',
+                  borderRadius: 6,
+                  fontSize: 9,
+                  fontWeight: 800,
+                  background: '#F1F5F9',
+                  border: '1px solid #CBD5E1',
+                  color: '#475569',
+                  cursor: 'pointer',
+                }}
+                title="기본 배율 및 위치 복원"
+              >
+                리셋
+              </button>
+            )}
           </div>
 
-          {/* 도우 안내 뱃지 */}
+          {/* 안내 뱃지 */}
           <div
             style={{
               position: 'absolute',
@@ -545,9 +626,13 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
               zIndex: 10,
             }}
           >
-            {zoomLevel > 1 ? `🔍 ${zoomLevel}x 정밀 꾸미기 모드 (정밀하게 터치하세요)` : toolMode === 'mold' || doughShape === 'free-dough'
-              ? '✋ 반죽 둘레를 드래그하여 나만의 모양으로 빚으세요!'
-              : '🖌️ 몸체 위를 직접 터치해 색칠하세요!'}
+            {toolMode === 'pan'
+              ? '✋ 손가락으로 캔버스를 드래그하여 이동하세요'
+              : toolMode === 'mold' || doughShape === 'free-dough'
+              ? '✋ 반죽을 손가락으로 누르고 돌리며 자유롭게 빚으세요! (점선 없음)'
+              : zoomLevel > 1
+              ? `🔍 ${zoomLevel}x 정밀 꾸미기 (두 손가락으로 확대/축소 가능)`
+              : '🖌️ 캔버스 위를 터치해 자유롭게 색칠하세요!'}
           </div>
 
           {/* 실행취소 & 리셋 버튼 */}
@@ -674,8 +759,8 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
             </div>
           </div>
 
-          {/* 모드 전환 탭 (반죽 빚기 / 브러시 칠하기 / 데코 찍기 / 지우개) */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 5 }}>
+          {/* 모드 전환 탭 (반죽 빚기 / 브러시 칠하기 / 데코 찍기 / 지우개 / 이동) */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 4 }}>
             <button
               onClick={() => {
                 setToolMode('mold')
@@ -685,14 +770,14 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
                 padding: '7px 0',
                 borderRadius: 12,
                 fontWeight: 900,
-                fontSize: 11,
+                fontSize: 10,
                 border: toolMode === 'mold' ? 'none' : '1px solid #E2E8F0',
                 background: toolMode === 'mold' ? 'linear-gradient(135deg, #F59E0B, #D97706)' : '#FFFFFF',
                 color: toolMode === 'mold' ? '#FFFFFF' : '#475569',
                 cursor: 'pointer',
               }}
             >
-              ✋ 반죽 빚기
+              ✋ 찰흙 빚기
             </button>
             <button
               onClick={() => setToolMode('brush')}
@@ -700,7 +785,7 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
                 padding: '7px 0',
                 borderRadius: 12,
                 fontWeight: 900,
-                fontSize: 11,
+                fontSize: 10,
                 border: toolMode === 'brush' ? 'none' : '1px solid #E2E8F0',
                 background: toolMode === 'brush' ? 'linear-gradient(135deg, #EC4899, #BE185D)' : '#FFFFFF',
                 color: toolMode === 'brush' ? '#FFFFFF' : '#475569',
@@ -715,7 +800,7 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
                 padding: '7px 0',
                 borderRadius: 12,
                 fontWeight: 900,
-                fontSize: 11,
+                fontSize: 10,
                 border: toolMode === 'stamp' ? 'none' : '1px solid #E2E8F0',
                 background: toolMode === 'stamp' ? 'linear-gradient(135deg, #9333EA, #7E22CE)' : '#FFFFFF',
                 color: toolMode === 'stamp' ? '#FFFFFF' : '#475569',
@@ -730,7 +815,7 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
                 padding: '7px 0',
                 borderRadius: 12,
                 fontWeight: 900,
-                fontSize: 11,
+                fontSize: 10,
                 border: toolMode === 'eraser' ? 'none' : '1px solid #E2E8F0',
                 background: toolMode === 'eraser' ? '#64748B' : '#FFFFFF',
                 color: toolMode === 'eraser' ? '#FFFFFF' : '#475569',
@@ -738,6 +823,21 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
               }}
             >
               🧹 지우개
+            </button>
+            <button
+              onClick={() => setToolMode('pan')}
+              style={{
+                padding: '7px 0',
+                borderRadius: 12,
+                fontWeight: 900,
+                fontSize: 10,
+                border: toolMode === 'pan' ? 'none' : '1px solid #E2E8F0',
+                background: toolMode === 'pan' ? 'linear-gradient(135deg, #0284C7, #0369A1)' : '#FFFFFF',
+                color: toolMode === 'pan' ? '#FFFFFF' : '#475569',
+                cursor: 'pointer',
+              }}
+            >
+              🔍 이동
             </button>
           </div>
 
