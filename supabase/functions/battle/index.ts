@@ -151,8 +151,12 @@ Deno.serve(async (req) => {
         from_nickname: String(player.nickname ?? '파티시에'),
         monster_id: targetId,
         emoji: '🥄',
+        vote_day: today,
       })
-      if (insErr) return json(BUSY)
+      if (insErr) {
+        console.warn('[battle:vote] insert rejected:', insErr.message)
+        return json({ ok: false, code: 'voted', message: '이미 오늘 한입 투표를 보냈어요!' })
+      }
 
       // 한입 수는 읽은 값과 같을 때만 올린다 (동시에 와도 한 번씩 반영되도록 두 번까지 다시 시도)
       let likes = Number(target.likes_count ?? 0)
@@ -227,6 +231,7 @@ Deno.serve(async (req) => {
 
     return json({ ok: false, code: 'bad_action', message: '알 수 없는 요청이에요.' }, 400)
   } catch (err) {
-    return json({ ok: false, code: 'server_error', message: '서버 처리 중 일시적인 문제가 발생했어요.', detail: String(err) }, 500)
+    console.error('[battle] server error:', err)
+    return json({ ok: false, code: 'server_error', message: '서버 처리 중 일시적인 문제가 발생했어요.' }, 500)
   }
 })

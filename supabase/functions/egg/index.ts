@@ -21,7 +21,8 @@ const rand = () => crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 32
 const dayKey = (now: Date) => new Date(now.getTime() + EGG.dayOffsetHours * 3600_000).toISOString().slice(0, 10)
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+  try {
+    if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
 
@@ -143,5 +144,9 @@ Deno.serve(async (req) => {
     return json({ ok: true, monster })
   }
 
-  return json({ ok: false, code: 'bad_action', message: '알 수 없는 요청이에요.' }, 400)
+    return json({ ok: false, code: 'bad_action', message: '알 수 없는 요청이에요.' }, 400)
+  } catch (err) {
+    console.error('[egg] server error:', err)
+    return json({ ok: false, code: 'server_error', message: '서버 처리 중 일시적인 문제가 발생했어요.' }, 500)
+  }
 })

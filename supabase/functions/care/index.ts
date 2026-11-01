@@ -519,6 +519,7 @@ Deno.serve(async (req) => {
 
     return json({ ok: true, monster: updated, coins: result.state.coins, foodBag: result.state.foodBag, leveledUp: result.leveledUp, message: result.message })
   } catch (err) {
-    return json({ ok: false, code: 'server_error', message: '서버 처리 중 일시적인 문제가 발생했어요.', detail: String(err) }, 500)
+    console.error('[care] server error:', err)
+    return json({ ok: false, code: 'server_error', message: '서버 처리 중 일시적인 문제가 발생했어요.' }, 500)
   }
 })

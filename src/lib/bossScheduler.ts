@@ -236,9 +236,10 @@ export function getRaidAttemptsInfo(bossId: string = 'default'): {
 }
 
 /**
- * ⚔️ 레이드 전투 시작 시 참여 횟수 1회 소진
+ * ⚔️ 레이드 전투 시작 시 참여 횟수 1회 소진 (순수 로컬스토리지 유틸리티)
+ * React Hook이 아니므로 어디서든 안전하게 호출 가능합니다.
  */
-export function useRaidAttempt(bossId: string = 'default'): boolean {
+export function consumeRaidAttempt(bossId: string = 'default'): boolean {
   try {
     const info = getRaidAttemptsInfo(bossId)
     if (!info.canEnter) return false
@@ -255,3 +256,7 @@ export function useRaidAttempt(bossId: string = 'default'): boolean {
     return true
   }
 }
+
+/** @deprecated 가독성 및 React ESLint 훅 오진 방지를 위해 consumeRaidAttempt 사용 권장 */
+export const useRaidAttempt = consumeRaidAttempt
+

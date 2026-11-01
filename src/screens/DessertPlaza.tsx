@@ -23,7 +23,7 @@ import {
   getWorldBossStatus,
   WORLD_BOSS_CATALOG,
   getRaidAttemptsInfo,
-  useRaidAttempt,
+  consumeRaidAttempt,
   type RaidStatus,
 } from '../lib/bossScheduler'
 
@@ -456,12 +456,22 @@ export default function DessertPlaza({
     let cancelled = false
     async function fetchRealFriends() {
       try {
-        const { data: realMonsters } = await supabase
-          .from('monsters')
+        const { data: viewMonsters, error: viewError } = await supabase
+          .from('plaza_monsters')
           .select('*')
           .neq('id', myMonster.id)
-          .not('name', 'is', null)
           .limit(10)
+
+        let realMonsters = viewMonsters
+        if (viewError || !realMonsters || realMonsters.length === 0) {
+          const { data: fallbackMonsters } = await supabase
+            .from('monsters')
+            .select('*')
+            .neq('id', myMonster.id)
+            .not('name', 'is', null)
+            .limit(10)
+          realMonsters = fallbackMonsters
+        }
         if (cancelled || !realMonsters || realMonsters.length === 0) return
 
         const { data: players } = await supabase.from('players').select('id, nickname')
@@ -1685,7 +1695,7 @@ export default function DessertPlaza({
                             showToast('⚠️ 이번 출현 동안의 레이드 참여 횟수(3회)를 모두 완료했습니다!')
                             return
                           }
-                          useRaidAttempt(boss.id)
+                          consumeRaidAttempt(boss.id)
                           const bossMonster = createWorldBossMonster(boss)
                           const bossEntry: PlazaFriendEntry = {
                             ownerNickname: '디저트 월드 서버',
