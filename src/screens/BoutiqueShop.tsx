@@ -30,10 +30,11 @@ interface Props {
   monster: MonsterRow
   onBack: () => void
   onOpenMyRoom: () => void
+  onOpenStudio?: () => void
   onUpdate?: (updatedMonster: MonsterRow) => void
 }
 
-export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }: Props) {
+export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onOpenStudio, onUpdate }: Props) {
   const [tab, setTab] = useState<BoutiqueTab>('fashion')
   const [ribbonCoins, setCoinsState] = useState<number>(() => getRibbonCoins())
   const [ownedItems, setOwnedItems] = useState<Set<string>>(() => getOwnedBoutiqueItems())
@@ -329,8 +330,33 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
           </div>
         </div>
 
-        {/* 우측 도구: 쇼룸 & 보유 특별 주화 (슈가 리본 코인 🎀) */}
+        {/* 우측 도구: 스튜디오 & 쇼룸 & 보유 특별 주화 (슈가 리본 코인 🎀) */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {onOpenStudio && (
+            <button
+              onClick={() => {
+                playDessertAsmr('wax-pop')
+                onOpenStudio()
+              }}
+              style={{
+                padding: '4px 8px',
+                borderRadius: 14,
+                border: '1.5px solid #BE123C',
+                background: 'linear-gradient(135deg, #EC4899 0%, #F43F5E 100%)',
+                color: '#FFFFFF',
+                fontWeight: 900,
+                fontSize: 11,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 3,
+                boxShadow: '0 2px 6px rgba(225,29,72,0.25)',
+              }}
+              title="7칸 장식 & 코디 프리셋 꾸미기 스튜디오 열기"
+            >
+              <span>🎨 스튜디오</span>
+            </button>
+          )}
           <button
             onClick={() => {
               setShowShowroom(true)

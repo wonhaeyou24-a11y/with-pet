@@ -6,6 +6,7 @@ import AsmrBattleArena from '../screens/AsmrBattleArena'
 import BoutiqueShop from '../screens/BoutiqueShop'
 import CakeBoxShareModal from '../screens/CakeBoxShareModal'
 import CarePantry from '../screens/CarePantry'
+import DessertStudioScreen from '../screens/DessertStudioScreen'
 import DessertPokedexScreen from '../screens/DessertPokedex'
 import DessertPlaza from '../screens/DessertPlaza'
 import DessertSoundStudioModal from '../screens/DessertSoundStudioModal'
@@ -231,6 +232,15 @@ const SCREENS: Record<string, () => ReactNode> = {
       monster={{ ...shiny, name: '두바이쫀득' }}
       onBack={noop}
       onOpenMyRoom={noop}
+      onOpenStudio={noop}
+    />
+  ),
+  '꾸미기 스튜디오(M5)': () => (
+    <DessertStudioScreen
+      monster={{ ...shiny, name: '두바이쫀득' }}
+      onBack={noop}
+      onOpenBoutique={noop}
+      onUpdate={noop}
     />
   ),
   '✨ 3대 개성 꾸미기 (마카롱베레모·웨이퍼롤핀·딸기시럽드리즐)': () => (

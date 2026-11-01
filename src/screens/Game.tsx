@@ -8,6 +8,7 @@ import { supabase, type Player } from '../lib/supabase'
 import Loading from '../ui/Loading'
 import AsmrBattleArena from './AsmrBattleArena'
 import BoutiqueShop from './BoutiqueShop'
+import DessertStudioScreen from './DessertStudioScreen'
 import CarePantry from './CarePantry'
 import DessertPokedexScreen from './DessertPokedex'
 import ExploreScreen from './ExploreScreen'
@@ -37,7 +38,7 @@ const EGG_LINES = {
 }
 
 type Limits = { pet: number; warm: number }
-type MonsterSubView = 'home' | 'detail' | 'care' | 'train' | 'skills' | 'plaza' | 'battle' | 'evolution' | 'pokedex' | 'boutique' | 'myroom' | 'visit' | 'gear' | 'explore'
+type MonsterSubView = 'home' | 'detail' | 'care' | 'train' | 'skills' | 'plaza' | 'battle' | 'evolution' | 'pokedex' | 'boutique' | 'myroom' | 'visit' | 'gear' | 'explore' | 'studio'
 
 // 서버에서 받은 알·몬스터 상태에 따라 보여 줄 화면을 고른다 (알 → 부화 → 이름 짓기 → 몬스터 홈 / 돌보기 / 훈련 / 공방)
 export default function Game({ player }: { player: Player }) {
@@ -265,12 +266,23 @@ export default function Game({ player }: { player: Player }) {
     if (subView === 'gear') {
       return <GearScreen monster={monster} coins={coins} onCoins={setCoins} onBack={() => setSubView('home')} />
     }
+    if (subView === 'studio') {
+      return (
+        <DessertStudioScreen
+          monster={monster}
+          onBack={() => setSubView('home')}
+          onOpenBoutique={() => setSubView('boutique')}
+          onUpdate={(updated) => setMonsters((list) => list.map((m) => (m.id === updated.id ? updated : m)))}
+        />
+      )
+    }
     if (subView === 'boutique') {
       return (
         <BoutiqueShop
           monster={monster}
           onBack={() => setSubView('home')}
           onOpenMyRoom={() => setSubView('myroom')}
+          onOpenStudio={() => setSubView('studio')}
           onUpdate={(updated) => setMonsters((list) => list.map((m) => (m.id === updated.id ? updated : m)))}
         />
       )
@@ -422,6 +434,7 @@ export default function Game({ player }: { player: Player }) {
         onOpenDex={() => setSubView('pokedex')}
         onOpenMyRoom={() => setSubView('myroom')}
         onOpenBoutique={() => setSubView('boutique')}
+        onOpenStudio={() => setSubView('studio')}
         onOpenGear={() => setSubView('gear')}
         onOpenExplore={() => setSubView('explore')}
         onRewardCoins={earnLocalCoins}

@@ -116,7 +116,7 @@ export function BackDecorations({ deco }: { deco?: MonsterDecorations }) {
 
       {/* 4. 등 장식 (back) */}
       {deco.back === 'wings-meringue-angel' && (
-        <g stroke={INK} strokeWidth={2.8} strokeLinejoin="round">
+        <g stroke={INK} strokeWidth={2.8} strokeLinejoin="round" className="deco-anim-wings">
           {/* 왼쪽 폭신한 천사 머랭 날개 */}
           <path
             d="M 76 130 C 38 96 12 110 8 138 C 4 162 26 178 52 170 C 64 166 72 156 76 142 Z"
@@ -147,7 +147,7 @@ export function BackDecorations({ deco }: { deco?: MonsterDecorations }) {
         </g>
       )}
       {deco.back === 'meteor-wings' && (
-        <g stroke={INK} strokeWidth={2.8} strokeLinejoin="round">
+        <g stroke={INK} strokeWidth={2.8} strokeLinejoin="round" className="deco-anim-wings">
           {/* 왼쪽 유성 날개 */}
           <path d="M 78 134 C 46 112 24 120 20 142 C 18 160 40 170 58 162 C 66 158 72 152 76 146 Z" fill="#E0E7FF" />
           <path d="M 66 142 C 44 130 30 136 28 148 C 40 152 54 150 66 144 Z" fill={dye.gem} opacity={0.55} strokeWidth={0} />
@@ -358,7 +358,7 @@ export function FrontDecorations({
         </g>
       )}
       {deco?.head === 'crown-emoji-floating' && (
-        <g className="mon-twinkle">
+        <g className="mon-twinkle deco-anim-crown">
           {/* 황금 미니 티아라 베이스 */}
           <path d="M 104 46 L 108 28 L 115 36 L 120 22 L 125 36 L 132 28 L 136 46 Z" fill="#FDE047" stroke="#B45309" strokeWidth={2} strokeLinejoin="round" />
           <circle cx={120} cy={22} r={3} fill="#F43F5E" />
@@ -375,7 +375,7 @@ export function FrontDecorations({
 
       {/* 5. 손 장식 (hand) */}
       {deco?.hand === 'lantern-staff' && (
-        <g stroke={INK} strokeWidth={2.6} strokeLinejoin="round">
+        <g stroke={INK} strokeWidth={2.6} strokeLinejoin="round" className="deco-anim-hand">
           <path d="M 56 106 L 58 214" stroke="#78350F" strokeWidth={5} strokeLinecap="round" />
           <path d="M 56 108 C 54 92 40 90 38 98 C 36 106 42 114 46 116" fill="none" stroke="#92400E" strokeWidth={4} strokeLinecap="round" />
           <line x1={40} y1={102} x2={40} y2={112} stroke="#D97706" strokeWidth={2.2} />
@@ -385,7 +385,7 @@ export function FrontDecorations({
         </g>
       )}
       {deco?.hand === 'star-wand' && (
-        <g stroke={INK} strokeWidth={2.6} strokeLinejoin="round">
+        <g stroke={INK} strokeWidth={2.6} strokeLinejoin="round" className="deco-anim-hand">
           <line x1={58} y1={134} x2={68} y2={204} stroke={dye.sub} strokeWidth={4.5} strokeLinecap="round" />
           <path
             d="M 56 116 L 60 125 L 70 126 L 62 132 L 65 142 L 56 136 L 47 142 L 50 132 L 42 126 L 52 125 Z"
@@ -395,7 +395,7 @@ export function FrontDecorations({
         </g>
       )}
       {deco?.hand === 'lollipop-wand' && (
-        <g stroke={INK} strokeWidth={2.6} strokeLinejoin="round">
+        <g stroke={INK} strokeWidth={2.6} strokeLinejoin="round" className="deco-anim-hand">
           <line x1={58} y1={138} x2={68} y2={204} stroke="#FFFDF9" strokeWidth={5} strokeLinecap="round" />
           <circle cx={56} cy={126} r={16} fill="#FF8A9E" />
           <path d="M 56 126 C 52 122 56 116 62 120 C 68 124 62 136 52 134 C 42 132 44 116 56 114" fill="none" stroke="#FFFDF9" strokeWidth={3.2} strokeLinecap="round" />
@@ -404,7 +404,7 @@ export function FrontDecorations({
 
       {/* 7. 앞쪽 이펙트 (effect) */}
       {deco?.effect === 'constellation-aura' && (
-        <g fill="#F59E0B" className="mon-twinkle">
+        <g fill="#F59E0B" className="mon-twinkle deco-anim-aura">
           <path d="M 32 74 l 3.5 8 l 8 3.5 l -8 3.5 l -3.5 8 l -3.5 -8 l -8 -3.5 l 8 -3.5 Z" />
           <path d="M 206 78 l 3.5 8 l 8 3.5 l -8 3.5 l -3.5 8 l -3.5 -8 l -8 -3.5 l 8 -3.5 Z" />
           <circle cx={42} cy={186} r={3} fill="#A78BFA" />
@@ -412,7 +412,7 @@ export function FrontDecorations({
         </g>
       )}
       {deco?.effect === 'blossom-breeze' && (
-        <g fill="#F472B6" opacity={0.88} className="mon-twinkle">
+        <g fill="#F472B6" opacity={0.88} className="mon-twinkle deco-anim-aura">
           <ellipse cx={42} cy={82} rx={6} ry={3.5} transform="rotate(-30 42 82)" />
           <ellipse cx={196} cy={72} rx={6.5} ry={3.8} transform="rotate(25 196 72)" />
           <ellipse cx={36} cy={162} rx={5.5} ry={3.2} transform="rotate(40 36 162)" />
@@ -420,7 +420,7 @@ export function FrontDecorations({
         </g>
       )}
       {deco?.effect === 'aura-galaxy-orbit' && (
-        <g className="mon-twinkle">
+        <g className="mon-twinkle deco-anim-aura">
           {/* 앞쪽을 가로지르는 은하수 펄과 공전 마카롱 */}
           <circle cx={202} cy={122} r={7} fill="#F472B6" stroke="#FFFFFF" strokeWidth={1.5} />
           <circle cx={202} cy={122} r={3.5} fill="#FDE047" />
@@ -430,7 +430,7 @@ export function FrontDecorations({
         </g>
       )}
       {deco?.effect === 'footprint-honey-dew' && (
-        <g className="mon-twinkle">
+        <g className="mon-twinkle deco-anim-aura">
           {/* 발밑 주변에 몽실몽실 떠오르는 달콤한 꿀물 방울 & 벚꽃 슈가 파우더 */}
           {/* 꿀물 방울 */}
           <circle cx={84} cy={218} r={5.5} fill="#F59E0B" opacity={0.8} />

@@ -94,6 +94,12 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
   const [newComment, setNewComment] = useState<string>('')
   const [replyingToId, setReplyingToId] = useState<string | null>(null)
   const [replyText, setReplyText] = useState<string>('')
+  const [roomLighting, setRoomLighting] = useState<'day' | 'sunset' | 'night'>(() => {
+    const h = new Date().getHours()
+    if (h >= 17 && h < 20) return 'sunset'
+    if (h >= 20 || h < 6) return 'night'
+    return 'day'
+  })
   const [petActionState, setPetActionState] = useState<string>('방 안을 총총 거닐며 디저트 향기를 맡고 있어요 🌸')
   const [bouncePet, setBouncePet] = useState<boolean>(false)
   const [petActivity, setPetActivity] = useState<'idle' | 'sleep' | 'jump' | 'eat' | 'walk'>('idle')
@@ -434,7 +440,11 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
         '토닥토닥 쓰다듬어 주니 쫀득하게 부풀어 올랐어요! 💖',
         '기분 좋은 디저트 ASMR 소리를 내며 품에 쏙 안겨요! ✨',
         '보들보들한 볼살을 부비며 행복해하고 있어요! 🌸',
-        '달콤한 향기를 풍기며 방 안을 콩콩 뛰어요! 🐾',
+        '달콤한 바닐라 향기를 풍기며 방 안을 콩콩 뛰어요! 🐾',
+        '퐁실퐁실~ 우리 마이룸이 제일 아늑하고 달콤해요! 🍰',
+        '주인님의 손길이 닿으니 슈가파우더가 사르르 녹아내려요! 🍯',
+        '헤헤~ 배고프면 얌얌, 졸리면 마카롱 소파에서 쿨쿨 잘래요! 💤',
+        '오늘도 지인 친구들이 놀러와서 방명록 남겨주면 좋겠어요! 💌',
       ]
       const randomChatter = petTouchChatters[Math.floor(Math.random() * petTouchChatters.length)]
       setPetActionState(randomChatter)
@@ -768,6 +778,7 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
 
       {/* 3. 🌟 아늑하고 예쁜 비율의 싸이월드 감성 미니룸 캔버스 스테이지 */}
       <div
+        className={`room-lighting-${roomLighting}`}
         style={{
           height: 'clamp(260px, 38vh, 320px)',
           minHeight: 260,
@@ -846,8 +857,14 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
             </div>
           )}
 
-          {/* 1. 감성 레이스 창문 */}
+          {/* 1. 감성 레이스 창문 (터치 시 낮 🌤️ / 노을 🌅 / 밤 🌙 조명 전환) */}
           <div
+            onClick={() => {
+              playDessertAsmr('wax-pop')
+              const nextLighting = roomLighting === 'day' ? 'sunset' : roomLighting === 'sunset' ? 'night' : 'day'
+              setRoomLighting(nextLighting)
+              showToast(`💡 조명을 [${nextLighting === 'day' ? '따스한 낮 🌤️' : nextLighting === 'sunset' ? '포근한 노을 🌅' : '아늑한 달밤 🌙'}]으로 바꿨어요!`)
+            }}
             style={{
               position: 'absolute',
               top: 8,
@@ -856,15 +873,23 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
               height: 46,
               borderRadius: '12px 12px 2px 2px',
               border: '2.5px solid #FFFFFF',
-              background: 'linear-gradient(180deg, #BAE6FD 0%, #E0F2FE 70%, #FFFDF9 100%)',
-              boxShadow: '0 3px 8px rgba(0,0,0,0.12)',
+              background:
+                roomLighting === 'day'
+                  ? 'linear-gradient(180deg, #BAE6FD 0%, #E0F2FE 70%, #FFFDF9 100%)'
+                  : roomLighting === 'sunset'
+                  ? 'linear-gradient(180deg, #FDBA74 0%, #FB7185 60%, #FEF08A 100%)'
+                  : 'linear-gradient(180deg, #1E1B4B 0%, #312E81 60%, #4338CA 100%)',
+              boxShadow: '0 3px 8px rgba(0,0,0,0.18)',
               overflow: 'hidden',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              transition: 'left 0.3s ease',
+              transition: 'all 0.3s ease',
+              cursor: 'pointer',
+              zIndex: 10,
             }}
+            title="창문을 터치하면 낮/노을/밤 조명이 바뀝니다"
           >
             {/* 레이스 커튼 테두리 */}
             <div
@@ -878,7 +903,9 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
                 opacity: 0.9,
               }}
             />
-            <span style={{ fontSize: 18, marginTop: 4 }}>🌤️</span>
+            <span style={{ fontSize: 18, marginTop: 4 }}>
+              {roomLighting === 'day' ? '🌤️' : roomLighting === 'sunset' ? '🌅' : '🌙'}
+            </span>
           </div>
 
           {/* 2. 네온사인 레터링 */}

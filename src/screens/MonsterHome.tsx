@@ -26,7 +26,7 @@ import MissionModal from './MissionModal'
 import { useAccount } from '../lib/shopApi'
 import DessertShowroomModal from './DessertShowroomModal'
 import DessertSoundStudioModal from './DessertSoundStudioModal'
-import { ChevronIcon, ElementIcon, SparkleIcon } from '../ui/Icons'
+import { ElementIcon, SparkleIcon } from '../ui/Icons'
 import { totalStats } from '../ui/parts'
 import { getSensoryReactionClass, SensoryBurst } from '../ui/SensoryFx'
 import { getWorldBossStatus, type RaidStatus } from '../lib/bossScheduler'
@@ -45,6 +45,7 @@ type Props = {
   onOpenDex?: () => void
   onOpenMyRoom?: () => void
   onOpenBoutique?: () => void
+  onOpenStudio?: () => void
   onOpenGear?: () => void
   onOpenExplore?: () => void
   onRewardCoins?: (amount: number) => void
@@ -163,6 +164,7 @@ export default function MonsterHome({
   onOpenDex: _onOpenDex,
   onOpenMyRoom,
   onOpenBoutique,
+  onOpenStudio,
   onOpenGear,
   onOpenExplore,
   onRewardCoins,
@@ -909,35 +911,56 @@ export default function MonsterHome({
 
 
 
-      {/* 🌟 4. 플레이팅 변신공방 와이드 배너 버튼 (능력치 창 대신 메뉴 위에 길게 한 줄로 재배치) */}
-      <button
-        onClick={onDetail}
-        style={{
-          width: '100%',
-          padding: '10px 14px',
-          borderRadius: 14,
-          border: 'none',
-          background: 'linear-gradient(90deg, #FF7043 0%, #FF9800 50%, #FFA726 100%)',
-          color: '#FFFFFF',
-          fontWeight: 900,
-          fontSize: 13,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          boxShadow: '0 3px 10px rgba(255, 112, 67, 0.32)',
-          cursor: 'pointer',
-          flexShrink: 0,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 20 }}>🧁</span>
-          <span style={{ letterSpacing: '0.2px' }}>펫 상세 프로필 · 육성 기록</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(255,255,255,0.25)', padding: '3px 8px', borderRadius: 8, fontSize: 11, fontWeight: 900 }}>
-          <span>전투력 ⚔️ {totalStats(monster.stats)}</span>
-          <ChevronIcon size={13} />
-        </div>
-      </button>
+      {/* 🌟 4. 프로필 배너 & 꾸미기 스튜디오 듀얼 배너 버튼 */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, flexShrink: 0 }}>
+        <button
+          onClick={onDetail}
+          style={{
+            padding: '9px 12px',
+            borderRadius: 14,
+            border: 'none',
+            background: 'linear-gradient(90deg, #FF7043 0%, #FF9800 100%)',
+            color: '#FFFFFF',
+            fontWeight: 900,
+            fontSize: 12,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            boxShadow: '0 3px 10px rgba(255, 112, 67, 0.28)',
+            cursor: 'pointer',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 16 }}>🧁</span>
+            <span>프로필·기록</span>
+          </div>
+          <span style={{ fontSize: 10, opacity: 0.9 }}>⚔️ {totalStats(monster.stats)}</span>
+        </button>
+
+        <button
+          onClick={onOpenStudio}
+          style={{
+            padding: '9px 12px',
+            borderRadius: 14,
+            border: 'none',
+            background: 'linear-gradient(90deg, #EC4899 0%, #F43F5E 100%)',
+            color: '#FFFFFF',
+            fontWeight: 900,
+            fontSize: 12,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            boxShadow: '0 3px 10px rgba(236, 72, 153, 0.28)',
+            cursor: 'pointer',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 16 }}>🎨</span>
+            <span>꾸미기 스튜디오</span>
+          </div>
+          <span style={{ fontSize: 10, background: 'rgba(255,255,255,0.25)', padding: '2px 5px', borderRadius: 6 }}>7칸 코디</span>
+        </button>
+      </div>
 
       {/* 4. 하단 메뉴 8개: 정확히 4행 2열 (8개 타일 컴팩트 복원) */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7, flexShrink: 0 }}>

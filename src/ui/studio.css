@@ -1,0 +1,128 @@
+/* 🎨 M5 꾸미기 스튜디오 & 장식 애니메이션 & 마이룸 시간대 조명 */
+
+/* 🪽 날개 대기 펄럭임 모션 */
+@keyframes decoWingFlutter {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(2.5deg);
+  }
+}
+.deco-anim-wings {
+  transform-origin: 120px 145px;
+  animation: decoWingFlutter 2.8s ease-in-out infinite;
+}
+
+/* 🪄 손 소품 대기 모션 */
+@keyframes decoHandSway {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-4deg);
+  }
+}
+.deco-anim-hand {
+  transform-origin: 58px 160px;
+  animation: decoHandSway 2.2s ease-in-out infinite;
+}
+
+/* ✨ 오라 & 이펙트 대기 맥박 모션 */
+@keyframes decoAuraPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.88;
+    filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.35));
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+    filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.7));
+  }
+}
+.deco-anim-aura {
+  transform-origin: 120px 140px;
+  animation: decoAuraPulse 3s ease-in-out infinite;
+}
+
+/* 👑 둥둥 감정 크라운 */
+@keyframes decoCrownHover {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+.deco-anim-crown {
+  animation: decoCrownHover 2.4s ease-in-out infinite;
+}
+
+/* 💎 장식 희귀도별 카드 스타일 */
+.rarity-badge-common {
+  background: #F1F5F9;
+  color: #475569;
+  border: 1px solid #CBD5E1;
+}
+
+.rarity-badge-rare {
+  background: linear-gradient(135deg, #FAF5FF, #F3E8FF);
+  color: #7E22CE;
+  border: 1px solid #C084FC;
+  box-shadow: 0 1px 4px rgba(192, 132, 252, 0.25);
+}
+
+.rarity-badge-legendary {
+  background: linear-gradient(135deg, #FFFBEB, #FEF3C7);
+  color: #B45309;
+  border: 1px solid #F59E0B;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35);
+}
+
+/* 🌅 마이룸 시간대별 조명 필터 */
+.room-lighting-day {
+  filter: brightness(1.02) contrast(1.01);
+  transition: filter 0.6s ease;
+}
+
+.room-lighting-sunset {
+  filter: sepia(0.22) saturate(1.25) hue-rotate(-12deg) brightness(0.98);
+  transition: filter 0.6s ease;
+}
+
+.room-lighting-night {
+  filter: saturate(1.1) hue-rotate(200deg) brightness(0.86) contrast(1.06);
+  transition: filter 0.6s ease;
+}
+
+/* 🍰 코디 프리셋 칩 */
+.preset-chip-btn {
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  border: 1.5px solid #FBCFE8;
+  background: #FFFFFF;
+  color: #831843;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+.preset-chip-btn:hover {
+  background: #FDF2F8;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(244, 114, 182, 0.25);
+}
+
+.preset-chip-btn.active {
+  background: linear-gradient(135deg, #F43F5E, #FB7185);
+  color: #FFFFFF;
+  border-color: #E11D48;
+  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);
+}
+
