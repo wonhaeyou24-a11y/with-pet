@@ -979,7 +979,7 @@ export function build3DCharacterMesh(
       sheenColor: new THREE.Color('#FFFFFF'),
     })
 
-    // 바닥에 넓고 쫀득하게 가라앉은 순백 찹쌀떡 메인 반죽
+    // 🍡 바닥에 넓고 쫀득하게 가라앉은 순백 찹쌀떡 메인 반죽
     const mochiBody = new THREE.Mesh(new THREE.SphereGeometry(0.96, 44, 40), mochiMat)
     mochiBody.scale.set(1.18, 0.82, 1.14)
     mochiBody.position.y = -0.06
@@ -1027,10 +1027,8 @@ export function build3DCharacterMesh(
     belly.position.set(0, -0.22, 0.82)
     bodyGroup.add(belly)
 
-    // ✨ 대표님 피드백 반영: 머리 위 강제 기성 딸기/생크림 토핑을 완전히 제거하여,
-    // 갓 태어난 순백의 도화지 상태로 완성! 토핑은 파티세리 공방에서 자유롭게 얹을 수 있음.
-
-    addCute3DFace(0.96, 0.08, '#FF8A9E')
+    // 💖 눈 구체가 찹쌀떡 바디 안쪽에 파묻히지 않도록 z=1.07로 정확히 표면 배치! (내부 굴절 그림자 완전 제거)
+    addCute3DFace(1.07, 0.08, '#FF8A9E')
   } else if (species === 'mongsil') {
     // ☁️ 9. 폭신폭신 구름 솜사탕 양 몽실 3D: 4중 솜사탕 털뭉치 구름 실루엣 + 마카롱 뿔
     const cottonMat = new THREE.MeshPhysicalMaterial({
@@ -2118,9 +2116,8 @@ export default function Monster3DView({
     scene.add(stageGroup)
 
     const baseGroup = build3DDessertBase(dessertBase)
-    // 💡 2번 피드백 반영: 순백 반죽/도우 모드일 때는 접시·받침대 완전 숨김
-    const isDough = Boolean(look.mallang?.doughShape || look.mallang?.color === '#FFFFFF')
-    if (isDough) {
+    // 💡 받침대가 선택되어 있으면 언제나 아름다운 3D 받침대 표시
+    if (dessertBase === 'none') {
       baseGroup.visible = false
     }
     stageGroup.add(baseGroup)

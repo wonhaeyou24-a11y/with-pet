@@ -18,7 +18,7 @@ import { monsterLook, type MonsterRow } from '../lib/api'
 import { IS_DEV_MOCK } from '../lib/devMode'
 import { refreshAccount } from '../lib/shopApi'
 import { playDessertAsmr } from '../lib/sound'
-import { loadMallangCustom, saveMallangCustom, type DessertBaseId } from '../monsters/MallangChameleon'
+import { loadMallangCustom, saveMallangCustom, type DessertBaseId, type MallangCustom } from '../monsters/MallangChameleon'
 import Monster3DView from '../monsters/Monster3DView'
 import type { MonsterDecorations } from '../monsters/types'
 import { BackIcon } from '../ui/Icons'
@@ -68,29 +68,28 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
   const [selectedPlatingItem, setSelectedPlatingItem] = useState<BoutiqueItem>(BOUTIQUE_PLATING_ITEMS[0])
   // 💡 대표님 3번 피드백 반영: 상점 아이템 구매 및 착용 시 전체 펫 뷰에 즉시 100% 반영
   const notifyMonsterUpdate = (nextDeco?: MonsterDecorations, nextBase?: DessertBaseId) => {
-    if (!onUpdate) return
     const currentCustom = loadMallangCustom(monster.id) ?? {}
     const updatedDeco = nextDeco ?? previewDeco
     const updatedBase = nextBase ?? currentBase
+    const mergedCustom: MallangCustom = {
+      ...currentCustom,
+      decorations: updatedDeco,
+      dessertBase: updatedBase,
+    }
+    saveMallangCustom(monster.id, mergedCustom)
+
     const updatedMonster: MonsterRow = {
       ...monster,
       parts: {
         ...monster.parts,
         decorations: updatedDeco,
-        mallang: {
-          ...monster.parts?.mallang,
-          ...currentCustom,
-          decorations: updatedDeco,
-          dessertBase: updatedBase,
-        },
+        mallang: mergedCustom,
       },
-      look_custom: {
-        ...currentCustom,
-        decorations: updatedDeco,
-        dessertBase: updatedBase,
-      },
+      look_custom: mergedCustom,
     }
-    onUpdate(updatedMonster)
+    if (onUpdate) {
+      onUpdate(updatedMonster)
+    }
   }
 
   const [selectedTheme, setSelectedTheme] = useState<RoomThemeDef>(ROOM_THEMES[0])
@@ -117,7 +116,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
   // 플레이팅 받침대 선택 및 실시간 피팅룸 미리보기
   const handleSelectPlatingItem = (item: BoutiqueItem) => {
     setSelectedPlatingItem(item)
-    playDessertAsmr('wax-tap')
+    playDessertAsmr('wax-pop')
 
     if (item.baseId) {
       setPreviewBase(item.baseId)
@@ -142,7 +141,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
     const currentCustom = loadMallangCustom(monster.id) ?? {}
     saveMallangCustom(monster.id, { ...currentCustom, dessertBase: item.baseId })
     notifyMonsterUpdate(undefined, item.baseId)
-    playDessertAsmr('wax-tap')
+    playDessertAsmr('wax-pop')
     showToast(`✨ ${item.name}을(를) 착용했습니다!`)
   }
 
@@ -153,7 +152,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
     const currentCustom = loadMallangCustom(monster.id) ?? {}
     saveMallangCustom(monster.id, { ...currentCustom, dessertBase: 'nest' })
     notifyMonsterUpdate(undefined, 'nest')
-    playDessertAsmr('wax-tap')
+    playDessertAsmr('wax-pop')
     showToast('🪹 기본 포근 나무 둥지로 변경되었습니다.')
   }
 
@@ -184,7 +183,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
   // 패션 아이템 미리보기 피팅 및 선택 시 착용/해제 토글
   const handleSelectFashionItem = (item: BoutiqueItem) => {
     setSelectedFashionItem(item)
-    playDessertAsmr('wax-tap')
+    playDessertAsmr('wax-pop')
 
     if (item.slot) {
       setPreviewDeco((prev) => {
@@ -255,7 +254,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
     const currentCustom = loadMallangCustom(monster.id) ?? {}
     saveMallangCustom(monster.id, { ...currentCustom, decorations: nextDeco })
     notifyMonsterUpdate(nextDeco)
-    playDessertAsmr('wax-tap')
+    playDessertAsmr('wax-pop')
     showToast(isEquipped ? `✨ ${item.name} 장착을 해제했습니다.` : `✨ ${item.name}을(를) 착용했습니다!`)
   }
 
@@ -1041,7 +1040,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
                   key={furn.id}
                   onClick={() => {
                     setSelectedFurniture(furn)
-                    playDessertAsmr('wax-tap')
+                    playDessertAsmr('wax-pop')
                   }}
                   style={{
                     padding: '8px 6px',

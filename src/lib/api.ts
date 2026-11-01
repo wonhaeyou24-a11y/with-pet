@@ -80,21 +80,20 @@ export function monsterLook(m: MonsterRow): MonsterLook {
     mergedMallang.morphForm = normalizeDessertSpecies(mergedMallang.morphForm)
   }
 
-  // 🏆 대표님 지시: 전체 유저 펫을 7대 순백 반죽 모양 시스템으로 전면 업그레이드!
-  if (!mergedMallang.doughShape) {
-    mergedMallang.doughShape = 'round-mochi'
-  }
-  if (!mergedMallang.doughType) {
-    mergedMallang.doughType = 'mochi'
-  }
+  // 💖 대표님 피드백 100% 반영: 강제 순백 도우 덮어씌우기를 완전히 제거하고, 원래의 귀여운 펫 캐릭터로 완전 복원!
   if (saved?.decorations) {
     mergedMallang.decorations = saved.decorations
+  } else if (m.parts?.decorations) {
+    mergedMallang.decorations = m.parts.decorations
   }
-  mergedMallang.color = '#FFFFFF'
-  mergedMallang.baseColor = '#FFFFFF'
+  if (saved?.dessertBase) {
+    mergedMallang.dessertBase = saved.dessertBase
+  } else if (m.parts?.mallang?.dessertBase) {
+    mergedMallang.dessertBase = m.parts.mallang.dessertBase
+  }
 
-  // 🏆 대표님 피드백 100% 반영: 맑은 콩알눈 하나로 통일 & 기분·상황에 따른 자동 표정 변화
-  let autoExpression: Expression = (m.parts?.expression as Expression) || 'round'
+  // 💖 원래의 사랑스러운 젤리 눈망울 & 표정 복원
+  let autoExpression: Expression = (m.parts?.expression as Expression) || 'mochi-sparkle'
   if (m.fatigue !== undefined && m.fatigue >= 80) {
     autoExpression = 'sleepy'
   } else if (m.hunger !== undefined && m.hunger <= 20) {
@@ -104,7 +103,7 @@ export function monsterLook(m: MonsterRow): MonsterLook {
   } else if (m.cleanliness !== undefined && m.cleanliness <= 20) {
     autoExpression = 'sad'
   } else if (m.mood !== undefined && m.mood >= 80) {
-    autoExpression = 'happy' as any
+    autoExpression = 'mochi-sparkle' as any
   }
 
   return {

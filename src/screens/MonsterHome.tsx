@@ -30,6 +30,7 @@ import { ChevronIcon, ElementIcon, SparkleIcon } from '../ui/Icons'
 import { totalStats } from '../ui/parts'
 import { getSensoryReactionClass, SensoryBurst } from '../ui/SensoryFx'
 import { getWorldBossStatus, type RaidStatus } from '../lib/bossScheduler'
+import { roomGet } from '../lib/roomApi'
 
 type Props = {
   nickname: string
@@ -262,14 +263,37 @@ export default function MonsterHome({
   }, [monster.id])
 
   const isExploring = !!exploreTrip && exploreLeftSec > 0
-  // 📖 신규 미확인 방명록 새 글 카운트 (미니룸 입장 시 자동 읽음 처리되어 0으로 사라짐)
+  // 📖 신규 미확인 방명록 새 글 카운트 (지인이 글을 남겼을 때 선명하게 1 뱃지 표시)
   const [unreadGuestBookCount, setUnreadGuestBookCount] = useState<number>(() => getUnreadGuestBookCount())
 
   useEffect(() => {
-    // 3초마다 미확인 방명록 새 글 확인
-    const checkUnread = () => setUnreadGuestBookCount(getUnreadGuestBookCount())
+    // 3초마다 및 이벤트 발생 시 지인 신규 방명록 글 확인
+    const checkUnread = async () => {
+      let count = getUnreadGuestBookCount()
+      try {
+        const res = await roomGet()
+        if (res.ok && res.entries && res.entries.length > 0) {
+          const rawRead = localStorage.getItem('pet_together_guestbook_last_read_v1')
+          const lastReadTs = rawRead ? Number(rawRead) : 0
+          const serverUnread = res.entries.filter((e) => {
+            const entryTs = new Date(e.createdAt).getTime()
+            return entryTs > lastReadTs
+          })
+          count = Math.max(count, serverUnread.length)
+        }
+      } catch {
+        // 네트워크 에러 무시
+      }
+      setUnreadGuestBookCount(count)
+    }
+
+    checkUnread()
     const timer = window.setInterval(checkUnread, 3000)
-    return () => window.clearInterval(timer)
+    window.addEventListener('guestbook_updated', checkUnread)
+    return () => {
+      window.clearInterval(timer)
+      window.removeEventListener('guestbook_updated', checkUnread)
+    }
   }, [])
 
   useEffect(() => {

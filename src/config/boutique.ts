@@ -968,6 +968,9 @@ export function addGuestBookEntry(author: string, message: string): GuestBookEnt
     }
     const updated = [newEntry, ...current].slice(0, 20)
     localStorage.setItem(GUESTBOOK_STORAGE_KEY, JSON.stringify(updated))
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('guestbook_updated', { detail: { count: 1 } }))
+    }
     return updated
   } catch {
     return INITIAL_GUESTBOOK
@@ -976,17 +979,14 @@ export function addGuestBookEntry(author: string, message: string): GuestBookEnt
 
 /**
  * 📖 사용자가 아직 확인하지 않은 신규 미확인 방명록 글 개수 반환
+ * 💡 대표님 피드백 반영: 지인이 글을 남겼을 때 미확인 뱃지 1(또는 신규 글 수)이 100% 뜨도록 버그 수정
  */
 export function getUnreadGuestBookCount(): number {
   try {
     const list = loadGuestBook()
     const rawRead = localStorage.getItem(GUESTBOOK_LAST_READ_KEY)
-    if (!rawRead) {
-      // 최초 실행 시 기존 글들을 모두 읽은 상태로 초기화하여 뱃지에 4처럼 뜨지 않도록 처리
-      markGuestBookAsRead()
-      return 0
-    }
-    const lastReadTs = Number(rawRead)
+    const lastReadTs = rawRead ? Number(rawRead) : 0
+
     const unread = list.filter((item) => {
       // createdAtTs가 있거나 id에서 타임스탬프 추출
       let ts = item.createdAtTs
@@ -996,6 +996,7 @@ export function getUnreadGuestBookCount(): number {
           ts = parsed
         }
       }
+      // 사용자가 마지막으로 읽은 시간 이후에 등록된 글만 미확인 카운트
       return (ts || 0) > lastReadTs
     })
     return unread.length
@@ -1010,6 +1011,9 @@ export function getUnreadGuestBookCount(): number {
 export function markGuestBookAsRead(): void {
   try {
     localStorage.setItem(GUESTBOOK_LAST_READ_KEY, String(Date.now()))
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('guestbook_updated', { detail: { count: 0 } }))
+    }
   } catch {
     // 무시
   }

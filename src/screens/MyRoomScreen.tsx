@@ -460,6 +460,9 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
       playDessertAsmr('cookie-crisp')
       setNewComment('')
       showToast(isVisitor ? '📝 방명록을 남겼습니다! (+10 🎀 리본 코인)' : '📝 방명록을 남겼습니다!')
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('guestbook_updated', { detail: { count: 1 } }))
+      }
       await reloadRoom()
       void refreshAccount().then(() => setCoinsState(getRibbonCoins()))
       return

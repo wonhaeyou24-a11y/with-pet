@@ -21,7 +21,6 @@ import type { MonsterRow } from '../lib/api'
 import { monsterLook } from '../lib/api'
 import Monster3DView from '../monsters/Monster3DView'
 import type { MonsterLook } from '../monsters/types'
-import { MallangAtelierModal } from './MallangAtelierModal'
 import { loadMallangCustom } from '../monsters/MallangChameleon'
 import { playDessertAsmr } from '../lib/sound'
 
@@ -126,9 +125,6 @@ const Sparkles = ({ size = 16 }: { size?: number }) => (
 )
 const Gift = ({ size = 16 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 4.8 0 0 1 12 8a4.8 4.8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></svg>
-)
-const Palette = ({ size = 16 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
 )
 const Users = ({ size = 16 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -469,7 +465,6 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
   onSaveToMiniroom,
 }) => {
   const [mainTab, setMainTab] = useState<'solo' | 'open_lounge' | 'showcase'>('solo')
-  const [showAtelierModal, setShowAtelierModal] = useState<boolean>(false)
 
   // 상자 테마 & 규격 선택 (대표님 첨부 실물 사진 5종)
   const [boxTheme, setBoxTheme] = useState<BoxThemeType>('black-4')
@@ -492,7 +487,6 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
 
   // 명예의 진열장
   const [showcaseList, setShowcaseList] = useState<OpenPartyRoom[]>([])
-  const [customVersion, setCustomVersion] = useState<number>(0)
 
   // 내 현재 꾸며진 펫 외형
   const myCurrentLook = React.useMemo(() => {
@@ -500,15 +494,12 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
     const custom = loadMallangCustom(currentMonster.id)
     return {
       ...lk,
-      color: '#FFFFFF',
       mallang: {
         ...lk.mallang,
         ...custom,
-        color: '#FFFFFF',
-        baseColor: '#FFFFFF',
       },
     }
-  }, [currentMonster, customVersion])
+  }, [currentMonster])
 
   // 초기 로드
   useEffect(() => {
@@ -1217,39 +1208,7 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
         }
       `}</style>
 
-      {/* 🎨 [메챠 자유 색칠 & 데코 공방] 모달 */}
-      {showAtelierModal && (
-        <MallangAtelierModal
-          monster={currentMonster}
-          onClose={() => setShowAtelierModal(false)}
-          onSaved={(savedCustom) => {
-            setCustomVersion((v) => v + 1)
-            const updatedLook: MonsterLook = {
-              ...monsterLook(currentMonster),
-              mallang: {
-                ...loadMallangCustom(currentMonster.id),
-                ...savedCustom,
-                color: '#FFFFFF',
-                baseColor: '#FFFFFF',
-              },
-            }
-            setSoloSlots((prev) => {
-              const copy = [...prev]
-              copy[0] = {
-                slotIndex: 0,
-                ownerName: '나',
-                petName: currentMonster.name || '내 펫',
-                species: currentMonster.species,
-                look: updatedLook,
-                isMine: true,
-                placedAt: new Date().toISOString(),
-                itemType: 'pet',
-              }
-              return copy
-            })
-          }}
-        />
-      )}
+
 
       {/* 🌸 상단 네비게이션 헤더 */}
       <header
@@ -1496,30 +1455,8 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                 })}
               </div>
 
-              {/* 🎨 공방 & 상점 바로가기 */}
+              {/* 🛍️ 상점 바로가기 */}
               <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                <button
-                  type="button"
-                  onClick={() => setShowAtelierModal(true)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 3,
-                    padding: '6px 8px',
-                    borderRadius: 10,
-                    background: 'linear-gradient(135deg, #EC4899, #BE185D)',
-                    color: '#FFFFFF',
-                    fontSize: 11,
-                    fontWeight: 900,
-                    border: 'none',
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 5px rgba(236,72,153,0.3)',
-                  }}
-                  title="펫 자유 공방"
-                >
-                  <Palette size={12} />
-                  <span>공방</span>
-                </button>
                 {onOpenBoutique && (
                   <button
                     type="button"
@@ -1528,7 +1465,7 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                       display: 'flex',
                       alignItems: 'center',
                       gap: 3,
-                      padding: '6px 8px',
+                      padding: '6px 10px',
                       borderRadius: 10,
                       background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)',
                       color: '#FFFFFF',
