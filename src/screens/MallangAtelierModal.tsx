@@ -463,6 +463,18 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
               onTouchMove={handlePointerMove}
               onTouchEnd={handlePointerUp}
             >
+              <defs>
+                {/* 🍰 대표님 4번 피드백: 플랫한 페인트가 아닌 보송보송한 슈가 파우더 & 찰흙 수제 질감 필터 */}
+                <filter id="dessert-powder-brush" x="-10%" y="-10%" width="120%" height="120%">
+                  <feTurbulence type="fractalNoise" baseFrequency="0.35" numOctaves="2" result="turb" />
+                  <feDisplacementMap in="SourceGraphic" in2="turb" scale="2.2" xChannelSelector="R" yChannelSelector="G" result="displaced" />
+                  <feGaussianBlur in="displaced" stdDeviation="0.6" result="softEdge" />
+                  <feMerge>
+                    <feMergeNode in="softEdge" />
+                    <feMergeNode in="SourceGraphic" opacity="0.8" />
+                  </feMerge>
+                </filter>
+              </defs>
               {/* ✋ 점선 없이 매끄러운 순백 찰흙 도우 실루엣 (자유 반죽일 때 실시간 반영) */}
               {(doughShape === 'free-dough' || toolMode === 'mold') && (
                 <path
@@ -477,7 +489,9 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
                 />
               )}
 
-              {/* 1. 이전에 그려진 스트로크들 */}
+              {/* 💡 대표님 4번 피드백: 덮어버리지 않고 펫의 라인과 음영에 자연스럽게 스며드는 멀티플라이 블렌딩 & 리얼 질감 레이어 */}
+              <g style={{ mixBlendMode: 'multiply', filter: 'url(#dessert-powder-brush)' }}>
+                {/* 1. 이전에 그려진 스트로크들 */}
               {strokes.map((s, idx) => {
                 if (!s.points || s.points.length === 0) return null
                 if (s.points.length === 1) {
@@ -536,6 +550,8 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
                   opacity={0.8}
                 />
               )}
+
+                            </g>
 
               {/* 4. 앙증맞은 동글 콩알눈 (점선 없이 반죽 표면 위에 자연스럽게 표시) */}
               {(doughShape === 'free-dough' || toolMode === 'mold') && (

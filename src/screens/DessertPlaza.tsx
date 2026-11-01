@@ -298,91 +298,77 @@ export default function DessertPlaza({
   }
 
   // 지인 캐릭터들의 자연스러운 광장 자율 산책 루프 (뒤쪽에 정확한 타이밍으로 발자국 남기기)
+  // 💡 3번 피드백 반영: 테스터 펫뿐만 아니라 모든 지인 펫들이 활기차게 자율 산책하고 살아 숨쉬도록 전면 개편
   useEffect(() => {
     const wanderTimer = setInterval(() => {
       if (dragRef.current.active && dragRef.current.moved) return
       setActors((prev) => {
+        if (!prev || prev.length === 0) return prev
         const next = [...prev]
-        const walkerIdx = Math.floor(Math.random() * next.length)
-        if (walkerIdx === selectedIdx) return prev
+        // 매 주기마다 1~2마리의 펫이 동시에 자연스럽게 산책
+        const walkerIndices = [
+          Math.floor(Math.random() * next.length),
+          Math.floor(Math.random() * next.length),
+        ].filter((idx, i, arr) => arr.indexOf(idx) === i && idx !== selectedIdx)
 
-        const curr = next[walkerIdx]
-        // 🛡️ 충돌 회피: 다른 펫들 및 내 펫(중앙)과 140px 이상 안전 거리를 유지하는 웨이포인트 선택
-        const candidateWps = PLAZA_WAYPOINTS.filter((wp) => {
-          const distToCenter = Math.hypot(wp.x - CENTER_X, wp.y - CENTER_Y)
-          if (distToCenter < 140) return false
-          return next.every((other, oIdx) => {
-            if (oIdx === walkerIdx) return true
-            return Math.hypot(wp.x - other.x, wp.y - other.y) >= 130
-          })
-        })
-        const chosenWpList = candidateWps.length > 0 ? candidateWps : PLAZA_WAYPOINTS
-        const targetWp = chosenWpList[Math.floor(Math.random() * chosenWpList.length)]
-        const facingLeft = targetWp.x < curr.x
-        const speech = Math.random() < 0.35 ? PET_CHATTERS[Math.floor(Math.random() * PET_CHATTERS.length)] : null
+        walkerIndices.forEach((walkerIdx) => {
+          const curr = next[walkerIdx]
+          if (!curr) return
 
-        const startX = curr.x
-        const startY = curr.y
-        const targetX = targetWp.x + (Math.random() * 20 - 10)
-        const targetY = targetWp.y + (Math.random() * 20 - 10)
+          // 웨이포인트 중 랜덤 목적지 선택
+          const targetWp = PLAZA_WAYPOINTS[Math.floor(Math.random() * PLAZA_WAYPOINTS.length)]
+          const facingLeft = targetWp.x < curr.x
+          const speech = Math.random() < 0.3 ? PET_CHATTERS[Math.floor(Math.random() * PET_CHATTERS.length)] : null
 
-        const dx = targetX - startX
-        const dy = targetY - startY
-        const dist = Math.hypot(dx, dy)
-        if (dist > 20) {
-          const ux = dx / dist
-          const uy = dy / dist
-          const angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90
+          const startX = curr.x
+          const startY = curr.y
+          const targetX = targetWp.x + (Math.random() * 24 - 12)
+          const targetY = targetWp.y + (Math.random() * 24 - 12)
 
-          // 🐾 뒤쪽에 정확히 남는 발자국: 펫이 출발한 뒤 지나간 궤적의 뒤쪽(-26px)에만 순차적으로 찍기
-          const steps = 3
-          for (let s = 1; s <= steps; s++) {
+          const dx = targetX - startX
+          const dy = targetY - startY
+          const dist = Math.hypot(dx, dy)
+          if (dist > 15) {
+            const angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90
             setTimeout(() => {
-              const elapsedRatio = (s - 0.3) / steps
-              const curX = startX + dx * elapsedRatio
-              const curY = startY + dy * elapsedRatio
-              // 펫의 진행 반대 방향(뒤쪽 26px) 및 발밑(y+30px)에 발자국 배치
-              const fx = curX - ux * 26
-              const fy = curY - uy * 26 + 30
               stepCountRef.current += 1
-              const isLeft = stepCountRef.current % 2 === 0
-              addFootprint(fx, fy, isLeft, angle)
-            }, s * 700)
+              addFootprint(startX + dx * 0.5, startY + dy * 0.5 + 26, stepCountRef.current % 2 === 0, angle)
+            }, 600)
           }
-        }
 
-        next[walkerIdx] = {
-          ...curr,
-          x: targetX,
-          y: targetY,
-          isWalking: true,
-          facingLeft,
-          speech,
-        }
+          next[walkerIdx] = {
+            ...curr,
+            x: targetX,
+            y: targetY,
+            isWalking: true,
+            facingLeft,
+            speech,
+          }
 
-        setTimeout(() => {
-          setActors((latest) => {
-            if (!latest[walkerIdx]) return latest
-            const lNext = [...latest]
-            lNext[walkerIdx] = { ...lNext[walkerIdx], isWalking: false }
-            return lNext
-          })
-        }, 2600)
-
-        if (speech) {
           setTimeout(() => {
             setActors((latest) => {
-              if (!latest[walkerIdx]) return latest
+              if (!latest || !latest[walkerIdx]) return latest
               const lNext = [...latest]
-              lNext[walkerIdx] = { ...lNext[walkerIdx], speech: null }
+              lNext[walkerIdx] = { ...lNext[walkerIdx], isWalking: false }
               return lNext
             })
-          }, 3200)
-        }
+          }, 2400)
+
+          if (speech) {
+            setTimeout(() => {
+              setActors((latest) => {
+                if (!latest || !latest[walkerIdx]) return latest
+                const lNext = [...latest]
+                lNext[walkerIdx] = { ...lNext[walkerIdx], speech: null }
+                return lNext
+              })
+            }, 3000)
+          }
+        })
 
         return next
       })
-    }, 3200)
+    }, 1800) // 1.8초마다 지속적으로 살아 움직임
 
     return () => clearInterval(wanderTimer)
   }, [selectedIdx])
@@ -1084,7 +1070,10 @@ export default function DessertPlaza({
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    transform: `${actor.facingLeft ? 'scaleX(-1)' : 'scaleX(1)'} ${actor.isWalking ? 'translateY(-4px)' : 'translateY(0)'}`,
+                    transform: `${actor.facingLeft ? 'scaleX(-1)' : 'scaleX(1)'}`,
+                    animation: actor.isWalking
+                      ? 'plaza-walking-bounce 0.35s infinite alternate ease-in-out'
+                      : `plaza-idle-breath 2.4s infinite ease-in-out ${idx * 0.32}s`,
                     transition: 'transform 0.25s ease',
                   }}
                 >

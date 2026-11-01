@@ -270,31 +270,22 @@ export function build3DCharacterMesh(
   const basePal = CHAMELEON_PALETTES[palIdx % CHAMELEON_PALETTES.length]
   let innerLiquid: THREE.Object3D | undefined
 
-  // 종족 및 외형 성향에 따른 디저트 눈동자 색상 매핑
-  const getEyeColor = (sp: string): string => {
-    const vsp = normalizeDessertSpecies(sp)
-    if (vsp === 'dubai-cookie') return '#1A2312' // 쌉싸름한 피스타치오 다크
-    if (vsp === 'tanghulu' || vsp === 'wax-ball') return '#181026' // 영롱한 유리알 딥블루
-    if (vsp === 'pudding') return '#2D1606' // 달콤한 카라멜 앰버
-    if (vsp === 'choco' || vsp === 'smore') return '#1A0C08' // 진한 다크 카카오
-    return '#24141A' // 포근한 로즈 초콜릿 (기본)
-  }
-
   // 🏆 대표님 피드백 100% 반영: "디저트 펫의 눈만 표현하고, 동글한 조그만한 눈 하나로 통일!
   // 입이나 볼터치 없이 오직 맑고 조그마한 콩알눈 하나로 통일하고, 기분/상황에 따라 자동으로 찡그림/화남/슬픔/행복 표정 변화!"
   const addCute3DFace = (zOffset: number, yOffset: number, _cheekColor?: string) => {
     const faceGroup = new THREE.Group()
-    faceGroup.position.set(0, yOffset, zOffset)
+    faceGroup.position.set(0, yOffset, zOffset + 0.025)
 
     // 기분·상황·커스텀에 따른 감정 상태 추출 (기본: happy/round)
     const expr = look.expression || 'round'
-    const eyeColor = getEyeColor(validSpecies) // 종족 고유의 깊고 맑은 초콜릿 블랙 콩알눈
 
-    const eyeMat = new THREE.MeshPhysicalMaterial({
-      color: eyeColor,
-      roughness: 0.1,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.05,
+    // 💡 1번 피드백 반영: 조명 반사로 콩알눈이 뿌옇고 흐리게 날아가는 문제 완벽 해결!
+    // 빛 반사로 탈색되지 않는 최고 선명도의 칠흑 제트 블랙 MeshBasicMaterial 채택
+    const eyeMat = new THREE.MeshBasicMaterial({
+      color: '#080808',
+      polygonOffset: true,
+      polygonOffsetFactor: -1.0,
+      polygonOffsetUnits: -4.0,
     })
     const glintMat = new THREE.MeshBasicMaterial({ color: '#FFFFFF' })
 
@@ -2104,6 +2095,11 @@ export default function Monster3DView({
     scene.add(stageGroup)
 
     const baseGroup = build3DDessertBase(dessertBase)
+    // 💡 2번 피드백 반영: 순백 반죽/도우 모드일 때는 접시·받침대 완전 숨김
+    const isDough = Boolean(look.mallang?.doughShape || look.mallang?.color === '#FFFFFF')
+    if (isDough) {
+      baseGroup.visible = false
+    }
     stageGroup.add(baseGroup)
 
     const { root: charRoot, bodyGroup, innerLiquid, effectGroup } = build3DCharacterMesh(activeSpecies, look)
@@ -2206,11 +2202,13 @@ export default function Monster3DView({
       // 4) 360도 자유 드래그 3D 회전 (수평 회전 각도 보존 & 수직 미세 댐핑)
       if (!st.isDragging) {
         st.targetRotX *= 0.92
+        // 드래그를 놓았을 때 무한 회전 루프를 방지하고 자연스럽게 멈추도록 감쇠
+        st.targetRotY += (Math.round(st.targetRotY / (Math.PI * 2)) * Math.PI * 2 - st.targetRotY) * 0.02
       }
       st.rotY += (st.targetRotY - st.rotY) * Math.min(1, dt * 12)
       st.rotX += (st.targetRotX - st.rotX) * Math.min(1, dt * 12)
-      stageGroup.rotation.y = st.rotY
-      stageGroup.rotation.x = st.rotX
+      charRoot.rotation.y = st.rotY
+      charRoot.rotation.x = st.rotX
 
       // 5) 3D 파편 파티클 업데이트
       for (let i = crumbs.length - 1; i >= 0; i--) {
