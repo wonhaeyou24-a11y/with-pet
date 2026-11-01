@@ -2069,10 +2069,10 @@ export default function Monster3DView({
       const crispJitter = profile.kind === 'crispy' ? Math.sin(t * 55) * st.wobbleAmp * 0.18 : 0
       bodyGroup.rotation.z = Math.sin(st.wobblePhase * 0.8) * st.wobbleAmp * 0.35 + crispJitter
 
-      // 왁싱볼/젤리 내부 과즙 코어 찰랑거림
+      // 내부 코어 안정적 고정 (불필요한 뱅글뱅글 회전 제거)
       if (innerLiquid) {
-        innerLiquid.rotation.z = -bodyGroup.rotation.z * 1.6 + Math.sin(t * 3.5) * 0.12
-        innerLiquid.rotation.x = Math.cos(t * 2.9) * 0.1
+        innerLiquid.rotation.z = 0
+        innerLiquid.rotation.x = 0
       }
 
       // 4) 360도 자유 드래그 3D 회전 (수평 회전 각도 보존 & 수직 미세 댐핑)
@@ -2081,7 +2081,7 @@ export default function Monster3DView({
       }
       st.rotY += (st.targetRotY - st.rotY) * Math.min(1, dt * 12)
       st.rotX += (st.targetRotX - st.rotX) * Math.min(1, dt * 12)
-      stageGroup.rotation.y = st.rotY + Math.sin(t * 0.9) * 0.05
+      stageGroup.rotation.y = st.rotY
       stageGroup.rotation.x = st.rotX
 
       // 5) 3D 파편 파티클 업데이트

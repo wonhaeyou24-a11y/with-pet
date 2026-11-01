@@ -159,7 +159,7 @@ export default function MonsterHome({
   onOpenSkills,
   onOpenPlaza,
   onOpenEvolution,
-  onOpenDex,
+  onOpenDex: _onOpenDex,
   onOpenMyRoom,
   onOpenBoutique,
   onOpenGear,
@@ -955,13 +955,11 @@ export default function MonsterHome({
         />
         {/* (7) 부티크 상점 */}
         <MenuTile icon="🛍️" title="부티크 상점" sub="3D 피팅룸" from="#FB7185" to="#E11D48" rim="#9F1239" onClick={onOpenBoutique} />
-        {/* (8) 디저트 도감 */}
-        <MenuTile icon="📖" title="디저트 도감" sub="모아보기" from="#34D399" to="#059669" rim="#047857" onClick={onOpenDex} />
-        {/* (9) 디저트 파티 플레이팅 */}
+        {/* (8) 파티 쇼케이스 (자유 꾸미기 개편으로 도감 대신 배치) */}
         <MenuTile
           icon="🎉"
-          title="디저트 파티"
-          sub="함께 꾸미기"
+          title="파티 쇼케이스"
+          sub="디저트 플레이팅"
           from="#EC4899"
           to="#BE185D"
           rim="#831843"

@@ -1,13 +1,14 @@
 /**
- * 🎉 디저트 파티 플레이팅 시스템 (DessertPartyScreen.tsx)
+ * 🎉 디저트 파티 쇼케이스 (DessertPartyScreen.tsx) - 프리미엄 파티세리 에디션
  * 
- * 1. 탑다운(Top-down) 선물상자 뷰: 위에서 내려다보는 리얼 선물상자 안감 + 디저트 컵 페이퍼
- * 2. 쫀득 움직임(Ambient Breathing & Wiggle): 상자 안에서 가볍게 살짝 숨쉬고 갸웃거리는 펫 액션
- * 3. 기성 토핑 선택창 제거: 내가 공방에서 마음껏 색칠하고 꾸민 '현재 내 펫' 본연의 모습으로 장식
- * 4. 언제든 자유로운 색칠·꾸미기 숏컷 제공 (부티크/공방 연계)
- * 5. 오픈 지인 모드: 초대링크 없이 누구나 들어와 빈 칸에 자기 펫을 장식하는 오픈 라운지
- *    - 모든 슬롯 완성 시 축하 애니메이션과 함께 [공용 명예의 진열장] 등록
- * 6. 1인 모드 & 피니싱 터치 후 미니룸 선물 배달: 상대방 미니룸에 배달되어 리본 풀리는 언박싱 연출
+ * 1. 3대 럭셔리 베이스 비주얼:
+ *    - 🎁 수제 초콜릿 선물상자: 다크초코 원목 프레임 + 샴페인 골드 디바이더 + 금박 유산지 컵
+ *    - 🎂 파티 케이크: 순백 생크림 원형 케이크 + 생크림 똬리 & 통딸기/마카롱 데코
+ *    - 🫖 애프터눈 티 트레이: 프렌치 레이스 도일리가 깔린 우아한 로열 골드/실버 플레이트
+ * 2. 쫀득 숨쉬기 액션: 컵/케이크 위에 앉아 살아 숨쉬듯 말랑하게 부풀고 갸웃거리는 펫 모션
+ * 3. 내 현재 개성 펫(색칠+장식 완료) 원터치 장식 & 공방 바로가기
+ * 4. 오픈 지인 모드: 초대링크 없이 누구나 들어와 함께 채우고 완성 시 명예의 진열장 등재
+ * 5. 미니룸 선물 배달 & 리본 언박싱 연계
  */
 
 import React, { useState, useEffect } from 'react'
@@ -16,13 +17,9 @@ import { monsterLook } from '../lib/api'
 import Monster3DView from '../monsters/Monster3DView'
 import type { MonsterLook } from '../monsters/types'
 
-// 3대 시그니처 베이스 종류
 export type PartyBaseType = 'box' | 'cake' | 'tea-stand'
-
-// 지원되는 칸 수 (1구, 2구, 4구, 6구, 9구)
 export type SlotCapacity = 1 | 2 | 4 | 6 | 9
 
-// 플레이팅 슬롯 데이터
 export interface PartySlotItem {
   slotIndex: number
   ownerName: string
@@ -33,14 +30,12 @@ export interface PartySlotItem {
   placedAt: string
 }
 
-// 피니싱 터치 데코 옵션
 export interface FinishingTouch {
-  lettering: string // 초코펜 손글씨 메시지
+  lettering: string
   powder: 'none' | 'sugar-snow' | 'gold-leaf' | 'berry-syrup' | 'rainbow-sprinkle'
   ribbon: 'rose-pink' | 'royal-gold' | 'mint-sky' | 'pure-white'
 }
 
-// 오픈 파티 방 데이터
 export interface OpenPartyRoom {
   id: string
   title: string
@@ -53,7 +48,6 @@ export interface OpenPartyRoom {
   createdAt: string
 }
 
-// 미니룸 배달 선물 패키지
 export interface DeliveredGiftPackage {
   id: string
   senderName: string
@@ -86,10 +80,10 @@ const Gift = ({ size = 16, className = '' }: { size?: number; className?: string
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 4.8 0 0 1 12 8a4.8 4.8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></svg>
 )
 const Palette = ({ size = 16, className = '' }: { size?: number; className?: string }) => (
-  <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
 )
 const Users = ({ size = 16, className = '' }: { size?: number; className?: string }) => (
-  <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
 )
 
 const OPEN_PARTIES_STORAGE_KEY = 'pet_together_open_parties_v2'
@@ -102,18 +96,17 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
   onOpenBoutique,
   onSaveToMiniroom,
 }) => {
-  // 메인 탭: 'solo'(1인 나만의 파티/선물) | 'open_lounge'(오픈 지인 모드) | 'showcase'(명예의 진열장)
   const [mainTab, setMainTab] = useState<'solo' | 'open_lounge' | 'showcase'>('solo')
 
-  // 1인 모드 단계: 1(베이스 선택) -> 2(상자 속 내 펫 배치) -> 3(피니싱 터치 & 선물)
+  // 1인 모드 상태
   const [soloStep, setSoloStep] = useState<1 | 2 | 3>(1)
   const [selectedBase, setSelectedBase] = useState<PartyBaseType>('box')
   const [selectedCapacity, setSelectedCapacity] = useState<SlotCapacity>(4)
   const [soloSlots, setSoloSlots] = useState<(PartySlotItem | null)[]>(() => new Array(4).fill(null))
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number>(0)
 
-  // 피니싱 터치 상태
-  const [lettering, setLettering] = useState<string>('달콤한 마음을 가득 담아 보냅니다 💖')
+  // 피니싱 터치 데코
+  const [lettering, setLettering] = useState<string>('오늘 하루도 달콤함이 가득하길 💖')
   const [powder, setPowder] = useState<FinishingTouch['powder']>('sugar-snow')
   const [ribbon, setRibbon] = useState<FinishingTouch['ribbon']>('rose-pink')
   const [giftRecipient, setGiftRecipient] = useState<string>('')
@@ -124,22 +117,21 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null)
   const [showCelebration, setShowCelebration] = useState<boolean>(false)
 
-  // 진열장 목록
+  // 명예의 진열장
   const [showcaseList, setShowcaseList] = useState<OpenPartyRoom[]>([])
 
-  // 내 현재 꾸며진 펫의 실시간 외형 룩 계산
+  // 내 현재 꾸며진 펫 외형
   const myCurrentLook = React.useMemo(() => {
     return monsterLook(currentMonster)
   }, [currentMonster])
 
-  // 오픈 파티 및 진열장 초기 로딩
+  // 초기 로드
   useEffect(() => {
     try {
       const savedParties = localStorage.getItem(OPEN_PARTIES_STORAGE_KEY)
       if (savedParties) {
         setOpenParties(JSON.parse(savedParties))
       } else {
-        // 초기 예시 오픈 파티 생성 (누구나 들어와 채울 수 있는 방)
         const initialParties: OpenPartyRoom[] = [
           {
             id: 'room-1',
@@ -166,15 +158,15 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
           },
           {
             id: 'room-2',
-            title: '🍫 다크초코 셀러브레이션 6구',
-            hostName: '쇼콜라티에',
-            baseType: 'box',
-            capacity: 6,
+            title: '🎂 생크림 셀러브레이션 케이크 4구',
+            hostName: '파티셰',
+            baseType: 'cake',
+            capacity: 4,
             slots: [
               {
                 slotIndex: 0,
-                ownerName: '쇼콜라티에',
-                petName: '다크가나슈',
+                ownerName: '파티셰',
+                petName: '쇼콜라',
                 species: 'choco',
                 look: { ...myCurrentLook, species: 'choco', palette: 0 },
                 isMine: false,
@@ -182,15 +174,13 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
               },
               {
                 slotIndex: 1,
-                ownerName: '슈가프리',
-                petName: '밀크푸딩',
+                ownerName: '슈가스노우',
+                petName: '말랑푸딩',
                 species: 'pudding',
                 look: { ...myCurrentLook, species: 'pudding', palette: 0 },
                 isMine: false,
                 placedAt: new Date().toISOString(),
               },
-              null,
-              null,
               null,
               null,
             ],
@@ -207,23 +197,22 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
         setShowcaseList(JSON.parse(savedShowcase))
       }
     } catch (e) {
-      console.error('오픈 파티 로드 오류:', e)
+      console.error('파티 데이터 로드 오류:', e)
     }
   }, [myCurrentLook])
 
-  // 1인 모드 칸 수 변경 시 슬롯 동기화
+  // 칸 수 변경 시 슬롯 동기화
   useEffect(() => {
     setSoloSlots((prev) => {
       const next = new Array(selectedCapacity).fill(null)
       for (let i = 0; i < Math.min(prev.length, selectedCapacity); i++) {
         next[i] = prev[i]
       }
-      // 0번 칸에 기본으로 내 현재 꾸며진 펫 배치
       if (!next[0]) {
         next[0] = {
           slotIndex: 0,
           ownerName: '나',
-          petName: currentMonster.name || '내 디저트 펫',
+          petName: currentMonster.name || '내 펫',
           species: currentMonster.species,
           look: myCurrentLook,
           isMine: true,
@@ -234,14 +223,13 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
     })
   }, [selectedCapacity, currentMonster, myCurrentLook])
 
-  // 1인 모드: 슬롯에 내 펫 담기
   const handlePlaceMyPetInSoloSlot = (slotIdx: number) => {
     setSoloSlots((prev) => {
       const copy = [...prev]
       copy[slotIdx] = {
         slotIndex: slotIdx,
         ownerName: '나',
-        petName: currentMonster.name || '내 디저트 펫',
+        petName: currentMonster.name || '내 펫',
         species: currentMonster.species,
         look: myCurrentLook,
         isMine: true,
@@ -251,7 +239,6 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
     })
   }
 
-  // 1인 모드: 슬롯 비우기
   const handleClearSoloSlot = (slotIdx: number) => {
     setSoloSlots((prev) => {
       const copy = [...prev]
@@ -260,20 +247,19 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
     })
   }
 
-  // 1인 모드: 미니룸으로 선물 보내기
   const handleSendGiftToMiniroom = () => {
     const filledSlots = soloSlots.filter((s): s is PartySlotItem => s !== null)
     if (filledSlots.length === 0) {
-      alert('상자에 최소 1마리 이상의 펫을 장식해 주세요!')
+      alert('상자에 최소 1마리 이상의 펫을 담아주세요!')
       return
     }
 
     const recipient = giftRecipient.trim() || '소중한 친구'
     const newGift: DeliveredGiftPackage = {
       id: `gift-${Date.now()}`,
-      senderName: currentMonster.name ? `${currentMonster.name}의 주인` : '달콤한 친구',
+      senderName: currentMonster.name ? `${currentMonster.name}의 파티셰` : '달콤한 친구',
       recipientName: recipient,
-      title: `${selectedBase === 'box' ? '수제 초코상자' : selectedBase === 'cake' ? '축하 케이크' : '티 트레이'} (${selectedCapacity}구)`,
+      title: `${selectedBase === 'box' ? '수제 초코상자' : selectedBase === 'cake' ? '생크림 파티케이크' : '로열 티트레이'} (${selectedCapacity}구)`,
       baseType: selectedBase,
       capacity: selectedCapacity,
       slots: filledSlots,
@@ -296,11 +282,10 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
     }
   }
 
-  // 1인 모드: 내 미니룸 장식장에 즉시 진열하기
   const handleSaveToMyShowcase = () => {
     const partyData: OpenPartyRoom = {
       id: `party-solo-${Date.now()}`,
-      title: `나만의 ${selectedCapacity}구 ${selectedBase === 'box' ? '선물상자' : '케이크'}`,
+      title: `나만의 ${selectedCapacity}구 ${selectedBase === 'box' ? '선물상자' : selectedBase === 'cake' ? '케이크' : '티 트레이'}`,
       hostName: '나',
       baseType: selectedBase,
       capacity: selectedCapacity,
@@ -324,7 +309,6 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
     }
   }
 
-  // 오픈 지인 모드: 새 오픈 파티 방 개설
   const handleCreateOpenParty = () => {
     const title = prompt('새 오픈 파티의 이름을 입력해 주세요:', '누구나 환영하는 달콤 디저트 파티')
     if (!title) return
@@ -339,7 +323,6 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
       isCompleted: false,
       createdAt: new Date().toISOString(),
     }
-    // 0번 슬롯에 호스트(내 펫) 바로 장식
     newRoom.slots[0] = {
       slotIndex: 0,
       ownerName: currentMonster.name || '나',
@@ -356,7 +339,6 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
     setActiveRoomId(newRoom.id)
   }
 
-  // 오픈 지인 모드: 빈 슬롯에 내 펫 장식하기
   const handleJoinOpenPartySlot = (roomId: string, slotIdx: number) => {
     const room = openParties.find((r) => r.id === roomId)
     if (!room || room.isCompleted) return
@@ -372,9 +354,7 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
       placedAt: new Date().toISOString(),
     }
 
-    // 모든 슬롯이 채워졌는지 확인!
     const isNowCompleted = updatedSlots.every((s) => s !== null)
-
     const updatedRoom: OpenPartyRoom = {
       ...room,
       slots: updatedSlots,
@@ -385,7 +365,6 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
     setOpenParties(updatedList)
     localStorage.setItem(OPEN_PARTIES_STORAGE_KEY, JSON.stringify(updatedList))
 
-    // 🎉 모든 슬롯이 다 찼을 때 축하 애니메이션 발생 및 명예의 진열장에 영구 등록!
     if (isNowCompleted) {
       setShowCelebration(true)
       const existingShowcase = localStorage.getItem(SHOWCASE_STORAGE_KEY)
@@ -397,8 +376,8 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
     }
   }
 
-  // 탑다운 선물상자 렌더러 (위에서 내려다보는 리얼 박스 뷰)
-  const renderTopDownBox = (
+  // 🏆 럭셔리 파티세리 쇼케이스 베이스 렌더러 (입체 탑다운 뷰)
+  const renderLuxuryShowcaseBase = (
     baseType: PartyBaseType,
     capacity: SlotCapacity,
     slotsArr: (PartySlotItem | null)[],
@@ -406,113 +385,289 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
     onSlotClick?: (idx: number) => void
   ) => {
     return (
-      <div className="relative w-full max-w-[360px] mx-auto p-4 rounded-3xl bg-gradient-to-b from-[#4A2810] via-[#5C3214] to-[#3B1E0A] shadow-2xl border-4 border-[#8B5A2B] overflow-hidden">
-        {/* 상자 내부 부드러운 패딩 안감 */}
-        <div className="relative p-3 rounded-2xl bg-gradient-to-b from-[#FFF5E6] via-[#FFFBF2] to-[#FFEEDB] shadow-inner border border-amber-200">
-          {/* 상자 골드 엠블럼 타이틀 */}
-          <div className="flex items-center justify-between pb-2 mb-2 border-b border-amber-200/80 px-1">
-            <span className="text-[11px] font-black text-amber-950 flex items-center gap-1">
-              <span>{baseType === 'box' ? '🎁 수제 초코상자' : baseType === 'cake' ? '🎂 파티 케이크' : '🫖 애프터눈 티'}</span>
-              <span className="text-[10px] text-amber-700 font-bold">({capacity}구 쇼케이스)</span>
-            </span>
-            <span className="text-[10px] font-extrabold text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-full border border-amber-300">
-              {slotsArr.filter((s) => s !== null).length} / {capacity}
-            </span>
-          </div>
-
-          {/* 칸칸이 나뉜 탑다운 그리드 */}
+      <div className="relative w-full max-w-[360px] mx-auto select-none my-1">
+        {/* ================================================================= */}
+        {/* 1. 🎁 수제 초콜릿 선물상자: 럭셔리 옻칠 원목 + 샴페인 골드 림 + 금박 유산지 컵 */}
+        {/* ================================================================= */}
+        {baseType === 'box' && (
           <div
-            className={`grid gap-2.5 ${
-              capacity === 1
-                ? 'grid-cols-1'
-                : capacity === 2
-                ? 'grid-cols-2'
-                : capacity === 4
-                ? 'grid-cols-2'
-                : capacity === 6
-                ? 'grid-cols-3'
-                : 'grid-cols-3'
-            }`}
+            className="relative p-4 rounded-3xl shadow-2xl overflow-hidden"
+            style={{
+              background: 'linear-gradient(145deg, #2D150B 0%, #431E10 45%, #1F0D06 100%)',
+              border: '4px solid #C59B27',
+              boxShadow: '0 20px 35px -8px rgba(0,0,0,0.65), inset 0 2px 6px rgba(255,215,0,0.4)',
+            }}
           >
-            {slotsArr.map((item, idx) => {
-              const isSelected = selectedSlotIndex === idx
-              return (
-                <div
-                  key={idx}
-                  onClick={() => interactive && onSlotClick && onSlotClick(idx)}
-                  className={`relative flex flex-col items-center justify-center min-h-[115px] rounded-2xl p-1.5 transition select-none cursor-pointer ${
-                    // 베이킹 컵 페이퍼 실루엣 (원형 엠보싱 몰드)
-                    item
-                      ? 'bg-gradient-to-b from-amber-50 to-[#FFF3E0] shadow-md border-2 border-amber-300'
-                      : 'bg-amber-100/40 border-2 border-dashed border-amber-300/80 hover:bg-amber-100/70'
-                  } ${isSelected && interactive ? 'ring-2 ring-pink-500 scale-[1.02]' : ''}`}
-                >
-                  {/* 디저트 컵 페이퍼 가장자리 주름 질감 */}
-                  <div className="absolute inset-1 rounded-xl border border-amber-200/60 pointer-events-none" />
+            {/* 상자 내부 푹신한 벨벳 크림 안감 쿠션 */}
+            <div
+              className="p-3.5 rounded-2xl shadow-inner relative"
+              style={{
+                background: 'linear-gradient(to bottom, #FFFBF5 0%, #FDF3E3 60%, #F5E5C9 100%)',
+                border: '1.5px solid #E8D3B0',
+              }}
+            >
+              {/* 상자 골드 헤더 */}
+              <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-amber-200/90 px-1">
+                <span className="text-[11px] font-black text-amber-950 flex items-center gap-1.5 tracking-tight">
+                  <span className="text-sm">🎁</span>
+                  <span>쇼콜라티에 수제 컬렉션</span>
+                  <span className="text-[10px] text-amber-700 font-bold bg-amber-100/90 px-2 py-0.5 rounded-full border border-amber-300">
+                    {capacity}구 골드 박스
+                  </span>
+                </span>
+                <span className="text-[10px] font-black text-amber-900 bg-white/90 px-2 py-0.5 rounded-full border border-amber-200 shadow-2xs">
+                  {slotsArr.filter((s) => s !== null).length} / {capacity}
+                </span>
+              </div>
 
-                  {item ? (
-                    <div className="relative flex flex-col items-center w-full">
-                      {/* 쫀득 숨쉬기 액션 래퍼 (Breathing & Subtle Wobble) */}
-                      <div
-                        className="w-16 h-16 pointer-events-none transition-transform"
-                        style={{
-                          animation: `breathing-wiggle 3s ease-in-out infinite ${idx * 0.4}s`,
-                        }}
-                      >
-                        <Monster3DView
-                          look={item.look}
-                          size={64}
-                          interactive={false}
-                        />
-                      </div>
+              {/* 디저트 컵 그리드 */}
+              <div
+                className={`grid gap-2.5 ${
+                  capacity === 1
+                    ? 'grid-cols-1'
+                    : capacity === 2
+                    ? 'grid-cols-2'
+                    : capacity === 4
+                    ? 'grid-cols-2'
+                    : capacity === 6
+                    ? 'grid-cols-3'
+                    : 'grid-cols-3'
+                }`}
+              >
+                {slotsArr.map((item, idx) => {
+                  const isSelected = selectedSlotIndex === idx
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => interactive && onSlotClick && onSlotClick(idx)}
+                      className={`relative flex flex-col items-center justify-center min-h-[120px] rounded-2xl p-1.5 transition-all duration-300 cursor-pointer ${
+                        item
+                          ? 'bg-gradient-to-b from-[#FFFDF7] via-[#FFF8E7] to-[#FCE8C3] shadow-md border-2 border-[#D4AF37]'
+                          : 'bg-[#FFF8EC]/60 border-2 border-dashed border-[#D4AF37]/70 hover:bg-[#FFF3D6]'
+                      } ${isSelected && interactive ? 'ring-3 ring-pink-500 scale-[1.03] shadow-lg' : ''}`}
+                    >
+                      {/* 금박 유산지 컵 주름 림 (오목한 입체감) */}
+                      <div className="absolute inset-1 rounded-xl border border-[#D4AF37]/40 pointer-events-none" />
 
-                      {/* 펫 이름 & 장식한 주인 라벨 */}
-                      <span className="text-[11px] font-black text-amber-950 mt-1 truncate max-w-[85px]">
-                        {item.petName}
-                      </span>
-                      <span className="text-[9px] font-bold text-pink-600 bg-pink-100/70 px-1.5 py-0.2 rounded-full mt-0.5 truncate max-w-[85px]">
-                        by {item.ownerName}
-                      </span>
+                      {item ? (
+                        <div className="relative flex flex-col items-center w-full">
+                          {/* 쫀득 숨쉬기 액션 래퍼 */}
+                          <div
+                            className="w-16 h-16 pointer-events-none transition-transform"
+                            style={{
+                              animation: `breathing-wiggle 3s ease-in-out infinite ${idx * 0.35}s`,
+                            }}
+                          >
+                            <Monster3DView look={item.look} size={64} interactive={false} />
+                          </div>
 
-                      {/* 1인 모드에서 슬롯 비우기 버튼 */}
-                      {interactive && item.isMine && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleClearSoloSlot(idx)
-                          }}
-                          className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] flex items-center justify-center font-bold shadow-xs hover:bg-rose-600 transition"
-                          title="슬롯 비우기"
-                        >
-                          ×
-                        </button>
+                          <span className="text-[11px] font-black text-amber-950 mt-1 truncate max-w-[85px]">
+                            {item.petName}
+                          </span>
+                          <span className="text-[9px] font-bold text-pink-700 bg-pink-100/90 px-1.5 py-0.2 rounded-full mt-0.5 truncate max-w-[85px] border border-pink-200">
+                            by {item.ownerName}
+                          </span>
+
+                          {interactive && item.isMine && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleClearSoloSlot(idx)
+                              }}
+                              className="absolute -top-1.5 -right-1.5 w-4.5 h-4.5 rounded-full bg-rose-500 text-white text-[9px] flex items-center justify-center font-bold shadow-xs hover:bg-rose-600 transition"
+                              title="슬롯 비우기"
+                            >
+                              ×
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center gap-1 py-3 text-amber-900/60">
+                          <span className="text-xl">🧁</span>
+                          <span className="text-[10px] font-black text-amber-900/80">
+                            {idx + 1}번 금박 컵
+                          </span>
+                          {interactive && (
+                            <span className="text-[8px] text-pink-600 font-extrabold bg-pink-50 px-1.5 py-0.5 rounded-full border border-pink-200">
+                              터치하여 넣기
+                            </span>
+                          )}
+                        </div>
                       )}
                     </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center gap-1 py-4 text-amber-800/60">
-                      <span className="text-xl">🧁</span>
-                      <span className="text-[10px] font-extrabold text-amber-900/70">
-                        {idx + 1}번 칸 (빈 자리)
-                      </span>
-                      {interactive && (
-                        <span className="text-[8px] text-pink-600 font-bold bg-pink-50 px-1.5 py-0.5 rounded-full border border-pink-200">
-                          터치하여 넣기
-                        </span>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* 2. 🎂 파티 셀러브레이션 케이크: 순백 생크림 돔 + 딸기/마카롱 테두리 토핑 */}
+        {/* ================================================================= */}
+        {baseType === 'cake' && (
+          <div
+            className="relative p-5 rounded-full shadow-2xl overflow-hidden aspect-square flex flex-col items-center justify-center"
+            style={{
+              background: 'radial-gradient(circle, #FFFFFF 40%, #FFF8F0 75%, #FDEED9 100%)',
+              border: '6px solid #FFF5EB',
+              boxShadow: '0 20px 40px -10px rgba(225, 29, 72, 0.25), inset 0 3px 10px rgba(0,0,0,0.06)',
+            }}
+          >
+            {/* 가장자리 생크림 똬리 & 통딸기 데코 원형 림 */}
+            <div className="absolute inset-2 rounded-full border-4 border-dashed border-pink-200/80 pointer-events-none flex items-center justify-center">
+              <span className="absolute top-1 text-base">🍓</span>
+              <span className="absolute bottom-1 text-base">🍓</span>
+              <span className="absolute left-1 text-base">🍓</span>
+              <span className="absolute right-1 text-base">🍓</span>
+              <span className="absolute top-3 right-3 text-sm">🧁</span>
+              <span className="absolute top-3 left-3 text-sm">🧁</span>
+              <span className="absolute bottom-3 right-3 text-sm">🧁</span>
+              <span className="absolute bottom-3 left-3 text-sm">🧁</span>
+            </div>
+
+            {/* 케이크 상판 중앙 플레이팅 영역 */}
+            <div className="relative z-10 w-full max-w-[270px] flex flex-col items-center">
+              <span className="text-[10px] font-black text-pink-700 bg-pink-50/90 px-2 py-0.5 rounded-full border border-pink-200 mb-2">
+                🎂 생크림 파티 케이크 ({capacity}구)
+              </span>
+
+              <div
+                className={`grid gap-2 w-full ${
+                  capacity === 1 ? 'grid-cols-1' : capacity === 2 ? 'grid-cols-2' : 'grid-cols-2'
+                }`}
+              >
+                {slotsArr.slice(0, capacity).map((item, idx) => {
+                  const isSelected = selectedSlotIndex === idx
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => interactive && onSlotClick && onSlotClick(idx)}
+                      className={`relative flex flex-col items-center justify-center min-h-[105px] rounded-full p-2 transition cursor-pointer ${
+                        item
+                          ? 'bg-white/90 shadow-md border-2 border-pink-300'
+                          : 'bg-pink-100/40 border-2 border-dashed border-pink-300 hover:bg-pink-100/70'
+                      } ${isSelected && interactive ? 'ring-3 ring-rose-500 scale-105' : ''}`}
+                    >
+                      {item ? (
+                        <div className="relative flex flex-col items-center">
+                          <div
+                            className="w-14 h-14 pointer-events-none"
+                            style={{ animation: `breathing-wiggle 3s ease-in-out infinite ${idx * 0.3}s` }}
+                          >
+                            <Monster3DView look={item.look} size={56} interactive={false} />
+                          </div>
+                          <span className="text-[10px] font-black text-slate-800 truncate max-w-[75px]">
+                            {item.petName}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center gap-0.5 text-pink-400">
+                          <span className="text-base">🍰</span>
+                          <span className="text-[9px] font-black">{idx + 1}번 토핑</span>
+                        </div>
                       )}
                     </div>
-                  )}
-                </div>
-              )
-            })}
+                  )
+                })}
+              </div>
+            </div>
           </div>
+        )}
 
-          {/* 피니싱 터치 데코 반영 (상자 윗면에 뿌려진 파우더/리본) */}
-          <div className="mt-2.5 pt-2 border-t border-amber-200 flex items-center justify-between text-[10px] font-bold text-amber-800">
-            <span>✨ 핸드메이드 데코</span>
-            <span className="text-pink-600 font-extrabold">{lettering ? `"${lettering.slice(0, 16)}..."` : '메시지 없음'}</span>
+        {/* ================================================================= */}
+        {/* 3. 🫖 로열 애프터눈 티 트레이: 프렌치 레이스 도일리 + 황금 은식기 림 */}
+        {/* ================================================================= */}
+        {baseType === 'tea-stand' && (
+          <div
+            className="relative p-4 rounded-3xl shadow-2xl overflow-hidden"
+            style={{
+              background: 'linear-gradient(135deg, #F3F4F6 0%, #FFFFFF 50%, #E5E7EB 100%)',
+              border: '4px solid #D4AF37',
+              boxShadow: '0 20px 35px -8px rgba(0,0,0,0.3), inset 0 2px 6px rgba(255,255,255,0.9)',
+            }}
+          >
+            {/* 레이스 도일리 패턴 테두리 */}
+            <div
+              className="p-3.5 rounded-2xl relative shadow-inner"
+              style={{
+                background: '#FFFFFF',
+                border: '2px dashed #CBD5E1',
+              }}
+            >
+              <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-200 px-1">
+                <span className="text-[11px] font-black text-slate-800 flex items-center gap-1">
+                  <span>🫖</span>
+                  <span>로열 하이 티 스탠드</span>
+                  <span className="text-[10px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded-full border border-amber-300">
+                    {capacity}구 플레이트
+                  </span>
+                </span>
+                <span className="text-[10px] font-bold text-slate-500">
+                  {slotsArr.filter((s) => s !== null).length} / {capacity}
+                </span>
+              </div>
+
+              <div
+                className={`grid gap-2.5 ${
+                  capacity === 1 ? 'grid-cols-1' : capacity === 2 ? 'grid-cols-2' : capacity === 4 ? 'grid-cols-2' : 'grid-cols-3'
+                }`}
+              >
+                {slotsArr.slice(0, capacity).map((item, idx) => {
+                  const isSelected = selectedSlotIndex === idx
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => interactive && onSlotClick && onSlotClick(idx)}
+                      className={`relative flex flex-col items-center justify-center min-h-[110px] rounded-2xl p-1.5 transition cursor-pointer ${
+                        item
+                          ? 'bg-gradient-to-b from-white to-slate-50 shadow-md border-2 border-amber-300'
+                          : 'bg-slate-50 border-2 border-dashed border-slate-300 hover:bg-amber-50/50'
+                      } ${isSelected && interactive ? 'ring-3 ring-amber-500 scale-105' : ''}`}
+                    >
+                      {item ? (
+                        <div className="relative flex flex-col items-center">
+                          <div
+                            className="w-14 h-14 pointer-events-none"
+                            style={{ animation: `breathing-wiggle 3s ease-in-out infinite ${idx * 0.3}s` }}
+                          >
+                            <Monster3DView look={item.look} size={56} interactive={false} />
+                          </div>
+                          <span className="text-[10px] font-black text-slate-800 mt-1 truncate max-w-[80px]">
+                            {item.petName}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center gap-1 text-slate-400 py-3">
+                          <span className="text-lg">🫖</span>
+                          <span className="text-[9px] font-bold">{idx + 1}번 은식기</span>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* 🍫 하단 리얼 초콜릿 메시지 팻말 (Chocolate Message Plaque) */}
+        {lettering && (
+          <div
+            className="mt-2.5 mx-auto max-w-[320px] py-1.5 px-3 rounded-xl shadow-md flex items-center justify-center gap-1.5 border border-[#8D5A32]"
+            style={{
+              background: 'linear-gradient(to right, #3E2215, #4A2B19, #3E2215)',
+              color: '#FFD700',
+              textShadow: '0 1px 2px rgba(0,0,0,0.8)',
+            }}
+          >
+            <span className="text-xs">🖋️</span>
+            <span className="text-[11px] font-black tracking-wide truncate">
+              &ldquo;{lettering}&rdquo;
+            </span>
+          </div>
+        )}
       </div>
     )
   }
@@ -521,23 +676,23 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
 
   return (
     <div className="flex flex-col h-full bg-[#FFF9F2] text-slate-800 select-none overflow-y-auto">
-      {/* 쫀득 앰비언트 숨쉬기 & 갸웃 키프레임 인라인 정의 */}
+      {/* 쫀득 앰비언트 모션 키프레임 */}
       <style>{`
         @keyframes breathing-wiggle {
           0%, 100% {
             transform: translateY(0px) scale(1) rotate(0deg);
           }
           30% {
-            transform: translateY(-2.5px) scale(1.03, 0.97) rotate(1.5deg);
+            transform: translateY(-3px) scale(1.04, 0.96) rotate(1.8deg);
           }
           65% {
-            transform: translateY(1.5px) scale(0.98, 1.02) rotate(-1.5deg);
+            transform: translateY(2px) scale(0.97, 1.03) rotate(-1.8deg);
           }
         }
       `}</style>
 
       {/* 🌸 상단 네비게이션 헤더 */}
-      <header className="sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-white/90 backdrop-blur-md border-b border-pink-100 shadow-xs">
+      <header className="sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-white/95 backdrop-blur-md border-b border-pink-100 shadow-xs">
         <button
           onClick={onBack}
           className="p-2 -ml-2 rounded-full text-slate-600 hover:text-slate-900 hover:bg-pink-50 transition"
@@ -546,12 +701,12 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
           <ArrowLeft size={20} />
         </button>
         <div className="flex flex-col items-center">
-          <h1 className="text-base font-extrabold text-pink-800 flex items-center gap-1.5">
+          <h1 className="text-base font-black text-pink-900 flex items-center gap-1.5">
             <span>🎉</span>
-            <span>디저트 파티 쇼케이스</span>
+            <span>파티 쇼케이스</span>
           </h1>
-          <span className="text-[11px] font-medium text-pink-500">
-            {mainTab === 'solo' && '1인 나만의 상자 & 미니룸 선물'}
+          <span className="text-[11px] font-bold text-pink-500">
+            {mainTab === 'solo' && '1인 상자 꾸미기 & 미니룸 선물'}
             {mainTab === 'open_lounge' && '누구나 참여하는 오픈 지인 모드'}
             {mainTab === 'showcase' && '명예의 파티 진열장'}
           </span>
@@ -559,7 +714,7 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
         <div className="w-8" />
       </header>
 
-      {/* 🎀 3대 메인 탭 전환 네비게이션 */}
+      {/* 🎀 3대 메인 탭 */}
       <div className="flex px-4 pt-3 pb-1 gap-2 max-w-md w-full mx-auto">
         <button
           type="button"
@@ -600,22 +755,22 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
         </button>
       </div>
 
-      {/* 선물 발송 완료 토스트 */}
+      {/* 알림 토스트 */}
       {giftSentToast && (
-        <div className="mx-4 mt-2 p-3 rounded-2xl bg-emerald-500 text-white text-xs font-extrabold shadow-lg flex items-center gap-2 animate-bounce">
+        <div className="mx-4 mt-2 p-3 rounded-2xl bg-emerald-500 text-white text-xs font-black shadow-lg flex items-center gap-2 animate-bounce">
           <Sparkles size={16} />
           <span>{giftSentToast}</span>
         </div>
       )}
 
-      {/* 전 슬롯 완료 축하 폭죽 모달 */}
+      {/* 축하 폭죽 모달 */}
       {showCelebration && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-          <div className="w-full max-w-xs p-6 rounded-3xl bg-white border-4 border-amber-400 shadow-2xl flex flex-col items-center text-center gap-3 animate-scale-up">
+          <div className="w-full max-w-xs p-6 rounded-3xl bg-white border-4 border-amber-400 shadow-2xl flex flex-col items-center text-center gap-3">
             <span className="text-5xl">🎊 🎁 🎊</span>
             <h2 className="text-lg font-black text-amber-950">디저트 파티 완성!</h2>
             <p className="text-xs text-slate-600 leading-relaxed font-bold">
-              모든 칸이 달콤하게 채워졌습니다! 참여자들의 정성이 담긴 베이스가 <strong>[명예의 진열장]</strong>에 영구 등록되었습니다! ✨
+              모든 슬롯이 달콤하게 채워졌습니다! 참여자들의 정성이 담긴 쇼케이스가 <strong>[명예의 진열장]</strong>에 영구 등록되었습니다! ✨
             </p>
           </div>
         </div>
@@ -623,11 +778,11 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
 
       <main className="flex-1 max-w-md w-full mx-auto p-4 flex flex-col gap-4">
         {/* ========================================================================= */}
-        {/* TAB 1: 1인 나만의 모드 (내 펫으로 담기 + 피니싱터치 + 미니룸 선물) */}
+        {/* TAB 1: 1인 나만의 모드 */}
         {/* ========================================================================= */}
         {mainTab === 'solo' && (
           <div className="flex flex-col gap-4">
-            {/* 상단 현재 내 펫 실시간 정보 & 공방 숏컷 바 */}
+            {/* 현재 내 펫 실시간 정보 & 공방 바로가기 */}
             <div className="p-3.5 rounded-2xl bg-gradient-to-r from-pink-50 via-white to-amber-50 border border-pink-200 flex items-center justify-between shadow-xs">
               <div className="flex items-center gap-2.5">
                 <div className="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center shrink-0">
@@ -637,7 +792,7 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                   <span className="text-xs font-black text-slate-800 flex items-center gap-1">
                     <span>{currentMonster.name || '내 펫'}</span>
                     <span className="text-[10px] text-pink-600 font-bold bg-pink-50 px-1.5 py-0.2 rounded-full border border-pink-200">
-                      꾸미기 반영됨
+                      개성 펫
                     </span>
                   </span>
                   <span className="text-[10px] text-slate-500">
@@ -646,7 +801,6 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                 </div>
               </div>
 
-              {/* 언제든 색칠·꾸미기 공방으로 이동하는 원터치 버튼 */}
               {onOpenBoutique && (
                 <button
                   type="button"
@@ -666,9 +820,9 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                   <label className="text-xs font-black text-slate-700">시그니처 베이스 종류</label>
                   <div className="grid grid-cols-3 gap-2">
                     {[
-                      { id: 'box', name: '초코 상자', icon: '🎁' },
-                      { id: 'cake', name: '파티 케이크', icon: '🎂' },
-                      { id: 'tea-stand', name: '티 트레이', icon: '🫖' },
+                      { id: 'box', name: '초코 상자', icon: '🎁', desc: '다크초코 원목 & 금박 컵' },
+                      { id: 'cake', name: '파티 케이크', icon: '🎂', desc: '생크림 홀케이크 & 딸기' },
+                      { id: 'tea-stand', name: '티 트레이', icon: '🫖', desc: '로열 실버 & 레이스 도일리' },
                     ].map((b) => (
                       <button
                         key={b.id}
@@ -681,7 +835,8 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                         }`}
                       >
                         <span className="text-2xl">{b.icon}</span>
-                        <span className="text-xs">{b.name}</span>
+                        <span className="text-xs font-black">{b.name}</span>
+                        <span className="text-[9px] opacity-80">{b.desc}</span>
                       </button>
                     ))}
                   </div>
@@ -689,7 +844,7 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
 
                 <div className="flex flex-col gap-1.5">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-black text-slate-700">칸 수 (1구 ~ 9구)</label>
+                    <label className="text-xs font-black text-slate-700">칸 수 선택 (1구 ~ 9구)</label>
                     <span className="text-xs text-pink-600 font-black">{selectedCapacity}구 선택</span>
                   </div>
                   <div className="grid grid-cols-5 gap-1.5">
@@ -715,36 +870,33 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                   onClick={() => setSoloStep(2)}
                   className="mt-2 w-full py-3.5 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 text-white font-black text-xs shadow-md hover:from-pink-600 hover:to-rose-600 transition flex items-center justify-center gap-1.5"
                 >
-                  <span>탑다운 상자에 내 펫 담으러 가기</span>
+                  <span>쇼케이스에 내 펫 담기</span>
                   <Sparkles size={14} />
                 </button>
               </div>
             )}
 
-            {/* 2단계: 위에서 내려다보는 리얼 선물상자 뷰 & 내 펫 담기 */}
+            {/* 2단계: 입체 탑다운 베이스 뷰 & 내 펫 담기 */}
             {soloStep === 2 && (
               <div className="flex flex-col gap-3">
-                {/* 리얼 탑다운 상자 뷰 */}
-                {renderTopDownBox(selectedBase, selectedCapacity, soloSlots, true, (idx) => {
+                {renderLuxuryShowcaseBase(selectedBase, selectedCapacity, soloSlots, true, (idx) => {
                   setSelectedSlotIndex(idx)
                   handlePlaceMyPetInSoloSlot(idx)
                 })}
 
-                {/* 슬롯 조작 바 */}
                 <div className="p-3 rounded-2xl bg-white border border-pink-100 flex items-center justify-between shadow-xs">
                   <span className="text-xs font-black text-slate-700">
-                    선택된 <strong className="text-pink-600">{selectedSlotIndex + 1}번 칸</strong>에 내 펫 담기
+                    선택된 <strong className="text-pink-600">{selectedSlotIndex + 1}번 자리</strong>에 내 펫 넣기
                   </span>
                   <button
                     type="button"
                     onClick={() => handlePlaceMyPetInSoloSlot(selectedSlotIndex)}
-                    className="px-3 py-1.5 rounded-xl bg-pink-500 text-white text-xs font-black hover:bg-pink-600 transition shadow-xs"
+                    className="px-3.5 py-1.5 rounded-xl bg-pink-500 text-white text-xs font-black hover:bg-pink-600 transition shadow-xs"
                   >
                     내 펫 넣기
                   </button>
                 </div>
 
-                {/* 네비게이션 버튼 */}
                 <div className="flex gap-2">
                   <button
                     type="button"
@@ -765,29 +917,29 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
               </div>
             )}
 
-            {/* 3단계: 피니싱 터치 & 미니룸 선물하기 */}
+            {/* 3단계: 피니싱 터치 & 미니룸 선물 */}
             {soloStep === 3 && (
               <div className="flex flex-col gap-3.5">
-                {/* 상단 탑다운 미니 프리뷰 */}
-                {renderTopDownBox(selectedBase, selectedCapacity, soloSlots, false)}
+                {renderLuxuryShowcaseBase(selectedBase, selectedCapacity, soloSlots, false)}
 
                 {/* 초코펜 레터링 메시지 */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-black text-slate-700 flex items-center justify-between">
-                    <span>🍫 초코펜 편지 메시지 (언박싱 시 공개)</span>
+                    <span>🍫 초코펜 손글씨 (초콜릿 팻말에 새겨집니다)</span>
                     <span className="text-[10px] text-pink-500">{lettering.length}/50</span>
                   </label>
                   <input
                     type="text"
                     value={lettering}
                     onChange={(e) => setLettering(e.target.value.slice(0, 50))}
-                    placeholder="미니룸에서 리본을 풀었을 때 보여질 글을 적어주세요"
+                    placeholder="언박싱 시 공개될 감동의 한마디를 적어주세요"
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
                   />
                 </div>
 
+                {/* 파우더 데코 */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-black text-slate-700">❄️ 슈가/금박 파우더</label>
+                  <label className="text-xs font-black text-slate-700">❄️ 솔솔 파우더 & 시럽</label>
                   <div className="grid grid-cols-4 gap-1.5">
                     {[
                       { id: 'sugar-snow', name: '슈가스노우', icon: '❄️' },
@@ -812,9 +964,9 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                   </div>
                 </div>
 
-                {/* 리본 색상 선택 */}
+                {/* 리본 색상 */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-black text-slate-700">🎀 선물 포장 리본</label>
+                  <label className="text-xs font-black text-slate-700">🎀 선물 리본 매듭</label>
                   <div className="grid grid-cols-4 gap-2">
                     {[
                       { id: 'rose-pink', name: '로즈핑크', color: '#FF4081' },
@@ -839,7 +991,7 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                   </div>
                 </div>
 
-                {/* 선물 보낼 상대방 미니룸 닉네임 */}
+                {/* 미니룸 선물 배달 */}
                 <div className="p-3 rounded-2xl bg-purple-50 border border-purple-200 flex flex-col gap-2">
                   <label className="text-xs font-black text-purple-900 flex items-center gap-1.5">
                     <Gift size={14} className="text-purple-600" />
@@ -879,9 +1031,9 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                 <button
                   type="button"
                   onClick={() => setSoloStep(2)}
-                  className="py-2.5 text-center text-xs font-bold text-slate-500 hover:text-slate-800"
+                  className="py-2 text-center text-xs font-bold text-slate-500 hover:text-slate-800"
                 >
-                  상자 펫 배치 수정하기
+                  배치 수정하기
                 </button>
               </div>
             )}
@@ -889,11 +1041,10 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
         )}
 
         {/* ========================================================================= */}
-        {/* TAB 2: 오픈 지인 모드 (초대링크 X ➔ 누구나 들어와 자기 펫 장식) */}
+        {/* TAB 2: 오픈 지인 모드 */}
         {/* ========================================================================= */}
         {mainTab === 'open_lounge' && (
           <div className="flex flex-col gap-4">
-            {/* 상단 라운지 안내 및 새 방 개설 버튼 */}
             <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-amber-500/10 border border-purple-200/80 shadow-xs flex items-center justify-between">
               <div className="flex flex-col">
                 <h3 className="text-xs font-black text-purple-950 flex items-center gap-1">
@@ -913,7 +1064,6 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
               </button>
             </div>
 
-            {/* 현재 열려있는 오픈 파티 선택창 */}
             {!activeRoomId ? (
               <div className="flex flex-col gap-2.5">
                 <span className="text-xs font-black text-slate-700">참여 가능한 열린 파티 목록</span>
@@ -928,7 +1078,7 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                       <div className="flex flex-col">
                         <span className="text-xs font-black text-slate-800">{room.title}</span>
                         <span className="text-[10px] text-purple-600 font-bold mt-0.5">
-                          호스트: {room.hostName} • {room.capacity}구 상자
+                          호스트: {room.hostName} • {room.capacity}구 베이스
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -942,7 +1092,6 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                 })}
               </div>
             ) : (
-              /* 특정 오픈 파티 방 내부: 탑다운 상자에서 빈 칸 터치하여 내 펫 장식 */
               currentOpenRoom && (
                 <div className="flex flex-col gap-3.5">
                   <div className="flex items-center justify-between">
@@ -956,8 +1105,7 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                     <span className="text-xs font-black text-slate-800">{currentOpenRoom.title}</span>
                   </div>
 
-                  {/* 탑다운 상자 뷰 (빈 칸을 누르면 내 현재 펫이 즉시 배치됨) */}
-                  {renderTopDownBox(
+                  {renderLuxuryShowcaseBase(
                     currentOpenRoom.baseType,
                     currentOpenRoom.capacity,
                     currentOpenRoom.slots,
@@ -979,7 +1127,7 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
         )}
 
         {/* ========================================================================= */}
-        {/* TAB 3: 명예의 진열장 (Showcase) */}
+        {/* TAB 3: 명예의 진열장 */}
         {/* ========================================================================= */}
         {mainTab === 'showcase' && (
           <div className="flex flex-col gap-3.5">
@@ -1004,7 +1152,7 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                       {item.slots.filter((s) => s !== null).length}구 완성
                     </span>
                   </div>
-                  {renderTopDownBox(item.baseType, item.capacity, item.slots, false)}
+                  {renderLuxuryShowcaseBase(item.baseType, item.capacity, item.slots, false)}
                 </div>
               ))
             )}
