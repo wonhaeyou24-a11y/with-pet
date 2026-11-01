@@ -24,6 +24,7 @@ import {
   WORLD_BOSS_CATALOG,
   getRaidAttemptsInfo,
   consumeRaidAttempt,
+  getBossHpState,
   type RaidStatus,
 } from '../lib/bossScheduler'
 
@@ -885,96 +886,159 @@ export default function DessertPlaza({
             </div>
           ))}
 
-          {/* 👑 광장 상단에 직접 출현한 3D 거대 월드 보스 (일반 펫 대비 압도적인 거대 스케일) */}
-          <div
-            onClick={(e) => {
-              e.stopPropagation()
-              playDessertAsmr('smore-sizzle')
-              setShowRaidModal(true)
-            }}
-            style={{
-              position: 'absolute',
-              left: CENTER_X - 110,
-              top: 36,
-              width: 220,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              zIndex: 140,
-              cursor: 'pointer',
-              animation: 'pulseGlow 2.4s ease-in-out infinite',
-            }}
-            title="거대 보스를 터치하여 레이드 토벌에 출격하세요!"
-          >
-            {/* 거대 보스 머리 위 네온 레이드 배너 */}
+          {/* 👑 거대 월드 보스 (대표님 5번 요청: 출현 시간에만 광장에 나타나고, 터치 시 남은 체력바 표시) */}
+          {raidStatus.isActive && raidStatus.currentBoss ? (
+            (() => {
+              const activeBoss = raidStatus.currentBoss
+              const hpState = getBossHpState(activeBoss.id, activeBoss.hp)
+              return (
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    playDessertAsmr('smore-sizzle')
+                    setShowRaidModal(true)
+                  }}
+                  style={{
+                    position: 'absolute',
+                    left: CENTER_X - 110,
+                    top: 32,
+                    width: 220,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    zIndex: 140,
+                    cursor: 'pointer',
+                    animation: 'pulseGlow 2.4s ease-in-out infinite',
+                  }}
+                  title="거대 보스를 터치하여 레이드 토벌에 출격하세요!"
+                >
+                  {/* 거대 보스 머리 위 네온 레이드 배너 */}
+                  <div
+                    style={{
+                      background: 'linear-gradient(90deg, #D50000, #C2185B, #FF1744)',
+                      color: '#FFE082',
+                      fontSize: 9.5,
+                      fontWeight: 900,
+                      padding: '3px 12px',
+                      borderRadius: 999,
+                      boxShadow: '0 0 18px rgba(255, 23, 68, 0.85), 0 2px 8px rgba(0,0,0,0.5)',
+                      whiteSpace: 'nowrap',
+                      marginBottom: 3,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      border: '1.5px solid #FFFFFF',
+                    }}
+                  >
+                    <span>🔥</span>
+                    <span>👑 거대 보스 침공 중!!</span>
+                    <span style={{ background: '#FFFFFF', color: '#C2185B', padding: '0 5px', borderRadius: 999, fontSize: 8.5 }}>
+                      ⚔️ 출격 ({getRaidAttemptsInfo(activeBoss.id).left}/3)
+                    </span>
+                  </div>
+
+                  {/* 🎯 대표님 5번 요청: 거대 보스 남은 체력(HP) 게이지 바 */}
+                  <div
+                    style={{
+                      width: 170,
+                      background: 'rgba(15, 8, 26, 0.92)',
+                      padding: '3px 6px',
+                      borderRadius: 10,
+                      border: '1.5px solid #FF80AB',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.6)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 2,
+                      marginBottom: 2,
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 9, fontWeight: 900, color: '#FFF8E1' }}>
+                      <span>{activeBoss.name}</span>
+                      <span style={{ color: '#FF4081' }}>{hpState.hpPercent}%</span>
+                    </div>
+                    {/* 게이지 바 */}
+                    <div style={{ width: '100%', height: 7, background: '#374151', borderRadius: 999, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.2)' }}>
+                      <div
+                        style={{
+                          width: `${hpState.hpPercent}%`,
+                          height: '100%',
+                          background: 'linear-gradient(90deg, #FF1744 0%, #FF5252 50%, #FF8A80 100%)',
+                          boxShadow: '0 0 8px #FF1744',
+                          transition: 'width 0.4s ease',
+                        }}
+                      />
+                    </div>
+                    <div style={{ fontSize: 8, color: '#D1D5DB', textAlign: 'center', fontWeight: 700 }}>
+                      HP {hpState.currentHp.toLocaleString()} / {hpState.maxHp.toLocaleString()}
+                    </div>
+                  </div>
+
+                  {/* 3D 거대 보스 모델 */}
+                  <div style={{ position: 'relative' }}>
+                    <div
+                      style={{
+                        position: 'absolute',
+                        bottom: -6,
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        width: 195,
+                        height: 48,
+                        borderRadius: '50%',
+                        background: 'radial-gradient(ellipse, rgba(255, 23, 68, 0.65) 0%, rgba(136, 14, 79, 0.25) 65%, transparent 80%)',
+                        border: '1.5px solid #FF1744',
+                        boxShadow: '0 0 24px #FF1744',
+                        zIndex: 1,
+                        pointerEvents: 'none',
+                      }}
+                    />
+                    <div style={{ position: 'relative', zIndex: 3 }}>
+                      <WorldBoss3DView size={210} pose="idle" />
+                    </div>
+                  </div>
+                </div>
+              )
+            })()
+          ) : (
+            /* 비활성 시간대: 평화로운 슈가 분수대 & 다음 레이드 카운트다운 칩 */
             <div
+              onClick={() => {
+                playDessertAsmr('sugar-crack')
+                setShowRaidModal(true)
+              }}
               style={{
-                background: raidStatus.isActive
-                  ? 'linear-gradient(90deg, #D50000, #C2185B, #FF1744)'
-                  : 'linear-gradient(90deg, #E65100, #F57C00)',
-                color: '#FFE082',
-                fontSize: 9.5,
-                fontWeight: 900,
-                padding: '3px 12px',
-                borderRadius: 999,
-                boxShadow: '0 0 18px rgba(255, 23, 68, 0.85), 0 2px 8px rgba(0,0,0,0.5)',
-                whiteSpace: 'nowrap',
-                marginBottom: 2,
+                position: 'absolute',
+                left: CENTER_X - 75,
+                top: 48,
+                width: 150,
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
-                gap: 4,
-                border: '1.5px solid #FFFFFF',
+                zIndex: 40,
+                cursor: 'pointer',
               }}
+              title="다음 거대 보스 레이드 스케줄 확인"
             >
-              <span>🔥</span>
-              <span>{raidStatus.isActive ? '👑 거대 보스 침공 중!!' : '👑 거대 보스 출현'}</span>
-              <span style={{ background: '#FFFFFF', color: '#C2185B', padding: '0 5px', borderRadius: 999, fontSize: 8.5 }}>
-                ⚔️ 출격 ({getRaidAttemptsInfo().left}/3)
-              </span>
-            </div>
-
-            {/* 거대 보스 이름 및 레벨 */}
-            <div
-              style={{
-                background: 'rgba(20, 10, 30, 0.88)',
-                color: '#FFF8E1',
-                fontSize: 9,
-                fontWeight: 800,
-                padding: '1.5px 8px',
-                borderRadius: 8,
-                border: '1px solid #FF80AB',
-                whiteSpace: 'nowrap',
-                marginBottom: 2,
-                boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
-              }}
-            >
-              마그마 초코 퐁듀 슈가 드래곤 (Lv.50)
-            </div>
-
-            {/* 3D 거대 보스 모델 (일반 펫 90px 대비 압도적인 210px 초대형 스케일) */}
-            <div style={{ position: 'relative' }}>
-              {/* 발밑 끓어오르는 용암 퐁듀 분화구 풀 */}
               <div
                 style={{
-                  position: 'absolute',
-                  bottom: -6,
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: 195,
-                  height: 48,
-                  borderRadius: '50%',
-                  background: 'radial-gradient(ellipse, rgba(255, 23, 68, 0.65) 0%, rgba(136, 14, 79, 0.25) 65%, transparent 80%)',
-                  border: '1.5px solid #FF1744',
-                  boxShadow: '0 0 24px #FF1744',
-                  zIndex: 1,
-                  pointerEvents: 'none',
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  border: '1.5px solid #FBCFE8',
+                  padding: '3px 8px',
+                  borderRadius: 999,
+                  fontSize: 9,
+                  fontWeight: 900,
+                  color: '#9D174D',
+                  boxShadow: '0 2px 6px rgba(244,114,182,0.2)',
+                  whiteSpace: 'nowrap',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 3,
                 }}
-              />
-              <div style={{ position: 'relative', zIndex: 3 }}>
-                <WorldBoss3DView size={210} pose="idle" />
+              >
+                <span>⛲ 슈가 분수</span>
+                <span style={{ color: '#D97706', fontSize: 8 }}>| 다음 보스 {Math.floor(raidStatus.remainingSeconds / 60)}분 후</span>
               </div>
             </div>
-          </div>
+          )}
 
           {/* 내 대표 펫 산책 노드 (실제 3D Three.js 디저트 펫 디자인 & 실시간 광장 자율 산책) */}
           {(() => {
@@ -1685,6 +1749,22 @@ export default function DessertPlaza({
                     <div style={{ fontSize: 10, color: '#4B5563', marginTop: 2 }}>
                       {boss.flavorDesc}
                     </div>
+
+                    {/* 보스 실시간 HP 게이지 바 (대표님 5번 요청) */}
+                    {(() => {
+                      const hpState = getBossHpState(boss.id, boss.hp)
+                      return (
+                        <div style={{ marginTop: 4, background: '#F8FAFC', padding: '5px 8px', borderRadius: 8, border: '1px solid #E2E8F0' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, fontWeight: 800, color: '#334155', marginBottom: 2 }}>
+                            <span>남은 체력 게이지</span>
+                            <span style={{ color: '#E11D48', fontWeight: 900 }}>{hpState.currentHp.toLocaleString()} / {hpState.maxHp.toLocaleString()} ({hpState.hpPercent}%)</span>
+                          </div>
+                          <div style={{ width: '100%', height: 6, background: '#E2E8F0', borderRadius: 999, overflow: 'hidden' }}>
+                            <div style={{ width: `${hpState.hpPercent}%`, height: '100%', background: 'linear-gradient(90deg, #E11D48, #FB7185)', transition: 'width 0.3s ease' }} />
+                          </div>
+                        </div>
+                      )
+                    })()}
 
                     {/* 출격 버튼 (3회 제한 적용) */}
                     <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>

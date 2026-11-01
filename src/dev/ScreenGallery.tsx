@@ -6,11 +6,11 @@ import AsmrBattleArena from '../screens/AsmrBattleArena'
 import BoutiqueShop from '../screens/BoutiqueShop'
 import CakeBoxShareModal from '../screens/CakeBoxShareModal'
 import CarePantry from '../screens/CarePantry'
-import DessertStudioScreen from '../screens/DessertStudioScreen'
 import DessertPokedexScreen from '../screens/DessertPokedex'
 import DessertPlaza from '../screens/DessertPlaza'
 import DessertSoundStudioModal from '../screens/DessertSoundStudioModal'
 import EggHome from '../screens/EggHome'
+import EggResonanceModal from '../screens/EggResonanceModal'
 import ExploreScreen from '../screens/ExploreScreen'
 import GearScreen from '../screens/GearScreen'
 import EvolutionRevealScreen from '../screens/EvolutionReveal'
@@ -137,6 +137,7 @@ const SCREENS: Record<string, () => ReactNode> = {
     />
   ),
   '탐험(M5)': () => <ExploreScreen monster={{ ...shiny, name: '두바이쫀득', level: 8, evo_stage: 2 }} coins={320} onUpdate={noop} onGoRest={noop} onBack={noop} />,
+  '에그 온기 숙성(M5)': () => <EggResonanceModal monster={{ ...shiny, name: '두바이쫀득' }} onClose={noop} />,
   '장비·강화(M5)': () => <GearGallery monster={{ ...shiny, name: '두바이쫀득', level: 8 }} />,
   '식감 스킬트리(M3)': () => (
     <SkillTreeScreen
@@ -232,15 +233,6 @@ const SCREENS: Record<string, () => ReactNode> = {
       monster={{ ...shiny, name: '두바이쫀득' }}
       onBack={noop}
       onOpenMyRoom={noop}
-      onOpenStudio={noop}
-    />
-  ),
-  '꾸미기 스튜디오(M5)': () => (
-    <DessertStudioScreen
-      monster={{ ...shiny, name: '두바이쫀득' }}
-      onBack={noop}
-      onOpenBoutique={noop}
-      onUpdate={noop}
     />
   ),
   '✨ 3대 개성 꾸미기 (마카롱베레모·웨이퍼롤핀·딸기시럽드리즐)': () => (

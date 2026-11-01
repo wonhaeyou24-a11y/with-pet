@@ -11,6 +11,7 @@ import { SPECIES_INFO } from '../config/species'
 import { monsterLook, type MonsterRow } from '../lib/api'
 import { simulateAsmrBattle, type BattleSimulationResult } from '../lib/battleEngine'
 import { playDessertAsmr } from '../lib/sound'
+import { recordBossDamage, getBossRankRewards } from '../lib/bossScheduler'
 import WorldBoss3DView from '../monsters/WorldBoss3DView'
 import BattleFighter, { type Pose } from '../ui/BattleFighter'
 import BattleFx from '../ui/BattleFx'
@@ -1440,7 +1441,7 @@ export default function AsmrBattleArena({
                     transition: 'all 0.4s ease',
                   }}
                 >
-                  {/* 지인 펫 머리 위 이름 뱃지 (인원수에 맞춰 폰트와 패딩이 유기적으로 스케일링) */}
+                  {/* 지인 펫 머리 위 이름 뱃지 (대표님 6번 요청: 이모티콘 제외, 오직 깔끔한 이름만) */}
                   <div
                     style={{
                       background: 'rgba(15, 8, 26, 0.90)',
@@ -1455,10 +1456,9 @@ export default function AsmrBattleArena({
                       boxShadow: '0 1px 4px rgba(0,0,0,0.5)',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 2,
+                      justifyContent: 'center',
                     }}
                   >
-                    <span>{participant.icon}</span>
                     <span>{participant.ownerName}</span>
                   </div>
                   {/* 동적 크기(Scale) 적용: 소수 정예는 큼직하게(46px), 중규모는 36px, 대규모 군단은 앙증맞게(22~28px) */}
@@ -1549,7 +1549,7 @@ export default function AsmrBattleArena({
                     border: '1px solid #FFFFFF',
                   }}
                 >
-                  {cHp <= 0 ? '😵 탈진... (기여 완료!)' : `⚔️ 현재 공격 순번: ${challenger.name || cInfo?.name} (탈진까지 맹공!)`}
+                  {cHp <= 0 ? '탈진 (기여 완료)' : (challenger.name || cInfo?.name)}
                 </div>
 
                 {/* 전면 돌격 파이터 (크기 72px) */}
@@ -1797,11 +1797,22 @@ export default function AsmrBattleArena({
         )}
       </div>
 
-      {/* 🏆 디저트 게임 전용 화려한 대전 종료 결과창 (VICTORY / DEFEAT / RAID RESULT) */}
+      {/* 🏆 대형 임팩트 승리 결과창 (대표님 5번 순위 보상 & 9번 승리창 임팩트 리디자인 반영) */}
       {isFinished && (() => {
         const isWin = sim.winner === 'challenger' || dHp <= 0
         const dealtDamage = Math.max(1, sim.defenderMaxHp - dHp)
         const damagePercent = Math.min(100, Math.round((dealtDamage / sim.defenderMaxHp) * 100))
+
+        // 레이드인 경우 실시간 보스 데미지 기록 및 내 순위 산출
+        let myRank = 1
+        let rankReward = getBossRankRewards(1)
+        if (isBossRaidTarget) {
+          const myIdx = damageRankings.findIndex((r) => r.isMe)
+          myRank = myIdx >= 0 ? myIdx + 1 : 1
+          rankReward = getBossRankRewards(myRank)
+          // 보스 체력 차감 누적
+          recordBossDamage(defender.id, dealtDamage, sim.defenderMaxHp)
+        }
 
         return (
           <div
@@ -1809,247 +1820,158 @@ export default function AsmrBattleArena({
               position: 'absolute',
               inset: 0,
               zIndex: 50,
-              background: 'rgba(15, 7, 25, 0.78)',
-              backdropFilter: 'blur(6px)',
+              background: 'rgba(10, 4, 18, 0.85)',
+              backdropFilter: 'blur(8px)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '14px',
+              padding: '16px',
               animation: 'fadeIn 0.25s ease',
             }}
           >
-            {/* 결과 카드 모달 본체 */}
+            {/* 결과 카드 모달 본체 (폭을 356px로 넓히고 여백과 임팩트 강화) */}
             <div
               style={{
                 width: '100%',
-                maxWidth: 326,
+                maxWidth: 356,
                 background: isWin
-                  ? 'linear-gradient(180deg, #FFFDF8 0%, #FFF5EB 100%)'
+                  ? 'linear-gradient(180deg, #FFFDF8 0%, #FFF8EE 100%)'
                   : 'linear-gradient(180deg, #FFFDF9 0%, #F5F0FF 100%)',
-                borderRadius: 24,
-                border: isWin ? '2.5px solid #FFD54F' : '2.5px solid #CE93D8',
+                borderRadius: 28,
+                border: isWin ? '3px solid #F59E0B' : '2.5px solid #CE93D8',
                 boxShadow: isWin
-                  ? '0 16px 36px rgba(255, 160, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.8) inset'
-                  : '0 16px 36px rgba(106, 27, 154, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.8) inset',
-                padding: '0 14px 14px',
+                  ? '0 20px 48px rgba(245, 158, 11, 0.45), 0 0 24px rgba(251, 191, 36, 0.35)'
+                  : '0 20px 48px rgba(106, 27, 154, 0.3)',
+                padding: '0 18px 18px',
                 textAlign: 'center',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 9,
+                gap: 12,
                 position: 'relative',
               }}
             >
-              {/* 1. 상단 튀어나온 3D 리본 배너 (Game Victory / Mission Banner) */}
+              {/* 1. 상단 튀어나온 3D 대형 골드 엠블럼 타이틀 */}
               <div
                 style={{
-                  margin: '-18px auto 2px',
-                  padding: '7px 22px',
+                  margin: '-22px auto 0',
+                  padding: '9px 28px',
                   borderRadius: 999,
                   background: isWin
-                    ? 'linear-gradient(180deg, #FFD54F 0%, #FF8F00 100%)'
+                    ? 'linear-gradient(180deg, #FDE047 0%, #F59E0B 50%, #D97706 100%)'
                     : isBossRaidTarget
-                      ? 'linear-gradient(180deg, #BA68C8 0%, #7B1FA2 100%)'
-                      : 'linear-gradient(180deg, #FF8A80 0%, #D81B60 100%)',
+                    ? 'linear-gradient(180deg, #C084FC 0%, #9333EA 100%)'
+                    : 'linear-gradient(180deg, #FDA4AF 0%, #E11D48 100%)',
                   boxShadow: isWin
-                    ? '0 4px 0 #E65100, 0 6px 14px rgba(230,81,0,0.45)'
-                    : '0 4px 0 #4A148C, 0 6px 14px rgba(74,20,140,0.35)',
-                  border: '2px solid #FFFFFF',
+                    ? '0 5px 0 #92400E, 0 8px 18px rgba(217, 119, 6, 0.5)'
+                    : '0 5px 0 #581C87, 0 8px 18px rgba(147, 51, 234, 0.4)',
+                  border: '2.5px solid #FFFFFF',
                   color: '#FFFFFF',
                   fontWeight: 900,
-                  fontSize: 16,
-                  letterSpacing: '1px',
-                  textShadow: '0 1.5px 0 rgba(0,0,0,0.25)',
+                  fontSize: 18,
+                  letterSpacing: '1.5px',
+                  textShadow: '0 2px 2px rgba(0,0,0,0.3)',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: 6,
+                  gap: 8,
                   whiteSpace: 'nowrap',
                 }}
               >
                 <span>{isWin ? '🏆' : isBossRaidTarget ? '⚔️' : '🧁'}</span>
-                <span>
-                  {isWin
-                    ? 'V I C T O R Y'
-                    : isBossRaidTarget
-                      ? 'MISSION CLEAR'
-                      : 'SWEET MATCH'}
-                </span>
+                <span>{isWin ? 'V I C T O R Y' : isBossRaidTarget ? 'RAID COMPLETE' : 'BATTLE FINISH'}</span>
                 <span>{isWin ? '✨' : '💖'}</span>
               </div>
 
-              {/* 2. 별점 팡파레 & 한줄 판정 */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' }}>
-                <div style={{ fontSize: 20, letterSpacing: 4 }}>
-                  {isWin ? '⭐ ⭐ ⭐' : isBossRaidTarget ? '🛡️ ⚔️ 🛡️' : '🍪 🧁 🍮'}
+              {/* 2. 대형 승리 타이틀 & 트로피 연출 */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center', marginTop: 4 }}>
+                <div style={{ fontSize: 32, filter: 'drop-shadow(0 4px 10px rgba(245, 158, 11, 0.4))' }}>
+                  {isWin ? '👑' : isBossRaidTarget ? '🛡️' : '🍪'}
                 </div>
-                <div style={{ fontSize: 14.5, fontWeight: 900, color: '#3E2723' }}>
+                <div style={{ fontSize: 18, fontWeight: 900, color: '#1F2937', letterSpacing: '-0.3px' }}>
                   {isBossRaidTarget
-                    ? isWin
-                      ? `🎉 거대 [${defender.name || dInfo?.name}] 완전 격파!`
-                      : `⚡ 비동기 보스 레이드 공격 완료!`
+                    ? `🎉 거대 [${defender.name || dInfo?.name}] 공략 완료!`
                     : isWin
-                      ? `🎉 [${challenger.name || cInfo?.name}] 친선 대전 완승!`
-                      : `👏 지인 [${defenderOwnerName}]님과의 명승부!`}
+                    ? `🎉 [${challenger.name || cInfo?.name}] 대승리!`
+                    : `지인 [${defenderOwnerName}]님과의 멋진 대결!`}
+                </div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#6B7280' }}>
+                  {isBossRaidTarget
+                    ? `총 ${dealtDamage.toLocaleString()} 데미지 타격 성공 (${damagePercent}%)`
+                    : isWin
+                    ? '완벽한 식감 전술로 상대를 압도했습니다!'
+                    : '소중한 전투 경험치를 획득했습니다!'}
                 </div>
               </div>
 
-              {/* 3. 배틀 파이터 대진 요약 카드 */}
-              <div
-                style={{
-                  background: 'rgba(255, 255, 255, 0.85)',
-                  borderRadius: 14,
-                  padding: '8px 10px',
-                  border: '1px solid rgba(0,0,0,0.06)',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 6,
-                }}
-              >
-                {/* 도전자 (나) */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, flex: 1 }}>
-                  <div
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: '50%',
-                      background: '#FFF3E0',
-                      border: '1.5px solid #FFB74D',
-                      display: 'grid',
-                      placeItems: 'center',
-                      fontSize: 18,
-                      flexShrink: 0,
-                    }}
-                  >
-                    🍮
-                  </div>
-                  <div style={{ textAlign: 'left', minWidth: 0, overflow: 'hidden' }}>
-                    <div style={{ fontSize: 11, fontWeight: 900, color: '#3E2723', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {challenger.name || cInfo?.name}
-                    </div>
-                    <div style={{ fontSize: 9.5, fontWeight: 800, color: '#D84315' }}>
-                      HP {Math.max(0, Math.round(cHp))} / {sim.challengerMaxHp}
-                    </div>
-                  </div>
-                </div>
-
-                <span style={{ fontSize: 11, fontWeight: 900, color: '#FF7043', flexShrink: 0, padding: '2px 6px', background: '#FFF3E0', borderRadius: 8 }}>
-                  VS
-                </span>
-
-                {/* 방어자 (지인 또는 거대 보스) */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, flex: 1, justifyContent: 'flex-end' }}>
-                  <div style={{ textAlign: 'right', minWidth: 0, overflow: 'hidden' }}>
-                    <div style={{ fontSize: 11, fontWeight: 900, color: '#3E2723', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {defender.name || dInfo?.name}
-                    </div>
-                    <div style={{ fontSize: 9.5, fontWeight: 800, color: isBossRaidTarget ? '#C2185B' : '#795548' }}>
-                      {isBossRaidTarget
-                        ? `${Math.max(0, Math.round(dHp)).toLocaleString()} HP`
-                        : `HP ${Math.max(0, Math.round(dHp))} / ${sim.defenderMaxHp}`}
-                    </div>
-                  </div>
-                  <div
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: '50%',
-                      background: isBossRaidTarget ? '#FCE4EC' : '#E8F5E9',
-                      border: isBossRaidTarget ? '1.5px solid #F06292' : '1.5px solid #81C784',
-                      display: 'grid',
-                      placeItems: 'center',
-                      fontSize: 18,
-                      flexShrink: 0,
-                    }}
-                  >
-                    {isBossRaidTarget ? '🐲' : '🍰'}
-                  </div>
-                </div>
-              </div>
-
-              {/* 4. 보스전 상세 기여도 또는 친선전 요약 */}
-              {isBossRaidTarget ? (
+              {/* 3. 레이드 순위 및 차등 보상 뱃지 (레이드 시 표시) */}
+              {isBossRaidTarget && (
                 <div
                   style={{
-                    background: '#FFF8E1',
-                    borderRadius: 14,
-                    padding: '8px 10px',
-                    border: '1.5px solid #FFE082',
-                    fontSize: 10.5,
-                    textAlign: 'left',
-                    lineHeight: 1.5,
-                    color: '#4E342E',
+                    background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
+                    borderRadius: 16,
+                    border: '2px solid #F59E0B',
+                    padding: '8px 12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span>💥 <b>내 기여 데미지</b>:</span>
-                    <span style={{ color: '#D81B60', fontWeight: 900, fontSize: 12 }}>
-                      {dealtDamage.toLocaleString()} DMG ({damagePercent}%)
-                    </span>
+                  <div style={{ textAlign: 'left' }}>
+                    <div style={{ fontSize: 10, fontWeight: 800, color: '#B45309' }}>기여도 순위 보상</div>
+                    <div style={{ fontSize: 14, fontWeight: 900, color: '#78350F' }}>{rankReward.rankBadge}</div>
                   </div>
-                  {/* 기여도 게이지 바 */}
-                  <div style={{ height: 8, borderRadius: 999, background: '#FFE082', overflow: 'hidden', margin: '4px 0 5px' }}>
-                    <div
-                      style={{
-                        width: `${Math.min(100, Math.max(8, damagePercent))}%`,
-                        height: '100%',
-                        background: 'linear-gradient(90deg, #FF4081, #FF1744)',
-                        borderRadius: 999,
-                      }}
-                    />
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9.5, color: '#795548' }}>
-                    <span>🤝 <b>비동기 레이드</b>: 지인 4명 누적 참여 중</span>
-                    <span style={{ color: '#E65100', fontWeight: 800 }}>
-                      {cHp <= 0 ? '🛡️ 용감한 공격 완수' : '👑 영웅적 일격 달성'}
-                    </span>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: 12, fontWeight: 900, color: '#92400E' }}>
+                      +🪙 {rankReward.coins} 코인 | +⭐ {rankReward.starShards}
+                    </div>
+                    <div style={{ fontSize: 9.5, fontWeight: 800, color: '#D97706' }}>
+                      훈장: {rankReward.medalTitle}
+                    </div>
                   </div>
                 </div>
-              ) : null}
+              )}
 
-              {/* 5. 🎁 전투 보상 획득 카드 (Game Loot Showcase) */}
+              {/* 4. 🎁 핵심 전투 획득 보상 박스 (크고 선명하게 강조) */}
               <div
                 style={{
-                  background: 'linear-gradient(135deg, #FFFDE7 0%, #FFF9C4 100%)',
-                  borderRadius: 14,
-                  border: '1.5px dashed #FBC02D',
-                  padding: '7px 10px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-around',
-                  boxShadow: 'inset 0 1px 3px rgba(251,192,45,0.2)',
+                  background: 'linear-gradient(135deg, #FFFFFF 0%, #FFFBEB 100%)',
+                  borderRadius: 18,
+                  border: '2px solid #FDE68A',
+                  padding: '12px 14px',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: 8,
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <span style={{ fontSize: 16 }}>🪙</span>
-                  <div style={{ textAlign: 'left' }}>
-                    <div style={{ fontSize: 8.5, color: '#795548', fontWeight: 800 }}>코인 보상</div>
-                    <div style={{ fontSize: 11.5, fontWeight: 900, color: '#F57F17' }}>
-                      {isBossRaidTarget ? '+0' : isWin ? '+25' : '+0'}
-                    </div>
-                  </div>
+                {/* 코인 보상 */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                  <span style={{ fontSize: 22 }}>🪙</span>
+                  <span style={{ fontSize: 10, fontWeight: 800, color: '#6B7280' }}>코인 보상</span>
+                  <span style={{ fontSize: 15, fontWeight: 900, color: '#D97706' }}>
+                    {isBossRaidTarget ? `+${rankReward.coins}` : isWin ? '+35' : '+15'}
+                  </span>
                 </div>
-                <div style={{ width: 1, height: 22, background: '#FFE082' }} />
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <span style={{ fontSize: 16 }}>🎀</span>
-                  <div style={{ textAlign: 'left' }}>
-                    <div style={{ fontSize: 8.5, color: '#795548', fontWeight: 800 }}>리본 코인</div>
-                    <div style={{ fontSize: 11.5, fontWeight: 900, color: '#D81B60' }}>
-                      {isBossRaidTarget ? '+35' : isWin ? '+15' : '+12'}
-                    </div>
-                  </div>
+
+                {/* 리본 코인 보상 */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, borderLeft: '1px solid #FDE68A', borderRight: '1px solid #FDE68A' }}>
+                  <span style={{ fontSize: 22 }}>🎀</span>
+                  <span style={{ fontSize: 10, fontWeight: 800, color: '#6B7280' }}>리본 코인</span>
+                  <span style={{ fontSize: 15, fontWeight: 900, color: '#E11D48' }}>
+                    {isBossRaidTarget ? '+50' : isWin ? '+20' : '+10'}
+                  </span>
                 </div>
-                <div style={{ width: 1, height: 22, background: '#FFE082' }} />
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <span style={{ fontSize: 16 }}>💖</span>
-                  <div style={{ textAlign: 'left' }}>
-                    <div style={{ fontSize: 8.5, color: '#795548', fontWeight: 800 }}>친밀도 UP</div>
-                    <div style={{ fontSize: 11.5, fontWeight: 900, color: '#E91E63' }}>+10</div>
-                  </div>
+
+                {/* 친밀도 & 레이팅 */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                  <span style={{ fontSize: 22 }}>⭐</span>
+                  <span style={{ fontSize: 10, fontWeight: 800, color: '#6B7280' }}>레이팅 변동</span>
+                  <span style={{ fontSize: 15, fontWeight: 900, color: '#2563EB' }}>
+                    {isWin ? '+25 RP' : '+8 RP'}
+                  </span>
                 </div>
               </div>
 
-              {/* 6. 🎬 배틀 명장면 리플레이 짤 버튼 */}
+              {/* 5. 🎬 배틀 명장면 리플레이 짤 버튼 */}
               <button
                 onClick={() => {
                   setShowHighlightModal(true)
@@ -2057,88 +1979,63 @@ export default function AsmrBattleArena({
                 }}
                 style={{
                   width: '100%',
-                  padding: '7px 12px',
-                  borderRadius: 12,
+                  padding: '8px 14px',
+                  borderRadius: 14,
                   border: '1.5px solid #FFB74D',
-                  background: 'linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%)',
-                  color: '#E65100',
+                  background: 'linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%)',
+                  color: '#C2410C',
                   fontWeight: 900,
-                  fontSize: 11,
+                  fontSize: 12,
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 5,
-                  boxShadow: '0 2px 4px rgba(255,152,0,0.15)',
+                  gap: 6,
+                  boxShadow: '0 2px 6px rgba(255,152,0,0.15)',
                 }}
               >
                 <span>🎬</span>
-                <span>배틀 명장면 리플레이 짤 보기 & 공유</span>
+                <span>배틀 명장면 리플레이 짤 보기</span>
               </button>
 
-              {/* 7. 하단 조작 액션 (다시 감상 / 새 대결 / 메인 광장 복귀) */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 1 }}>
-                <div className="row center" style={{ gap: 6 }}>
-                  <button
-                    className="chip coral"
-                    onClick={handleReplaySameSeed}
-                    style={{
-                      cursor: 'pointer',
-                      border: 'none',
-                      fontWeight: 800,
-                      fontSize: 10.5,
-                      padding: '6px 12px',
-                      flex: 1,
-                      borderRadius: 10,
-                    }}
-                  >
-                    🔄 다시 감상
-                  </button>
-                  <button
-                    className="chip honey"
-                    onClick={handleRematchNewSeed}
-                    style={{
-                      cursor: 'pointer',
-                      border: 'none',
-                      fontWeight: 800,
-                      fontSize: 10.5,
-                      padding: '6px 12px',
-                      flex: 1,
-                      borderRadius: 10,
-                    }}
-                  >
-                    ⚔️ 새 시드 대결
-                  </button>
-                </div>
-
-                {/* 모바일 게임 특화 큼직한 메인 확인 버튼 */}
+              {/* 6. 하단 주요 액션 버튼 (크고 누르기 편하게) */}
+              <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
                 <button
-                  onClick={onBack}
+                  onClick={handleReplaySameSeed}
                   style={{
-                    width: '100%',
-                    fontWeight: 900,
-                    fontSize: 14,
-                    padding: '11px 0',
-                    background: isWin
-                      ? 'linear-gradient(180deg, #FF5252 0%, #D50000 100%)'
-                      : 'linear-gradient(180deg, #7E57C2 0%, #512DA8 100%)',
-                    border: 'none',
+                    flex: 1,
+                    padding: '10px 12px',
                     borderRadius: 14,
-                    color: '#FFFFFF',
-                    boxShadow: isWin
-                      ? '0 4px 0 #9E0000, 0 6px 14px rgba(213,0,0,0.35)'
-                      : '0 4px 0 #311B92, 0 6px 14px rgba(81,45,168,0.35)',
+                    border: '1.5px solid #D1D5DB',
+                    background: '#FFFFFF',
+                    color: '#4B5563',
+                    fontWeight: 900,
+                    fontSize: 12,
                     cursor: 'pointer',
-                    touchAction: 'manipulation',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 6,
-                    letterSpacing: '0.5px',
                   }}
                 >
-                  <span>🚪</span>
-                  <span>확인 · 광장으로 복귀</span>
+                  🔄 다시 보기
+                </button>
+                <button
+                  onClick={() => {
+                    playDessertAsmr('sugar-crack')
+                    if (onRewardClaimed) onRewardClaimed(isBossRaidTarget ? rankReward.coins : 35)
+                    onBack()
+                  }}
+                  style={{
+                    flex: 2,
+                    padding: '10px 16px',
+                    borderRadius: 14,
+                    border: 'none',
+                    background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                    color: '#FFFFFF',
+                    fontWeight: 900,
+                    fontSize: 13,
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(217,119,6,0.3)',
+                  }}
+                >
+                  🎉 보상 수령 & 광장 복귀
                 </button>
               </div>
             </div>

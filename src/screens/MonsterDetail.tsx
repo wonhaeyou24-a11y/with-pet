@@ -4,7 +4,6 @@
 // 받침대 6종은 부티크 상점에서 정식 구매·장착하도록 이전됨.
 
 import { useEffect, useRef, useState } from 'react'
-import { getOwnedBoutiqueItems, getRibbonCoins } from '../config/boutique'
 import { useAccount, refreshAccount } from '../lib/shopApi'
 import { IS_DEV_MOCK } from '../lib/devMode'
 import { defaultDessertBase, SPECIES_INFO } from '../config/species'
@@ -16,13 +15,12 @@ import {
   setAsmrMuted,
   type DessertSoundKind,
 } from '../lib/sound'
-import { DECO_ITEMS, type DecoSlot } from '../monsters/Decorations'
+import { DECO_ITEMS } from '../monsters/Decorations'
 import {
   DESSERT_BASES,
   loadMallangCustom,
   saveMallangCustom,
   SYRUP_CATALOG,
-  WING_CATALOG,
   type DessertBaseId,
   type MorphFormId,
   type PaintStamp,
@@ -36,18 +34,6 @@ import type { MonsterDecorations, MonsterMedals } from '../monsters/types'
 import { BackIcon } from '../ui/Icons'
 import { totalStats } from '../ui/parts'
 import { getSensoryReactionClass, SensoryBurst } from '../ui/SensoryFx'
-
-const SLOT_LABELS: { slot: DecoSlot; label: string; defaultIcon: string }[] = [
-  { slot: 'head', label: '머리', defaultIcon: '🎩' },
-  { slot: 'face', label: '얼굴', defaultIcon: '👓' },
-  { slot: 'neck', label: '목', defaultIcon: '🧣' },
-  { slot: 'back', label: '등', defaultIcon: '🪽' },
-  { slot: 'hand', label: '손', defaultIcon: '🏮' },
-  { slot: 'bg', label: '배경', defaultIcon: '🌌' },
-  { slot: 'effect', label: '효과', defaultIcon: '✨' },
-]
-
-type StudioTab = 'profile' | 'parts'
 
 function daysTogether(hatchedAt: string) {
   return Math.max(1, Math.floor((serverNow() - Date.parse(hatchedAt)) / 86_400_000) + 1)
@@ -69,7 +55,7 @@ export default function MonsterDetail({
   useAccountRefresh()
   const savedCustom = loadMallangCustom(monster.id)
 
-  const [studioTab, setStudioTab] = useState<StudioTab>('profile')
+
 
   useEffect(() => {
     if (!IS_DEV_MOCK) void refreshAccount()
@@ -79,7 +65,7 @@ export default function MonsterDetail({
   const morphForm = (monster.species as MorphFormId) ?? 'mochi'
   const skinPalette = savedCustom?.skinPalette ?? monster.parts.palette ?? 0
   const dessertBase: DessertBaseId = savedCustom?.dessertBase ?? defaultDessertBase(monster.species)
-  const [wingKind, setWingKind] = useState<WingKind>(savedCustom?.wingKind ?? 'none')
+  const wingKind: WingKind = savedCustom?.wingKind ?? 'none'
   const [syrups, setSyrups] = useState<SyrupId[]>(savedCustom?.syrups ?? ['choco-drizzle', 'rainbow-sprinkles'])
   const [showcaseBoxMode, setShowcaseBoxMode] = useState<boolean>(false)
   const [biteVotes, setBiteVotes] = useState<number>(42)
@@ -88,20 +74,17 @@ export default function MonsterDetail({
   const [strokes] = useState<PaintStroke[]>(savedCustom?.strokes ?? [])
   const [stamps] = useState<PaintStamp[]>(savedCustom?.stamps ?? [])
 
-  // 장식 7칸 & 육성 훈장 상태
-  const [activeSlot, setActiveSlot] = useState<DecoSlot>('head')
-  const [deco, setDeco] = useState<MonsterDecorations>(
-    savedCustom?.decorations ?? {
-      head: null,
-      face: null,
-      neck: null,
-      back: null,
-      hand: null,
-      bg: null,
-      effect: null,
-      dye: 0,
-    },
-  )
+  // 장식 7칸 & 육성 훈장 상태 (기존 보존)
+  const deco: MonsterDecorations = savedCustom?.decorations ?? {
+    head: null,
+    face: null,
+    neck: null,
+    back: null,
+    hand: null,
+    bg: null,
+    effect: null,
+    dye: 0,
+  }
   const [medals, setMedals] = useState<MonsterMedals>(
     savedCustom?.medals ?? {
       enabled: true,
@@ -166,7 +149,6 @@ export default function MonsterDetail({
   const syrupCharm = syrups.reduce((sum, s) => sum + (SYRUP_CATALOG.find((c) => c.id === s)?.charm ?? 0), 0)
   const paintBonusCharm =
     baseCharm + syrupCharm + Math.min(30, strokes.length * 3 + stamps.length * 5 + (wingKind !== 'none' ? 10 : 0))
-  const slotItems = DECO_ITEMS.filter((i) => i.slot === activeSlot)
 
   function toggleSyrup(id: SyrupId) {
     const next = syrups.includes(id) ? syrups.filter((s) => s !== id) : [...syrups, id]
@@ -183,34 +165,6 @@ export default function MonsterDetail({
       medals,
     })
     triggerAsmr('syrup-drizzle')
-  }
-
-  function toggleDeco(slot: DecoSlot, id: string) {
-    const owned = getOwnedBoutiqueItems()
-    if (!owned.has(id)) {
-      setSaveToast('🛍️ 부티크 상점에서 구매할 수 있는 장신구입니다!')
-      setTimeout(() => {
-        setSaveToast(null)
-        if (onOpenBoutique) onOpenBoutique()
-      }, 1000)
-      return
-    }
-    const nextDeco = { ...deco, [slot]: deco[slot] === id ? null : id }
-    setDeco(nextDeco)
-    saveMallangCustom(monster.id, {
-      morphForm,
-      skinPalette,
-      wingKind,
-      strokes,
-      stamps,
-      dessertBase,
-      syrups,
-      decorations: nextDeco,
-      medals,
-    })
-    triggerAsmr('sugar-crack')
-    setSaveToast('🎀 장식 착용이 즉시 저장되었어요!')
-    setTimeout(() => setSaveToast(null), 2000)
   }
 
   function handleSaveStudio() {
@@ -355,44 +309,19 @@ export default function MonsterDetail({
         )}
       </div>
 
-      {/* 하단 2대 탭 덱: 프로필 vs 장신구 */}
-      <div className="card deck-card" style={{ padding: '10px 12px', gap: 8, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, flexShrink: 0 }}>
-          <button
-            onClick={() => setStudioTab('profile')}
-            style={{
-              padding: '9px 4px',
-              borderRadius: 11,
-              border: studioTab === 'profile' ? '2px solid #FF7A59' : '1.5px solid #F0DFB8',
-              background: studioTab === 'profile' ? '#FFF2EC' : '#FFFFFF',
-              fontSize: 13,
-              fontWeight: 800,
-              color: '#3B2F2F',
-              cursor: 'pointer',
-            }}
-          >
-            🧁 프로필 & 육성 기록
-          </button>
-          <button
-            onClick={() => setStudioTab('parts')}
-            style={{
-              padding: '9px 4px',
-              borderRadius: 11,
-              border: studioTab === 'parts' ? '2px solid #FF7A59' : '1.5px solid #F0DFB8',
-              background: studioTab === 'parts' ? '#FFF2EC' : '#FFFFFF',
-              fontSize: 13,
-              fontWeight: 800,
-              color: '#3B2F2F',
-              cursor: 'pointer',
-            }}
-          >
-            🎀 보유 장신구 & 날개
-          </button>
+      {/* 하단 덱: 프로필 기록 & 훈장 요약 */}
+      <div className="card deck-card" style={{ padding: '12px 14px', gap: 10, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1.5px solid #F0DFB8', paddingBottom: 6, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 16 }}>🧁</span>
+            <span style={{ fontSize: 14, fontWeight: 900, color: '#3B2F2F' }}>프로필 기록 & 훈장</span>
+          </div>
+          <span style={{ fontSize: 11, fontWeight: 800, color: '#FF7A59' }}>
+            ⚔️ 종합 전투력 {totalStats(monster.stats)}
+          </span>
         </div>
 
-        {/* 탭 1: 상세 프로필 & 능력치 & 훈장 요약 */}
-        {studioTab === 'profile' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, overflowY: 'auto' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, overflowY: 'auto' }}>
             {/* 기본 제원 그리드 */}
             <div
               style={{
@@ -546,156 +475,8 @@ export default function MonsterDetail({
               </div>
             </div>
           </div>
-        )}
-
-        {/* 탭 2: 보유 장신구 7칸 & 날개 */}
-        {studioTab === 'parts' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, overflowY: 'auto' }}>
-            {/* 부티크 상점 바로가기 배너 */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '5px 8px',
-                borderRadius: 10,
-                background: 'linear-gradient(90deg, #FDF2F8 0%, #FCE7F3 100%)',
-                border: '1px solid #F472B6',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ fontSize: 14 }}>🎀</span>
-                <span style={{ fontSize: 11, fontWeight: 900, color: '#9D174D' }}>
-                  보유 코인: 🎀 {getRibbonCoins()}
-                </span>
-              </div>
-              {onOpenBoutique && (
-                <button
-                  onClick={onOpenBoutique}
-                  style={{
-                    padding: '3px 8px',
-                    borderRadius: 8,
-                    border: 'none',
-                    background: '#EC4899',
-                    color: '#FFFFFF',
-                    fontWeight: 900,
-                    fontSize: 10,
-                    cursor: 'pointer',
-                  }}
-                >
-                  부티크 상점 바로가기
-                </button>
-              )}
-            </div>
-
-            {/* 날개 슬롯 */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 3 }}>
-              {WING_CATALOG.map((w) => {
-                const selected = wingKind === w.id
-                return (
-                  <button
-                    key={w.id}
-                    onClick={() => {
-                      setWingKind(w.id)
-                      saveMallangCustom(monster.id, {
-                        morphForm,
-                        skinPalette,
-                        wingKind: w.id,
-                        strokes,
-                        stamps,
-                        dessertBase,
-                        syrups,
-                        decorations: deco,
-                        medals,
-                      })
-                      triggerAsmr('sugar-crack')
-                    }}
-                    style={{
-                      padding: '4px 2px',
-                      borderRadius: 9,
-                      border: selected ? '2px solid #FF7A59' : '1px solid #F0DFB8',
-                      background: selected ? '#FFF2EC' : '#FFFFFF',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <span style={{ fontSize: 15 }}>{w.icon}</span>
-                    <span style={{ fontSize: 10, fontWeight: 700 }}>{w.name.slice(0, 3)}</span>
-                  </button>
-                )
-              })}
-            </div>
-
-            {/* 7개 장신구 부위 선택 슬롯 바 */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 3 }}>
-              {SLOT_LABELS.map(({ slot, label, defaultIcon }) => {
-                const equippedId = deco[slot]
-                const item = DECO_ITEMS.find((i) => i.id === equippedId)
-                const selected = activeSlot === slot
-                return (
-                  <button
-                    key={slot}
-                    onClick={() => setActiveSlot(slot)}
-                    style={{
-                      padding: '5px 2px',
-                      borderRadius: 10,
-                      border: selected ? '2px solid #FF8A65' : '1px solid #F0DFB8',
-                      background: equippedId ? '#FFF8EE' : '#FFFFFF',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <span style={{ fontSize: 14 }}>{item?.icon ?? defaultIcon}</span>
-                    <span style={{ fontSize: 11, fontWeight: 700 }}>{label}</span>
-                  </button>
-                )
-              })}
-            </div>
-
-            {/* 선택된 슬롯의 아이템 그리드 */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 4 }}>
-              {slotItems.map((item) => {
-                const isEquipped = deco[item.slot] === item.id
-                const isOwned = getOwnedBoutiqueItems().has(item.id)
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => toggleDeco(item.slot, item.id)}
-                    style={{
-                      padding: '6px 8px',
-                      borderRadius: 11,
-                      border: isEquipped ? '2px solid #FF8A65' : '1px solid #F0DFB8',
-                      background: isEquipped ? '#FFF3EE' : isOwned ? '#FFFFFF' : '#FFF9F9',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-                      <span style={{ fontSize: 16, flexShrink: 0 }}>{item.icon}</span>
-                      <div style={{ textAlign: 'left', minWidth: 0 }}>
-                        <div style={{ fontSize: 11, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {item.name}
-                        </div>
-                        <div style={{ fontSize: 10, color: '#FF8A65', fontWeight: 700 }}>+{item.charm} 매력</div>
-                      </div>
-                    </div>
-                    <span style={{ fontSize: 9, fontWeight: 800, color: isEquipped ? '#E11D48' : isOwned ? '#10B981' : '#F59E0B', flexShrink: 0 }}>
-                      {isEquipped ? '착용' : isOwned ? '보유' : '🔒상점'}
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )}
-      </div>
-    </main>
-  )
+        </div>
+      </main>
+    )
 }
 

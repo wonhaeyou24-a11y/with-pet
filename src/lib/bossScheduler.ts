@@ -257,6 +257,97 @@ export function consumeRaidAttempt(bossId: string = 'default'): boolean {
   }
 }
 
+/**
+ * 👑 보스 실시간 잔여 체력(HP) 상태 관리
+ */
+const BOSS_HP_STORAGE_KEY = 'withpet_boss_hp_state_v1'
+
+export interface BossHpState {
+  currentHp: number
+  maxHp: number
+  hpPercent: number
+  isDefeated: boolean
+}
+
+export function getBossHpState(bossId: string, maxHp: number): BossHpState {
+  try {
+    const today = getTodayDateString()
+    const raw = localStorage.getItem(`${BOSS_HP_STORAGE_KEY}_${bossId}_${today}`)
+    if (!raw) {
+      return { currentHp: maxHp, maxHp, hpPercent: 100, isDefeated: false }
+    }
+    const data = JSON.parse(raw)
+    const currentHp = Math.max(0, Math.min(maxHp, Number(data.currentHp) || 0))
+    const hpPercent = Math.max(0, Math.min(100, Math.round((currentHp / maxHp) * 100)))
+    return {
+      currentHp,
+      maxHp,
+      hpPercent,
+      isDefeated: currentHp <= 0,
+    }
+  } catch {
+    return { currentHp: maxHp, maxHp, hpPercent: 100, isDefeated: false }
+  }
+}
+
+export function recordBossDamage(bossId: string, damage: number, maxHp: number): BossHpState {
+  try {
+    const today = getTodayDateString()
+    const current = getBossHpState(bossId, maxHp)
+    const nextHp = Math.max(0, current.currentHp - damage)
+    const hpPercent = Math.max(0, Math.min(100, Math.round((nextHp / maxHp) * 100)))
+    const state: BossHpState = {
+      currentHp: nextHp,
+      maxHp,
+      hpPercent,
+      isDefeated: nextHp <= 0,
+    }
+    localStorage.setItem(`${BOSS_HP_STORAGE_KEY}_${bossId}_${today}`, JSON.stringify(state))
+    return state
+  } catch {
+    return { currentHp: Math.max(0, maxHp - damage), maxHp, hpPercent: 80, isDefeated: false }
+  }
+}
+
+/**
+ * 🎁 레이드 순위별 차등 보상 정의 (대표님 5번 요청 반영)
+ */
+export interface BossRankReward {
+  rankLabel: string
+  rankBadge: string
+  coins: number
+  starShards: number
+  medalTitle: string
+}
+
+export function getBossRankRewards(rank: number): BossRankReward {
+  if (rank === 1) {
+    return {
+      rankLabel: '1위 (MVP 기여왕 👑)',
+      rankBadge: '🥇 1st Place',
+      coins: 500,
+      starShards: 5,
+      medalTitle: '월드보스 토벌 MVP',
+    }
+  }
+  if (rank <= 3) {
+    return {
+      rankLabel: `${rank}위 (정예 파티시에 ⚔️)`,
+      rankBadge: rank === 2 ? '🥈 2nd Place' : '🥉 3rd Place',
+      coins: 300,
+      starShards: 3,
+      medalTitle: '보스 정예 공략단',
+    }
+  }
+  return {
+    rankLabel: `${rank}위 (용감한 참전자 🎖️)`,
+    rankBadge: '🎖️ 연합군 참전',
+    coins: 150,
+    starShards: 1,
+    medalTitle: '레이드 참전 용사',
+  }
+}
+
 /** @deprecated 가독성 및 React ESLint 훅 오진 방지를 위해 consumeRaidAttempt 사용 권장 */
 export const useRaidAttempt = consumeRaidAttempt
 

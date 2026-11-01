@@ -20,6 +20,7 @@ import { refreshGear, useGear } from '../lib/gearApi'
 import { playDessertAsmr } from '../lib/sound'
 import { scheduleExploreNotification } from '../lib/idleActivity'
 import { BackIcon } from '../ui/Icons'
+import EggResonanceModal from './EggResonanceModal'
 
 interface Props {
   monster: MonsterRow
@@ -52,6 +53,7 @@ export default function ExploreScreen({ monster, coins, onUpdate, onGoRest, onBa
   const [busy, setBusy] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [done, setDone] = useState<ExploreFinish | null>(null)
+  const [showEggModal, setShowEggModal] = useState<boolean>(false)
   const [now, setNow] = useState(() => serverNow())
 
   const load = useCallback(async () => {
@@ -157,7 +159,32 @@ export default function ExploreScreen({ monster, coins, onUpdate, onGoRest, onBa
           <BackIcon />
         </button>
         <h1 className="title" style={{ fontSize: 15, margin: 0 }}>🧭 탐험</h1>
-        <span className="chip" style={{ fontSize: 11, fontWeight: 900, padding: '3px 9px' }}>💤 {fatigue}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button
+            onClick={() => {
+              setShowEggModal(true)
+              playDessertAsmr('smore-sizzle')
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              padding: '4px 8px',
+              borderRadius: 10,
+              border: '1px solid #8B5CF6',
+              background: '#F5F3FF',
+              color: '#6D28D9',
+              fontSize: 11,
+              fontWeight: 900,
+              cursor: 'pointer',
+            }}
+            title="탐험 알 온기 숙성실"
+          >
+            <span>🥚</span>
+            <span>에그 숙성</span>
+          </button>
+          <span className="chip" style={{ fontSize: 11, fontWeight: 900, padding: '3px 9px' }}>💤 {fatigue}</span>
+        </div>
       </div>
 
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8, paddingBottom: 4 }}>
@@ -385,6 +412,17 @@ export default function ExploreScreen({ monster, coins, onUpdate, onGoRest, onBa
         >
           {toast}
         </div>
+      )}
+
+      {/* 🥚 탐험 알 온기 숙성실 모달 */}
+      {showEggModal && (
+        <EggResonanceModal
+          monster={monster}
+          onClose={() => setShowEggModal(false)}
+          onSuccess={() => {
+            say('✨ 에그 온기 숙성이 완료되었어요!')
+          }}
+        />
       )}
     </main>
   )

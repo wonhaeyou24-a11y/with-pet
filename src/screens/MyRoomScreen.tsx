@@ -94,6 +94,8 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
   const [newComment, setNewComment] = useState<string>('')
   const [replyingToId, setReplyingToId] = useState<string | null>(null)
   const [replyText, setReplyText] = useState<string>('')
+  // 💡 방 조명 온/오프 상태 (대표님 2번 요청 반영)
+  const [roomLightOn, setRoomLightOn] = useState<boolean>(true)
   const [roomLighting, setRoomLighting] = useState<'day' | 'sunset' | 'night'>(() => {
     const h = new Date().getHours()
     if (h >= 17 && h < 20) return 'sunset'
@@ -735,6 +737,34 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
           >
             {roomTier === 1 ? '🏠 1단 다락방' : roomTier === 2 ? '🏡 2단 복층카페' : '🏰 3단 팰리스'}
           </button>
+
+          {/* 💡 방 조명 온/오프 스위치 버튼 */}
+          <button
+            onClick={() => {
+              playDessertAsmr('wax-pop')
+              const next = !roomLightOn
+              setRoomLightOn(next)
+              showToast(next ? '💡 방 조명을 켰습니다! (환하고 따뜻한 빛 ✨)' : '🌙 방 조명을 껐습니다! (아늑한 취침 모드 💤)')
+              setPetActionState(next ? '불을 켜니 방 안이 환하고 따뜻해요! ✨' : '하암~ 불을 끄니 노곤노곤 졸려요... 💤')
+            }}
+            style={{
+              padding: '2px 7px',
+              borderRadius: 8,
+              border: roomLightOn ? '1.5px solid #F59E0B' : '1.5px solid #6366F1',
+              background: roomLightOn ? '#FEF3C7' : '#1E1B4B',
+              color: roomLightOn ? '#B45309' : '#C7D2FE',
+              fontWeight: 900,
+              fontSize: 10,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              boxShadow: roomLightOn ? '0 1px 4px rgba(245, 158, 11, 0.3)' : 'none',
+            }}
+            title="방 전등 켜기/끄기"
+          >
+            <span>{roomLightOn ? '💡 불 켜짐' : '🌙 불 꺼짐'}</span>
+          </button>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           {!isVisitor && (
@@ -861,6 +891,7 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
           <div
             onClick={() => {
               playDessertAsmr('wax-pop')
+              if (!roomLightOn) setRoomLightOn(true)
               const nextLighting = roomLighting === 'day' ? 'sunset' : roomLighting === 'sunset' ? 'night' : 'day'
               setRoomLighting(nextLighting)
               showToast(`💡 조명을 [${nextLighting === 'day' ? '따스한 낮 🌤️' : nextLighting === 'sunset' ? '포근한 노을 🌅' : '아늑한 달밤 🌙'}]으로 바꿨어요!`)
@@ -1181,6 +1212,50 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
             )
           })}
         </div>
+
+        {/* 💡 방 조명 온/오프 실시간 비주얼 오버레이 (대표님 2번 요청 반영) */}
+        {roomLightOn ? (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'radial-gradient(ellipse at 50% 5%, rgba(255, 248, 220, 0.38) 0%, rgba(255, 255, 255, 0) 75%)',
+              pointerEvents: 'none',
+              zIndex: 15,
+              transition: 'opacity 0.4s ease',
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'radial-gradient(circle at 50% 68%, rgba(254, 243, 199, 0.2) 0%, rgba(15, 23, 42, 0.86) 65%)',
+              pointerEvents: 'none',
+              zIndex: 25,
+              transition: 'all 0.4s ease',
+              display: 'flex',
+              alignItems: 'flex-start',
+              justifyContent: 'flex-end',
+              padding: '8px 12px',
+            }}
+          >
+            <span
+              style={{
+                fontSize: 9.5,
+                fontWeight: 900,
+                color: '#E0E7FF',
+                background: 'rgba(30, 27, 75, 0.75)',
+                padding: '2px 8px',
+                borderRadius: 999,
+                border: '1px solid #4338CA',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+              }}
+            >
+              🌙 소등 취침 모드 (불 꺼짐)
+            </span>
+          </div>
+        )}
       </div>
 
       {/* 4. 펫의 실시간 행동 대사 카드 */}

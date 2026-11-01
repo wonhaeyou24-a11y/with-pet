@@ -914,25 +914,6 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
               boxShadow: 'inset 0 4px 14px rgba(0,0,0,0.9)',
             }}
           >
-            {/* 진행 상황 인디케이터 */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '3px 6px 5px 6px',
-                borderBottom: isWhite ? '1px solid #E2E8F0' : '1px solid #2B150A',
-                marginBottom: 4,
-              }}
-            >
-              <span style={{ fontSize: 10, fontWeight: 900, color: isWhite ? '#475569' : '#FDE68A' }}>
-                🍫 {slotsArr.filter((s) => s !== null).length} / {capacity}개 완성
-              </span>
-              <span style={{ fontSize: 9.5, fontWeight: 800, color: isWhite ? '#BE185D' : '#D4AF37' }}>
-                빈 컵을 탭하여 쏙 채우기
-              </span>
-            </div>
-
             {/* ✨ 샴페인 골드 금속 십자 격자 파티션 */}
             <div
               style={{
@@ -1087,20 +1068,7 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                             gap: 1,
                           }}
                         >
-                          <span style={{ fontSize: capacity >= 16 ? 11 : 14, opacity: 0.85 }}>✨</span>
-                          <span
-                            style={{
-                              fontSize: capacity >= 16 ? 7 : 8,
-                              fontWeight: 900,
-                              color: '#451A03',
-                              background: 'rgba(255,248,220,0.88)',
-                              padding: '1px 4px',
-                              borderRadius: 4,
-                              border: '1px solid #B89758',
-                            }}
-                          >
-                            {idx + 1}번 컵
-                          </span>
+                          <span style={{ fontSize: capacity >= 16 ? 12 : 16, color: '#B89758', fontWeight: 900 }}>+</span>
                         </div>
                       )}
                     </FlutedBakingCup>
@@ -1400,53 +1368,6 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
         {/* ========================================================================= */}
         {mainTab === 'solo' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {/* 🎀 4구 칸 빠른 선택 네비게이션 탭 (1번, 2번, 3번, 4번) */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '6px 10px',
-                borderRadius: 14,
-                background: '#FFFFFF',
-                border: '1px solid #FFE4E6',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 13 }}>🎁</span>
-                <span style={{ fontSize: 11.5, fontWeight: 900, color: '#451A03' }}>
-                  4구 쇼콜라티에 기프트 상자
-                </span>
-              </div>
-              <div style={{ display: 'flex', gap: 4 }}>
-                {[0, 1, 2, 3].map((idx) => {
-                  const isCur = selectedSlotIndex === idx
-                  const isFilled = Boolean(soloSlots[idx])
-                  return (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setSelectedSlotIndex(idx)}
-                      style={{
-                        padding: '4px 8px',
-                        borderRadius: 8,
-                        fontSize: 11,
-                        fontWeight: 900,
-                        border: isCur ? '2px solid #EC4899' : '1px solid #E2E8F0',
-                        background: isCur ? '#FFF1F2' : isFilled ? '#FEF3C7' : '#F8FAFC',
-                        color: isCur ? '#BE185D' : isFilled ? '#B45309' : '#64748B',
-                        cursor: 'pointer',
-                        boxShadow: isCur ? '0 2px 6px rgba(236,72,153,0.2)' : 'none',
-                      }}
-                    >
-                      {idx + 1}번{isFilled ? ' ✓' : ''}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
             {/* 🏆 주인공: 실물 사진 5번 100% 동일 4구 수제 선물 상자 뷰 */}
             <div style={{ position: 'relative' }}>
               {renderLuxuryShowcaseBase('box', 4, soloSlots, true, (idx) => {

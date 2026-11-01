@@ -26,6 +26,7 @@ import MissionModal from './MissionModal'
 import { useAccount } from '../lib/shopApi'
 import DessertShowroomModal from './DessertShowroomModal'
 import DessertSoundStudioModal from './DessertSoundStudioModal'
+import EggResonanceModal from './EggResonanceModal'
 import { ElementIcon, SparkleIcon } from '../ui/Icons'
 import { totalStats } from '../ui/parts'
 import { getSensoryReactionClass, SensoryBurst } from '../ui/SensoryFx'
@@ -45,7 +46,6 @@ type Props = {
   onOpenDex?: () => void
   onOpenMyRoom?: () => void
   onOpenBoutique?: () => void
-  onOpenStudio?: () => void
   onOpenGear?: () => void
   onOpenExplore?: () => void
   onRewardCoins?: (amount: number) => void
@@ -164,7 +164,6 @@ export default function MonsterHome({
   onOpenDex: _onOpenDex,
   onOpenMyRoom,
   onOpenBoutique,
-  onOpenStudio,
   onOpenGear,
   onOpenExplore,
   onRewardCoins,
@@ -180,6 +179,7 @@ export default function MonsterHome({
   const [showMoreMenu, setShowMoreMenu] = useState<boolean>(false)
   const [showSoundStudio, setShowSoundStudio] = useState<boolean>(false)
   const [showGrowthModal, setShowGrowthModal] = useState<boolean>(false)
+  const [showEggResonance, setShowEggResonance] = useState<boolean>(false)
   const [exploreTrip, setExploreTrip] = useState<Trip | null>(null)
   const [exploreLeftSec, setExploreLeftSec] = useState<number>(0)
   const [notifStatus, setNotifStatus] = useState<string>(() =>
@@ -911,12 +911,12 @@ export default function MonsterHome({
 
 
 
-      {/* 🌟 4. 프로필 배너 & 꾸미기 스튜디오 듀얼 배너 버튼 */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, flexShrink: 0 }}>
+      {/* 🌟 4. 프로필 배너 (심플 복원) */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 6, flexShrink: 0 }}>
         <button
           onClick={onDetail}
           style={{
-            padding: '9px 12px',
+            padding: '9px 14px',
             borderRadius: 14,
             border: 'none',
             background: 'linear-gradient(90deg, #FF7043 0%, #FF9800 100%)',
@@ -932,33 +932,9 @@ export default function MonsterHome({
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ fontSize: 16 }}>🧁</span>
-            <span>프로필·기록</span>
+            <span>프로필·기록 & 훈장</span>
           </div>
-          <span style={{ fontSize: 10, opacity: 0.9 }}>⚔️ {totalStats(monster.stats)}</span>
-        </button>
-
-        <button
-          onClick={onOpenStudio}
-          style={{
-            padding: '9px 12px',
-            borderRadius: 14,
-            border: 'none',
-            background: 'linear-gradient(90deg, #EC4899 0%, #F43F5E 100%)',
-            color: '#FFFFFF',
-            fontWeight: 900,
-            fontSize: 12,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            boxShadow: '0 3px 10px rgba(236, 72, 153, 0.28)',
-            cursor: 'pointer',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 16 }}>🎨</span>
-            <span>꾸미기 스튜디오</span>
-          </div>
-          <span style={{ fontSize: 10, background: 'rgba(255,255,255,0.25)', padding: '2px 5px', borderRadius: 6 }}>7칸 코디</span>
+          <span style={{ fontSize: 11, opacity: 0.95, fontWeight: 900 }}>⚔️ 종합 전투력 {totalStats(monster.stats)}</span>
         </button>
       </div>
 
@@ -1492,6 +1468,35 @@ export default function MonsterHome({
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginTop: 4 }}>
+              {/* 🥚 탐험 알 온기 숙성실 (스페셜 비기 계승 & 등급 승급) */}
+              <button
+                onClick={() => {
+                  setShowMoreMenu(false)
+                  setShowEggResonance(true)
+                  playDessertAsmr('smore-sizzle')
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '10px 12px',
+                  borderRadius: 12,
+                  border: '2px solid #8B5CF6',
+                  background: 'linear-gradient(90deg, #F5F3FF, #EDE9FE)',
+                  color: '#6D28D9',
+                  fontWeight: 900,
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(139,92,246,0.25)',
+                }}
+              >
+                <span style={{ fontSize: 18 }}>🥚</span>
+                <div style={{ textAlign: 'left' }}>
+                  <div style={{ lineHeight: 1.1 }}>에그 온기 숙성실</div>
+                  <div style={{ fontSize: 9, color: '#7C3AED', fontWeight: 800 }}>탐험 알 합성 · 등급 승급 & 스페셜 비기 계승</div>
+                </div>
+              </button>
+
               {/* 🎧 펫 ASMR 사운드 스튜디오 (15종 청음실) */}
               <button
                 onClick={() => {
@@ -1642,6 +1647,18 @@ export default function MonsterHome({
 
       {/* 6. 🎧 디저트 펫 ASMR 사운드 스튜디오 (전 종족 청음실) 모달 */}
       {showSoundStudio && <DessertSoundStudioModal onClose={() => setShowSoundStudio(false)} />}
+
+      {/* 7. 🥚 탐험 알 온기 숙성 모달 (등급 승급 & 비기 스킬 계승) */}
+      {showEggResonance && (
+        <EggResonanceModal
+          monster={monster}
+          onClose={() => setShowEggResonance(false)}
+          onSuccess={() => {
+            // 성공 시 알림 및 최신 상태 동기화
+            playDessertAsmr('sugar-crack', 2)
+          }}
+        />
+      )}
     </main>
   )
 }
