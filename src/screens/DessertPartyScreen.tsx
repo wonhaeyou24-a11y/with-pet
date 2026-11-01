@@ -1,9 +1,11 @@
 /**
- * 🎉 디저트 파티 쇼케이스 (DessertPartyScreen.tsx) - 프리미엄 파티세리 에디션
+ * 🎉 디저트 파티 쇼케이스 (DessertPartyScreen.tsx)
  * 
- * 1. 3대 럭셔리 베이스 비주얼:
- *    - 🎁 수제 초콜릿 선물상자: 다크초코 원목 프레임 + 샴페인 골드 디바이더 + 금박 유산지 컵
- *    - 🎂 파티 케이크: 순백 생크림 원형 케이크 + 생크림 똬리 & 통딸기/마카롱 데코
+ * ⚠️ 주의: 프로젝트는 Tailwind CSS 미설치 환경이므로 100% 인라인 스타일(Pure Inline CSS)로만 렌더링합니다!
+ * 
+ * 1. 3대 럭셔리 쇼케이스 베이스:
+ *    - 🎁 수제 초콜릿 선물상자: 옻칠 다크초코 원목 프레임 + 샴페인 골드 림 + 오목한 금박 유산지 컵
+ *    - 🎂 파티 케이크: 순백 생크림 원형 케이크 돔 + 생크림 똬리 & 통딸기/마카롱 테두리 토핑
  *    - 🫖 애프터눈 티 트레이: 프렌치 레이스 도일리가 깔린 우아한 로열 골드/실버 플레이트
  * 2. 쫀득 숨쉬기 액션: 컵/케이크 위에 앉아 살아 숨쉬듯 말랑하게 부풀고 갸웃거리는 펫 모션
  * 3. 내 현재 개성 펫(색칠+장식 완료) 원터치 장식 & 공방 바로가기
@@ -69,21 +71,21 @@ interface DessertPartyScreenProps {
   onSaveToMiniroom?: (partyPkg: OpenPartyRoom) => void
 }
 
-// 경량 인라인 SVG 아이콘
+// 경량 인라인 SVG 아이콘 모음
 const ArrowLeft = ({ size = 20 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
 )
-const Sparkles = ({ size = 16, className = '' }: { size?: number; className?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
+const Sparkles = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
 )
-const Gift = ({ size = 16, className = '' }: { size?: number; className?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 4.8 0 0 1 12 8a4.8 4.8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></svg>
+const Gift = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 4.8 0 0 1 12 8a4.8 4.8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></svg>
 )
-const Palette = ({ size = 16, className = '' }: { size?: number; className?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+const Palette = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
 )
-const Users = ({ size = 16, className = '' }: { size?: number; className?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+const Users = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
 )
 
 const OPEN_PARTIES_STORAGE_KEY = 'pet_together_open_parties_v2'
@@ -376,7 +378,7 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
     }
   }
 
-  // 🏆 럭셔리 파티세리 쇼케이스 베이스 렌더러 (입체 탑다운 뷰)
+  // 🏆 100% 인라인 스타일 럭셔리 파티세리 쇼케이스 베이스 렌더러
   const renderLuxuryShowcaseBase = (
     baseType: PartyBaseType,
     capacity: SlotCapacity,
@@ -384,55 +386,88 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
     interactive: boolean,
     onSlotClick?: (idx: number) => void
   ) => {
+    const gridCols = capacity === 1 ? '1fr' : capacity === 2 ? 'repeat(2, 1fr)' : capacity === 6 ? 'repeat(3, 1fr)' : capacity === 9 ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)'
+
     return (
-      <div className="relative w-full max-w-[360px] mx-auto select-none my-1">
+      <div style={{ position: 'relative', width: '100%', maxWidth: 360, margin: '8px auto', boxSizing: 'border-box' }}>
         {/* ================================================================= */}
         {/* 1. 🎁 수제 초콜릿 선물상자: 럭셔리 옻칠 원목 + 샴페인 골드 림 + 금박 유산지 컵 */}
         {/* ================================================================= */}
         {baseType === 'box' && (
           <div
-            className="relative p-4 rounded-3xl shadow-2xl overflow-hidden"
             style={{
+              position: 'relative',
+              padding: 16,
+              borderRadius: 28,
               background: 'linear-gradient(145deg, #2D150B 0%, #431E10 45%, #1F0D06 100%)',
               border: '4px solid #C59B27',
               boxShadow: '0 20px 35px -8px rgba(0,0,0,0.65), inset 0 2px 6px rgba(255,215,0,0.4)',
+              boxSizing: 'border-box',
             }}
           >
             {/* 상자 내부 푹신한 벨벳 크림 안감 쿠션 */}
             <div
-              className="p-3.5 rounded-2xl shadow-inner relative"
               style={{
+                padding: 14,
+                borderRadius: 20,
                 background: 'linear-gradient(to bottom, #FFFBF5 0%, #FDF3E3 60%, #F5E5C9 100%)',
                 border: '1.5px solid #E8D3B0',
+                boxShadow: 'inset 0 3px 8px rgba(0,0,0,0.08)',
               }}
             >
               {/* 상자 골드 헤더 */}
-              <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-amber-200/90 px-1">
-                <span className="text-[11px] font-black text-amber-950 flex items-center gap-1.5 tracking-tight">
-                  <span className="text-sm">🎁</span>
-                  <span>쇼콜라티에 수제 컬렉션</span>
-                  <span className="text-[10px] text-amber-700 font-bold bg-amber-100/90 px-2 py-0.5 rounded-full border border-amber-300">
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  paddingBottom: 8,
+                  marginBottom: 10,
+                  borderBottom: '1px solid #E8D3B0',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 16 }}>🎁</span>
+                  <span style={{ fontSize: 12, fontWeight: 900, color: '#451A03' }}>
+                    쇼콜라티에 수제 컬렉션
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 800,
+                      color: '#92400E',
+                      background: '#FEF3C7',
+                      padding: '2px 8px',
+                      borderRadius: 12,
+                      border: '1px solid #FCD34D',
+                    }}
+                  >
                     {capacity}구 골드 박스
                   </span>
-                </span>
-                <span className="text-[10px] font-black text-amber-900 bg-white/90 px-2 py-0.5 rounded-full border border-amber-200 shadow-2xs">
+                </div>
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 900,
+                    color: '#78350F',
+                    background: '#FFFFFF',
+                    padding: '2px 8px',
+                    borderRadius: 12,
+                    border: '1px solid #E8D3B0',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                  }}
+                >
                   {slotsArr.filter((s) => s !== null).length} / {capacity}
                 </span>
               </div>
 
               {/* 디저트 컵 그리드 */}
               <div
-                className={`grid gap-2.5 ${
-                  capacity === 1
-                    ? 'grid-cols-1'
-                    : capacity === 2
-                    ? 'grid-cols-2'
-                    : capacity === 4
-                    ? 'grid-cols-2'
-                    : capacity === 6
-                    ? 'grid-cols-3'
-                    : 'grid-cols-3'
-                }`}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: gridCols,
+                  gap: 10,
+                }}
               >
                 {slotsArr.map((item, idx) => {
                   const isSelected = selectedSlotIndex === idx
@@ -440,31 +475,86 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                     <div
                       key={idx}
                       onClick={() => interactive && onSlotClick && onSlotClick(idx)}
-                      className={`relative flex flex-col items-center justify-center min-h-[120px] rounded-2xl p-1.5 transition-all duration-300 cursor-pointer ${
-                        item
-                          ? 'bg-gradient-to-b from-[#FFFDF7] via-[#FFF8E7] to-[#FCE8C3] shadow-md border-2 border-[#D4AF37]'
-                          : 'bg-[#FFF8EC]/60 border-2 border-dashed border-[#D4AF37]/70 hover:bg-[#FFF3D6]'
-                      } ${isSelected && interactive ? 'ring-3 ring-pink-500 scale-[1.03] shadow-lg' : ''}`}
+                      style={{
+                        position: 'relative',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minHeight: 125,
+                        borderRadius: 18,
+                        padding: 8,
+                        cursor: 'pointer',
+                        background: item
+                          ? 'linear-gradient(to bottom, #FFFDF7 0%, #FFF8E7 50%, #FCE8C3 100%)'
+                          : '#FFF8EC',
+                        border: isSelected && interactive
+                          ? '3px solid #EC4899'
+                          : item
+                          ? '2px solid #D4AF37'
+                          : '2px dashed #D4AF37',
+                        boxShadow: isSelected && interactive
+                          ? '0 0 0 3px rgba(236,72,153,0.35), 0 8px 16px rgba(0,0,0,0.15)'
+                          : '0 2px 6px rgba(0,0,0,0.06)',
+                        transform: isSelected && interactive ? 'scale(1.03)' : 'scale(1)',
+                        transition: 'all 0.2s ease',
+                      }}
                     >
-                      {/* 금박 유산지 컵 주름 림 (오목한 입체감) */}
-                      <div className="absolute inset-1 rounded-xl border border-[#D4AF37]/40 pointer-events-none" />
+                      {/* 금박 유산지 컵 주름 림 */}
+                      <div
+                        style={{
+                          position: 'absolute',
+                          inset: 3,
+                          borderRadius: 15,
+                          border: '1px solid rgba(212,175,55,0.4)',
+                          pointerEvents: 'none',
+                        }}
+                      />
 
                       {item ? (
-                        <div className="relative flex flex-col items-center w-full">
+                        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
                           {/* 쫀득 숨쉬기 액션 래퍼 */}
                           <div
-                            className="w-16 h-16 pointer-events-none transition-transform"
                             style={{
+                              width: 64,
+                              height: 64,
+                              pointerEvents: 'none',
                               animation: `breathing-wiggle 3s ease-in-out infinite ${idx * 0.35}s`,
                             }}
                           >
                             <Monster3DView look={item.look} size={64} interactive={false} />
                           </div>
 
-                          <span className="text-[11px] font-black text-amber-950 mt-1 truncate max-w-[85px]">
+                          <span
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 900,
+                              color: '#291307',
+                              marginTop: 4,
+                              maxWidth: 85,
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                          >
                             {item.petName}
                           </span>
-                          <span className="text-[9px] font-bold text-pink-700 bg-pink-100/90 px-1.5 py-0.2 rounded-full mt-0.5 truncate max-w-[85px] border border-pink-200">
+                          <span
+                            style={{
+                              fontSize: 9,
+                              fontWeight: 800,
+                              color: '#BE185D',
+                              background: '#FCE7F3',
+                              padding: '1px 6px',
+                              borderRadius: 10,
+                              marginTop: 2,
+                              border: '1px solid #FBCFE8',
+                              maxWidth: 85,
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                          >
                             by {item.ownerName}
                           </span>
 
@@ -475,7 +565,24 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                                 e.stopPropagation()
                                 handleClearSoloSlot(idx)
                               }}
-                              className="absolute -top-1.5 -right-1.5 w-4.5 h-4.5 rounded-full bg-rose-500 text-white text-[9px] flex items-center justify-center font-bold shadow-xs hover:bg-rose-600 transition"
+                              style={{
+                                position: 'absolute',
+                                top: -6,
+                                right: -6,
+                                width: 20,
+                                height: 20,
+                                borderRadius: '50%',
+                                background: '#EF4444',
+                                color: '#FFFFFF',
+                                fontSize: 11,
+                                fontWeight: 900,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                border: 'none',
+                                cursor: 'pointer',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                              }}
                               title="슬롯 비우기"
                             >
                               ×
@@ -483,13 +590,23 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                           )}
                         </div>
                       ) : (
-                        <div className="flex flex-col items-center justify-center gap-1 py-3 text-amber-900/60">
-                          <span className="text-xl">🧁</span>
-                          <span className="text-[10px] font-black text-amber-900/80">
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '12px 0' }}>
+                          <span style={{ fontSize: 24 }}>🧁</span>
+                          <span style={{ fontSize: 11, fontWeight: 900, color: '#78350F' }}>
                             {idx + 1}번 금박 컵
                           </span>
                           {interactive && (
-                            <span className="text-[8px] text-pink-600 font-extrabold bg-pink-50 px-1.5 py-0.5 rounded-full border border-pink-200">
+                            <span
+                              style={{
+                                fontSize: 9,
+                                fontWeight: 800,
+                                color: '#EC4899',
+                                background: '#FFF1F2',
+                                padding: '2px 8px',
+                                borderRadius: 10,
+                                border: '1px solid #FECDD3',
+                              }}
+                            >
                               터치하여 넣기
                             </span>
                           )}
@@ -508,35 +625,63 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
         {/* ================================================================= */}
         {baseType === 'cake' && (
           <div
-            className="relative p-5 rounded-full shadow-2xl overflow-hidden aspect-square flex flex-col items-center justify-center"
             style={{
+              position: 'relative',
+              padding: 20,
+              borderRadius: '50%',
+              aspectRatio: '1 / 1',
+              width: '100%',
+              maxWidth: 340,
+              margin: '0 auto',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
               background: 'radial-gradient(circle, #FFFFFF 40%, #FFF8F0 75%, #FDEED9 100%)',
               border: '6px solid #FFF5EB',
               boxShadow: '0 20px 40px -10px rgba(225, 29, 72, 0.25), inset 0 3px 10px rgba(0,0,0,0.06)',
+              boxSizing: 'border-box',
             }}
           >
-            {/* 가장자리 생크림 똬리 & 통딸기 데코 원형 림 */}
-            <div className="absolute inset-2 rounded-full border-4 border-dashed border-pink-200/80 pointer-events-none flex items-center justify-center">
-              <span className="absolute top-1 text-base">🍓</span>
-              <span className="absolute bottom-1 text-base">🍓</span>
-              <span className="absolute left-1 text-base">🍓</span>
-              <span className="absolute right-1 text-base">🍓</span>
-              <span className="absolute top-3 right-3 text-sm">🧁</span>
-              <span className="absolute top-3 left-3 text-sm">🧁</span>
-              <span className="absolute bottom-3 right-3 text-sm">🧁</span>
-              <span className="absolute bottom-3 left-3 text-sm">🧁</span>
+            {/* 가장자리 생크림 & 딸기 데코 */}
+            <div
+              style={{
+                position: 'absolute',
+                inset: 8,
+                borderRadius: '50%',
+                border: '3px dashed #FBCFE8',
+                pointerEvents: 'none',
+              }}
+            >
+              <span style={{ position: 'absolute', top: 4, left: '50%', transform: 'translateX(-50%)', fontSize: 18 }}>🍓</span>
+              <span style={{ position: 'absolute', bottom: 4, left: '50%', transform: 'translateX(-50%)', fontSize: 18 }}>🍓</span>
+              <span style={{ position: 'absolute', left: 4, top: '50%', transform: 'translateY(-50%)', fontSize: 18 }}>🍓</span>
+              <span style={{ position: 'absolute', right: 4, top: '50%', transform: 'translateY(-50%)', fontSize: 18 }}>🍓</span>
             </div>
 
-            {/* 케이크 상판 중앙 플레이팅 영역 */}
-            <div className="relative z-10 w-full max-w-[270px] flex flex-col items-center">
-              <span className="text-[10px] font-black text-pink-700 bg-pink-50/90 px-2 py-0.5 rounded-full border border-pink-200 mb-2">
+            <div style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: 260, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 900,
+                  color: '#BE185D',
+                  background: 'rgba(255,241,242,0.95)',
+                  padding: '3px 10px',
+                  borderRadius: 12,
+                  border: '1px solid #FECDD3',
+                  marginBottom: 10,
+                }}
+              >
                 🎂 생크림 파티 케이크 ({capacity}구)
               </span>
 
               <div
-                className={`grid gap-2 w-full ${
-                  capacity === 1 ? 'grid-cols-1' : capacity === 2 ? 'grid-cols-2' : 'grid-cols-2'
-                }`}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: capacity === 1 ? '1fr' : 'repeat(2, 1fr)',
+                  gap: 8,
+                  width: '100%',
+                }}
               >
                 {slotsArr.slice(0, capacity).map((item, idx) => {
                   const isSelected = selectedSlotIndex === idx
@@ -544,28 +689,43 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                     <div
                       key={idx}
                       onClick={() => interactive && onSlotClick && onSlotClick(idx)}
-                      className={`relative flex flex-col items-center justify-center min-h-[105px] rounded-full p-2 transition cursor-pointer ${
-                        item
-                          ? 'bg-white/90 shadow-md border-2 border-pink-300'
-                          : 'bg-pink-100/40 border-2 border-dashed border-pink-300 hover:bg-pink-100/70'
-                      } ${isSelected && interactive ? 'ring-3 ring-rose-500 scale-105' : ''}`}
+                      style={{
+                        position: 'relative',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minHeight: 100,
+                        borderRadius: '50%',
+                        padding: 8,
+                        cursor: 'pointer',
+                        background: item ? '#FFFFFF' : '#FFF1F2',
+                        border: isSelected && interactive ? '3px solid #E11D48' : '2px dashed #F472B6',
+                        boxShadow: isSelected && interactive ? '0 0 0 3px rgba(225,29,72,0.3)' : '0 2px 6px rgba(0,0,0,0.06)',
+                        transform: isSelected && interactive ? 'scale(1.05)' : 'scale(1)',
+                        transition: 'all 0.2s ease',
+                      }}
                     >
                       {item ? (
-                        <div className="relative flex flex-col items-center">
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                           <div
-                            className="w-14 h-14 pointer-events-none"
-                            style={{ animation: `breathing-wiggle 3s ease-in-out infinite ${idx * 0.3}s` }}
+                            style={{
+                              width: 54,
+                              height: 54,
+                              pointerEvents: 'none',
+                              animation: `breathing-wiggle 3s ease-in-out infinite ${idx * 0.3}s`,
+                            }}
                           >
-                            <Monster3DView look={item.look} size={56} interactive={false} />
+                            <Monster3DView look={item.look} size={54} interactive={false} />
                           </div>
-                          <span className="text-[10px] font-black text-slate-800 truncate max-w-[75px]">
+                          <span style={{ fontSize: 10, fontWeight: 900, color: '#1E293B', maxWidth: 75, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {item.petName}
                           </span>
                         </div>
                       ) : (
-                        <div className="flex flex-col items-center gap-0.5 text-pink-400">
-                          <span className="text-base">🍰</span>
-                          <span className="text-[9px] font-black">{idx + 1}번 토핑</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                          <span style={{ fontSize: 18 }}>🍰</span>
+                          <span style={{ fontSize: 9, fontWeight: 900, color: '#FB7185' }}>{idx + 1}번 토핑</span>
                         </div>
                       )}
                     </div>
@@ -581,38 +741,52 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
         {/* ================================================================= */}
         {baseType === 'tea-stand' && (
           <div
-            className="relative p-4 rounded-3xl shadow-2xl overflow-hidden"
             style={{
+              position: 'relative',
+              padding: 16,
+              borderRadius: 28,
               background: 'linear-gradient(135deg, #F3F4F6 0%, #FFFFFF 50%, #E5E7EB 100%)',
               border: '4px solid #D4AF37',
               boxShadow: '0 20px 35px -8px rgba(0,0,0,0.3), inset 0 2px 6px rgba(255,255,255,0.9)',
+              boxSizing: 'border-box',
             }}
           >
-            {/* 레이스 도일리 패턴 테두리 */}
             <div
-              className="p-3.5 rounded-2xl relative shadow-inner"
               style={{
+                padding: 14,
+                borderRadius: 20,
                 background: '#FFFFFF',
                 border: '2px dashed #CBD5E1',
               }}
             >
-              <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-200 px-1">
-                <span className="text-[11px] font-black text-slate-800 flex items-center gap-1">
-                  <span>🫖</span>
-                  <span>로열 하이 티 스탠드</span>
-                  <span className="text-[10px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded-full border border-amber-300">
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  paddingBottom: 8,
+                  marginBottom: 10,
+                  borderBottom: '1px solid #E2E8F0',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 16 }}>🫖</span>
+                  <span style={{ fontSize: 12, fontWeight: 900, color: '#1E293B' }}>로열 하이 티 스탠드</span>
+                  <span style={{ fontSize: 10, fontWeight: 800, color: '#92400E', background: '#FEF3C7', padding: '2px 8px', borderRadius: 12 }}>
                     {capacity}구 플레이트
                   </span>
-                </span>
-                <span className="text-[10px] font-bold text-slate-500">
+                </div>
+                <span style={{ fontSize: 10, fontWeight: 900, color: '#64748B' }}>
                   {slotsArr.filter((s) => s !== null).length} / {capacity}
                 </span>
               </div>
 
               <div
-                className={`grid gap-2.5 ${
-                  capacity === 1 ? 'grid-cols-1' : capacity === 2 ? 'grid-cols-2' : capacity === 4 ? 'grid-cols-2' : 'grid-cols-3'
-                }`}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: gridCols,
+                  gap: 10,
+                }}
               >
                 {slotsArr.slice(0, capacity).map((item, idx) => {
                   const isSelected = selectedSlotIndex === idx
@@ -620,28 +794,43 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                     <div
                       key={idx}
                       onClick={() => interactive && onSlotClick && onSlotClick(idx)}
-                      className={`relative flex flex-col items-center justify-center min-h-[110px] rounded-2xl p-1.5 transition cursor-pointer ${
-                        item
-                          ? 'bg-gradient-to-b from-white to-slate-50 shadow-md border-2 border-amber-300'
-                          : 'bg-slate-50 border-2 border-dashed border-slate-300 hover:bg-amber-50/50'
-                      } ${isSelected && interactive ? 'ring-3 ring-amber-500 scale-105' : ''}`}
+                      style={{
+                        position: 'relative',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minHeight: 110,
+                        borderRadius: 18,
+                        padding: 8,
+                        cursor: 'pointer',
+                        background: item ? '#FFFFFF' : '#F8FAFC',
+                        border: isSelected && interactive ? '3px solid #F59E0B' : '2px dashed #CBD5E1',
+                        boxShadow: isSelected && interactive ? '0 0 0 3px rgba(245,158,11,0.3)' : '0 2px 6px rgba(0,0,0,0.05)',
+                        transform: isSelected && interactive ? 'scale(1.03)' : 'scale(1)',
+                        transition: 'all 0.2s ease',
+                      }}
                     >
                       {item ? (
-                        <div className="relative flex flex-col items-center">
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                           <div
-                            className="w-14 h-14 pointer-events-none"
-                            style={{ animation: `breathing-wiggle 3s ease-in-out infinite ${idx * 0.3}s` }}
+                            style={{
+                              width: 56,
+                              height: 56,
+                              pointerEvents: 'none',
+                              animation: `breathing-wiggle 3s ease-in-out infinite ${idx * 0.3}s`,
+                            }}
                           >
                             <Monster3DView look={item.look} size={56} interactive={false} />
                           </div>
-                          <span className="text-[10px] font-black text-slate-800 mt-1 truncate max-w-[80px]">
+                          <span style={{ fontSize: 10, fontWeight: 900, color: '#1E293B', marginTop: 4, maxWidth: 80, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {item.petName}
                           </span>
                         </div>
                       ) : (
-                        <div className="flex flex-col items-center gap-1 text-slate-400 py-3">
-                          <span className="text-lg">🫖</span>
-                          <span className="text-[9px] font-bold">{idx + 1}번 은식기</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '12px 0' }}>
+                          <span style={{ fontSize: 20 }}>🫖</span>
+                          <span style={{ fontSize: 9, fontWeight: 900, color: '#64748B' }}>{idx + 1}번 은식기</span>
                         </div>
                       )}
                     </div>
@@ -652,18 +841,35 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
           </div>
         )}
 
-        {/* 🍫 하단 리얼 초콜릿 메시지 팻말 (Chocolate Message Plaque) */}
+        {/* 🍫 하단 리얼 초콜릿 메시지 팻말 */}
         {lettering && (
           <div
-            className="mt-2.5 mx-auto max-w-[320px] py-1.5 px-3 rounded-xl shadow-md flex items-center justify-center gap-1.5 border border-[#8D5A32]"
             style={{
+              marginTop: 10,
+              padding: '8px 16px',
+              borderRadius: 14,
               background: 'linear-gradient(to right, #3E2215, #4A2B19, #3E2215)',
+              border: '1.5px solid #8D5A32',
+              boxShadow: '0 4px 10px rgba(0,0,0,0.25)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
               color: '#FFD700',
               textShadow: '0 1px 2px rgba(0,0,0,0.8)',
             }}
           >
-            <span className="text-xs">🖋️</span>
-            <span className="text-[11px] font-black tracking-wide truncate">
+            <span style={{ fontSize: 13 }}>🖋️</span>
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 900,
+                letterSpacing: '0.02em',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
               &ldquo;{lettering}&rdquo;
             </span>
           </div>
@@ -675,7 +881,17 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
   const currentOpenRoom = openParties.find((r) => r.id === activeRoomId)
 
   return (
-    <div className="flex flex-col h-full bg-[#FFF9F2] text-slate-800 select-none overflow-y-auto">
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        background: '#FFF9F2',
+        color: '#1E293B',
+        userSelect: 'none',
+        overflowY: 'auto',
+      }}
+    >
       {/* 쫀득 앰비언트 모션 키프레임 */}
       <style>{`
         @keyframes breathing-wiggle {
@@ -692,52 +908,109 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
       `}</style>
 
       {/* 🌸 상단 네비게이션 헤더 */}
-      <header className="sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-white/95 backdrop-blur-md border-b border-pink-100 shadow-xs">
+      <header
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 30,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '12px 16px',
+          background: 'rgba(255,255,255,0.95)',
+          backdropFilter: 'blur(8px)',
+          borderBottom: '1px solid #FFE4E6',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+        }}
+      >
         <button
           onClick={onBack}
-          className="p-2 -ml-2 rounded-full text-slate-600 hover:text-slate-900 hover:bg-pink-50 transition"
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: 8,
+            marginLeft: -8,
+            borderRadius: '50%',
+            color: '#475569',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
           aria-label="뒤로가기"
         >
           <ArrowLeft size={20} />
         </button>
-        <div className="flex flex-col items-center">
-          <h1 className="text-base font-black text-pink-900 flex items-center gap-1.5">
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <h1 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: '#831843', display: 'flex', alignItems: 'center', gap: 6 }}>
             <span>🎉</span>
             <span>파티 쇼케이스</span>
           </h1>
-          <span className="text-[11px] font-bold text-pink-500">
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#EC4899', marginTop: 2 }}>
             {mainTab === 'solo' && '1인 상자 꾸미기 & 미니룸 선물'}
             {mainTab === 'open_lounge' && '누구나 참여하는 오픈 지인 모드'}
             {mainTab === 'showcase' && '명예의 파티 진열장'}
           </span>
         </div>
-        <div className="w-8" />
+        <div style={{ width: 32 }} />
       </header>
 
-      {/* 🎀 3대 메인 탭 */}
-      <div className="flex px-4 pt-3 pb-1 gap-2 max-w-md w-full mx-auto">
+      {/* 🎀 3대 메인 탭 바 */}
+      <div
+        style={{
+          display: 'flex',
+          gap: 8,
+          padding: '12px 16px 4px 16px',
+          maxWidth: 430,
+          margin: '0 auto',
+          width: '100%',
+          boxSizing: 'border-box',
+        }}
+      >
         <button
           type="button"
           onClick={() => {
             setMainTab('solo')
             setActiveRoomId(null)
           }}
-          className={`flex-1 py-2 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 ${
-            mainTab === 'solo'
-              ? 'bg-pink-500 text-white shadow-sm'
-              : 'bg-white text-slate-600 border border-slate-200 hover:bg-pink-50'
-          }`}
+          style={{
+            flex: 1,
+            padding: '10px 0',
+            borderRadius: 14,
+            fontWeight: 900,
+            fontSize: 13,
+            border: mainTab === 'solo' ? 'none' : '1px solid #E2E8F0',
+            background: mainTab === 'solo' ? 'linear-gradient(135deg, #EC4899, #BE185D)' : '#FFFFFF',
+            color: mainTab === 'solo' ? '#FFFFFF' : '#475569',
+            cursor: 'pointer',
+            boxShadow: mainTab === 'solo' ? '0 4px 10px rgba(236,72,153,0.3)' : 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 6,
+          }}
         >
           <span>🧑‍🍳 1인 선물 모드</span>
         </button>
         <button
           type="button"
           onClick={() => setMainTab('open_lounge')}
-          className={`flex-1 py-2 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 ${
-            mainTab === 'open_lounge'
-              ? 'bg-purple-600 text-white shadow-sm'
-              : 'bg-white text-slate-600 border border-slate-200 hover:bg-purple-50'
-          }`}
+          style={{
+            flex: 1,
+            padding: '10px 0',
+            borderRadius: 14,
+            fontWeight: 900,
+            fontSize: 13,
+            border: mainTab === 'open_lounge' ? 'none' : '1px solid #E2E8F0',
+            background: mainTab === 'open_lounge' ? 'linear-gradient(135deg, #9333EA, #7E22CE)' : '#FFFFFF',
+            color: mainTab === 'open_lounge' ? '#FFFFFF' : '#475569',
+            cursor: 'pointer',
+            boxShadow: mainTab === 'open_lounge' ? '0 4px 10px rgba(147,51,234,0.3)' : 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 6,
+          }}
         >
           <Users size={14} />
           <span>오픈 지인 모드</span>
@@ -745,19 +1018,43 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
         <button
           type="button"
           onClick={() => setMainTab('showcase')}
-          className={`py-2 px-3 rounded-xl text-xs font-black transition flex items-center justify-center gap-1 ${
-            mainTab === 'showcase'
-              ? 'bg-amber-600 text-white shadow-sm'
-              : 'bg-white text-slate-600 border border-slate-200 hover:bg-amber-50'
-          }`}
+          style={{
+            padding: '10px 16px',
+            borderRadius: 14,
+            fontWeight: 900,
+            fontSize: 13,
+            border: mainTab === 'showcase' ? 'none' : '1px solid #E2E8F0',
+            background: mainTab === 'showcase' ? 'linear-gradient(135deg, #D97706, #B45309)' : '#FFFFFF',
+            color: mainTab === 'showcase' ? '#FFFFFF' : '#475569',
+            cursor: 'pointer',
+            boxShadow: mainTab === 'showcase' ? '0 4px 10px rgba(217,119,6,0.3)' : 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 4,
+          }}
         >
           <span>🏆 진열장</span>
         </button>
       </div>
 
-      {/* 알림 토스트 */}
+      {/* 선물 발송 알림 토스트 */}
       {giftSentToast && (
-        <div className="mx-4 mt-2 p-3 rounded-2xl bg-emerald-500 text-white text-xs font-black shadow-lg flex items-center gap-2 animate-bounce">
+        <div
+          style={{
+            margin: '8px 16px',
+            padding: '10px 14px',
+            borderRadius: 14,
+            background: 'linear-gradient(135deg, #10B981, #059669)',
+            color: '#FFFFFF',
+            fontSize: 12,
+            fontWeight: 900,
+            boxShadow: '0 4px 12px rgba(16,185,129,0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+          }}
+        >
           <Sparkles size={16} />
           <span>{giftSentToast}</span>
         </div>
@@ -765,37 +1062,99 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
 
       {/* 축하 폭죽 모달 */}
       {showCelebration && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-          <div className="w-full max-w-xs p-6 rounded-3xl bg-white border-4 border-amber-400 shadow-2xl flex flex-col items-center text-center gap-3">
-            <span className="text-5xl">🎊 🎁 🎊</span>
-            <h2 className="text-lg font-black text-amber-950">디저트 파티 완성!</h2>
-            <p className="text-xs text-slate-600 leading-relaxed font-bold">
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 99999,
+            background: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: 320,
+              background: '#FFFFFF',
+              borderRadius: 24,
+              border: '4px solid #F59E0B',
+              padding: 24,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              textAlign: 'center',
+              gap: 12,
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.4)',
+            }}
+          >
+            <span style={{ fontSize: 48 }}>🎊 🎁 🎊</span>
+            <h2 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: '#451A03' }}>디저트 파티 완성!</h2>
+            <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#475569', lineHeight: 1.5 }}>
               모든 슬롯이 달콤하게 채워졌습니다! 참여자들의 정성이 담긴 쇼케이스가 <strong>[명예의 진열장]</strong>에 영구 등록되었습니다! ✨
             </p>
           </div>
         </div>
       )}
 
-      <main className="flex-1 max-w-md w-full mx-auto p-4 flex flex-col gap-4">
+      <main style={{ flex: 1, maxWidth: 430, width: '100%', margin: '0 auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 14, boxSizing: 'border-box' }}>
         {/* ========================================================================= */}
         {/* TAB 1: 1인 나만의 모드 */}
         {/* ========================================================================= */}
         {mainTab === 'solo' && (
-          <div className="flex flex-col gap-4">
-            {/* 현재 내 펫 실시간 정보 & 공방 바로가기 */}
-            <div className="p-3.5 rounded-2xl bg-gradient-to-r from-pink-50 via-white to-amber-50 border border-pink-200 flex items-center justify-between shadow-xs">
-              <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center shrink-0">
-                  <Monster3DView look={myCurrentLook} size={40} interactive={false} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {/* 현재 내 펫 실시간 정보 & 공방 바로가기 바 */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '12px 14px',
+                borderRadius: 18,
+                background: 'linear-gradient(135deg, #FFF1F2 0%, #FFFFFF 50%, #FEF3C7 100%)',
+                border: '1.5px solid #FBCFE8',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 14,
+                    background: '#FCE7F3',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'hidden',
+                    border: '1.5px solid #FBCFE8',
+                  }}
+                >
+                  <Monster3DView look={myCurrentLook} size={44} interactive={false} />
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-xs font-black text-slate-800 flex items-center gap-1">
-                    <span>{currentMonster.name || '내 펫'}</span>
-                    <span className="text-[10px] text-pink-600 font-bold bg-pink-50 px-1.5 py-0.2 rounded-full border border-pink-200">
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 13, fontWeight: 900, color: '#1E293B' }}>
+                      {currentMonster.name || '내 펫'}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 800,
+                        color: '#BE185D',
+                        background: '#FFF1F2',
+                        padding: '1px 6px',
+                        borderRadius: 10,
+                        border: '1px solid #FECDD3',
+                      }}
+                    >
                       개성 펫
                     </span>
-                  </span>
-                  <span className="text-[10px] text-slate-500">
+                  </div>
+                  <span style={{ fontSize: 10, color: '#64748B', fontWeight: 600, marginTop: 2 }}>
                     내가 색칠하고 장식한 모습 그대로 담깁니다
                   </span>
                 </div>
@@ -805,7 +1164,20 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                 <button
                   type="button"
                   onClick={onOpenBoutique}
-                  className="px-2.5 py-1.5 rounded-xl bg-pink-600 text-white text-xs font-black hover:bg-pink-700 transition flex items-center gap-1 shadow-xs"
+                  style={{
+                    padding: '8px 12px',
+                    borderRadius: 12,
+                    background: 'linear-gradient(135deg, #EC4899, #BE185D)',
+                    color: '#FFFFFF',
+                    fontSize: 12,
+                    fontWeight: 900,
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    boxShadow: '0 2px 6px rgba(236,72,153,0.3)',
+                  }}
                 >
                   <Palette size={13} />
                   <span>색칠·꾸미기</span>
@@ -815,49 +1187,62 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
 
             {/* 1단계: 베이스 & 칸 수 선택 */}
             {soloStep === 1 && (
-              <div className="flex flex-col gap-3.5">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-black text-slate-700">시그니처 베이스 종류</label>
-                  <div className="grid grid-cols-3 gap-2">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <label style={{ fontSize: 12, fontWeight: 900, color: '#334155' }}>시그니처 베이스 종류</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
                     {[
-                      { id: 'box', name: '초코 상자', icon: '🎁', desc: '다크초코 원목 & 금박 컵' },
-                      { id: 'cake', name: '파티 케이크', icon: '🎂', desc: '생크림 홀케이크 & 딸기' },
-                      { id: 'tea-stand', name: '티 트레이', icon: '🫖', desc: '로열 실버 & 레이스 도일리' },
+                      { id: 'box', name: '초코 상자', icon: '🎁', desc: '다크초코 & 금박 컵' },
+                      { id: 'cake', name: '파티 케이크', icon: '🎂', desc: '생크림 & 통딸기' },
+                      { id: 'tea-stand', name: '티 트레이', icon: '🫖', desc: '로열 실버 플레이트' },
                     ].map((b) => (
                       <button
                         key={b.id}
                         type="button"
                         onClick={() => setSelectedBase(b.id as PartyBaseType)}
-                        className={`p-3 rounded-2xl border text-center transition flex flex-col items-center gap-1 ${
-                          selectedBase === b.id
-                            ? 'bg-pink-500 text-white border-pink-500 shadow-md font-black'
-                            : 'bg-white text-slate-700 border-slate-200 hover:border-pink-200 font-bold'
-                        }`}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          padding: '12px 6px',
+                          borderRadius: 16,
+                          border: selectedBase === b.id ? '2.5px solid #EC4899' : '1px solid #E2E8F0',
+                          background: selectedBase === b.id ? '#FFF1F2' : '#FFFFFF',
+                          cursor: 'pointer',
+                          boxShadow: selectedBase === b.id ? '0 4px 12px rgba(236,72,153,0.2)' : '0 1px 3px rgba(0,0,0,0.04)',
+                          gap: 4,
+                        }}
                       >
-                        <span className="text-2xl">{b.icon}</span>
-                        <span className="text-xs font-black">{b.name}</span>
-                        <span className="text-[9px] opacity-80">{b.desc}</span>
+                        <span style={{ fontSize: 24 }}>{b.icon}</span>
+                        <span style={{ fontSize: 12, fontWeight: 900, color: selectedBase === b.id ? '#BE185D' : '#1E293B' }}>{b.name}</span>
+                        <span style={{ fontSize: 9, color: '#64748B', fontWeight: 600 }}>{b.desc}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-black text-slate-700">칸 수 선택 (1구 ~ 9구)</label>
-                    <span className="text-xs text-pink-600 font-black">{selectedCapacity}구 선택</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <label style={{ fontSize: 12, fontWeight: 900, color: '#334155' }}>칸 수 선택 (1구 ~ 9구)</label>
+                    <span style={{ fontSize: 12, color: '#EC4899', fontWeight: 900 }}>{selectedCapacity}구 선택</span>
                   </div>
-                  <div className="grid grid-cols-5 gap-1.5">
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6 }}>
                     {([1, 2, 4, 6, 9] as SlotCapacity[]).map((cap) => (
                       <button
                         key={cap}
                         type="button"
                         onClick={() => setSelectedCapacity(cap)}
-                        className={`py-2 rounded-xl text-center font-black transition ${
-                          selectedCapacity === cap
-                            ? 'bg-rose-500 text-white shadow-xs text-xs'
-                            : 'bg-white text-slate-700 border border-slate-200 text-xs hover:border-rose-300'
-                        }`}
+                        style={{
+                          padding: '8px 0',
+                          borderRadius: 12,
+                          fontWeight: 900,
+                          fontSize: 12,
+                          border: selectedCapacity === cap ? 'none' : '1px solid #E2E8F0',
+                          background: selectedCapacity === cap ? '#F43F5E' : '#FFFFFF',
+                          color: selectedCapacity === cap ? '#FFFFFF' : '#334155',
+                          cursor: 'pointer',
+                          boxShadow: selectedCapacity === cap ? '0 2px 6px rgba(244,63,94,0.3)' : 'none',
+                        }}
                       >
                         {cap}구
                       </button>
@@ -868,7 +1253,23 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                 <button
                   type="button"
                   onClick={() => setSoloStep(2)}
-                  className="mt-2 w-full py-3.5 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 text-white font-black text-xs shadow-md hover:from-pink-600 hover:to-rose-600 transition flex items-center justify-center gap-1.5"
+                  style={{
+                    marginTop: 6,
+                    width: '100%',
+                    padding: '14px 0',
+                    borderRadius: 16,
+                    background: 'linear-gradient(135deg, #EC4899, #F43F5E)',
+                    color: '#FFFFFF',
+                    fontWeight: 900,
+                    fontSize: 14,
+                    border: 'none',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(236,72,153,0.35)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                  }}
                 >
                   <span>쇼케이스에 내 펫 담기</span>
                   <Sparkles size={14} />
@@ -878,37 +1279,82 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
 
             {/* 2단계: 입체 탑다운 베이스 뷰 & 내 펫 담기 */}
             {soloStep === 2 && (
-              <div className="flex flex-col gap-3">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {renderLuxuryShowcaseBase(selectedBase, selectedCapacity, soloSlots, true, (idx) => {
                   setSelectedSlotIndex(idx)
                   handlePlaceMyPetInSoloSlot(idx)
                 })}
 
-                <div className="p-3 rounded-2xl bg-white border border-pink-100 flex items-center justify-between shadow-xs">
-                  <span className="text-xs font-black text-slate-700">
-                    선택된 <strong className="text-pink-600">{selectedSlotIndex + 1}번 자리</strong>에 내 펫 넣기
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '12px 14px',
+                    borderRadius: 16,
+                    background: '#FFFFFF',
+                    border: '1px solid #FFE4E6',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                  }}
+                >
+                  <span style={{ fontSize: 12, fontWeight: 900, color: '#334155' }}>
+                    선택된 <strong style={{ color: '#EC4899' }}>{selectedSlotIndex + 1}번 자리</strong>에 내 펫 넣기
                   </span>
                   <button
                     type="button"
                     onClick={() => handlePlaceMyPetInSoloSlot(selectedSlotIndex)}
-                    className="px-3.5 py-1.5 rounded-xl bg-pink-500 text-white text-xs font-black hover:bg-pink-600 transition shadow-xs"
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: 12,
+                      background: '#EC4899',
+                      color: '#FFFFFF',
+                      fontSize: 12,
+                      fontWeight: 900,
+                      border: 'none',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 6px rgba(236,72,153,0.3)',
+                    }}
                   >
                     내 펫 넣기
                   </button>
                 </div>
 
-                <div className="flex gap-2">
+                <div style={{ display: 'flex', gap: 8 }}>
                   <button
                     type="button"
                     onClick={() => setSoloStep(1)}
-                    className="py-3 px-4 rounded-xl border border-slate-300 text-slate-600 font-bold text-xs hover:bg-slate-50 transition"
+                    style={{
+                      padding: '12px 18px',
+                      borderRadius: 14,
+                      background: '#FFFFFF',
+                      border: '1px solid #CBD5E1',
+                      color: '#475569',
+                      fontWeight: 800,
+                      fontSize: 13,
+                      cursor: 'pointer',
+                    }}
                   >
                     이전으로
                   </button>
                   <button
                     type="button"
                     onClick={() => setSoloStep(3)}
-                    className="flex-1 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 text-white font-black text-xs shadow-md hover:from-pink-600 hover:to-rose-600 transition flex items-center justify-center gap-1.5"
+                    style={{
+                      flex: 1,
+                      padding: '12px 0',
+                      borderRadius: 14,
+                      background: 'linear-gradient(135deg, #EC4899, #F43F5E)',
+                      color: '#FFFFFF',
+                      fontWeight: 900,
+                      fontSize: 13,
+                      border: 'none',
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 10px rgba(236,72,153,0.35)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 6,
+                    }}
                   >
                     <span>피니싱 터치 & 선물 포장</span>
                     <Gift size={14} />
@@ -919,28 +1365,40 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
 
             {/* 3단계: 피니싱 터치 & 미니룸 선물 */}
             {soloStep === 3 && (
-              <div className="flex flex-col gap-3.5">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 {renderLuxuryShowcaseBase(selectedBase, selectedCapacity, soloSlots, false)}
 
                 {/* 초코펜 레터링 메시지 */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-black text-slate-700 flex items-center justify-between">
-                    <span>🍫 초코펜 손글씨 (초콜릿 팻말에 새겨집니다)</span>
-                    <span className="text-[10px] text-pink-500">{lettering.length}/50</span>
-                  </label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <label style={{ fontSize: 12, fontWeight: 900, color: '#334155' }}>
+                      🍫 초코펜 손글씨 (초콜릿 팻말에 새겨집니다)
+                    </label>
+                    <span style={{ fontSize: 10, color: '#EC4899', fontWeight: 800 }}>{lettering.length}/50</span>
+                  </div>
                   <input
                     type="text"
                     value={lettering}
                     onChange={(e) => setLettering(e.target.value.slice(0, 50))}
                     placeholder="언박싱 시 공개될 감동의 한마디를 적어주세요"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: 12,
+                      border: '1.5px solid #CBD5E1',
+                      background: '#FFFFFF',
+                      fontSize: 12,
+                      fontWeight: 800,
+                      color: '#1E293B',
+                      boxSizing: 'border-box',
+                    }}
                   />
                 </div>
 
                 {/* 파우더 데코 */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-black text-slate-700">❄️ 솔솔 파우더 & 시럽</label>
-                  <div className="grid grid-cols-4 gap-1.5">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <label style={{ fontSize: 12, fontWeight: 900, color: '#334155' }}>❄️ 솔솔 파우더 & 시럽</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
                     {[
                       { id: 'sugar-snow', name: '슈가스노우', icon: '❄️' },
                       { id: 'gold-leaf', name: '순금금박', icon: '✨' },
@@ -951,13 +1409,22 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                         key={p.id}
                         type="button"
                         onClick={() => setPowder(p.id as FinishingTouch['powder'])}
-                        className={`py-2 rounded-xl border text-[10px] font-black transition flex flex-col items-center gap-0.5 ${
-                          powder === p.id
-                            ? 'bg-amber-100 border-amber-500 text-amber-900 shadow-xs'
-                            : 'bg-white border-slate-200 text-slate-700'
-                        }`}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: 2,
+                          padding: '8px 0',
+                          borderRadius: 12,
+                          border: powder === p.id ? '2px solid #F59E0B' : '1px solid #E2E8F0',
+                          background: powder === p.id ? '#FEF3C7' : '#FFFFFF',
+                          color: powder === p.id ? '#92400E' : '#475569',
+                          fontWeight: 900,
+                          fontSize: 11,
+                          cursor: 'pointer',
+                        }}
                       >
-                        <span className="text-sm">{p.icon}</span>
+                        <span style={{ fontSize: 16 }}>{p.icon}</span>
                         <span>{p.name}</span>
                       </button>
                     ))}
@@ -965,9 +1432,9 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                 </div>
 
                 {/* 리본 색상 */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-black text-slate-700">🎀 선물 리본 매듭</label>
-                  <div className="grid grid-cols-4 gap-2">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <label style={{ fontSize: 12, fontWeight: 900, color: '#334155' }}>🎀 선물 리본 매듭</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
                     {[
                       { id: 'rose-pink', name: '로즈핑크', color: '#FF4081' },
                       { id: 'royal-gold', name: '로열골드', color: '#FFD700' },
@@ -978,13 +1445,22 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                         key={r.id}
                         type="button"
                         onClick={() => setRibbon(r.id as FinishingTouch['ribbon'])}
-                        className={`py-2 rounded-xl border text-[11px] font-black transition flex flex-col items-center gap-1 ${
-                          ribbon === r.id
-                            ? 'bg-pink-100 border-pink-500 text-pink-800 shadow-xs'
-                            : 'bg-white border-slate-200 text-slate-700'
-                        }`}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: 4,
+                          padding: '8px 0',
+                          borderRadius: 12,
+                          border: ribbon === r.id ? '2px solid #EC4899' : '1px solid #E2E8F0',
+                          background: ribbon === r.id ? '#FFF1F2' : '#FFFFFF',
+                          color: ribbon === r.id ? '#BE185D' : '#475569',
+                          fontWeight: 900,
+                          fontSize: 11,
+                          cursor: 'pointer',
+                        }}
                       >
-                        <span className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: r.color }} />
+                        <span style={{ width: 14, height: 14, borderRadius: '50%', background: r.color, border: '1px solid rgba(0,0,0,0.1)' }} />
                         <span>{r.name}</span>
                       </button>
                     ))}
@@ -992,29 +1468,61 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                 </div>
 
                 {/* 미니룸 선물 배달 */}
-                <div className="p-3 rounded-2xl bg-purple-50 border border-purple-200 flex flex-col gap-2">
-                  <label className="text-xs font-black text-purple-900 flex items-center gap-1.5">
-                    <Gift size={14} className="text-purple-600" />
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 8,
+                    padding: 14,
+                    borderRadius: 16,
+                    background: '#FAF5FF',
+                    border: '1.5px solid #E9D5FF',
+                  }}
+                >
+                  <label style={{ fontSize: 12, fontWeight: 900, color: '#581C87', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Gift size={14} />
                     <span>선물 배달할 지인의 닉네임</span>
                   </label>
-                  <div className="flex gap-2">
+                  <div style={{ display: 'flex', gap: 8 }}>
                     <input
                       type="text"
                       value={giftRecipient}
                       onChange={(e) => setGiftRecipient(e.target.value.slice(0, 15))}
                       placeholder="지인 닉네임 (비우면 내 미니룸에 배달)"
-                      className="flex-1 px-3 py-2 rounded-xl border border-purple-300 text-xs font-bold text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-purple-400"
+                      style={{
+                        flex: 1,
+                        padding: '8px 12px',
+                        borderRadius: 12,
+                        border: '1.5px solid #D8B4FE',
+                        background: '#FFFFFF',
+                        fontSize: 12,
+                        fontWeight: 800,
+                        color: '#1E293B',
+                      }}
                     />
                     <button
                       type="button"
                       onClick={handleSendGiftToMiniroom}
-                      className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs transition shadow-xs flex items-center gap-1"
+                      style={{
+                        padding: '8px 16px',
+                        borderRadius: 12,
+                        background: 'linear-gradient(135deg, #9333EA, #7E22CE)',
+                        color: '#FFFFFF',
+                        fontWeight: 900,
+                        fontSize: 12,
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        boxShadow: '0 2px 6px rgba(147,51,234,0.3)',
+                      }}
                     >
                       <Gift size={13} />
                       <span>선물 배달</span>
                     </button>
                   </div>
-                  <span className="text-[10px] text-purple-700 font-semibold">
+                  <span style={{ fontSize: 10, color: '#7E22CE', fontWeight: 700 }}>
                     💡 배달된 선물은 미니룸에서 터치 시 리본이 풀리며 화려하게 언박싱됩니다!
                   </span>
                 </div>
@@ -1023,7 +1531,17 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                 <button
                   type="button"
                   onClick={handleSaveToMyShowcase}
-                  className="w-full py-3 rounded-xl bg-amber-100 text-amber-900 font-black text-xs hover:bg-amber-200 transition border border-amber-300"
+                  style={{
+                    width: '100%',
+                    padding: '12px 0',
+                    borderRadius: 14,
+                    background: '#FEF3C7',
+                    color: '#92400E',
+                    fontWeight: 900,
+                    fontSize: 13,
+                    border: '1.5px solid #FCD34D',
+                    cursor: 'pointer',
+                  }}
                 >
                   내 미니룸 진열장에 바로 전시하기
                 </button>
@@ -1031,7 +1549,15 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                 <button
                   type="button"
                   onClick={() => setSoloStep(2)}
-                  className="py-2 text-center text-xs font-bold text-slate-500 hover:text-slate-800"
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#64748B',
+                    fontSize: 12,
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    padding: 8,
+                  }}
                 >
                   배치 수정하기
                 </button>
@@ -1044,48 +1570,90 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
         {/* TAB 2: 오픈 지인 모드 */}
         {/* ========================================================================= */}
         {mainTab === 'open_lounge' && (
-          <div className="flex flex-col gap-4">
-            <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-amber-500/10 border border-purple-200/80 shadow-xs flex items-center justify-between">
-              <div className="flex flex-col">
-                <h3 className="text-xs font-black text-purple-950 flex items-center gap-1">
-                  <Users size={14} className="text-purple-600" />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '14px 16px',
+                borderRadius: 18,
+                background: 'linear-gradient(135deg, #FAF5FF 0%, #FFF1F2 50%, #FEF3C7 100%)',
+                border: '1.5px solid #E9D5FF',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+              }}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <h3 style={{ margin: 0, fontSize: 13, fontWeight: 900, color: '#581C87', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Users size={15} />
                   <span>오픈 디저트 파티 라운지</span>
                 </h3>
-                <p className="text-[11px] text-slate-600 font-semibold mt-0.5">
+                <p style={{ margin: '3px 0 0 0', fontSize: 11, color: '#475569', fontWeight: 700 }}>
                   누구나 자유롭게 들어와 빈 칸에 자기 펫을 장식할 수 있어요!
                 </p>
               </div>
               <button
                 type="button"
                 onClick={handleCreateOpenParty}
-                className="px-3 py-2 rounded-xl bg-purple-600 text-white font-black text-xs hover:bg-purple-700 transition shadow-xs shrink-0"
+                style={{
+                  padding: '8px 14px',
+                  borderRadius: 12,
+                  background: 'linear-gradient(135deg, #9333EA, #7E22CE)',
+                  color: '#FFFFFF',
+                  fontWeight: 900,
+                  fontSize: 12,
+                  border: 'none',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(147,51,234,0.3)',
+                  whiteSpace: 'nowrap',
+                }}
               >
                 + 새 파티 열기
               </button>
             </div>
 
             {!activeRoomId ? (
-              <div className="flex flex-col gap-2.5">
-                <span className="text-xs font-black text-slate-700">참여 가능한 열린 파티 목록</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <span style={{ fontSize: 12, fontWeight: 900, color: '#334155' }}>참여 가능한 열린 파티 목록</span>
                 {openParties.map((room) => {
                   const filledCount = room.slots.filter((s) => s !== null).length
                   return (
                     <div
                       key={room.id}
                       onClick={() => setActiveRoomId(room.id)}
-                      className="p-3.5 rounded-2xl bg-white border border-purple-100 hover:border-purple-300 shadow-xs transition cursor-pointer flex items-center justify-between"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '14px 16px',
+                        borderRadius: 18,
+                        background: '#FFFFFF',
+                        border: '1px solid #E9D5FF',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                        cursor: 'pointer',
+                      }}
                     >
-                      <div className="flex flex-col">
-                        <span className="text-xs font-black text-slate-800">{room.title}</span>
-                        <span className="text-[10px] text-purple-600 font-bold mt-0.5">
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: 13, fontWeight: 900, color: '#1E293B' }}>{room.title}</span>
+                        <span style={{ fontSize: 11, color: '#9333EA', fontWeight: 800, marginTop: 3 }}>
                           호스트: {room.hostName} • {room.capacity}구 베이스
                         </span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-black px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span
+                          style={{
+                            fontSize: 12,
+                            fontWeight: 900,
+                            padding: '4px 10px',
+                            borderRadius: 12,
+                            background: '#FAF5FF',
+                            color: '#7E22CE',
+                            border: '1px solid #E9D5FF',
+                          }}
+                        >
                           {filledCount} / {room.capacity}
                         </span>
-                        <span className="text-xs font-bold text-slate-400">입장 ➔</span>
+                        <span style={{ fontSize: 12, fontWeight: 900, color: '#94A3B8' }}>입장 ➔</span>
                       </div>
                     </div>
                   )
@@ -1093,16 +1661,24 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
               </div>
             ) : (
               currentOpenRoom && (
-                <div className="flex flex-col gap-3.5">
-                  <div className="flex items-center justify-between">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <button
                       type="button"
                       onClick={() => setActiveRoomId(null)}
-                      className="text-xs font-black text-purple-700 flex items-center gap-1 hover:underline"
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#9333EA',
+                        fontSize: 12,
+                        fontWeight: 900,
+                        cursor: 'pointer',
+                        padding: 0,
+                      }}
                     >
                       ← 목록으로 돌아가기
                     </button>
-                    <span className="text-xs font-black text-slate-800">{currentOpenRoom.title}</span>
+                    <span style={{ fontSize: 13, fontWeight: 900, color: '#1E293B' }}>{currentOpenRoom.title}</span>
                   </div>
 
                   {renderLuxuryShowcaseBase(
@@ -1117,7 +1693,18 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                     }
                   )}
 
-                  <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-[11px] font-bold text-amber-900 text-center">
+                  <div
+                    style={{
+                      padding: 12,
+                      borderRadius: 14,
+                      background: '#FEF3C7',
+                      border: '1.5px solid #FCD34D',
+                      fontSize: 11,
+                      fontWeight: 800,
+                      color: '#92400E',
+                      textAlign: 'center',
+                    }}
+                  >
                     💡 비어있는 칸을 터치하면 현재 내가 색칠하고 꾸민 펫이 즉시 들어갑니다!
                   </div>
                 </div>
@@ -1130,25 +1717,58 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
         {/* TAB 3: 명예의 진열장 */}
         {/* ========================================================================= */}
         {mainTab === 'showcase' && (
-          <div className="flex flex-col gap-3.5">
-            <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-300 flex items-center justify-between">
-              <span className="text-xs font-black text-amber-950 flex items-center gap-1">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '12px 16px',
+                borderRadius: 16,
+                background: 'linear-gradient(135deg, #FEF3C7, #FFFBEB)',
+                border: '1.5px solid #FCD34D',
+              }}
+            >
+              <span style={{ fontSize: 13, fontWeight: 900, color: '#78350F', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span>🏆</span>
                 <span>모두가 함께 완성한 명예의 진열장</span>
               </span>
-              <span className="text-[10px] text-amber-700 font-bold">{showcaseList.length}개 소장됨</span>
+              <span style={{ fontSize: 11, fontWeight: 800, color: '#92400E' }}>{showcaseList.length}개 소장됨</span>
             </div>
 
             {showcaseList.length === 0 ? (
-              <div className="p-8 text-center text-xs text-slate-400 font-bold bg-white rounded-2xl border border-dashed border-slate-200">
+              <div
+                style={{
+                  padding: '36px 16px',
+                  textAlign: 'center',
+                  fontSize: 12,
+                  fontWeight: 800,
+                  color: '#94A3B8',
+                  background: '#FFFFFF',
+                  borderRadius: 18,
+                  border: '2px dashed #CBD5E1',
+                }}
+              >
                 아직 완성된 파티가 없습니다. 1인 모드 또는 오픈 지인 모드에서 파티를 완성해 보세요!
               </div>
             ) : (
               showcaseList.map((item, idx) => (
-                <div key={idx} className="p-3.5 rounded-2xl bg-white border border-amber-200 shadow-xs flex flex-col gap-2">
-                  <div className="flex items-center justify-between border-b border-amber-100 pb-2">
-                    <span className="text-xs font-black text-slate-800">{item.title}</span>
-                    <span className="text-[10px] text-pink-600 font-bold">
+                <div
+                  key={idx}
+                  style={{
+                    padding: 14,
+                    borderRadius: 20,
+                    background: '#FFFFFF',
+                    border: '1.5px solid #FCD34D',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 8,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #FEF3C7', paddingBottom: 8 }}>
+                    <span style={{ fontSize: 13, fontWeight: 900, color: '#1E293B' }}>{item.title}</span>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: '#EC4899' }}>
                       {item.slots.filter((s) => s !== null).length}구 완성
                     </span>
                   </div>
