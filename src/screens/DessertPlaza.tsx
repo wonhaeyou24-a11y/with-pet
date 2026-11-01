@@ -12,7 +12,6 @@ import { PLAZA_SHOWCASE_FRIENDS, type PlazaFriendEntry } from '../lib/battleEngi
 import { playDessertAsmr } from '../lib/sound'
 import { supabase } from '../lib/supabase'
 import { normalizeDessertSpecies } from '../monsters/dessertNormalizer'
-import MonsterView from '../monsters/MonsterView'
 import { callBattle, isRealMonsterId } from '../lib/battleApi'
 import { IS_DEV_MOCK } from '../lib/devMode'
 import { getPvpMatchRecords, formatTimeAgo, type PvpMatchRecord } from '../lib/pvpHistory'
@@ -268,6 +267,21 @@ export default function DessertPlaza({
   const [footprints, setFootprints] = useState<Footprint[]>([])
   const stepCountRef = useRef<number>(0)
 
+  // 🐾 내 파트너 펫의 실시간 좌표 및 산책 상태 (광장 중앙 및 바닥 터치 이동)
+  const [myActor, setMyActor] = useState<{
+    x: number
+    y: number
+    isWalking: boolean
+    facingLeft: boolean
+    speech: string | null
+  }>({
+    x: CENTER_X,
+    y: CENTER_Y,
+    isWalking: false,
+    facingLeft: false,
+    speech: null,
+  })
+
   // 각 지인 캐릭터들의 실시간 자율 산책 좌표
   const [actors, setActors] = useState<
     { x: number; y: number; isWalking: boolean; facingLeft: boolean; speech: string | null }[]
@@ -297,81 +311,114 @@ export default function DessertPlaza({
     setFootprints((prev) => [...prev.slice(-18), newFp])
   }
 
-  // 지인 캐릭터들의 자연스러운 광장 자율 산책 루프 (뒤쪽에 정확한 타이밍으로 발자국 남기기)
-  // 💡 3번 피드백 반영: 테스터 펫뿐만 아니라 모든 지인 펫들이 활기차게 자율 산책하고 살아 숨쉬도록 전면 개편
+  // 🐾 내 펫과 지인 펫들이 함께 활기차게 광장을 산책하는 실시간 루프
   useEffect(() => {
     const wanderTimer = setInterval(() => {
       if (dragRef.current.active && dragRef.current.moved) return
-      setActors((prev) => {
-        if (!prev || prev.length === 0) return prev
-        const next = [...prev]
-        // 매 주기마다 1~2마리의 펫이 동시에 자연스럽게 산책
-        const walkerIndices = [
-          Math.floor(Math.random() * next.length),
-          Math.floor(Math.random() * next.length),
-        ].filter((idx, i, arr) => arr.indexOf(idx) === i && idx !== selectedIdx)
 
-        walkerIndices.forEach((walkerIdx) => {
-          const curr = next[walkerIdx]
-          if (!curr) return
-
-          // 웨이포인트 중 랜덤 목적지 선택
-          const targetWp = PLAZA_WAYPOINTS[Math.floor(Math.random() * PLAZA_WAYPOINTS.length)]
-          const facingLeft = targetWp.x < curr.x
-          const speech = Math.random() < 0.3 ? PET_CHATTERS[Math.floor(Math.random() * PET_CHATTERS.length)] : null
-
-          const startX = curr.x
-          const startY = curr.y
-          const targetX = targetWp.x + (Math.random() * 24 - 12)
-          const targetY = targetWp.y + (Math.random() * 24 - 12)
-
-          const dx = targetX - startX
-          const dy = targetY - startY
+      // 1. 내 펫 자율 산책 (30% 확률로 중앙 주변 산책)
+      if (Math.random() < 0.45) {
+        setMyActor((prev) => {
+          if (prev.isWalking) return prev
+          // 중앙 근처 반경 70px 내 랜덤 목표
+          const targetX = CENTER_X + (Math.random() * 140 - 70)
+          const targetY = CENTER_Y + (Math.random() * 110 - 55)
+          const dx = targetX - prev.x
+          const dy = targetY - prev.y
+          const facingLeft = targetX < prev.x
           const dist = Math.hypot(dx, dy)
-          if (dist > 15) {
+          if (dist > 18) {
             const angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90
             setTimeout(() => {
               stepCountRef.current += 1
-              addFootprint(startX + dx * 0.5, startY + dy * 0.5 + 26, stepCountRef.current % 2 === 0, angle)
-            }, 600)
+              addFootprint(prev.x + dx * 0.5, prev.y + dy * 0.5 + 26, stepCountRef.current % 2 === 0, angle)
+            }, 500)
+          }
+          const speech = Math.random() < 0.25 ? '🐾 냠냠 산책 중~' : null
+
+          setTimeout(() => {
+            setMyActor((cur) => ({ ...cur, isWalking: false }))
+          }, 2200)
+          if (speech) {
+            setTimeout(() => {
+              setMyActor((cur) => ({ ...cur, speech: null }))
+            }, 3000)
           }
 
-          next[walkerIdx] = {
-            ...curr,
+          return {
+            ...prev,
             x: targetX,
             y: targetY,
             isWalking: true,
             facingLeft,
             speech,
           }
+        })
+      }
 
+      // 2. 지인 펫들 자율 산책 (지인 목록 전체 중 1마리씩 활발하게 이동)
+      setActors((prev) => {
+        if (!prev || prev.length === 0) return prev
+        const next = [...prev]
+        const walkerIdx = Math.floor(Math.random() * next.length)
+        const curr = next[walkerIdx]
+        if (!curr || curr.isWalking) return prev
+
+        const targetWp = PLAZA_WAYPOINTS[Math.floor(Math.random() * PLAZA_WAYPOINTS.length)]
+        const facingLeft = targetWp.x < curr.x
+        const speech = Math.random() < 0.35 ? PET_CHATTERS[Math.floor(Math.random() * PET_CHATTERS.length)] : null
+
+        const startX = curr.x
+        const startY = curr.y
+        const targetX = targetWp.x + (Math.random() * 30 - 15)
+        const targetY = targetWp.y + (Math.random() * 30 - 15)
+
+        const dx = targetX - startX
+        const dy = targetY - startY
+        const dist = Math.hypot(dx, dy)
+        if (dist > 15) {
+          const angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90
+          setTimeout(() => {
+            stepCountRef.current += 1
+            addFootprint(startX + dx * 0.5, startY + dy * 0.5 + 26, stepCountRef.current % 2 === 0, angle)
+          }, 600)
+        }
+
+        next[walkerIdx] = {
+          ...curr,
+          x: targetX,
+          y: targetY,
+          isWalking: true,
+          facingLeft,
+          speech,
+        }
+
+        setTimeout(() => {
+          setActors((latest) => {
+            if (!latest || !latest[walkerIdx]) return latest
+            const lNext = [...latest]
+            lNext[walkerIdx] = { ...lNext[walkerIdx], isWalking: false }
+            return lNext
+          })
+        }, 2500)
+
+        if (speech) {
           setTimeout(() => {
             setActors((latest) => {
               if (!latest || !latest[walkerIdx]) return latest
               const lNext = [...latest]
-              lNext[walkerIdx] = { ...lNext[walkerIdx], isWalking: false }
+              lNext[walkerIdx] = { ...lNext[walkerIdx], speech: null }
               return lNext
             })
-          }, 2400)
-
-          if (speech) {
-            setTimeout(() => {
-              setActors((latest) => {
-                if (!latest || !latest[walkerIdx]) return latest
-                const lNext = [...latest]
-                lNext[walkerIdx] = { ...lNext[walkerIdx], speech: null }
-                return lNext
-              })
-            }, 3000)
-          }
-        })
+          }, 3200)
+        }
 
         return next
       })
-    }, 1800) // 1.8초마다 지속적으로 살아 움직임
+    }, 2000)
 
     return () => clearInterval(wanderTimer)
-  }, [selectedIdx])
+  }, [])
 
   // 2.5D 광장 줌 & 패닝 상태
   const [zoom, setZoom] = useState<number>(0.85)
@@ -703,6 +750,33 @@ export default function DessertPlaza({
         {/* 860x720 대형 2.5D 광장 캔버스 (가을 낙엽 바닥 & 발자국 모션 월드) */}
         <div
           ref={canvasRef}
+          onClick={(e) => {
+            if (dragRef.current.moved) return
+            const rect = e.currentTarget.getBoundingClientRect()
+            const clickX = (e.clientX - rect.left) / zoom
+            const clickY = (e.clientY - rect.top) / zoom
+            if (clickX >= 60 && clickX <= CANVAS_W - 60 && clickY >= 80 && clickY <= CANVAS_H - 80) {
+              const dx = clickX - myActor.x
+              const dy = clickY - myActor.y
+              const angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90
+              stepCountRef.current += 1
+              addFootprint(myActor.x + dx * 0.4, myActor.y + dy * 0.4 + 26, stepCountRef.current % 2 === 0, angle)
+              playDessertAsmr('wax-pop')
+              setMyActor({
+                x: clickX,
+                y: clickY,
+                isWalking: true,
+                facingLeft: clickX < myActor.x,
+                speech: '🐾 총총총~',
+              })
+              setTimeout(() => {
+                setMyActor((prev) => ({ ...prev, isWalking: false }))
+              }, 2000)
+              setTimeout(() => {
+                setMyActor((prev) => ({ ...prev, speech: null }))
+              }, 2800)
+            }
+          }}
           style={{
             position: 'absolute',
             left: '50%',
@@ -892,7 +966,7 @@ export default function DessertPlaza({
             </div>
           </div>
 
-          {/* 내 대표 펫 산책 노드 (실제 3D Three.js 디저트 펫 디자인) */}
+          {/* 내 대표 펫 산책 노드 (실제 3D Three.js 디저트 펫 디자인 & 실시간 광장 자율 산책) */}
           {(() => {
             const myLook = myLookMemo
             return (
@@ -904,18 +978,43 @@ export default function DessertPlaza({
                 }}
                 style={{
                   position: 'absolute',
-                  left: CENTER_X - 55,
-                  top: CENTER_Y - 70,
+                  left: 0,
+                  top: 0,
                   width: 110,
+                  willChange: 'transform',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  zIndex: Math.floor(CENTER_Y),
+                  zIndex: Math.floor(myActor.y) + 5,
                   cursor: 'pointer',
-                  transform: 'scale(1)',
-                  transition: 'transform 0.2s ease',
+                  transform: `translate3d(${myActor.x - 55}px, ${myActor.y - 65}px, 0)`,
+                  transition: 'transform 2.2s cubic-bezier(0.25, 1, 0.5, 1)',
                 }}
               >
+                {/* 💬 내 펫 실시간 귀여운 말풍선 */}
+                {myActor.speech && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: -24,
+                      background: '#FFFFFF',
+                      border: '1.5px solid #FF7043',
+                      borderRadius: 10,
+                      padding: '2px 8px',
+                      fontSize: 10,
+                      fontWeight: 900,
+                      color: '#D84315',
+                      boxShadow: '0 3px 8px rgba(0,0,0,0.15)',
+                      whiteSpace: 'nowrap',
+                      pointerEvents: 'none',
+                      animation: 'bounce 0.6s ease',
+                      zIndex: 25,
+                    }}
+                  >
+                    {myActor.speech}
+                  </div>
+                )}
+
                 {/* 내 펫 뱃지 (방어전 전적 확인 유도) */}
                 <div
                   style={{
@@ -939,7 +1038,7 @@ export default function DessertPlaza({
                   </span>
                 </div>
 
-                {/* 실제 3D Three.js 몬스터 및 발밑 그림자 */}
+                {/* 실제 3D Three.js 몬스터 및 발밑 그림자 (움직임 및 바운스 연동) */}
                 <div
                   style={{
                     position: 'relative',
@@ -949,6 +1048,11 @@ export default function DessertPlaza({
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    transform: `${myActor.facingLeft ? 'scaleX(-1)' : 'scaleX(1)'}`,
+                    animation: myActor.isWalking
+                      ? 'plaza-walking-bounce 0.32s infinite alternate ease-in-out'
+                      : 'plaza-idle-breath 2.2s infinite ease-in-out',
+                    transition: 'transform 0.25s ease',
                   }}
                 >
                   <div
@@ -1174,7 +1278,7 @@ export default function DessertPlaza({
                 flexShrink: 0,
               }}
             >
-              <MonsterView look={selLook} size={42} prefer2D={false} title={selectedFriend.monster.name ?? undefined} />
+              <MonsterSnapshot look={selLook} size={42} title={selectedFriend.monster.name ?? undefined} />
             </span>
             <div style={{ minWidth: 0, flex: 1 }}>
               <div className="row" style={{ gap: 4 }}>

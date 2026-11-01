@@ -466,10 +466,10 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
 }) => {
   const [mainTab, setMainTab] = useState<'solo' | 'open_lounge' | 'showcase'>('solo')
 
-  // 상자 테마 & 규격 선택 (대표님 첨부 실물 사진 5종)
-  const [boxTheme, setBoxTheme] = useState<BoxThemeType>('black-4')
-  const [selectedBase, setSelectedBase] = useState<PartyBaseType>('box')
-  const [selectedCapacity, setSelectedCapacity] = useState<SlotCapacity>(4)
+  // 🎁 대표님 5번 요청 반영: 4구 블랙 리본 선물 상자 단일 규격으로 고정
+  const boxTheme: BoxThemeType = 'black-4'
+  const selectedBase: PartyBaseType = 'box'
+  const selectedCapacity: SlotCapacity = 4
   const [soloSlots, setSoloSlots] = useState<(PartySlotItem | null)[]>(() => new Array(4).fill(null))
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number>(0)
 
@@ -548,41 +548,6 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
     }
   }, [myCurrentLook])
 
-  // 상자 테마 변경 시 자동 세팅
-  const handleSelectBoxTheme = (theme: BoxThemeType) => {
-    try {
-      playDessertAsmr('wax-tap')
-    } catch {
-      // ignore
-    }
-    setBoxTheme(theme)
-    setSelectedBase('box')
-
-    let cap: SlotCapacity = 4
-    if (theme === 'black-4') cap = 4
-    else if (theme === 'walnut-9') cap = 9
-    else if (theme === 'black-16') cap = 16
-    else if (theme === 'white-9') cap = 9
-    else if (theme === 'tray-24') cap = 24
-
-    setSelectedCapacity(cap)
-    setSelectedSlotIndex(0)
-    setSoloSlots(() => {
-      const arr = new Array(cap).fill(null)
-      // 첫 칸은 내 펫
-      arr[0] = {
-        slotIndex: 0,
-        ownerName: '나',
-        petName: currentMonster.name || '내 펫',
-        species: currentMonster.species,
-        look: myCurrentLook,
-        isMine: true,
-        placedAt: new Date().toISOString(),
-        itemType: 'pet',
-      }
-      return arr
-    })
-  }
 
   // 슬롯에 내 펫 넣기
   const handlePlaceMyPetInSoloSlot = (slotIdx: number) => {
@@ -680,6 +645,9 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
       const list: DeliveredGiftPackage[] = existing ? JSON.parse(existing) : []
       list.unshift(newGift)
       localStorage.setItem(DELIVERED_GIFTS_STORAGE_KEY, JSON.stringify(list))
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('gift_delivered'))
+      }
 
       setGiftSentToast(`💌 "${recipient}"님의 미니룸으로 배달되었습니다! 리본을 풀면 편지와 함께 언박싱됩니다.`)
       setTimeout(() => setGiftSentToast(null), 4500)
@@ -1254,7 +1222,31 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
             {mainTab === 'showcase' && '명예의 파티 진열장'}
           </span>
         </div>
-        <div style={{ width: 32 }} />
+        {onOpenBoutique ? (
+          <button
+            type="button"
+            onClick={onOpenBoutique}
+            style={{
+              background: '#FFF1F2',
+              border: '1px solid #FECDD3',
+              cursor: 'pointer',
+              padding: '4px 8px',
+              borderRadius: 10,
+              color: '#BE185D',
+              fontSize: 11,
+              fontWeight: 900,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 3,
+            }}
+            title="부티크 상점"
+          >
+            <span>🛍️</span>
+            <span>상점</span>
+          </button>
+        ) : (
+          <div style={{ width: 32 }} />
+        )}
       </header>
 
       {/* 🎀 3대 메인 탭 바 */}
@@ -1404,91 +1396,62 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
 
       <main style={{ flex: 1, maxWidth: 430, width: '100%', margin: '0 auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 12, boxSizing: 'border-box' }}>
         {/* ========================================================================= */}
-        {/* TAB 1: 1인 나만의 선물 상자 꾸미기 모드 */}
+        {/* TAB 1: 1인 나만의 선물 상자 꾸미기 모드 (대표님 5번 요청: 4구 단일 규격 & 초깔끔 배치) */}
         {/* ========================================================================= */}
         {mainTab === 'solo' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {/* 🎁 상단: 대표님 첨부 실물 사진 5종 선택 칩 바 */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {/* 🎀 4구 칸 빠른 선택 네비게이션 탭 (1번, 2번, 3번, 4번) */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '8px 10px',
+                padding: '6px 10px',
                 borderRadius: 14,
                 background: '#FFFFFF',
                 border: '1px solid #FFE4E6',
                 boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
-                gap: 6,
               }}
             >
-              <div style={{ display: 'flex', gap: 5, overflowX: 'auto', paddingBottom: 2, flex: 1 }}>
-                {[
-                  { theme: 'black-4', label: '🖤 4구 리본 (사진 5)' },
-                  { theme: 'walnut-9', label: '🪵 9구 원목 (사진 7)' },
-                  { theme: 'black-16', label: '👑 16구 블랙 (사진 6)' },
-                  { theme: 'white-9', label: '🤍 9구 화이트 (사진 3)' },
-                  { theme: 'tray-24', label: '✨ 24구 트레이 (사진 4)' },
-                ].map((item) => {
-                  const isCur = boxTheme === item.theme
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 13 }}>🎁</span>
+                <span style={{ fontSize: 11.5, fontWeight: 900, color: '#451A03' }}>
+                  4구 쇼콜라티에 기프트 상자
+                </span>
+              </div>
+              <div style={{ display: 'flex', gap: 4 }}>
+                {[0, 1, 2, 3].map((idx) => {
+                  const isCur = selectedSlotIndex === idx
+                  const isFilled = Boolean(soloSlots[idx])
                   return (
                     <button
-                      key={item.theme}
+                      key={idx}
                       type="button"
-                      onClick={() => handleSelectBoxTheme(item.theme as BoxThemeType)}
+                      onClick={() => setSelectedSlotIndex(idx)}
                       style={{
-                        padding: '6px 10px',
-                        borderRadius: 10,
+                        padding: '4px 8px',
+                        borderRadius: 8,
                         fontSize: 11,
                         fontWeight: 900,
                         border: isCur ? '2px solid #EC4899' : '1px solid #E2E8F0',
-                        background: isCur ? '#FFF1F2' : '#F8FAFC',
-                        color: isCur ? '#BE185D' : '#475569',
+                        background: isCur ? '#FFF1F2' : isFilled ? '#FEF3C7' : '#F8FAFC',
+                        color: isCur ? '#BE185D' : isFilled ? '#B45309' : '#64748B',
                         cursor: 'pointer',
-                        whiteSpace: 'nowrap',
                         boxShadow: isCur ? '0 2px 6px rgba(236,72,153,0.2)' : 'none',
                       }}
                     >
-                      {item.label}
+                      {idx + 1}번{isFilled ? ' ✓' : ''}
                     </button>
                   )
                 })}
               </div>
-
-              {/* 🛍️ 상점 바로가기 */}
-              <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                {onOpenBoutique && (
-                  <button
-                    type="button"
-                    onClick={onOpenBoutique}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 3,
-                      padding: '6px 10px',
-                      borderRadius: 10,
-                      background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)',
-                      color: '#FFFFFF',
-                      fontSize: 11,
-                      fontWeight: 900,
-                      border: 'none',
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 5px rgba(139,92,246,0.3)',
-                    }}
-                    title="부티크 상점"
-                  >
-                    <span>🛍️</span>
-                    <span>상점</span>
-                  </button>
-                )}
-              </div>
             </div>
 
-            {/* 🏆 주인공: 실물 사진과 100% 동일한 수제 선물 상자 뷰 */}
+            {/* 🏆 주인공: 실물 사진 5번 100% 동일 4구 수제 선물 상자 뷰 */}
             <div style={{ position: 'relative' }}>
-              {renderLuxuryShowcaseBase(selectedBase, selectedCapacity, soloSlots, true, (idx) => {
+              {renderLuxuryShowcaseBase('box', 4, soloSlots, true, (idx) => {
                 setSelectedSlotIndex(idx)
-              })}
+              }, 'black-4')}
             </div>
 
             {/* 🎯 [선택된 {selectedSlotIndex + 1}번 칸 채우기] 컨트롤 패널 */}
@@ -1551,35 +1514,35 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                 <span>🐾 내가 꾸민 디저트 펫 넣기 ({currentMonster.name || '내 펫'})</span>
               </button>
 
-              {/* 2. 실물 사진 수제 초콜릿 데코 넣기 (사진 5, 6, 7번 레터링 & 봉봉) */}
+              {/* 2. 실물 사진 수제 초콜릿 데코 넣기 (사진 5번 레터링 & 봉봉 3열 깔끔 배치) */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                 <span style={{ fontSize: 10, fontWeight: 900, color: '#78350F' }}>
-                  🍫 실물 초콜릿 데코 선택 (레터링 / 하트 / 금박 구):
+                  🍫 실물 초콜릿 데코 넣기 (레터링 / 하트 / 금박 구):
                 </span>
-                <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4 }}>
-                  {ARTISAN_CHOCO_CATALOG.map((choco) => (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5 }}>
+                  {ARTISAN_CHOCO_CATALOG.slice(0, 6).map((choco) => (
                     <button
                       key={choco.id}
                       type="button"
                       onClick={() => handlePlaceChocoInSoloSlot(selectedSlotIndex, choco)}
                       style={{
-                        padding: '5px 9px',
+                        padding: '6px 4px',
                         borderRadius: 10,
                         background: '#FFFBEB',
                         border: '1px solid #FCD34D',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 4,
+                        justifyContent: 'center',
+                        gap: 3,
                         cursor: 'pointer',
-                        whiteSpace: 'nowrap',
-                        fontSize: 10.5,
+                        fontSize: 10,
                         fontWeight: 900,
                         color: '#451A03',
                         boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
                       }}
                     >
-                      <span>{choco.subIcon || '🍫'}</span>
-                      <span>{choco.name}</span>
+                      <span style={{ fontSize: 12 }}>{choco.subIcon || '🍫'}</span>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{choco.name}</span>
                     </button>
                   ))}
                 </div>

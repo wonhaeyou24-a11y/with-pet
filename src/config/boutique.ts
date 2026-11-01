@@ -903,7 +903,8 @@ export interface GuestBookEntry {
   replies?: GuestBookReply[]
 }
 
-const GUESTBOOK_LAST_READ_KEY = 'withpet_guestbook_last_read_ts_v1'
+export const GUESTBOOK_LAST_READ_KEY = 'withpet_guestbook_last_read_ts_v1'
+export const GUESTBOOK_LAST_READ_LEGACY_KEY = 'pet_together_guestbook_last_read_v1'
 
 export const INITIAL_GUESTBOOK: GuestBookEntry[] = [
   {
@@ -1010,7 +1011,9 @@ export function getUnreadGuestBookCount(): number {
  */
 export function markGuestBookAsRead(): void {
   try {
-    localStorage.setItem(GUESTBOOK_LAST_READ_KEY, String(Date.now()))
+    const nowStr = String(Date.now())
+    localStorage.setItem(GUESTBOOK_LAST_READ_KEY, nowStr)
+    localStorage.setItem(GUESTBOOK_LAST_READ_LEGACY_KEY, nowStr)
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('guestbook_updated', { detail: { count: 0 } }))
     }

@@ -1,8 +1,8 @@
-// 3D 모양 그대로, 가볍게: 광장처럼 여러 마리가 한 화면에 나오는 곳에서 쓰는 펫 그림.
-// 3D 모델을 한 번만 찍은 사진을 보여 주고, 사진을 못 만들면 2D 그림으로 대신한다.
+// 3D 모양 그대로, 가볍게: 광장처럼 여러 마리가 한 화면에 나오는 곳에서 쓰는 펫 뷰.
+// 실시간 3D 스냅샷을 즉시 캐시하여 2D 레거시 캐릭터가 전혀 노출되지 않도록 보장합니다.
 
 import { useEffect, useState } from 'react'
-import MonsterView from './MonsterView'
+import Monster3DView from './Monster3DView'
 import { getMonsterSnapshot, snapshotKey } from './snapshotRenderer'
 import type { MallangCustom } from './MallangChameleon'
 import type { MonsterLook } from './types'
@@ -11,26 +11,48 @@ type Look = MonsterLook & { mallang?: MallangCustom }
 
 export default function MonsterSnapshot({ look, size, title }: { look: Look; size: number; title?: string }) {
   const key = snapshotKey(look)
-  const [url, setUrl] = useState<string | null | undefined>(undefined)
+  // 💡 최초 마운트 시 즉시 동기 스냅샷 획득 시도 (2D 캐릭터 깜빡임 원천 차단)
+  const [url, setUrl] = useState<string | null>(() => {
+    try {
+      return getMonsterSnapshot(look)
+    } catch {
+      return null
+    }
+  })
 
   useEffect(() => {
-    // 여러 마리가 한꺼번에 처음 그려질 때 화면이 멈추지 않도록 한 프레임씩 나눠서 찍는다
-    const id = window.setTimeout(() => setUrl(getMonsterSnapshot(look)), Math.random() * 120)
-    return () => window.clearTimeout(id)
-    // look 전체 대신 모양을 결정하는 key만 본다
+    try {
+      const snap = getMonsterSnapshot(look)
+      if (snap) {
+        setUrl(snap)
+      } else {
+        const id = window.setTimeout(() => setUrl(getMonsterSnapshot(look)), 50)
+        return () => window.clearTimeout(id)
+      }
+    } catch {
+      // ignore
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key])
 
-  if (url === null) return <MonsterView look={look} size={size} prefer2D title={title} />
+  // 💡 스냅샷 획득 실패 시에도 2D 이전 캐릭터 대신 무조건 3D 실시간 뷰로 렌더링 (2D 오류 영구 방지)
+  if (!url) {
+    return (
+      <div style={{ width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center' }} title={title}>
+        <Monster3DView look={look} size={size} interactive={false} />
+      </div>
+    )
+  }
+
   return (
     <img
-      src={url ?? undefined}
+      src={url}
       alt={title ?? ''}
       width={size}
       height={size}
       draggable={false}
       className="mon-breathe"
-      style={{ display: 'block', width: size, height: size, visibility: url ? 'visible' : 'hidden', pointerEvents: 'none' }}
+      style={{ display: 'block', width: size, height: size, pointerEvents: 'none' }}
     />
   )
 }

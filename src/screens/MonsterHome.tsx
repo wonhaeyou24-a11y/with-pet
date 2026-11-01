@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { getRibbonCoins, getUnreadGuestBookCount, markGuestBookAsRead } from '../config/boutique'
+import { getRibbonCoins, getUnreadGuestBookCount, markGuestBookAsRead, GUESTBOOK_LAST_READ_KEY } from '../config/boutique'
 import { getClaimableMissionsCount } from '../config/missions'
 import { ELEMENT_INFO, SPECIES_INFO } from '../config/species'
 import { monsterLook, serverNow, type MonsterRow } from '../lib/api'
@@ -268,12 +268,19 @@ export default function MonsterHome({
 
   useEffect(() => {
     // 3초마다 및 이벤트 발생 시 지인 신규 방명록 글 확인
-    const checkUnread = async () => {
+    const checkUnread = async (evt?: Event) => {
+      // 💡 미니룸에서 방명록을 확인하고 나왔을 때는 즉시 0으로 소멸
+      const customEvt = evt as CustomEvent<{ count?: number }> | undefined
+      if (customEvt?.detail && typeof customEvt.detail.count === 'number') {
+        setUnreadGuestBookCount(customEvt.detail.count)
+        return
+      }
+
       let count = getUnreadGuestBookCount()
       try {
         const res = await roomGet()
         if (res.ok && res.entries && res.entries.length > 0) {
-          const rawRead = localStorage.getItem('pet_together_guestbook_last_read_v1')
+          const rawRead = localStorage.getItem(GUESTBOOK_LAST_READ_KEY) || localStorage.getItem('pet_together_guestbook_last_read_v1')
           const lastReadTs = rawRead ? Number(rawRead) : 0
           const serverUnread = res.entries.filter((e) => {
             const entryTs = new Date(e.createdAt).getTime()

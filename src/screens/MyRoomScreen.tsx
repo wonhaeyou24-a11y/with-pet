@@ -38,6 +38,8 @@ interface Props {
   visit?: { ownerId: string; nickname: string; monster: MonsterRow }
 }
 
+const DELIVERED_GIFTS_STORAGE_KEY = 'pet_together_delivered_gifts_v1'
+
 // "방금 전 / N분 전 / N시간 전 / N일 전"
 function relTime(iso: string): string {
   const sec = Math.max(0, (Date.now() - Date.parse(iso)) / 1000)
@@ -105,20 +107,38 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
   const [currentTrack, setCurrentTrack] = useState<BgmTrack>(() => miniRoomBgm.getTrack())
   const [showBgmPicker, setShowBgmPicker] = useState<boolean>(false)
   // 🎁 미니룸 배달 선물함 & 언박싱 상태
-  const [deliveredGifts, setDeliveredGifts] = useState<DeliveredGiftPackage[]>([])
+  const [deliveredGifts, setDeliveredGifts] = useState<DeliveredGiftPackage[]>(() => {
+    try {
+      const raw = localStorage.getItem(DELIVERED_GIFTS_STORAGE_KEY)
+      return raw ? JSON.parse(raw) : []
+    } catch {
+      return []
+    }
+  })
   const [activeUnboxGift, setActiveUnboxGift] = useState<DeliveredGiftPackage | null>(null)
   const [isRibbonUntied, setIsRibbonUntied] = useState<boolean>(false)
   const [isBoxOpened, setIsBoxOpened] = useState<boolean>(false)
 
-  // 배달된 선물 목록 로드
+  // 배달된 선물 목록 로드 및 실시간 동기화
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem('pet_together_delivered_gifts_v1')
-      if (raw) {
-        setDeliveredGifts(JSON.parse(raw))
+    const loadGifts = () => {
+      try {
+        const raw = localStorage.getItem(DELIVERED_GIFTS_STORAGE_KEY)
+        if (raw) {
+          setDeliveredGifts(JSON.parse(raw))
+        } else {
+          setDeliveredGifts([])
+        }
+      } catch (e) {
+        console.error('배달 선물 로드 오류:', e)
       }
-    } catch (e) {
-      console.error('배달 선물 로드 오류:', e)
+    }
+    loadGifts()
+    window.addEventListener('storage', loadGifts)
+    window.addEventListener('gift_delivered', loadGifts)
+    return () => {
+      window.removeEventListener('storage', loadGifts)
+      window.removeEventListener('gift_delivered', loadGifts)
     }
   }, [])
 
@@ -127,6 +147,21 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
     setActiveUnboxGift(gift)
     setIsRibbonUntied(false)
     setIsBoxOpened(false)
+  }
+
+  // 💡 대표님 6번 요청 반영: 전달된 선물함 확인 완료 시 목록 및 영속 저장소에서 영구 삭제
+  const handleCompleteGiftUnboxing = () => {
+    if (!activeUnboxGift) return
+    const giftId = activeUnboxGift.id
+    const updatedGifts = deliveredGifts.filter((g) => g.id !== giftId)
+    setDeliveredGifts(updatedGifts)
+    try {
+      localStorage.setItem(DELIVERED_GIFTS_STORAGE_KEY, JSON.stringify(updatedGifts))
+    } catch (e) {
+      console.error('선물 삭제 실패:', e)
+    }
+    setToast('💌 선물을 확인 완료하여 선물함에서 깔끔하게 정리되었습니다!')
+    setActiveUnboxGift(null)
   }
 
   // 리본 풀기 액션
@@ -543,7 +578,10 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <button
-            onClick={onBack}
+            onClick={() => {
+              markGuestBookAsRead()
+              onBack()
+            }}
             style={{
               background: '#FFF0F5',
               border: '1px solid #FBCFE8',
@@ -913,30 +951,6 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
             </div>
           </div>
 
-          {/* 4. 바닥 보송보송 하트 러그 (3D 펫 발밑) */}
-          <div
-            style={{
-              position: 'absolute',
-              bottom: 4,
-              left: `calc(50% + ${petPosX * 0.4}px)`,
-              transform: 'translateX(-50%)',
-              width: 104,
-              height: 36,
-              borderRadius: '50%',
-              background: 'radial-gradient(ellipse, #FCE7F3 0%, #FBCFE8 65%, transparent 70%)',
-              border: '1.5px dashed #F472B6',
-              zIndex: 2,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#EC4899',
-              fontSize: 10,
-              opacity: 0.85,
-              transition: 'left 0.6s cubic-bezier(0.25, 1, 0.5, 1)',
-            }}
-          >
-            🌸
-          </div>
 
           {/* 🐾 산책 발자국 파티클 트레일 (Footprints Trail) */}
           {footprints.map((dot) => (
@@ -1646,7 +1660,7 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
           >
             {/* 닫기 버튼 */}
             <button
-              onClick={() => setActiveUnboxGift(null)}
+              onClick={handleCompleteGiftUnboxing}
               style={{
                 position: 'absolute',
                 top: 12,
@@ -1779,10 +1793,7 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
 
                 <button
                   type="button"
-                  onClick={() => {
-                    setToast('🏆 미니룸 장식장에 진열되었습니다!')
-                    setActiveUnboxGift(null)
-                  }}
+                  onClick={handleCompleteGiftUnboxing}
                   style={{
                     width: '100%',
                     padding: '12px 0',
@@ -1795,7 +1806,7 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
                     cursor: 'pointer',
                   }}
                 >
-                  ✨ 미니룸 장식장에 영구 진열하기
+                  ✨ 선물 확인 완료 & 미니룸 장식장 소장
                 </button>
               </div>
             )}
