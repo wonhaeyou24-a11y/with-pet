@@ -34,3 +34,4 @@ create or replace view public.plaza_monsters with (security_invoker = false) as
   where m.name is not null;
 
 grant select on public.plaza_monsters to authenticated;
+

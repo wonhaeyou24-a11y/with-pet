@@ -1,3 +1,4 @@
 @import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
 @import './config/theme.css';
 @import './ui/ui.css';
+@import './ui/battle.css';

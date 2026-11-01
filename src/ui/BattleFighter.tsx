@@ -1,7 +1,7 @@
 // 대전 캐릭터: 3D 모델을 한 번 찍어 둔 사진으로 보여 주고, 움직임은 GPU 변환으로만 처리해서 부드럽다.
 // (턴마다 3D 화면을 다시 만들던 이전 방식을 대신한다.) 돌진할 때는 뒤따르는 잔상이 붙는다.
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import MonsterView from '../monsters/MonsterView'
 import { getMonsterSnapshot, snapshotKey } from '../monsters/snapshotRenderer'
 import type { MallangCustom } from '../monsters/MallangChameleon'
@@ -27,6 +27,9 @@ interface Props {
   flash?: boolean
   // 돌진 중이면 잔상을 보여 준다
   trail?: boolean
+  // 현재 턴의 공격자에게만 켜지는 발밑 오라
+  active?: boolean
+  glow?: string
 }
 
 const GHOSTS = [
@@ -35,7 +38,7 @@ const GHOSTS = [
   { delay: 114, opacity: 0.14 },
 ]
 
-export default function BattleFighter({ look, size, title, pose, hitClass, hitKey, flash, trail }: Props) {
+export default function BattleFighter({ look, size, title, pose, hitClass, hitKey, flash, trail, active, glow }: Props) {
   const key = snapshotKey(look)
   const [url, setUrl] = useState<string | null | undefined>(undefined)
   const hitRef = useRef<HTMLDivElement | null>(null)
@@ -61,7 +64,10 @@ export default function BattleFighter({ look, size, title, pose, hitClass, hitKe
   const move = `transform ${pose.ms}ms ${pose.ease}`
 
   return (
-    <div style={{ position: 'relative', width: size, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <div
+      className={`battle-fighter-frame${active ? ' is-active' : ''}${hitClass ? ' is-hit' : ''}`}
+      style={{ position: 'relative', width: size, display: 'flex', flexDirection: 'column', alignItems: 'center', '--fighter-glow': glow } as CSSProperties}
+    >
       {url &&
         GHOSTS.map((g, i) => (
           <img

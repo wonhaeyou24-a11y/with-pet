@@ -17,6 +17,7 @@ import BattleFx from '../ui/BattleFx'
 import MonsterView from '../monsters/MonsterView'
 import { BackIcon, ElementIcon } from '../ui/Icons'
 import { getSensoryReactionClass, SensoryBurst } from '../ui/SensoryFx'
+import { DECO_ITEMS } from '../monsters/Decorations'
 import type { MonsterLook } from '../monsters/types'
 
 export interface RaidParticipantItem {
@@ -618,6 +619,22 @@ export default function AsmrBattleArena({
   }, [currentTurn, stepIdx, maxStrikeFloating])
 
   const isRaid = isBossRaidTarget && battleViewMode === 'raid-max'
+  const phaseCopy = actionPhase === 'windup'
+    ? '기 모으는 중'
+    : actionPhase === 'strike'
+      ? '식감 스킬 발사!'
+      : actionPhase === 'reaction'
+        ? '명중! 여운이 퍼져요'
+        : isFinished
+          ? '리플레이 완주'
+          : '다음 식감을 기다려요'
+  const equippedLabel = (look: MonsterLook) => {
+    const id = look.decorations?.effect ?? look.decorations?.head ?? look.decorations?.back
+    const item = id ? DECO_ITEMS.find((candidate) => candidate.id === id) : undefined
+    return item ? `${item.icon} ${item.name}` : '🍰 시그니처 플레이팅'
+  }
+  const challengerStyle = equippedLabel(cLook)
+  const defenderStyle = equippedLabel(dLook)
 
   return (
     <main
@@ -893,7 +910,7 @@ export default function AsmrBattleArena({
 
       {/* 3. 🎮 3D 원근 로우앵글 배틀 스테이지 (포켓몬고 2·3번 씬) */}
       <div
-        className="card battle-stage"
+        className={`card battle-stage ${isRaid ? 'raid-stage' : 'classic-stage'}`}
         style={{
           animation: isHitMoment ? (isCrit ? 'stageShake 0.42s ease-out' : 'stageShakeSoft 0.26s ease-out') : undefined,
           background: isRaid
@@ -912,6 +929,17 @@ export default function AsmrBattleArena({
           boxShadow: isRaid ? '0 8px 30px rgba(0,0,0,0.6), inset 0 0 35px rgba(171,71,188,0.2)' : 'none',
         }}
       >
+        {/* 파티세리 무대의 깊이: 관중석·스프링클·쿠키 타일. 게임 판정에는 전혀 관여하지 않는다. */}
+        <div className="arena-skyline" aria-hidden="true" />
+        <div className="arena-sprinkles" aria-hidden="true">{Array.from({ length: 6 }, (_, index) => <span key={index} />)}</div>
+        <div className="arena-spotlight" aria-hidden="true" />
+        <div className="arena-floor" aria-hidden="true" />
+        <div className="arena-rim" aria-hidden="true" />
+        <div className="battle-phase-chip" aria-live="polite">
+          <span>{actionPhase === 'strike' ? '⚡' : actionPhase === 'reaction' ? '💥' : '🍬'}</span>
+          <strong>{phaseCopy}</strong>
+          {actTurn?.skillName && <span>· {actTurn.skillName}</span>}
+        </div>
         <BattleFx
           stepKey={stepIdx}
           phase={actionPhase}
@@ -1377,6 +1405,8 @@ export default function AsmrBattleArena({
                   hitKey={stepIdx}
                   flash={isHitMoment && isChallengerActor}
                   trail={actionPhase === 'strike' && isDefenderActor}
+                  active={isDefenderActor && (actionPhase === 'windup' || actionPhase === 'strike')}
+                  glow={isDefenderActor ? fxTint : 'rgba(186, 104, 200, 0.44)'}
                 />
               )}
             </div>
@@ -1532,6 +1562,8 @@ export default function AsmrBattleArena({
                   hitKey={stepIdx}
                   flash={isHitMoment && isDefenderActor}
                   trail={actionPhase === 'strike' && isChallengerActor}
+                  active={isChallengerActor && (actionPhase === 'windup' || actionPhase === 'strike')}
+                  glow={isChallengerActor ? fxTint : 'rgba(255, 183, 77, 0.42)'}
                 />
               </div>
             </div>
@@ -1557,9 +1589,15 @@ export default function AsmrBattleArena({
                 hitKey={stepIdx}
                 flash={isHitMoment && isDefenderActor}
                 trail={actionPhase === 'strike' && isChallengerActor}
+                active={isChallengerActor && (actionPhase === 'windup' || actionPhase === 'strike')}
+                glow={isChallengerActor ? fxTint : 'rgba(255, 183, 77, 0.42)'}
               />
             </div>
           )}
+          <div className="battle-style-tags" aria-label="전투 꾸밈 정보">
+            <span className="battle-style-tag">{challengerStyle}</span>
+            <span className="battle-style-tag">{defenderStyle}</span>
+          </div>
         </div>
 
         {/* 1줄 미니멀 실시간 ASMR 사운드 뱃지 (보스전에서는 옹기종기 파티 위쪽에 배치) */}
