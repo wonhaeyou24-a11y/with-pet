@@ -295,3 +295,16 @@ export function getPetSecretSkill(monsterId: string): SecretSkillDef | null {
   }
 }
 
+/**
+ * 펫의 에그 온기 승급 등급 조회
+ */
+export function getPetPromotedRarity(monsterId: string, baseRarity: string = 'common'): 'common' | 'rare' | 'epic' | 'legendary' {
+  try {
+    const custom = loadMallangCustom(monsterId) as any
+    return custom?.promotedRarity ?? (baseRarity as any) ?? 'common'
+  } catch {
+    return 'common'
+  }
+}
+
+

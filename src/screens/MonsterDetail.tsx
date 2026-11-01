@@ -34,6 +34,7 @@ import type { MonsterDecorations, MonsterMedals } from '../monsters/types'
 import { BackIcon } from '../ui/Icons'
 import { totalStats } from '../ui/parts'
 import { getSensoryReactionClass, SensoryBurst } from '../ui/SensoryFx'
+import { getPetPromotedRarity, getPetSecretSkill, type SecretSkillDef } from '../lib/eggResonance'
 
 function daysTogether(hatchedAt: string) {
   return Math.max(1, Math.floor((serverNow() - Date.parse(hatchedAt)) / 86_400_000) + 1)
@@ -103,6 +104,10 @@ export default function MonsterDetail({
   const [combo, setCombo] = useState<number>(1)
   const lastTouchRef = useRef<number>(0)
   const [muted, setMuted] = useState<boolean>(() => isAsmrMuted())
+
+  // 🥚 에그 온기 숙성(블렌딩) 비기 스킬 & 승급 등급 조회 (대표님 피드백 반영)
+  const secretSkill: SecretSkillDef | null = getPetSecretSkill(monster.id)
+  const petRarity = getPetPromotedRarity(monster.id, (monster as any).rarity ?? 'common')
 
   function triggerAsmr(kind: DessertSoundKind) {
     const now = Date.now()
@@ -229,9 +234,26 @@ export default function MonsterDetail({
         }}
       >
         <div className="row wrap between" style={{ width: '100%', gap: 4 }}>
-          <span className="chip coral" style={{ fontSize: 12, padding: '2px 8px' }}>
-            {currentBaseInfo?.icon ?? '🍡'} {speciesDef?.postureLabel ?? info?.name}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span className="chip coral" style={{ fontSize: 12, padding: '2px 8px' }}>
+              {currentBaseInfo?.icon ?? '🍡'} {speciesDef?.postureLabel ?? info?.name}
+            </span>
+            {/* 🥚 에그 승급 등급 럭셔리 뱃지 */}
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 900,
+                padding: '2px 7px',
+                borderRadius: 999,
+                color: petRarity === 'legendary' ? '#B45309' : petRarity === 'epic' ? '#6D28D9' : petRarity === 'rare' ? '#1E40AF' : '#4B5563',
+                background: petRarity === 'legendary' ? 'linear-gradient(135deg, #FEF3C7, #FDE68A)' : petRarity === 'epic' ? '#EDE9FE' : petRarity === 'rare' ? '#DBEAFE' : '#F3F4F6',
+                border: `1.5px solid ${petRarity === 'legendary' ? '#F59E0B' : petRarity === 'epic' ? '#8B5CF6' : petRarity === 'rare' ? '#3B82F6' : '#9CA3AF'}`,
+                boxShadow: petRarity === 'legendary' ? '0 1px 4px rgba(245,158,11,0.3)' : 'none',
+              }}
+            >
+              {petRarity === 'legendary' ? '👑 LEGENDARY' : petRarity === 'epic' ? '✨ EPIC' : petRarity === 'rare' ? '🌟 RARE' : 'COMMON'}
+            </span>
+          </div>
           <span className="chip honey" style={{ fontSize: 12, padding: '2px 8px', fontWeight: 800 }}>
             ✨ 매력 {monster.stats.cha + equippedCharm + paintBonusCharm} · ❤️ {biteVotes}
           </span>
@@ -346,6 +368,12 @@ export default function MonsterDetail({
               <div style={{ fontSize: 12, color: '#6A4608' }}>
                 <span style={{ fontWeight: 800 }}>능력치 총점:</span> {totalStats(monster.stats)} P
               </div>
+              <div style={{ fontSize: 12, color: '#6A4608', gridColumn: 'span 2', borderTop: '1px dashed #E0D3C5', paddingTop: 4 }}>
+                <span style={{ fontWeight: 800 }}>에그 승급 등급:</span>{' '}
+                <span style={{ fontWeight: 900, color: petRarity === 'legendary' ? '#D97706' : petRarity === 'epic' ? '#7C3AED' : petRarity === 'rare' ? '#2563EB' : '#4B5563' }}>
+                  {petRarity === 'legendary' ? '👑 LEGENDARY (전설 승급)' : petRarity === 'epic' ? '✨ EPIC (영웅 승급)' : petRarity === 'rare' ? '🌟 RARE (희귀 승급)' : 'COMMON (일반)'}
+                </span>
+              </div>
             </div>
 
             {/* 현재 착용 받침대 정보 및 부티크 안내 */}
@@ -443,6 +471,69 @@ export default function MonsterDetail({
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* 🥚 신비한 에그 전수 비기 (SECRET SKILL) - 대표님 피드백 반영 */}
+            <div
+              style={{
+                background: secretSkill
+                  ? 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)'
+                  : '#F9FAFB',
+                padding: '9px 12px',
+                borderRadius: 12,
+                border: secretSkill ? '1.5px solid #F59E0B' : '1px dashed #D1D5DB',
+                boxShadow: secretSkill ? '0 2px 8px rgba(245, 158, 11, 0.25)' : 'none',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <span style={{ fontSize: 12, fontWeight: 900, color: secretSkill ? '#B45309' : '#6B7280' }}>
+                  🥚 신비한 에그 전수 비기 (SECRET SKILL)
+                </span>
+                <span
+                  style={{
+                    fontSize: 9.5,
+                    fontWeight: 900,
+                    padding: '1px 6px',
+                    borderRadius: 999,
+                    background: secretSkill ? '#F59E0B' : '#E5E7EB',
+                    color: secretSkill ? '#FFFFFF' : '#9CA3AF',
+                  }}
+                >
+                  {secretSkill ? '각인 완료 ✨' : '미각인'}
+                </span>
+              </div>
+              {secretSkill ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <span style={{ fontSize: 15 }}>{secretSkill.icon}</span>
+                    <span style={{ fontSize: 12.5, fontWeight: 900, color: '#92400E' }}>
+                      {secretSkill.name}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 9,
+                        padding: '1px 5px',
+                        borderRadius: 4,
+                        background: '#FEF08A',
+                        color: '#854D0E',
+                        fontWeight: 800,
+                      }}
+                    >
+                      {secretSkill.battleEffect || '특수 비기'}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 11, color: '#78350F', fontWeight: 700, lineHeight: 1.35 }}>
+                    {secretSkill.desc}
+                  </div>
+                  <div style={{ fontSize: 9.5, color: '#D97706', fontWeight: 800, marginTop: 1 }}>
+                    ✨ 탐험 알 온기 숙성(에그 블렌딩)으로 계승된 영구 스페셜 비기입니다.
+                  </div>
+                </div>
+              ) : (
+                <div style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600, lineHeight: 1.35 }}>
+                  아직 전수받은 에그 비기가 없어요. 탐험에서 획득한 알을 [에그 온기 숙성]하면 강력한 비기를 계승받을 수 있어요!
+                </div>
+              )}
             </div>
 
             {/* 시럽 토핑 */}

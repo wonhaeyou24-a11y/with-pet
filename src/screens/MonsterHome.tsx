@@ -32,6 +32,7 @@ import { totalStats } from '../ui/parts'
 import { getSensoryReactionClass, SensoryBurst } from '../ui/SensoryFx'
 import { getWorldBossStatus, type RaidStatus } from '../lib/bossScheduler'
 import { roomGet } from '../lib/roomApi'
+import { getPetPromotedRarity } from '../lib/eggResonance'
 
 type Props = {
   nickname: string
@@ -195,6 +196,8 @@ export default function MonsterHome({
   const look = monsterLook(monster)
   const activeSpecies = look.mallang?.morphForm ?? monster.species
   const info = SPECIES_INFO[activeSpecies] ?? SPECIES_INFO[monster.species]
+  // 🥚 에그 온기 숙성(블렌딩) 승급 등급 조회
+  const petRarity = getPetPromotedRarity(monster.id, (monster as any).rarity ?? 'common')
 
   // 🔔 마운트 시 진행 중인 훈련 및 타워 탐험 자동 백그라운드 알림 예약
   useEffect(() => {
@@ -864,7 +867,8 @@ export default function MonsterHome({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              paddingTop: (!asmrBubble && suggestion) ? 44 : 26,
+              paddingTop: (!asmrBubble && suggestion) ? 36 : 10,
+              paddingBottom: 4,
               transition: 'padding-top 0.3s ease',
             }}
           >
@@ -875,7 +879,25 @@ export default function MonsterHome({
 
         {/* 캐릭터 이름 및 종족·속성·레벨 뱃지 (캐릭터와 절대 겹치지 않게 분리) */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, width: '100%', flexShrink: 0, marginTop: 4 }}>
-          <h1 className="title-xl" style={{ fontSize: 18, margin: 0, lineHeight: 1.1 }}>{monster.name}</h1>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            <h1 className="title-xl" style={{ fontSize: 18, margin: 0, lineHeight: 1.1 }}>{monster.name}</h1>
+            {petRarity !== 'common' && (
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 900,
+                  padding: '2px 7px',
+                  borderRadius: 999,
+                  color: petRarity === 'legendary' ? '#B45309' : petRarity === 'epic' ? '#6D28D9' : '#1E40AF',
+                  background: petRarity === 'legendary' ? 'linear-gradient(135deg, #FEF3C7, #FDE68A)' : petRarity === 'epic' ? '#EDE9FE' : '#DBEAFE',
+                  border: `1.5px solid ${petRarity === 'legendary' ? '#F59E0B' : petRarity === 'epic' ? '#8B5CF6' : '#3B82F6'}`,
+                  boxShadow: petRarity === 'legendary' ? '0 1px 4px rgba(245,158,11,0.3)' : 'none',
+                }}
+              >
+                {petRarity === 'legendary' ? '👑 LEGENDARY' : petRarity === 'epic' ? '✨ EPIC' : '🌟 RARE'}
+              </span>
+            )}
+          </div>
           {/* 🌟 1줄 일렬 정렬: 종족 · 식감 · 속성 · 레벨 뱃지 */}
           <div
             style={{

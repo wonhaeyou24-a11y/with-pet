@@ -28,6 +28,7 @@ import { playDessertAsmr } from '../lib/sound'
 import { supabase } from '../lib/supabase'
 import MonsterView from '../monsters/MonsterView'
 import { BackIcon } from '../ui/Icons'
+import { getPetSecretSkill, type SecretSkillDef } from '../lib/eggResonance'
 
 interface Props {
   monster: MonsterRow
@@ -59,6 +60,8 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
   const [selectedId, setSelectedId] = useState<string>(ALL_SKILL_NODES[0].id)
   const [toast, setToast] = useState<string | null>(null)
   const [showBonusModal, setShowBonusModal] = useState<boolean>(false)
+  // 🥚 에그 온기 숙성으로 계승된 스페셜 비기 스킬 (대표님 피드백 반영)
+  const secretSkill: SecretSkillDef | null = getPetSecretSkill(monster.id)
 
   // 방사형 캔버스 줌(확대/축소) & 패닝(이동) 상태
   const [zoom, setZoom] = useState<number>(0.82)
@@ -467,7 +470,7 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
         </div>
       </div>
 
-      {/* 2. 대전 성향 슬림 칩 & 6대 계열 미니 원터치 탭 (공간 낭비 없이 1줄로 통합) */}
+      {/* 2. 대전 성향 슬림 칩 & 에그 비기 뱃지 & 6대 계열 미니 원터치 탭 */}
       <div
         style={{
           display: 'flex',
@@ -482,23 +485,54 @@ export default function SkillTreeScreen({ monster, onUpdateMonster, onBack }: Pr
           zIndex: 25,
         }}
       >
-        <button
-          onClick={handleCycleStance}
-          style={{
-            padding: '2px 8px',
-            borderRadius: 8,
-            border: 'none',
-            background: 'linear-gradient(90deg, #EC4899, #8B5CF6)',
-            color: '#FFFFFF',
-            fontSize: 11,
-            fontWeight: 800,
-            cursor: 'pointer',
-            whiteSpace: 'nowrap',
-          }}
-          title="클릭하여 대전 성향 변경"
-        >
-          {currentStanceObj.icon} {currentStanceObj.name.split(' ')[0]}
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <button
+            onClick={handleCycleStance}
+            style={{
+              padding: '2px 8px',
+              borderRadius: 8,
+              border: 'none',
+              background: 'linear-gradient(90deg, #EC4899, #8B5CF6)',
+              color: '#FFFFFF',
+              fontSize: 11,
+              fontWeight: 800,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+            title="클릭하여 대전 성향 변경"
+          >
+            {currentStanceObj.icon} {currentStanceObj.name.split(' ')[0]}
+          </button>
+
+          {/* 🥚 에그 전수 비기 뱃지 버튼 */}
+          {secretSkill && (
+            <button
+              onClick={() => {
+                playDessertAsmr('starlight-ting')
+                showToastMsg(`🥚 [에그 비기] ${secretSkill.name}: ${secretSkill.desc}`)
+              }}
+              style={{
+                padding: '2px 7px',
+                borderRadius: 8,
+                border: '1px solid #F59E0B',
+                background: 'linear-gradient(135deg, #FEF3C7, #FDE68A)',
+                color: '#92400E',
+                fontSize: 10,
+                fontWeight: 900,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                boxShadow: '0 1px 4px rgba(245,158,11,0.3)',
+                whiteSpace: 'nowrap',
+              }}
+              title="에그 온기 숙성 전수 비기 상세 보기"
+            >
+              <span>{secretSkill.icon}</span>
+              <span>비기: {secretSkill.name.slice(0, 5)}</span>
+            </button>
+          )}
+        </div>
 
         {/* 6대 계열 미니 도트 바로가기 버튼 */}
         <div style={{ display: 'flex', gap: 4 }}>

@@ -2194,9 +2194,11 @@ export default function Monster3DView({
     const envTex = createPatisserieEnvMap(renderer)
     scene.environment = envTex
 
-    const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 30)
-    camera.position.set(0, 0.22, 5.25)
-    camera.lookAt(0, -0.28, 0)
+    // 🎯 대표님 피드백 반영: 높은 왕관, 긴 모자, 부유 이모티콘 상단 짤림 100% 해소
+    // FOV 40도 + 카메라 거리 5.65 + 캐릭터 중심점 최적화 + 아래 여백 활용
+    const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 30)
+    camera.position.set(0, 0.38, 5.65)
+    camera.lookAt(0, 0.06, 0)
 
     // 따뜻한 파티세리 3점 조명
     const ambient = new THREE.AmbientLight('#FFF5E8', 0.78)
@@ -2214,9 +2216,9 @@ export default function Monster3DView({
     bottomBounce.position.set(0, -3.0, 2.0)
     scene.add(bottomBounce)
 
-    // 3D 플레이팅 받침대 + 3D 디저트 캐릭터 조립 (위쪽 짤림 방지: 살짝 아래로 내려 넉넉한 헤드룸 확보)
+    // 3D 플레이팅 받침대 + 3D 디저트 캐릭터 조립 (상단 왕관/모자 헤드룸 넉넉하게 확보: y = -0.38)
     const stageGroup = new THREE.Group()
-    stageGroup.position.y = -0.16
+    stageGroup.position.y = -0.38
     scene.add(stageGroup)
 
     const baseGroup = build3DDessertBase(dessertBase)

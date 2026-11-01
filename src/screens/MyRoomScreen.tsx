@@ -107,10 +107,6 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
   const [petActivity, setPetActivity] = useState<'idle' | 'sleep' | 'jump' | 'eat' | 'walk'>('idle')
   const [petPosX, setPetPosX] = useState<number>(0) // -65 ~ +65px
   const [footprints, setFootprints] = useState<{ id: number; x: number; y: number }[]>([])
-  const [roomTier, setRoomTier] = useState<1 | 2 | 3>(() => {
-    if (monster.level >= 15 || (monster.evo_stage ?? 1) >= 3) return 2
-    return 1
-  })
   const [bgmPlaying, setBgmPlaying] = useState<boolean>(() => miniRoomBgm.getStatus())
   const [currentTrack, setCurrentTrack] = useState<BgmTrack>(() => miniRoomBgm.getTrack())
   const [showBgmPicker, setShowBgmPicker] = useState<boolean>(false)
@@ -713,31 +709,6 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
             음악 ▾
           </button>
 
-          {/* 룸 규격 (1단계 다락방 / 2단계 복층 / 3단계 팰리스) */}
-          <button
-            onClick={() => {
-              const maxTier = (monster.evo_stage ?? 1) >= 3 ? 3 : monster.level >= 15 ? 2 : 1
-              setRoomTier((cur) => {
-                const next = cur >= maxTier ? 1 : ((cur + 1) as 1 | 2 | 3)
-                showToast(`🏰 룸 테라스가 [${next === 1 ? '1단계: 아늑한 다락방' : next === 2 ? '2단계: 복층 카페' : '3단계: 슈가 팰리스'}] 규격으로 변경되었습니다!`)
-                return next
-              })
-            }}
-            style={{
-              padding: '2px 6px',
-              borderRadius: 8,
-              border: '1px solid #FBCFE8',
-              background: '#FFFFFF',
-              color: '#BE185D',
-              fontWeight: 800,
-              fontSize: 10,
-              cursor: 'pointer',
-            }}
-            title="룸 크기 및 테마 확장 변경"
-          >
-            {roomTier === 1 ? '🏠 1단 다락방' : roomTier === 2 ? '🏡 2단 복층카페' : '🏰 3단 팰리스'}
-          </button>
-
           {/* 💡 방 조명 온/오프 스위치 버튼 */}
           <button
             onClick={() => {
@@ -828,69 +799,8 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
           transition: 'all 0.4s ease',
         }}
       >
-        {/* 상단 벽면 (감성 레이스 창문 & 파티세리 벽면 선반 & 복층 계단 난간 & 네온 레터링) */}
+        {/* 상단 벽면 (감성 레이스 창문 & 파티세리 벽면 선반 & 네온 레터링) */}
         <div style={{ flex: 1, position: 'relative', padding: 8 }}>
-          {/* 복층 계단 & 난간 (2단계 이상 해금 시 렌더링) */}
-          {roomTier >= 2 && (
-            <div
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: 90,
-                height: 70,
-                pointerEvents: 'none',
-                opacity: 0.85,
-                zIndex: 1,
-              }}
-            >
-              {/* 복층 2층 바닥 & 난간 라인 */}
-              <div
-                style={{
-                  width: '100%',
-                  height: 12,
-                  background: 'repeating-linear-gradient(90deg, #D97706 0px, #D97706 8px, #FDE68A 8px, #FDE68A 16px)',
-                  borderRadius: '0 0 6px 0',
-                  borderBottom: '2px solid #92400E',
-                  display: 'flex',
-                  alignItems: 'center',
-                  paddingLeft: 4,
-                  fontSize: 8,
-                }}
-              >
-                <span>🌿 2F 테라스</span>
-              </div>
-              {/* 계단 실루엣 */}
-              <div
-                style={{
-                  width: 32,
-                  height: 38,
-                  borderRight: '2px solid #92400E',
-                  borderBottom: '2px solid #92400E',
-                  background: 'rgba(251, 191, 36, 0.2)',
-                  borderRadius: '0 0 4px 0',
-                }}
-              />
-            </div>
-          )}
-
-          {/* 3단계 슈가 팰리스 샹들리에 */}
-          {roomTier === 3 && (
-            <div
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: '50%',
-                transform: 'translateX(-50%)',
-                fontSize: 16,
-                filter: 'drop-shadow(0 2px 6px #FDE047)',
-                zIndex: 2,
-              }}
-            >
-              ✨💎✨
-            </div>
-          )}
-
           {/* 1. 감성 레이스 창문 (터치 시 낮 🌤️ / 노을 🌅 / 밤 🌙 조명 전환) */}
           <div
             onClick={() => {
@@ -903,7 +813,7 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
             style={{
               position: 'absolute',
               top: 8,
-              left: roomTier >= 2 ? 72 : 10,
+              left: 10,
               width: 52,
               height: 46,
               borderRadius: '12px 12px 2px 2px',
@@ -961,11 +871,7 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
               whiteSpace: 'nowrap',
             }}
           >
-            {roomTier === 1
-              ? '💖 Sweet Patisserie Attic'
-              : roomTier === 2
-                ? '🏡 Duplex Dessert Cafe'
-                : '🏰 Sugar Palace Mansion'}
+            💖 Sweet Patisserie Attic
           </div>
 
           {/* 3. 벽면 디저트 선반 & 미니 액자 */}
