@@ -1469,7 +1469,8 @@ function add3DDecorations(
   } else if (deco?.head === 'crown-emoji-floating') {
     // 👑 감정 이모티콘 크라운: 황금 미니 티아라 + 머리 위로 떠오르는 3D 하트/별빛/음표 이모지
     const crownGroup = new THREE.Group()
-    crownGroup.position.set(0, 1.02, 0)
+    crownGroup.position.set(0, 1.28, 0)
+    crownGroup.scale.set(1.25, 1.25, 1.25)
 
     // 황금 티아라 베이스
     const tiaraMat = new THREE.MeshPhysicalMaterial({
@@ -1478,43 +1479,43 @@ function add3DDecorations(
       roughness: 0.12,
       clearcoat: 1.0,
       emissive: '#FFB300',
-      emissiveIntensity: 0.3,
+      emissiveIntensity: 0.45,
     })
     const tiara = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.42, 0.35, 5, 1, true), tiaraMat)
     crownGroup.add(tiara)
 
     // 크라운 꼭대기 루비 보석
     const ruby = new THREE.Mesh(
-      new THREE.SphereGeometry(0.1, 10, 10),
-      new THREE.MeshPhysicalMaterial({ color: '#E91E63', emissive: '#FF1744', emissiveIntensity: 0.5 }),
+      new THREE.SphereGeometry(0.12, 12, 12),
+      new THREE.MeshPhysicalMaterial({ color: '#E91E63', emissive: '#FF1744', emissiveIntensity: 0.7 }),
     )
-    ruby.position.y = 0.22
+    ruby.position.y = 0.24
     crownGroup.add(ruby)
 
     // 부유하는 3D 감정 이모티콘 그룹
     // 1. 하트 이모지 (좌측 상단)
     const heart = new THREE.Mesh(
-      new THREE.SphereGeometry(0.14, 12, 12),
-      new THREE.MeshPhysicalMaterial({ color: '#F43F5E', roughness: 0.2, emissive: '#FB7185', emissiveIntensity: 0.4 }),
+      new THREE.SphereGeometry(0.18, 14, 14),
+      new THREE.MeshPhysicalMaterial({ color: '#F43F5E', roughness: 0.15, emissive: '#FB7185', emissiveIntensity: 0.6 }),
     )
-    heart.scale.set(1.1, 1.3, 0.8)
-    heart.position.set(-0.38, 0.46, 0.2)
+    heart.scale.set(1.15, 1.35, 0.85)
+    heart.position.set(-0.45, 0.52, 0.22)
     crownGroup.add(heart)
 
     // 2. 황금 별빛 이모지 (우측 상단)
     const starEmoji = new THREE.Mesh(
-      new THREE.OctahedronGeometry(0.13, 0),
-      new THREE.MeshPhysicalMaterial({ color: '#FDE047', emissive: '#F59E0B', emissiveIntensity: 0.6 }),
+      new THREE.OctahedronGeometry(0.16, 0),
+      new THREE.MeshPhysicalMaterial({ color: '#FDE047', emissive: '#F59E0B', emissiveIntensity: 0.8 }),
     )
-    starEmoji.position.set(0.38, 0.48, 0.15)
+    starEmoji.position.set(0.45, 0.54, 0.18)
     crownGroup.add(starEmoji)
 
     // 3. 미니 멜로디 음표 구슬 (중앙 상단)
     const note = new THREE.Mesh(
-      new THREE.SphereGeometry(0.09, 8, 8),
-      new THREE.MeshPhysicalMaterial({ color: '#38BDF8', emissive: '#0284C7', emissiveIntensity: 0.5 }),
+      new THREE.SphereGeometry(0.12, 10, 10),
+      new THREE.MeshPhysicalMaterial({ color: '#38BDF8', emissive: '#0284C7', emissiveIntensity: 0.7 }),
     )
-    note.position.set(0.05, 0.58, -0.1)
+    note.position.set(0.06, 0.68, -0.05)
     crownGroup.add(note)
 
     bodyGroup.add(crownGroup)
@@ -1705,26 +1706,28 @@ function add3DDecorations(
       })
       ;[-1, 1].forEach((side) => {
         const wingWingGroup = new THREE.Group()
-        wingWingGroup.position.set(side * 0.92, 0.38, -0.62)
-        wingWingGroup.rotation.y = side * 0.42
-        wingWingGroup.rotation.z = side * 0.22
+        // 몸통에 가려지지 않도록 양옆으로 시원하게 펼치고 살짝 앞쪽 배치
+        wingWingGroup.position.set(side * 1.08, 0.46, -0.28)
+        wingWingGroup.rotation.y = side * 0.38
+        wingWingGroup.rotation.z = side * 0.25
+        wingWingGroup.scale.set(1.22, 1.22, 1.22)
 
         // 상단 큰 머랭 깃털
-        const f1 = new THREE.Mesh(new THREE.ConeGeometry(0.38, 1.25, 16), meringueWingMat)
+        const f1 = new THREE.Mesh(new THREE.ConeGeometry(0.42, 1.45, 16), meringueWingMat)
         f1.rotation.z = side * -0.65
-        f1.position.set(side * 0.45, 0.4, 0)
+        f1.position.set(side * 0.52, 0.48, 0)
         wingWingGroup.add(f1)
 
         // 중간 머랭 깃털
-        const f2 = new THREE.Mesh(new THREE.ConeGeometry(0.32, 1.0, 16), meringueWingMat)
+        const f2 = new THREE.Mesh(new THREE.ConeGeometry(0.36, 1.15, 16), meringueWingMat)
         f2.rotation.z = side * -0.95
-        f2.position.set(side * 0.52, 0.05, 0)
+        f2.position.set(side * 0.60, 0.08, 0)
         wingWingGroup.add(f2)
 
         // 하단 작은 머랭 깃털
-        const f3 = new THREE.Mesh(new THREE.ConeGeometry(0.26, 0.75, 16), meringueWingMat)
+        const f3 = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.88, 16), meringueWingMat)
         f3.rotation.z = side * -1.25
-        f3.position.set(side * 0.45, -0.25, 0)
+        f3.position.set(side * 0.52, -0.28, 0)
         wingWingGroup.add(f3)
 
         bodyGroup.add(wingWingGroup)

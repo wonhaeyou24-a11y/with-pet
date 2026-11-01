@@ -312,3 +312,4 @@ export default function EggResonanceModal({ monster, onClose, onSuccess }: Props
     </div>
   )
 }
+

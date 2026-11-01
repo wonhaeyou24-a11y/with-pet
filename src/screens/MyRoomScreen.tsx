@@ -808,7 +808,7 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
 
       {/* 3. 🌟 아늑하고 예쁜 비율의 싸이월드 감성 미니룸 캔버스 스테이지 */}
       <div
-        className={`room-lighting-${roomLighting}`}
+        className={roomLightOn ? 'room-lighting-day' : 'room-lighting-night'}
         style={{
           height: 'clamp(260px, 38vh, 320px)',
           minHeight: 260,
@@ -816,12 +816,16 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
           margin: '4px 10px',
           borderRadius: 18,
           background: currentTheme.wallBg,
-          border: '2px solid #FBCFE8',
-          boxShadow: 'inset 0 4px 14px rgba(0,0,0,0.06), 0 6px 20px rgba(244,114,182,0.15)',
+          border: roomLightOn ? '2px solid #FBCFE8' : '2px solid #4338CA',
+          boxShadow: roomLightOn
+            ? 'inset 0 4px 14px rgba(0,0,0,0.06), 0 6px 20px rgba(244,114,182,0.22), 0 0 16px rgba(254, 240, 138, 0.35)'
+            : 'inset 0 6px 20px rgba(0,0,0,0.45), 0 4px 16px rgba(15, 23, 42, 0.4)',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
           flexShrink: 0,
+          filter: roomLightOn ? 'brightness(1.08) contrast(1.02)' : 'brightness(0.68) contrast(1.15)',
+          transition: 'all 0.4s ease',
         }}
       >
         {/* 상단 벽면 (감성 레이스 창문 & 파티세리 벽면 선반 & 복층 계단 난간 & 네온 레터링) */}
@@ -1219,7 +1223,7 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
             style={{
               position: 'absolute',
               inset: 0,
-              background: 'radial-gradient(ellipse at 50% 5%, rgba(255, 248, 220, 0.38) 0%, rgba(255, 255, 255, 0) 75%)',
+              background: 'radial-gradient(ellipse at 50% 0%, rgba(254, 240, 138, 0.45) 0%, rgba(255, 237, 213, 0.22) 50%, rgba(255, 255, 255, 0) 80%)',
               pointerEvents: 'none',
               zIndex: 15,
               transition: 'opacity 0.4s ease',
@@ -1230,7 +1234,7 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
             style={{
               position: 'absolute',
               inset: 0,
-              background: 'radial-gradient(circle at 50% 68%, rgba(254, 243, 199, 0.2) 0%, rgba(15, 23, 42, 0.86) 65%)',
+              background: 'radial-gradient(circle at 50% 68%, rgba(224, 231, 255, 0.25) 0%, rgba(15, 23, 42, 0.88) 70%)',
               pointerEvents: 'none',
               zIndex: 25,
               transition: 'all 0.4s ease',
@@ -1245,11 +1249,11 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
                 fontSize: 9.5,
                 fontWeight: 900,
                 color: '#E0E7FF',
-                background: 'rgba(30, 27, 75, 0.75)',
-                padding: '2px 8px',
+                background: 'rgba(30, 27, 75, 0.85)',
+                padding: '3px 9px',
                 borderRadius: 999,
-                border: '1px solid #4338CA',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+                border: '1px solid #6366F1',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
               }}
             >
               🌙 소등 취침 모드 (불 꺼짐)
