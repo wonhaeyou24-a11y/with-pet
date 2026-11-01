@@ -20,7 +20,7 @@ import { MallangAtelierModal } from './MallangAtelierModal'
 import { loadMallangCustom } from '../monsters/MallangChameleon'
 
 export type PartyBaseType = 'box' | 'cake' | 'tea-stand'
-export type SlotCapacity = 1 | 2 | 4 | 6 | 9
+export type SlotCapacity = 1 | 2 | 4 | 6 | 9 | 16
 
 export interface PartySlotItem {
   slotIndex: number
@@ -103,16 +103,15 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
   // 자유 색칠 & 데코 공방 모달 열림 여부
   const [showAtelierModal, setShowAtelierModal] = useState<boolean>(false)
 
-  // 1인 모드 상태
-  const [soloStep, setSoloStep] = useState<1 | 2 | 3>(1)
+  // 1인 모드 상태 (일체형 직관적 뷰)
   const [selectedBase, setSelectedBase] = useState<PartyBaseType>('box')
   const [selectedCapacity, setSelectedCapacity] = useState<SlotCapacity>(4)
   const [soloSlots, setSoloSlots] = useState<(PartySlotItem | null)[]>(() => new Array(4).fill(null))
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number>(0)
 
   // 피니싱 터치 데코
-  const [lettering, setLettering] = useState<string>('달콤한 파티에 오신 걸 환영해요 💖')
-  const [powder, setPowder] = useState<FinishingTouch['powder']>('sugar-snow')
+  const [lettering, setLettering] = useState<string>('오늘 하루도 달콤하길 💖')
+  const powder: FinishingTouch['powder'] = 'sugar-snow'
   const [ribbon, setRibbon] = useState<FinishingTouch['ribbon']>('rose-pink')
   const [giftRecipient, setGiftRecipient] = useState<string>('')
   const [giftSentToast, setGiftSentToast] = useState<string | null>(null)
@@ -401,7 +400,18 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
     interactive: boolean,
     onSlotClick?: (idx: number) => void
   ) => {
-    const gridCols = capacity === 1 ? '1fr' : capacity === 2 ? 'repeat(2, 1fr)' : capacity === 6 ? 'repeat(3, 1fr)' : capacity === 9 ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)'
+    const gridCols =
+      capacity === 1
+        ? '1fr'
+        : capacity === 2
+        ? 'repeat(2, 1fr)'
+        : capacity === 16
+        ? 'repeat(4, 1fr)'
+        : capacity === 9
+        ? 'repeat(3, 1fr)'
+        : capacity === 6
+        ? 'repeat(3, 1fr)'
+        : 'repeat(2, 1fr)'
 
     return (
       <div style={{ position: 'relative', width: '100%', maxWidth: 360, margin: '6px auto', boxSizing: 'border-box' }}>
@@ -1313,63 +1323,73 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
               </div>
             </div>
 
-            {/* 1단계: 베이스 & 칸 수 선택 */}
-            {soloStep === 1 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <label style={{ fontSize: 12, fontWeight: 900, color: '#334155' }}>시그니처 베이스 종류</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+            {/* 🎁 직관적 원스톱 뷰: 들어가자마자 장식된 실제 수제 초콜릿 상자가 바로 보이고, 즉시 내 펫을 얹는 완성형 뷰 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {/* 상단 1: 상자 베이스 및 칸 수 빠른 선택 바 */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 8,
+                  padding: '10px 14px',
+                  borderRadius: 16,
+                  background: '#FFFFFF',
+                  border: '1px solid #FFE4E6',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                }}
+              >
+                {/* 시그니처 베이스 종류 선택 */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: 11, fontWeight: 900, color: '#334155' }}>
+                    상자 베이스:
+                  </span>
+                  <div style={{ display: 'flex', gap: 6 }}>
                     {[
-                      { id: 'box', name: '초코 상자', icon: '🎁', desc: '다크초코 & 금박 컵' },
-                      { id: 'cake', name: '파티 케이크', icon: '🎂', desc: '생크림 & 통딸기' },
-                      { id: 'tea-stand', name: '티 트레이', icon: '🫖', desc: '로열 실버 플레이트' },
+                      { id: 'box', name: '초코 상자', icon: '🎁' },
+                      { id: 'cake', name: '케이크', icon: '🎂' },
+                      { id: 'tea-stand', name: '티 트레이', icon: '🫖' },
                     ].map((b) => (
                       <button
                         key={b.id}
                         type="button"
                         onClick={() => setSelectedBase(b.id as PartyBaseType)}
                         style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          padding: '12px 6px',
-                          borderRadius: 16,
-                          border: selectedBase === b.id ? '2.5px solid #EC4899' : '1px solid #E2E8F0',
+                          padding: '5px 10px',
+                          borderRadius: 10,
+                          fontSize: 11,
+                          fontWeight: 900,
+                          border: selectedBase === b.id ? '2px solid #EC4899' : '1px solid #CBD5E1',
                           background: selectedBase === b.id ? '#FFF1F2' : '#FFFFFF',
+                          color: selectedBase === b.id ? '#BE185D' : '#475569',
                           cursor: 'pointer',
-                          boxShadow: selectedBase === b.id ? '0 4px 12px rgba(236,72,153,0.2)' : '0 1px 3px rgba(0,0,0,0.04)',
-                          gap: 4,
                         }}
                       >
-                        <span style={{ fontSize: 24 }}>{b.icon}</span>
-                        <span style={{ fontSize: 12, fontWeight: 900, color: selectedBase === b.id ? '#BE185D' : '#1E293B' }}>{b.name}</span>
-                        <span style={{ fontSize: 9, color: '#64748B', fontWeight: 600 }}>{b.desc}</span>
+                        {b.icon} {b.name}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <label style={{ fontSize: 12, fontWeight: 900, color: '#334155' }}>칸 수 선택 (1구 ~ 9구)</label>
-                    <span style={{ fontSize: 12, color: '#EC4899', fontWeight: 900 }}>{selectedCapacity}구 선택</span>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6 }}>
-                    {([1, 2, 4, 6, 9] as SlotCapacity[]).map((cap) => (
+                {/* 칸 수 선택: 2구(소수/커플)부터 4구, 6구, 9구, 16구까지 자유 선택 */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: 11, fontWeight: 900, color: '#334155' }}>
+                    상자 크기:
+                  </span>
+                  <div style={{ display: 'flex', gap: 5 }}>
+                    {([2, 4, 6, 9, 16] as SlotCapacity[]).map((cap) => (
                       <button
                         key={cap}
                         type="button"
                         onClick={() => setSelectedCapacity(cap)}
                         style={{
-                          padding: '8px 0',
-                          borderRadius: 12,
+                          padding: '4px 9px',
+                          borderRadius: 8,
                           fontWeight: 900,
-                          fontSize: 12,
+                          fontSize: 11,
                           border: selectedCapacity === cap ? 'none' : '1px solid #E2E8F0',
-                          background: selectedCapacity === cap ? '#F43F5E' : '#FFFFFF',
-                          color: selectedCapacity === cap ? '#FFFFFF' : '#334155',
+                          background: selectedCapacity === cap ? '#F43F5E' : '#F1F5F9',
+                          color: selectedCapacity === cap ? '#FFFFFF' : '#475569',
                           cursor: 'pointer',
-                          boxShadow: selectedCapacity === cap ? '0 2px 6px rgba(244,63,94,0.3)' : 'none',
                         }}
                       >
                         {cap}구
@@ -1377,130 +1397,95 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                     ))}
                   </div>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() => setSoloStep(2)}
-                  style={{
-                    marginTop: 6,
-                    width: '100%',
-                    padding: '14px 0',
-                    borderRadius: 16,
-                    background: 'linear-gradient(135deg, #EC4899, #F43F5E)',
-                    color: '#FFFFFF',
-                    fontWeight: 900,
-                    fontSize: 14,
-                    border: 'none',
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(236,72,153,0.35)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 6,
-                  }}
-                >
-                  <span>쇼케이스에 내 펫 담기</span>
-                  <Sparkles size={14} />
-                </button>
               </div>
-            )}
 
-            {/* 2단계: 입체 탑다운 베이스 뷰 & 내 펫 담기 */}
-            {soloStep === 2 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {renderLuxuryShowcaseBase(selectedBase, selectedCapacity, soloSlots, true, (idx) => {
-                  setSelectedSlotIndex(idx)
+              {/* 🏆 중앙: 실제 프리미엄 수제 초콜릿 상자 탑다운(Top-down) 뷰 */}
+              {renderLuxuryShowcaseBase(selectedBase, selectedCapacity, soloSlots, true, (idx) => {
+                setSelectedSlotIndex(idx)
+                if (!soloSlots[idx]) {
                   handlePlaceMyPetInSoloSlot(idx)
-                })}
+                }
+              })}
 
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '12px 14px',
-                    borderRadius: 16,
-                    background: '#FFFFFF',
-                    border: '1px solid #FFE4E6',
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
-                  }}
-                >
+              {/* 퀵 액션: 빈 슬롯 채우기 바 */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '10px 14px',
+                  borderRadius: 14,
+                  background: '#FFFFFF',
+                  border: '1px solid #FFE4E6',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ fontSize: 12, fontWeight: 900, color: '#334155' }}>
-                    선택된 <strong style={{ color: '#EC4899' }}>{selectedSlotIndex + 1}번 자리</strong>에 내 펫 넣기
+                    선택된 <strong style={{ color: '#EC4899' }}>{selectedSlotIndex + 1}번 자리</strong>
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => handlePlaceMyPetInSoloSlot(selectedSlotIndex)}
-                    style={{
-                      padding: '8px 16px',
-                      borderRadius: 12,
-                      background: '#EC4899',
-                      color: '#FFFFFF',
-                      fontSize: 12,
-                      fontWeight: 900,
-                      border: 'none',
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 6px rgba(236,72,153,0.3)',
-                    }}
-                  >
-                    내 펫 넣기
-                  </button>
+                  <span style={{ fontSize: 10, color: '#64748B' }}>
+                    (상자의 빈 컵을 터치해도 담깁니다)
+                  </span>
                 </div>
-
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button
-                    type="button"
-                    onClick={() => setSoloStep(1)}
-                    style={{
-                      padding: '12px 18px',
-                      borderRadius: 14,
-                      background: '#FFFFFF',
-                      border: '1px solid #CBD5E1',
-                      color: '#475569',
-                      fontWeight: 800,
-                      fontSize: 13,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    이전으로
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSoloStep(3)}
-                    style={{
-                      flex: 1,
-                      padding: '12px 0',
-                      borderRadius: 14,
-                      background: 'linear-gradient(135deg, #EC4899, #F43F5E)',
-                      color: '#FFFFFF',
-                      fontWeight: 900,
-                      fontSize: 13,
-                      border: 'none',
-                      cursor: 'pointer',
-                      boxShadow: '0 4px 10px rgba(236,72,153,0.35)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 6,
-                    }}
-                  >
-                    <span>피니싱 터치 & 선물 포장</span>
-                    <Gift size={14} />
-                  </button>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {soloSlots[selectedSlotIndex] ? (
+                    <button
+                      type="button"
+                      onClick={() => handleClearSoloSlot(selectedSlotIndex)}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: 10,
+                        background: '#FEE2E2',
+                        color: '#DC2626',
+                        fontSize: 11,
+                        fontWeight: 900,
+                        border: '1px solid #FCA5A5',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      꺼내기
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handlePlaceMyPetInSoloSlot(selectedSlotIndex)}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: 10,
+                        background: '#EC4899',
+                        color: '#FFFFFF',
+                        fontSize: 11,
+                        fontWeight: 900,
+                        border: 'none',
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 6px rgba(236,72,153,0.3)',
+                      }}
+                    >
+                      내 펫 담기
+                    </button>
+                  )}
                 </div>
               </div>
-            )}
 
-            {/* 3단계: 피니싱 터치 & 미니룸 선물 */}
-            {soloStep === 3 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {renderLuxuryShowcaseBase(selectedBase, selectedCapacity, soloSlots, false)}
-
-                {/* 초코펜 레터링 메시지 */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {/* 💌 피니싱 터치: 손글씨 메시지 카드 & 리본 포장 & 미니룸 배달/진열장 */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 12,
+                  padding: 14,
+                  borderRadius: 18,
+                  background: '#FFFFFF',
+                  border: '1.5px solid #FBCFE8',
+                  boxShadow: '0 3px 10px rgba(0,0,0,0.04)',
+                }}
+              >
+                {/* 초코펜 레터링 손글씨 (사진 4, 5, 6번 스타일) */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <label style={{ fontSize: 12, fontWeight: 900, color: '#334155' }}>
-                      🍫 초코펜 손글씨 (초콜릿 팻말에 새겨집니다)
+                    <label style={{ fontSize: 11, fontWeight: 900, color: '#451A03' }}>
+                      🍫 초코펜 손글씨 카드 (선물 언박싱 시 공개됩니다)
                     </label>
                     <span style={{ fontSize: 10, color: '#EC4899', fontWeight: 800 }}>{lettering.length}/50</span>
                   </div>
@@ -1508,66 +1493,59 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                     type="text"
                     value={lettering}
                     onChange={(e) => setLettering(e.target.value.slice(0, 50))}
-                    placeholder="언박싱 시 공개될 감동의 한마디를 적어주세요"
+                    placeholder="예: 너가 최고야~, 오늘 하루도 달콤하길 💖"
                     style={{
                       width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: 12,
+                      padding: '9px 12px',
+                      borderRadius: 10,
                       border: '1.5px solid #CBD5E1',
-                      background: '#FFFFFF',
+                      background: '#FFFDF9',
                       fontSize: 12,
                       fontWeight: 800,
                       color: '#1E293B',
                       boxSizing: 'border-box',
                     }}
                   />
-                </div>
-
-                {/* 파우더 데코 */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <label style={{ fontSize: 12, fontWeight: 900, color: '#334155' }}>❄️ 솔솔 파우더 & 시럽</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+                  {/* 추천 문구 빠른 입력 칩 */}
+                  <div style={{ display: 'flex', gap: 5, overflowX: 'auto', paddingBottom: 2 }}>
                     {[
-                      { id: 'sugar-snow', name: '슈가스노우', icon: '❄️' },
-                      { id: 'gold-leaf', name: '순금금박', icon: '✨' },
-                      { id: 'berry-syrup', name: '딸기시럽', icon: '🍓' },
-                      { id: 'rainbow-sprinkle', name: '스프링클', icon: '🌈' },
-                    ].map((p) => (
+                      '너가 최고야~ 👍',
+                      '오늘 하루도 달콤하길 💖',
+                      '합격은 당근이지! 🥕',
+                      '언제나 응원해 ✨',
+                      '사랑해 늘 고마워 💝',
+                    ].map((phrase) => (
                       <button
-                        key={p.id}
+                        key={phrase}
                         type="button"
-                        onClick={() => setPowder(p.id as FinishingTouch['powder'])}
+                        onClick={() => setLettering(phrase)}
                         style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          gap: 2,
-                          padding: '8px 0',
-                          borderRadius: 12,
-                          border: powder === p.id ? '2px solid #F59E0B' : '1px solid #E2E8F0',
-                          background: powder === p.id ? '#FEF3C7' : '#FFFFFF',
-                          color: powder === p.id ? '#92400E' : '#475569',
-                          fontWeight: 900,
-                          fontSize: 11,
+                          flexShrink: 0,
+                          padding: '3px 7px',
+                          borderRadius: 8,
+                          background: '#FFF1F2',
+                          border: '1px solid #FECDD3',
+                          color: '#BE185D',
+                          fontSize: 10,
+                          fontWeight: 800,
                           cursor: 'pointer',
                         }}
                       >
-                        <span style={{ fontSize: 16 }}>{p.icon}</span>
-                        <span>{p.name}</span>
+                        {phrase}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* 리본 색상 */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <label style={{ fontSize: 12, fontWeight: 900, color: '#334155' }}>🎀 선물 리본 매듭</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+                {/* 리본 색상 선택 */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: 11, fontWeight: 900, color: '#451A03' }}>🎀 선물 실크 리본:</span>
+                  <div style={{ display: 'flex', gap: 6 }}>
                     {[
                       { id: 'rose-pink', name: '로즈핑크', color: '#FF4081' },
-                      { id: 'royal-gold', name: '로열골드', color: '#FFD700' },
-                      { id: 'mint-sky', name: '민트스카이', color: '#26A69A' },
-                      { id: 'pure-white', name: '순백실크', color: '#E0E0E0' },
+                      { id: 'royal-gold', name: '골드브라운', color: '#8D5B2A' },
+                      { id: 'mint-sky', name: '민트', color: '#26A69A' },
+                      { id: 'pure-white', name: '화이트', color: '#E2E8F0' },
                     ].map((r) => (
                       <button
                         key={r.id}
@@ -1575,54 +1553,39 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                         onClick={() => setRibbon(r.id as FinishingTouch['ribbon'])}
                         style={{
                           display: 'flex',
-                          flexDirection: 'column',
                           alignItems: 'center',
                           gap: 4,
-                          padding: '8px 0',
-                          borderRadius: 12,
+                          padding: '4px 8px',
+                          borderRadius: 8,
                           border: ribbon === r.id ? '2px solid #EC4899' : '1px solid #E2E8F0',
                           background: ribbon === r.id ? '#FFF1F2' : '#FFFFFF',
                           color: ribbon === r.id ? '#BE185D' : '#475569',
-                          fontWeight: 900,
-                          fontSize: 11,
+                          fontSize: 10,
+                          fontWeight: 800,
                           cursor: 'pointer',
                         }}
                       >
-                        <span style={{ width: 14, height: 14, borderRadius: '50%', background: r.color, border: '1px solid rgba(0,0,0,0.1)' }} />
+                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: r.color }} />
                         <span>{r.name}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* 미니룸 선물 배달 */}
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 8,
-                    padding: 14,
-                    borderRadius: 16,
-                    background: '#FAF5FF',
-                    border: '1.5px solid #E9D5FF',
-                  }}
-                >
-                  <label style={{ fontSize: 12, fontWeight: 900, color: '#581C87', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Gift size={14} />
-                    <span>선물 배달할 지인의 닉네임</span>
-                  </label>
+                {/* 지인 닉네임 입력 & 선물 배달 버튼 */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, paddingTop: 4, borderTop: '1px solid #FCE7F3' }}>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <input
                       type="text"
                       value={giftRecipient}
                       onChange={(e) => setGiftRecipient(e.target.value.slice(0, 15))}
-                      placeholder="지인 닉네임 (비우면 내 미니룸에 배달)"
+                      placeholder="받는 친구 닉네임 (비우면 내 미니룸에 배달)"
                       style={{
                         flex: 1,
-                        padding: '8px 12px',
+                        padding: '9px 12px',
                         borderRadius: 12,
                         border: '1.5px solid #D8B4FE',
-                        background: '#FFFFFF',
+                        background: '#FAF5FF',
                         fontSize: 12,
                         fontWeight: 800,
                         color: '#1E293B',
@@ -1632,9 +1595,9 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                       type="button"
                       onClick={handleSendGiftToMiniroom}
                       style={{
-                        padding: '8px 16px',
+                        padding: '9px 16px',
                         borderRadius: 12,
-                        background: 'linear-gradient(135deg, #9333EA, #7E22CE)',
+                        background: 'linear-gradient(135deg, #EC4899, #F43F5E)',
                         color: '#FFFFFF',
                         fontWeight: 900,
                         fontSize: 12,
@@ -1642,55 +1605,45 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 4,
-                        boxShadow: '0 2px 6px rgba(147,51,234,0.3)',
+                        gap: 5,
+                        boxShadow: '0 3px 8px rgba(236,72,153,0.3)',
                       }}
                     >
                       <Gift size={13} />
-                      <span>선물 배달</span>
+                      <span>미니룸 배달 🎁</span>
                     </button>
                   </div>
-                  <span style={{ fontSize: 10, color: '#7E22CE', fontWeight: 700 }}>
-                    💡 배달된 선물은 미니룸에서 터치 시 리본이 풀리며 화려하게 언박싱됩니다!
+                  <span style={{ fontSize: 9.5, color: '#7E22CE', fontWeight: 700 }}>
+                    💡 배달된 선물은 미니룸에서 터치 시 리본이 풀리며 글과 함께 화려하게 언박싱됩니다!
                   </span>
                 </div>
 
-                {/* 내 미니룸 진열장에 바로 전시 */}
+                {/* 내 진열장 소장 버튼 */}
                 <button
                   type="button"
                   onClick={handleSaveToMyShowcase}
                   style={{
                     width: '100%',
-                    padding: '12px 0',
-                    borderRadius: 14,
-                    background: '#FEF3C7',
-                    color: '#92400E',
+                    padding: '11px 0',
+                    borderRadius: 12,
+                    background: 'linear-gradient(135deg, #D97706, #B45309)',
+                    color: '#FFFFFF',
                     fontWeight: 900,
-                    fontSize: 13,
-                    border: '1.5px solid #FCD34D',
-                    cursor: 'pointer',
-                  }}
-                >
-                  내 미니룸 진열장에 바로 전시하기
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setSoloStep(2)}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#64748B',
                     fontSize: 12,
-                    fontWeight: 800,
+                    border: 'none',
                     cursor: 'pointer',
-                    padding: 8,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    boxShadow: '0 3px 8px rgba(217,119,6,0.25)',
                   }}
                 >
-                  배치 수정하기
+                  <Sparkles size={13} />
+                  <span>내 명예의 진열장에 영구 소장하기</span>
                 </button>
               </div>
-            )}
+            </div>
           </div>
         )}
 

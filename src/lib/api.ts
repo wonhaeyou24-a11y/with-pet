@@ -90,9 +90,24 @@ export function monsterLook(m: MonsterRow): MonsterLook {
   mergedMallang.color = '#FFFFFF'
   mergedMallang.baseColor = '#FFFFFF'
 
+  // 🏆 대표님 피드백 100% 반영: 맑은 콩알눈 하나로 통일 & 기분·상황에 따른 자동 표정 변화
+  let autoExpression: Expression = (m.parts?.expression as Expression) || 'round'
+  if (m.fatigue !== undefined && m.fatigue >= 80) {
+    autoExpression = 'sleepy'
+  } else if (m.hunger !== undefined && m.hunger <= 20) {
+    autoExpression = 'grumpy'
+  } else if (m.mood !== undefined && m.mood <= 25) {
+    autoExpression = 'angry'
+  } else if (m.cleanliness !== undefined && m.cleanliness <= 20) {
+    autoExpression = 'sad'
+  } else if (m.mood !== undefined && m.mood >= 80) {
+    autoExpression = 'happy' as any
+  }
+
   return {
     species: normSpecies,
     ...m.parts,
+    expression: autoExpression,
     shiny: m.is_shiny || m.parts.shiny,
     mutation: m.mutation ?? m.parts.mutation ?? null,
     decorations: saved?.decorations ?? m.parts.decorations,

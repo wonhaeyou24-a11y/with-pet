@@ -64,8 +64,8 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
   onClose,
   onSaved,
 }) => {
-  // 모드: 'brush'(직접 그리기) | 'stamp'(데코 콕콕 찍기) | 'eraser'(지우개)
-  const [toolMode, setToolMode] = useState<'brush' | 'stamp' | 'eraser'>('brush')
+  // 모드: 'brush'(직접 그리기) | 'stamp'(데코 콕콕 찍기) | 'eraser'(지우개) | 'mold'(자유 반죽 빚기)
+  const [toolMode, setToolMode] = useState<'brush' | 'stamp' | 'eraser' | 'mold'>('brush')
   const [selectedColor, setSelectedColor] = useState<string>('#E11D48')
   const [brushSize, setBrushSize] = useState<number>(10)
   const [selectedStamp, setSelectedStamp] = useState<StampKind>('strawberry')
@@ -75,6 +75,11 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
   const [stamps, setStamps] = useState<PaintStamp[]>([])
   const [doughShape, setDoughShape] = useState<DoughShapeId>('round-mochi')
   const [doughType, setDoughType] = useState<'mochi' | 'pudding' | 'jelly' | 'choco'>('mochi')
+  const [freeDoughPoints, setFreeDoughPoints] = useState<[number, number][]>([
+    [120, 36], [165, 48], [200, 88], [206, 138], [182, 185], [142, 204],
+    [98, 204], [58, 185], [34, 138], [40, 88], [75, 48], [120, 36]
+  ])
+  const [activeHandleIndex, setActiveHandleIndex] = useState<number | null>(null)
   const [isDrawing, setIsDrawing] = useState<boolean>(false)
   const [currentStroke, setCurrentStroke] = useState<[number, number][]>([])
 
@@ -89,6 +94,9 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
         if (saved.stamps) setStamps(saved.stamps)
         if (saved.doughShape) setDoughShape(saved.doughShape)
         if (saved.doughType) setDoughType(saved.doughType as any)
+        if (saved.freeDoughPoints && saved.freeDoughPoints.length >= 6) {
+          setFreeDoughPoints(saved.freeDoughPoints)
+        }
       }
     } catch (e) {
       console.error('커스텀 로드 실패:', e)
@@ -109,10 +117,35 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
     return [x, y]
   }
 
-  // 드로잉 시작
+  // 드로잉 및 반죽 빚기 시작
   const handlePointerDown = (e: React.MouseEvent | React.TouchEvent) => {
     const pt = getSvgCoordinates(e)
     if (!pt) return
+
+    if (toolMode === 'mold' || doughShape === 'free-dough') {
+      // ✋ 자유 반죽 몰딩 모드: 클릭 지점 근처의 가장 가까운 제어점 핸들 찾기
+      const [clickX, clickY] = pt
+      let nearestIdx = -1
+      let minDist = 40 // 터치 감지 반경
+      freeDoughPoints.forEach(([hx, hy], idx) => {
+        const dist = Math.hypot(hx - clickX, hy - clickY)
+        if (dist < minDist) {
+          minDist = dist
+          nearestIdx = idx
+        }
+      })
+
+      if (nearestIdx !== -1) {
+        setActiveHandleIndex(nearestIdx)
+        setDoughShape('free-dough')
+      } else {
+        // 제어점이 아닌 곳을 터치하면 새로운 외곽선 자유 스케치 시작
+        setIsDrawing(true)
+        setCurrentStroke([pt])
+        setDoughShape('free-dough')
+      }
+      return
+    }
 
     if (toolMode === 'stamp') {
       // 스탬프 콕 찍기
@@ -131,18 +164,49 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
     setCurrentStroke([pt])
   }
 
-  // 드로잉 이동 (선 긋기)
+  // 드로잉 및 제어점 이동 (터치 드래그로 반죽 주무르기)
   const handlePointerMove = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!isDrawing) return
     const pt = getSvgCoordinates(e)
     if (!pt) return
+
+    if (activeHandleIndex !== null) {
+      // 제어점 드래그하여 반죽 모양 늘리고 줄이기
+      setFreeDoughPoints((prev) => {
+        const copy: [number, number][] = [...prev]
+        copy[activeHandleIndex] = pt
+        return copy
+      })
+      return
+    }
+
+    if (!isDrawing) return
     setCurrentStroke((prev) => [...prev, pt])
   }
 
   // 드로잉 종료
   const handlePointerUp = () => {
+    if (activeHandleIndex !== null) {
+      setActiveHandleIndex(null)
+      return
+    }
+
     if (!isDrawing) return
     setIsDrawing(false)
+
+    if (toolMode === 'mold' && currentStroke.length >= 8) {
+      // ✋ 자유 스케치로 반죽을 둥글게 둘러싸 빚은 경우 -> 새 자유 반죽 포인트로 리샘플링
+      const sampledPts: [number, number][] = []
+      const step = Math.max(1, Math.floor(currentStroke.length / 12))
+      for (let i = 0; i < currentStroke.length; i += step) {
+        sampledPts.push(currentStroke[i])
+      }
+      if (sampledPts.length >= 6) {
+        setFreeDoughPoints(sampledPts.slice(0, 16))
+      }
+      setCurrentStroke([])
+      return
+    }
+
     if (currentStroke.length > 0) {
       const newStroke: PaintStroke = {
         color: toolMode === 'eraser' ? '#FFFFFF' : selectedColor,
@@ -168,6 +232,10 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
     if (confirm('모든 색칠과 데코를 지우고 깨끗한 순백 도우로 되돌릴까요?')) {
       setStrokes([])
       setStamps([])
+      setFreeDoughPoints([
+        [120, 36], [165, 48], [200, 88], [206, 138], [182, 185], [142, 204],
+        [98, 204], [58, 185], [34, 138], [40, 88], [75, 48], [120, 36]
+      ])
     }
   }
 
@@ -181,6 +249,7 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
         stamps,
         doughShape,
         doughType,
+        freeDoughPoints: doughShape === 'free-dough' ? freeDoughPoints : undefined,
         color: '#FFFFFF', // 순백 도우 기본 유지
         baseColor: '#FFFFFF',
       }
@@ -200,6 +269,7 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
     stamps,
     doughShape,
     doughType,
+    freeDoughPoints: doughShape === 'free-dough' ? freeDoughPoints : undefined,
     color: '#FFFFFF',
     baseColor: '#FFFFFF',
   }
@@ -363,12 +433,45 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
               <path
                 d={currentStroke.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x} ${y}`).join(' ')}
                 fill="none"
-                stroke={toolMode === 'eraser' ? '#FFFFFF' : selectedColor}
-                strokeWidth={brushSize}
+                stroke={toolMode === 'mold' ? '#F59E0B' : toolMode === 'eraser' ? '#FFFFFF' : selectedColor}
+                strokeWidth={toolMode === 'mold' ? 3 : brushSize}
+                strokeDasharray={toolMode === 'mold' ? '4 4' : undefined}
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 opacity={0.8}
               />
+            )}
+
+            {/* 4. ✋ 자유 반죽 몰딩 제어점 핸들 및 외곽선 가이드 (doughShape === 'free-dough' 또는 mold 모드) */}
+            {(doughShape === 'free-dough' || toolMode === 'mold') && (
+              <g style={{ pointerEvents: 'none' }}>
+                {/* 빚어진 반죽 외곽 연결선 */}
+                <polygon
+                  points={freeDoughPoints.map(([x, y]) => `${x},${y}`).join(' ')}
+                  fill="none"
+                  stroke="#F59E0B"
+                  strokeWidth={2}
+                  strokeDasharray="4 3"
+                  opacity={0.75}
+                />
+                {/* 각 꼭짓점 드래그 핸들 */}
+                {freeDoughPoints.map(([hx, hy], idx) => {
+                  const isActive = activeHandleIndex === idx
+                  return (
+                    <g key={idx}>
+                      <circle
+                        cx={hx}
+                        cy={hy}
+                        r={isActive ? 8 : 5.5}
+                        fill={isActive ? '#EF4444' : '#F59E0B'}
+                        stroke="#FFFFFF"
+                        strokeWidth={2}
+                        opacity={0.9}
+                      />
+                    </g>
+                  )
+                })}
+              </g>
             )}
           </svg>
 
@@ -387,7 +490,9 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
               border: '1px solid #FCD34D',
             }}
           >
-            🖌️ 몸체 위를 직접 터치해 색칠하세요!
+            {toolMode === 'mold' || doughShape === 'free-dough'
+              ? '✋ 반죽 둘레를 드래그하여 나만의 모양으로 빚으세요!'
+              : '🖌️ 몸체 위를 직접 터치해 색칠하세요!'}
           </div>
 
           {/* 실행취소 & 리셋 버튼 */}
@@ -514,16 +619,33 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
             </div>
           </div>
 
-          {/* 모드 전환 탭 (브러시 칠하기 / 데코 찍기 / 지우개) */}
-          <div style={{ display: 'flex', gap: 6 }}>
+          {/* 모드 전환 탭 (반죽 빚기 / 브러시 칠하기 / 데코 찍기 / 지우개) */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 5 }}>
+            <button
+              onClick={() => {
+                setToolMode('mold')
+                setDoughShape('free-dough')
+              }}
+              style={{
+                padding: '7px 0',
+                borderRadius: 12,
+                fontWeight: 900,
+                fontSize: 11,
+                border: toolMode === 'mold' ? 'none' : '1px solid #E2E8F0',
+                background: toolMode === 'mold' ? 'linear-gradient(135deg, #F59E0B, #D97706)' : '#FFFFFF',
+                color: toolMode === 'mold' ? '#FFFFFF' : '#475569',
+                cursor: 'pointer',
+              }}
+            >
+              ✋ 반죽 빚기
+            </button>
             <button
               onClick={() => setToolMode('brush')}
               style={{
-                flex: 1,
-                padding: '8px 0',
+                padding: '7px 0',
                 borderRadius: 12,
                 fontWeight: 900,
-                fontSize: 12,
+                fontSize: 11,
                 border: toolMode === 'brush' ? 'none' : '1px solid #E2E8F0',
                 background: toolMode === 'brush' ? 'linear-gradient(135deg, #EC4899, #BE185D)' : '#FFFFFF',
                 color: toolMode === 'brush' ? '#FFFFFF' : '#475569',
@@ -535,11 +657,10 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
             <button
               onClick={() => setToolMode('stamp')}
               style={{
-                flex: 1,
-                padding: '8px 0',
+                padding: '7px 0',
                 borderRadius: 12,
                 fontWeight: 900,
-                fontSize: 12,
+                fontSize: 11,
                 border: toolMode === 'stamp' ? 'none' : '1px solid #E2E8F0',
                 background: toolMode === 'stamp' ? 'linear-gradient(135deg, #9333EA, #7E22CE)' : '#FFFFFF',
                 color: toolMode === 'stamp' ? '#FFFFFF' : '#475569',
@@ -551,10 +672,10 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
             <button
               onClick={() => setToolMode('eraser')}
               style={{
-                padding: '8px 14px',
+                padding: '7px 0',
                 borderRadius: 12,
                 fontWeight: 900,
-                fontSize: 12,
+                fontSize: 11,
                 border: toolMode === 'eraser' ? 'none' : '1px solid #E2E8F0',
                 background: toolMode === 'eraser' ? '#64748B' : '#FFFFFF',
                 color: toolMode === 'eraser' ? '#FFFFFF' : '#475569',
@@ -564,6 +685,62 @@ export const MallangAtelierModal: React.FC<MallangAtelierModalProps> = ({
               🧹 지우개
             </button>
           </div>
+
+          {/* 0. ✋ 자유 반죽 빚기 모드일 때: 형태 프리셋 & 리셋 버튼 */}
+          {toolMode === 'mold' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={{ fontSize: 11, fontWeight: 900, color: '#92400E' }}>
+                원하는 모양으로 외곽 핸들을 드래그하거나 캔버스를 둥글게 둘러싸 그리세요:
+              </span>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {[
+                  {
+                    name: '동글 찹쌀떡',
+                    pts: [
+                      [120, 36], [165, 48], [200, 88], [206, 138], [182, 185], [142, 204],
+                      [98, 204], [58, 185], [34, 138], [40, 88], [75, 48], [120, 36]
+                    ]
+                  },
+                  {
+                    name: '폭신 하트',
+                    pts: [
+                      [120, 70], [150, 40], [190, 48], [205, 95], [180, 150], [120, 205],
+                      [60, 150], [35, 95], [50, 48], [90, 40], [120, 70], [120, 70]
+                    ]
+                  },
+                  {
+                    name: '반짝 별',
+                    pts: [
+                      [120, 30], [145, 80], [200, 85], [155, 125], [175, 185], [120, 150],
+                      [65, 185], [85, 125], [40, 85], [95, 80], [120, 30], [120, 30]
+                    ]
+                  },
+                ].map((preset) => (
+                  <button
+                    key={preset.name}
+                    type="button"
+                    onClick={() => {
+                      setFreeDoughPoints(preset.pts as any)
+                      setDoughShape('free-dough')
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '5px 0',
+                      borderRadius: 8,
+                      fontSize: 10,
+                      fontWeight: 900,
+                      border: '1px solid #FCD34D',
+                      background: '#FEF3C7',
+                      color: '#92400E',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {preset.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* 1. 붓 칠하기 모드일 때: 브러시 굵기 & 12색 팔레트 */}
           {toolMode === 'brush' && (

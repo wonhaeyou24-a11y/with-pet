@@ -33,6 +33,7 @@ export type DessertBaseId =
 export type SyrupId = 'choco-drizzle' | 'berry-syrup' | 'matcha-powder' | 'rainbow-sprinkles' | 'sugar-powder'
 
 export type DoughShapeId =
+  | 'free-dough'
   | 'round-mochi'
   | 'soft-cube'
   | 'sweet-heart'
@@ -48,6 +49,7 @@ export const DOUGH_SHAPES: {
   desc: string
   span: 1 | 2
 }[] = [
+  { id: 'free-dough', name: '자유 반죽', icon: '✋', desc: '터치 드래그로 직접 빚는 자유 모양', span: 1 },
   { id: 'round-mochi', name: '동글 모찌', icon: '🍡', desc: '동글동글한 모찌 돔', span: 1 },
   { id: 'soft-cube', name: '네모 큐브', icon: '🧊', desc: '모나지 않은 파베 초콜릿', span: 1 },
   { id: 'sweet-heart', name: '하트 봉봉', icon: '💖', desc: '사랑스러운 입체 하트', span: 1 },
@@ -81,6 +83,7 @@ export interface MallangCustom {
   strokes?: PaintStroke[]
   stamps?: PaintStamp[]
   doughShape?: DoughShapeId
+  freeDoughPoints?: [number, number][] // 터치 드래그로 직접 빚은 외곽 윤곽선 좌표들 (정규화 0~240)
   doughType?: 'mochi' | 'pudding' | 'jelly' | 'choco'
   color?: string
   baseColor?: string
