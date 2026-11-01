@@ -1225,22 +1225,29 @@ function add3DEvolutionVisuals(
           ? '#7C4DFF'
           : '#00B0FF'
 
+  // 💡 부티크 장신구 우선 원칙: 유저가 커스텀 장신구를 장착 중이면 기본 진화 장식과의 겹침을 방지
+  const deco = look.mallang?.decorations ?? look.decorations
+  const hasCustomHead = Boolean(deco?.head)
+  const hasCustomBack = Boolean(deco?.back || (look.mallang?.wingKind && look.mallang.wingKind !== 'none'))
+  const hasCustomEffect = Boolean(deco?.effect)
+
   // 1. 발밑 진화 마법진 / 아우라 링 (Stage 2 & 3 공통)
+  // 부티크 바닥 이펙트(꽃길, 마카롱 가루 등) 착용 시 마법진과 겹쳐 번잡해지지 않도록 투명도 조절
   const auraRing = new THREE.Mesh(
     new THREE.RingGeometry(1.25, 1.48, 36),
     new THREE.MeshBasicMaterial({
       color: branchColor,
       side: THREE.DoubleSide,
       transparent: true,
-      opacity: stage === 3 ? 0.85 : 0.55,
+      opacity: hasCustomEffect ? 0.28 : stage === 3 ? 0.85 : 0.55,
     }),
   )
   auraRing.rotation.x = -Math.PI / 2
   auraRing.position.y = -0.85
   rootGroup.add(auraRing)
 
-  // 2. 2단계 파티세리 외형
-  if (stage === 2) {
+  // 2. 2단계 파티세리 외형 (유저가 부티크 머리 장식을 착용하지 않았을 때만 기본 진화 모자/리본 렌더링!)
+  if (stage === 2 && !hasCustomHead) {
     if (branch === 'crispy-crunch') {
       // 황금 카다이프 링 머리 장식
       const crunchTorus = new THREE.Mesh(
@@ -1272,49 +1279,54 @@ function add3DEvolutionVisuals(
 
   // 3. 3단계 로얄 마스터 외형 (웅장한 3D 황금 크라운 + 5대 보석 첨탑 + 공전 궤도)
   if (stage === 3) {
-    const crownGroup = new THREE.Group()
-    crownGroup.position.set(0, 1.25, 0)
+    // 👑 유저가 부티크 머리 장식을 착용하지 않았을 때만 진화 황금 왕관 렌더링!
+    if (!hasCustomHead) {
+      const crownGroup = new THREE.Group()
+      crownGroup.position.set(0, 1.25, 0)
 
-    // 왕관 밑단 골드 링
-    const crownBase = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.52, 0.48, 0.16, 24),
-      new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.85, roughness: 0.15, clearcoat: 1.0 }),
-    )
-    crownGroup.add(crownBase)
-
-    // 왕관 5개 뾰족 첨탑 & 보석
-    for (let i = 0; i < 5; i++) {
-      const angle = (i * (Math.PI * 2)) / 5
-      const spike = new THREE.Mesh(
-        new THREE.ConeGeometry(0.12, 0.35, 12),
-        new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.9, roughness: 0.1 }),
+      // 왕관 밑단 골드 링
+      const crownBase = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.52, 0.48, 0.16, 24),
+        new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.85, roughness: 0.15, clearcoat: 1.0 }),
       )
-      spike.position.set(Math.cos(angle) * 0.46, 0.22, Math.sin(angle) * 0.46)
-      crownGroup.add(spike)
+      crownGroup.add(crownBase)
 
-      // 첨탑 꼭대기 루비/사파이어 보석
-      const gem = new THREE.Mesh(
-        new THREE.OctahedronGeometry(0.08, 0),
-        new THREE.MeshPhysicalMaterial({
-          color: i % 2 === 0 ? branchColor : '#FF1744',
-          metalness: 0.3,
-          roughness: 0.05,
-          transmission: 0.8,
-        }),
-      )
-      gem.position.set(Math.cos(angle) * 0.46, 0.42, Math.sin(angle) * 0.46)
-      crownGroup.add(gem)
+      // 왕관 5개 뾰족 첨탑 & 보석
+      for (let i = 0; i < 5; i++) {
+        const angle = (i * (Math.PI * 2)) / 5
+        const spike = new THREE.Mesh(
+          new THREE.ConeGeometry(0.12, 0.35, 12),
+          new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.9, roughness: 0.1 }),
+        )
+        spike.position.set(Math.cos(angle) * 0.46, 0.22, Math.sin(angle) * 0.46)
+        crownGroup.add(spike)
+
+        // 첨탑 꼭대기 루비/사파이어 보석
+        const gem = new THREE.Mesh(
+          new THREE.OctahedronGeometry(0.08, 0),
+          new THREE.MeshPhysicalMaterial({
+            color: i % 2 === 0 ? branchColor : '#FF1744',
+            metalness: 0.3,
+            roughness: 0.05,
+            transmission: 0.8,
+          }),
+        )
+        gem.position.set(Math.cos(angle) * 0.46, 0.42, Math.sin(angle) * 0.46)
+        crownGroup.add(gem)
+      }
+      bodyGroup.add(crownGroup)
     }
-    bodyGroup.add(crownGroup)
 
-    // 회전하는 3D 오로라 궤도 링
-    const halo = new THREE.Mesh(
-      new THREE.TorusGeometry(1.05, 0.05, 16, 48),
-      new THREE.MeshBasicMaterial({ color: branchColor, transparent: true, opacity: 0.7 }),
-    )
-    halo.rotation.x = Math.PI / 2.6
-    halo.position.y = 0.5
-    bodyGroup.add(halo)
+    // 회전하는 3D 오로라 궤도 링: 날개나 대형 모자와의 겹침 간섭 방지
+    if (!hasCustomBack && !hasCustomHead) {
+      const halo = new THREE.Mesh(
+        new THREE.TorusGeometry(1.05, 0.05, 16, 48),
+        new THREE.MeshBasicMaterial({ color: branchColor, transparent: true, opacity: 0.7 }),
+      )
+      halo.rotation.x = Math.PI / 2.6
+      halo.position.y = 0.5
+      bodyGroup.add(halo)
+    }
   }
 }
 
