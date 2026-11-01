@@ -259,10 +259,14 @@ export function build3DCharacterMesh(
   const bodyGroup = new THREE.Group()
   root.add(bodyGroup)
 
-  // 🛡️ 구버전 종족이나 알 수 없는 코드가 유입되어도 100% 매핑된 8대 디저트 펫으로 정규화
-  const validSpecies = normalizeDessertSpecies(species)
+  // 🏆 대표님 피드백 100% 반영: 순백 도우 DIY 모드일 때 (color === '#FFFFFF' 또는 doughType 지정)
+  // 기존 종족 외형 대신 질감과 광택만 살아있는 순백의 도우(mochi, pudding, jelly, choco)로 렌더링!
+  const isDoughMode = !!look.mallang?.doughType || (look as any).color === '#FFFFFF' || look.mallang?.color === '#FFFFFF'
+  const validSpecies = isDoughMode
+    ? (look.mallang?.doughType || 'mochi')
+    : normalizeDessertSpecies(species)
 
-  const palIdx = look.mallang?.skinPalette ?? look.palette ?? 0
+  const palIdx = isDoughMode ? 0 : (look.mallang?.skinPalette ?? look.palette ?? 0)
   const basePal = CHAMELEON_PALETTES[palIdx % CHAMELEON_PALETTES.length]
   let innerLiquid: THREE.Object3D | undefined
 
@@ -641,7 +645,7 @@ export function build3DCharacterMesh(
   } else if (validSpecies === 'pudding') {
     // 🍮 4. 순백의 탱글 밀크 푸딩 도우 3D (White Milk Pudding):
     // 윗면이 살짝 평평하고 아랫단이 부드럽게 퍼진 탱글 밀크 푸딩 돔 + 맑은 우유빛 광택
-    const isPureWhite = palIdx === 0
+    const isPureWhite = palIdx === 0 || isDoughMode
     const puddingColor = isPureWhite ? new THREE.Color('#FFFFFF') : new THREE.Color('#FFE066')
     const custardMat = new THREE.MeshPhysicalMaterial({
       color: puddingColor,
@@ -696,7 +700,7 @@ export function build3DCharacterMesh(
   } else if (validSpecies === 'jelly') {
     // 🐻 5. 순백의 화이트 밀크 젤리 도우 3D (White Milk Jelly):
     // 뽀얗고 맑은 반투명 우유 젤리 질감 + 동글동글 곰돌이 귀와 말랑 손
-    const isPureWhite = palIdx === 0
+    const isPureWhite = palIdx === 0 || isDoughMode
     const jellyColor = isPureWhite ? new THREE.Color('#FFFFFF') : new THREE.Color(basePal.fur)
     const jellyMat = new THREE.MeshPhysicalMaterial({
       color: jellyColor,
@@ -786,7 +790,7 @@ export function build3DCharacterMesh(
   } else if (validSpecies === 'choco') {
     // 🍫 7. 순백의 화이트초코 큐브 도우 3D (White Choco Cube Dough):
     // 모나지 않고 부드럽게 둥글려진 순백의 화이트 가나슈 블록 + 부드러운 생초콜릿 윤기
-    const isPureWhite = palIdx === 0
+    const isPureWhite = palIdx === 0 || isDoughMode
     const chocoColor = isPureWhite ? new THREE.Color('#FFFFFF') : new THREE.Color('#3E2217')
     const chocoMat = new THREE.MeshPhysicalMaterial({
       color: chocoColor,
@@ -822,7 +826,7 @@ export function build3DCharacterMesh(
   } else if (validSpecies === 'mochi') {
     // 🍡 [시그니처] 순백의 쫀득 찹쌀떡 도우 3D (White Mochi Dough):
     // 갓 빚어낸 순백의 찹쌀가루 전분 질감 + 바닥에 쫀득하게 가라앉은 동글동글 실루엣 + 말랑 볼살
-    const isPureWhite = palIdx === 0
+    const isPureWhite = palIdx === 0 || isDoughMode
     const mochiColor = isPureWhite ? new THREE.Color('#FFFFFF') : new THREE.Color(basePal.fur)
     const mochiMat = new THREE.MeshPhysicalMaterial({
       color: mochiColor,

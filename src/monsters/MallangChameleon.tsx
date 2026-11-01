@@ -55,6 +55,9 @@ export interface MallangCustom {
   wingKind?: WingKind
   strokes?: PaintStroke[]
   stamps?: PaintStamp[]
+  doughType?: 'mochi' | 'pudding' | 'jelly' | 'choco'
+  color?: string
+  baseColor?: string
   dessertBase?: DessertBaseId
   syrups?: SyrupId[]
   decorations?: MonsterDecorations

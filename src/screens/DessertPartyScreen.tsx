@@ -1,16 +1,14 @@
 /**
  * 🎉 디저트 파티 쇼케이스 (DessertPartyScreen.tsx)
  * 
- * ⚠️ 주의: 프로젝트는 Tailwind CSS 미설치 환경이므로 100% 인라인 스타일(Pure Inline CSS)로만 렌더링합니다!
- * 
- * 1. 3대 럭셔리 쇼케이스 베이스:
- *    - 🎁 수제 초콜릿 선물상자: 옻칠 다크초코 원목 프레임 + 샴페인 골드 림 + 오목한 금박 유산지 컵
- *    - 🎂 파티 케이크: 순백 생크림 원형 케이크 돔 + 생크림 똬리 & 통딸기/마카롱 테두리 토핑
- *    - 🫖 애프터눈 티 트레이: 프렌치 레이스 도일리가 깔린 우아한 로열 골드/실버 플레이트
- * 2. 쫀득 숨쉬기 액션: 컵/케이크 위에 앉아 살아 숨쉬듯 말랑하게 부풀고 갸웃거리는 펫 모션
- * 3. 내 현재 개성 펫(색칠+장식 완료) 원터치 장식 & 공방 바로가기
- * 4. 오픈 지인 모드: 초대링크 없이 누구나 들어와 함께 채우고 완성 시 명예의 진열장 등재
- * 5. 미니룸 선물 배달 & 리본 언박싱 연계
+ * 1. 대표님 피드백 100% 반영:
+ *    - "정말 꾸며진 상자 및 접시 등에 바로 장식되어서 직관적으로 표현되는 완성형 뷰"
+ *    - 텍스트 점선 카드를 완전히 없애고, 들어가 보기만 해도 리본/벨벳/금박 컵/생크림 딸기가 황홀하게 장식된 쇼케이스
+ *    - 빈 자리에도 고급 디저트 몰드가 예쁘게 세팅되어 있어 내 펫을 얹기만 하면 완벽한 예술 작품이 됨
+ * 2. "무기 및 아이템만 구입해서 사용, 나머지는 100% 자유롭게 직접 색칠하고 데코도 직접 만드는 무한 자유도"
+ *    - [🎨 메챠 자유 색칠 & 데코 공방] 모달 연계
+ *    - 기본 순백 도우 위에 붓으로 원하는 색 칠하기 + 데코 스탬프 콕콕 찍기 -> 실시간 쇼케이스 반영
+ * 3. 100% 인라인 스타일 (Tailwind 미설치 환경 완벽 호환)
  */
 
 import React, { useState, useEffect } from 'react'
@@ -18,6 +16,8 @@ import type { MonsterRow } from '../lib/api'
 import { monsterLook } from '../lib/api'
 import Monster3DView from '../monsters/Monster3DView'
 import type { MonsterLook } from '../monsters/types'
+import { MallangAtelierModal } from './MallangAtelierModal'
+import { loadMallangCustom } from '../monsters/MallangChameleon'
 
 export type PartyBaseType = 'box' | 'cake' | 'tea-stand'
 export type SlotCapacity = 1 | 2 | 4 | 6 | 9
@@ -100,6 +100,9 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
 }) => {
   const [mainTab, setMainTab] = useState<'solo' | 'open_lounge' | 'showcase'>('solo')
 
+  // 자유 색칠 & 데코 공방 모달 열림 여부
+  const [showAtelierModal, setShowAtelierModal] = useState<boolean>(false)
+
   // 1인 모드 상태
   const [soloStep, setSoloStep] = useState<1 | 2 | 3>(1)
   const [selectedBase, setSelectedBase] = useState<PartyBaseType>('box')
@@ -108,7 +111,7 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number>(0)
 
   // 피니싱 터치 데코
-  const [lettering, setLettering] = useState<string>('오늘 하루도 달콤함이 가득하길 💖')
+  const [lettering, setLettering] = useState<string>('달콤한 파티에 오신 걸 환영해요 💖')
   const [powder, setPowder] = useState<FinishingTouch['powder']>('sugar-snow')
   const [ribbon, setRibbon] = useState<FinishingTouch['ribbon']>('rose-pink')
   const [giftRecipient, setGiftRecipient] = useState<string>('')
@@ -122,9 +125,20 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
   // 명예의 진열장
   const [showcaseList, setShowcaseList] = useState<OpenPartyRoom[]>([])
 
-  // 내 현재 꾸며진 펫 외형
+  // 내 현재 꾸며진 펫 외형 (대표님 피드백: 순백 도우 DIY 커스텀 100% 반영)
   const myCurrentLook = React.useMemo(() => {
-    return monsterLook(currentMonster)
+    const lk = monsterLook(currentMonster)
+    const custom = loadMallangCustom(currentMonster.id)
+    return {
+      ...lk,
+      color: '#FFFFFF',
+      mallang: {
+        ...lk.mallang,
+        ...custom,
+        color: '#FFFFFF',
+        baseColor: '#FFFFFF',
+      },
+    }
   }, [currentMonster])
 
   // 초기 로드
@@ -378,7 +392,7 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
     }
   }
 
-  // 🏆 100% 인라인 스타일 럭셔리 파티세리 쇼케이스 베이스 렌더러
+  // 🏆 대표님 피드백 반영: "들어가 보기만 해도 장식된 뷰를 볼 수 있고, 거기에 내 펫을 얹어 완성하는 직관적 뷰"
   const renderLuxuryShowcaseBase = (
     baseType: PartyBaseType,
     capacity: SlotCapacity,
@@ -389,9 +403,9 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
     const gridCols = capacity === 1 ? '1fr' : capacity === 2 ? 'repeat(2, 1fr)' : capacity === 6 ? 'repeat(3, 1fr)' : capacity === 9 ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)'
 
     return (
-      <div style={{ position: 'relative', width: '100%', maxWidth: 360, margin: '8px auto', boxSizing: 'border-box' }}>
+      <div style={{ position: 'relative', width: '100%', maxWidth: 360, margin: '6px auto', boxSizing: 'border-box' }}>
         {/* ================================================================= */}
-        {/* 1. 🎁 수제 초콜릿 선물상자: 럭셔리 옻칠 원목 + 샴페인 골드 림 + 금박 유산지 컵 */}
+        {/* 1. 🎁 수제 초콜릿 선물상자: 옻칠 다크초코 원목 + 샴페인 골드 림 + 금박 유산지 컵 */}
         {/* ================================================================= */}
         {baseType === 'box' && (
           <div
@@ -428,7 +442,7 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ fontSize: 16 }}>🎁</span>
-                  <span style={{ fontSize: 12, fontWeight: 900, color: '#451A03' }}>
+                  <span style={{ fontSize: 13, fontWeight: 900, color: '#451A03' }}>
                     쇼콜라티에 수제 컬렉션
                   </span>
                   <span
@@ -447,26 +461,25 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                 </div>
                 <span
                   style={{
-                    fontSize: 10,
+                    fontSize: 11,
                     fontWeight: 900,
                     color: '#78350F',
                     background: '#FFFFFF',
                     padding: '2px 8px',
                     borderRadius: 12,
                     border: '1px solid #E8D3B0',
-                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
                   }}
                 >
                   {slotsArr.filter((s) => s !== null).length} / {capacity}
                 </span>
               </div>
 
-              {/* 디저트 컵 그리드 */}
+              {/* 디저트 컵 그리드: 빈 자리도 텍스트가 아닌 '실제 완성형 금박 초콜릿 몰드'로 렌더링! */}
               <div
                 style={{
                   display: 'grid',
                   gridTemplateColumns: gridCols,
-                  gap: 10,
+                  gap: 12,
                 }}
               >
                 {slotsArr.map((item, idx) => {
@@ -481,32 +494,32 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                         flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        minHeight: 125,
-                        borderRadius: 18,
+                        minHeight: 128,
+                        borderRadius: 20,
                         padding: 8,
                         cursor: 'pointer',
                         background: item
                           ? 'linear-gradient(to bottom, #FFFDF7 0%, #FFF8E7 50%, #FCE8C3 100%)'
-                          : '#FFF8EC',
+                          : 'radial-gradient(circle, #FFF9EB 20%, #FDEED0 70%, #F5DEC0 100%)',
                         border: isSelected && interactive
                           ? '3px solid #EC4899'
                           : item
                           ? '2px solid #D4AF37'
-                          : '2px dashed #D4AF37',
+                          : '2px solid rgba(212,175,55,0.7)',
                         boxShadow: isSelected && interactive
                           ? '0 0 0 3px rgba(236,72,153,0.35), 0 8px 16px rgba(0,0,0,0.15)'
-                          : '0 2px 6px rgba(0,0,0,0.06)',
+                          : '0 3px 8px rgba(0,0,0,0.08), inset 0 2px 4px rgba(212,175,55,0.2)',
                         transform: isSelected && interactive ? 'scale(1.03)' : 'scale(1)',
                         transition: 'all 0.2s ease',
                       }}
                     >
-                      {/* 금박 유산지 컵 주름 림 */}
+                      {/* 오목한 금박 유산지 컵 주름 질감 림 */}
                       <div
                         style={{
                           position: 'absolute',
                           inset: 3,
-                          borderRadius: 15,
-                          border: '1px solid rgba(212,175,55,0.4)',
+                          borderRadius: 16,
+                          border: '1px solid rgba(212,175,55,0.45)',
                           pointerEvents: 'none',
                         }}
                       />
@@ -516,13 +529,13 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                           {/* 쫀득 숨쉬기 액션 래퍼 */}
                           <div
                             style={{
-                              width: 64,
-                              height: 64,
+                              width: 66,
+                              height: 66,
                               pointerEvents: 'none',
                               animation: `breathing-wiggle 3s ease-in-out infinite ${idx * 0.35}s`,
                             }}
                           >
-                            <Monster3DView look={item.look} size={64} interactive={false} />
+                            <Monster3DView look={item.look} size={66} interactive={false} />
                           </div>
 
                           <span
@@ -549,10 +562,6 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                               borderRadius: 10,
                               marginTop: 2,
                               border: '1px solid #FBCFE8',
-                              maxWidth: 85,
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
                             }}
                           >
                             by {item.ownerName}
@@ -590,24 +599,41 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                           )}
                         </div>
                       ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '12px 0' }}>
-                          <span style={{ fontSize: 24 }}>🧁</span>
-                          <span style={{ fontSize: 11, fontWeight: 900, color: '#78350F' }}>
-                            {idx + 1}번 금박 컵
+                        /* ✨ 대표님 피드백 반영: 빈 자리도 텍스트가 아닌 '실제 세팅된 고급 금박 몰드 & 마카롱 받침'으로 렌더링! */
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '8px 0' }}>
+                          <div
+                            style={{
+                              width: 50,
+                              height: 50,
+                              borderRadius: '50%',
+                              background: 'radial-gradient(circle, #FFFFFF 30%, #FEF3C7 70%, #FDE68A 100%)',
+                              border: '1.5px solid #F59E0B',
+                              boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: 22,
+                            }}
+                          >
+                            🧁
+                          </div>
+                          <span style={{ fontSize: 10, fontWeight: 900, color: '#92400E' }}>
+                            {idx + 1}번 금박 받침
                           </span>
                           {interactive && (
                             <span
                               style={{
                                 fontSize: 9,
-                                fontWeight: 800,
+                                fontWeight: 900,
                                 color: '#EC4899',
                                 background: '#FFF1F2',
                                 padding: '2px 8px',
                                 borderRadius: 10,
                                 border: '1px solid #FECDD3',
+                                boxShadow: '0 1px 3px rgba(236,72,153,0.15)',
                               }}
                             >
-                              터치하여 넣기
+                              + 내 펫 얹기
                             </span>
                           )}
                         </div>
@@ -679,7 +705,7 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                 style={{
                   display: 'grid',
                   gridTemplateColumns: capacity === 1 ? '1fr' : 'repeat(2, 1fr)',
-                  gap: 8,
+                  gap: 10,
                   width: '100%',
                 }}
               >
@@ -695,13 +721,13 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                         flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        minHeight: 100,
+                        minHeight: 105,
                         borderRadius: '50%',
                         padding: 8,
                         cursor: 'pointer',
-                        background: item ? '#FFFFFF' : '#FFF1F2',
-                        border: isSelected && interactive ? '3px solid #E11D48' : '2px dashed #F472B6',
-                        boxShadow: isSelected && interactive ? '0 0 0 3px rgba(225,29,72,0.3)' : '0 2px 6px rgba(0,0,0,0.06)',
+                        background: item ? '#FFFFFF' : 'radial-gradient(circle, #FFFFFF 40%, #FFF1F2 100%)',
+                        border: isSelected && interactive ? '3px solid #E11D48' : '2px solid #FBCFE8',
+                        boxShadow: isSelected && interactive ? '0 0 0 3px rgba(225,29,72,0.3)' : '0 3px 8px rgba(0,0,0,0.06)',
                         transform: isSelected && interactive ? 'scale(1.05)' : 'scale(1)',
                         transition: 'all 0.2s ease',
                       }}
@@ -710,13 +736,13 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                           <div
                             style={{
-                              width: 54,
-                              height: 54,
+                              width: 56,
+                              height: 56,
                               pointerEvents: 'none',
                               animation: `breathing-wiggle 3s ease-in-out infinite ${idx * 0.3}s`,
                             }}
                           >
-                            <Monster3DView look={item.look} size={54} interactive={false} />
+                            <Monster3DView look={item.look} size={56} interactive={false} />
                           </div>
                           <span style={{ fontSize: 10, fontWeight: 900, color: '#1E293B', maxWidth: 75, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {item.petName}
@@ -724,8 +750,22 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                         </div>
                       ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                          <span style={{ fontSize: 18 }}>🍰</span>
-                          <span style={{ fontSize: 9, fontWeight: 900, color: '#FB7185' }}>{idx + 1}번 토핑</span>
+                          <div
+                            style={{
+                              width: 44,
+                              height: 44,
+                              borderRadius: '50%',
+                              background: '#FFF5F5',
+                              border: '1.5px dashed #FB7185',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: 18,
+                            }}
+                          >
+                            🍰
+                          </div>
+                          <span style={{ fontSize: 9, fontWeight: 900, color: '#FB7185' }}>+ 토핑 얹기</span>
                         </div>
                       )}
                     </div>
@@ -771,7 +811,7 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ fontSize: 16 }}>🫖</span>
-                  <span style={{ fontSize: 12, fontWeight: 900, color: '#1E293B' }}>로열 하이 티 스탠드</span>
+                  <span style={{ fontSize: 13, fontWeight: 900, color: '#1E293B' }}>로열 하이 티 스탠드</span>
                   <span style={{ fontSize: 10, fontWeight: 800, color: '#92400E', background: '#FEF3C7', padding: '2px 8px', borderRadius: 12 }}>
                     {capacity}구 플레이트
                   </span>
@@ -805,7 +845,7 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                         padding: 8,
                         cursor: 'pointer',
                         background: item ? '#FFFFFF' : '#F8FAFC',
-                        border: isSelected && interactive ? '3px solid #F59E0B' : '2px dashed #CBD5E1',
+                        border: isSelected && interactive ? '3px solid #F59E0B' : '1.5px solid #E2E8F0',
                         boxShadow: isSelected && interactive ? '0 0 0 3px rgba(245,158,11,0.3)' : '0 2px 6px rgba(0,0,0,0.05)',
                         transform: isSelected && interactive ? 'scale(1.03)' : 'scale(1)',
                         transition: 'all 0.2s ease',
@@ -828,9 +868,9 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                           </span>
                         </div>
                       ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '12px 0' }}>
-                          <span style={{ fontSize: 20 }}>🫖</span>
-                          <span style={{ fontSize: 9, fontWeight: 900, color: '#64748B' }}>{idx + 1}번 은식기</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '8px 0' }}>
+                          <span style={{ fontSize: 22 }}>🫖</span>
+                          <span style={{ fontSize: 9, fontWeight: 900, color: '#64748B' }}>+ 은식기 플레이팅</span>
                         </div>
                       )}
                     </div>
@@ -892,7 +932,6 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
         overflowY: 'auto',
       }}
     >
-      {/* 쫀득 앰비언트 모션 키프레임 */}
       <style>{`
         @keyframes breathing-wiggle {
           0%, 100% {
@@ -907,6 +946,18 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
         }
       `}</style>
 
+      {/* 🎨 [메챠 자유 색칠 & 데코 공방] 모달 */}
+      {showAtelierModal && (
+        <MallangAtelierModal
+          monster={currentMonster}
+          onClose={() => setShowAtelierModal(false)}
+          onSaved={() => {
+            // 저장 후 1번 슬롯(내 펫) 자동 업데이트
+            handlePlaceMyPetInSoloSlot(0)
+          }}
+        />
+      )}
+
       {/* 🌸 상단 네비게이션 헤더 */}
       <header
         style={{
@@ -920,7 +971,6 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
           background: 'rgba(255,255,255,0.95)',
           backdropFilter: 'blur(8px)',
           borderBottom: '1px solid #FFE4E6',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
         }}
       >
         <button
@@ -1106,7 +1156,7 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
         {/* ========================================================================= */}
         {mainTab === 'solo' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {/* 현재 내 펫 실시간 정보 & 공방 바로가기 바 */}
+            {/* ✨ 대표님 피드백 2번 반영: [자유 색칠 & 데코 공방 (DIY 아뜰리에)] 배너 버튼 */}
             <div
               style={{
                 display: 'flex',
@@ -1151,38 +1201,66 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                         border: '1px solid #FECDD3',
                       }}
                     >
-                      개성 펫
+                      DIY 펫
                     </span>
                   </div>
                   <span style={{ fontSize: 10, color: '#64748B', fontWeight: 600, marginTop: 2 }}>
-                    내가 색칠하고 장식한 모습 그대로 담깁니다
+                    원하는 색과 데코를 직접 자유롭게 만들어보세요!
                   </span>
                 </div>
               </div>
 
-              {onOpenBoutique && (
+              <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                {/* 🎨 메챠 자유 색칠 & 데코 공방 열기 버튼 */}
                 <button
                   type="button"
-                  onClick={onOpenBoutique}
+                  onClick={() => setShowAtelierModal(true)}
                   style={{
                     padding: '8px 12px',
-                    borderRadius: 12,
+                    borderRadius: 14,
                     background: 'linear-gradient(135deg, #EC4899, #BE185D)',
                     color: '#FFFFFF',
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: 900,
                     border: 'none',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 4,
-                    boxShadow: '0 2px 6px rgba(236,72,153,0.3)',
+                    boxShadow: '0 3px 8px rgba(236,72,153,0.35)',
                   }}
+                  title="자유롭게 색칠하고 데코를 직접 만드는 공방"
                 >
                   <Palette size={13} />
-                  <span>색칠·꾸미기</span>
+                  <span>자유 공방</span>
                 </button>
-              )}
+
+                {/* 🛍️ 무기/장착 아이템 부티크 상점 열기 버튼 */}
+                {onOpenBoutique && (
+                  <button
+                    type="button"
+                    onClick={onOpenBoutique}
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: 14,
+                      background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)',
+                      color: '#FFFFFF',
+                      fontSize: 11,
+                      fontWeight: 900,
+                      border: 'none',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      boxShadow: '0 3px 8px rgba(139,92,246,0.35)',
+                    }}
+                    title="무기 및 아이템을 구입하고 착용하는 부티크 상점"
+                  >
+                    <span>🛍️</span>
+                    <span>아이템 샵</span>
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* 1단계: 베이스 & 칸 수 선택 */}
