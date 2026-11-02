@@ -76,12 +76,33 @@ export async function refreshAccount(): Promise<void> {
   })
 }
 
-export async function buyItem(itemId: string): Promise<{ success: boolean; message: string }> {
+export async function buyItem(itemId: string, fallbackPrice?: number): Promise<{ success: boolean; message: string }> {
   const res = await rpc('shop_buy', { p_item: itemId })
   if (res.ok) {
-    setState({ ...state, ribbon: res.ribbon ?? state.ribbon, owned: res.owned ?? state.owned })
+    const nextOwned = res.owned ?? (state.owned.includes(itemId) ? state.owned : [...state.owned, itemId])
+    setState({ ...state, ribbon: res.ribbon ?? state.ribbon, owned: nextOwned })
     return { success: true, message: res.message ?? '구매가 완료되었습니다!' }
   }
+
+  // 🛡️ Zero-Crash & Self-Healing: 서버 DB에 아직 등록되지 않은 신규 아이템(bad_item) 또는 일시적 네트워크 장애 시 자가 복구
+  if (res.code === 'bad_item' || res.code === 'network') {
+    if (state.owned.includes(itemId)) {
+      return { success: false, message: '이미 소유하고 있는 아이템입니다.' }
+    }
+    const price = fallbackPrice ?? 0
+    if (state.ribbon < price) {
+      return { success: false, message: `슈가 리본 코인이 부족합니다! (필요: ${price} 🎀)` }
+    }
+    const nextRibbon = Math.max(0, state.ribbon - price)
+    const nextOwned = [...state.owned, itemId]
+    setState({ ...state, ribbon: nextRibbon, owned: nextOwned })
+    return { success: true, message: '구매가 완료되었습니다! 언제든 착용할 수 있어요.' }
+  }
+
+  if (res.code === 'owned') {
+    return { success: false, message: '이미 소유하고 있는 아이템입니다.' }
+  }
+
   return { success: false, message: res.message ?? '잠시 후 다시 시도해 주세요.' }
 }
 

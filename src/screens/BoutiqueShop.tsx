@@ -7,15 +7,18 @@ import {
   BOUTIQUE_PLATING_ITEMS,
   getOwnedBoutiqueItems,
   getRibbonCoins,
+  loadRoomCustom,
   purchaseBoutiqueItem,
   ROOM_FURNITURE_CATALOG,
   ROOM_THEMES,
+  saveRoomCustom,
   type BoutiqueItem,
   type RoomFurnitureDef,
   type RoomThemeDef,
 } from '../config/boutique'
 import { monsterLook, type MonsterRow } from '../lib/api'
 import { IS_DEV_MOCK } from '../lib/devMode'
+import { roomSave } from '../lib/roomApi'
 import { refreshAccount } from '../lib/shopApi'
 import { playDessertAsmr } from '../lib/sound'
 import { loadMallangCustom, saveMallangCustom, type DessertBaseId, type MallangCustom } from '../monsters/MallangChameleon'
@@ -95,6 +98,8 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
 
   const [selectedTheme, setSelectedTheme] = useState<RoomThemeDef>(ROOM_THEMES[0])
   const [selectedFurniture, setSelectedFurniture] = useState<RoomFurnitureDef | null>(ROOM_FURNITURE_CATALOG[0])
+  const [interiorType, setInteriorType] = useState<'theme' | 'furniture'>('furniture')
+  const [currentThemeId, setCurrentThemeId] = useState<string>(() => loadRoomCustom().themeId ?? 'room-patisserie')
   const [currentBase, setCurrentBase] = useState<DessertBaseId>(() => savedCustom?.dessertBase ?? 'nest')
   const [previewBase, setPreviewBase] = useState<DessertBaseId>(() => savedCustom?.dessertBase ?? 'nest')
 
@@ -227,17 +232,80 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
     }
   }
 
-  // 룸 테마 / 가구 구매
-  const handlePurchaseInterior = async (id: string, name: string, price: number) => {
+  // 룸 테마 선택
+  const handleSelectTheme = (theme: RoomThemeDef) => {
+    setSelectedTheme(theme)
+    setInteriorType('theme')
+    playDessertAsmr('mochi-squish')
+    const isOwned = ownedItems.has(theme.id) || theme.price === 0
+    if (theme.id === currentThemeId) {
+      showToast(`🏠 현재 마이룸에 적용 중인 ${theme.name}입니다.`)
+    } else if (isOwned) {
+      showToast(`👀 ${theme.name} 테마를 둘러봤어요! 아래 [마이룸 테마 적용]을 누르면 바로 적용돼요.`)
+    } else {
+      showToast(`👀 ${theme.name} 테마를 미리 둘러봤어요! 마음에 들면 구매해 보세요.`)
+    }
+  }
+
+  // 룸 테마 마이룸 적용 (보유 중인 테마)
+  const handleApplyTheme = (theme: RoomThemeDef) => {
+    setCurrentThemeId(theme.id)
+    // 1. 로컬 룸 커스텀 저장
+    const currentRoom = loadRoomCustom()
+    const nextRoom = { ...currentRoom, themeId: theme.id }
+    saveRoomCustom(nextRoom)
+
+    // 2. 서버 룸 커스텀 저장
+    if (!IS_DEV_MOCK) {
+      void roomSave(theme.id, currentRoom.placedFurniture ?? [])
+    }
+
+    // 3. 펫 홈화면 여행지 백드롭에도 실시간 동기화
+    try {
+      const currentCustom = loadMallangCustom(monster.id) ?? {}
+      const nextDeco = { ...(currentCustom.decorations ?? {}), bg: theme.id }
+      saveMallangCustom(monster.id, { ...currentCustom, decorations: nextDeco })
+      notifyMonsterUpdate(nextDeco)
+    } catch {}
+
+    playDessertAsmr('sugar-crack')
+    showToast(`🎉 ${theme.name} 테마가 마이룸 및 홈화면에 적용되었습니다!`)
+  }
+
+  // 룸 테마 구매 및 즉시 적용
+  const handlePurchaseTheme = async (theme: RoomThemeDef) => {
     if (buying) return
     setBuying(true)
-    const res = await purchaseBoutiqueItem(id, price)
+    const res = await purchaseBoutiqueItem(theme.id, theme.price)
+    setBuying(false)
+    if (res.success) {
+      playDessertAsmr('sugar-crack')
+      setCoinsState(getRibbonCoins())
+      setOwnedItems(new Set(getOwnedBoutiqueItems()))
+      handleApplyTheme(theme)
+    } else {
+      showToast(res.message)
+    }
+  }
+
+  // 가구 소품 선택
+  const handleSelectFurniture = (furn: RoomFurnitureDef) => {
+    setSelectedFurniture(furn)
+    setInteriorType('furniture')
+    playDessertAsmr('wax-pop')
+  }
+
+  // 가구 소품 구매
+  const handlePurchaseFurniture = async (furn: RoomFurnitureDef) => {
+    if (buying) return
+    setBuying(true)
+    const res = await purchaseBoutiqueItem(furn.id, furn.price)
     setBuying(false)
     if (res.success) {
       playDessertAsmr('cookie-crisp')
       setCoinsState(getRibbonCoins())
       setOwnedItems(new Set(getOwnedBoutiqueItems()))
-      showToast(`🎉 ${name}을(를) 구매했습니다! 마이룸에서 배치해보세요.`)
+      showToast(`🎉 ${furn.name}을(를) 구매했습니다! 마이룸에서 배치해보세요.`)
     } else {
       showToast(res.message)
     }
@@ -565,9 +633,11 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
                 alignItems: 'center',
                 justifyContent: 'space-around',
                 padding: '0 16px',
+                position: 'relative',
+                zIndex: 1,
               }}
             >
-              {selectedFurniture && (
+              {interiorType === 'furniture' && selectedFurniture ? (
                 <div
                   style={{
                     display: 'flex',
@@ -587,10 +657,15 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
                       padding: '1px 5px',
                       borderRadius: 6,
                       color: '#4E342E',
+                      boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
                     }}
                   >
                     {selectedFurniture.name}
                   </span>
+                </div>
+              ) : (
+                <div style={{ fontSize: 11, fontWeight: 900, color: '#9D174D', background: 'rgba(255,255,255,0.9)', padding: '2px 8px', borderRadius: 8, boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
+                  ✨ {selectedTheme.name} 전경 미리보기
                 </div>
               )}
             </div>
@@ -621,14 +696,18 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
                 ? selectedFashionItem.icon
                 : tab === 'plating'
                   ? selectedPlatingItem.icon
-                  : selectedFurniture?.icon ?? selectedTheme.icon}
+                  : interiorType === 'theme'
+                    ? selectedTheme.icon
+                    : (selectedFurniture?.icon ?? '🛋️')}
             </span>
             <span style={{ fontSize: 13, fontWeight: 900, color: '#9D174D', whiteSpace: 'nowrap' }}>
               {tab === 'fashion'
                 ? selectedFashionItem.name
                 : tab === 'plating'
                   ? selectedPlatingItem.name
-                  : selectedFurniture?.name ?? selectedTheme.name}
+                  : interiorType === 'theme'
+                    ? selectedTheme.name
+                    : (selectedFurniture?.name ?? '가구')}
             </span>
             <span
               style={{
@@ -645,7 +724,9 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
                 ? selectedFashionItem.charm
                 : tab === 'plating'
                   ? selectedPlatingItem.charm
-                  : selectedFurniture?.charm ?? selectedTheme.charm}
+                  : interiorType === 'theme'
+                    ? selectedTheme.charm
+                    : (selectedFurniture?.charm ?? 10)}
             </span>
           </div>
           <p
@@ -662,7 +743,9 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
               ? selectedFashionItem.desc
               : tab === 'plating'
                 ? selectedPlatingItem.desc
-                : selectedFurniture?.desc ?? selectedTheme.desc}
+                : interiorType === 'theme'
+                  ? selectedTheme.desc
+                  : (selectedFurniture?.desc ?? '소품')}
           </p>
         </div>
 
@@ -792,8 +875,50 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
                 </span>
               </button>
             )
+          ) : interiorType === 'theme' ? (
+            ownedItems.has(selectedTheme.id) || selectedTheme.price === 0 ? (
+              <button
+                onClick={() => handleApplyTheme(selectedTheme)}
+                style={{
+                  padding: '7px 14px',
+                  borderRadius: 10,
+                  border: 'none',
+                  background: currentThemeId === selectedTheme.id ? '#10B981' : 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)',
+                  color: '#FFFFFF',
+                  fontWeight: 900,
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(219,39,119,0.3)',
+                }}
+              >
+                {currentThemeId === selectedTheme.id ? '✓ 적용 중' : '✨ 마이룸 테마 적용'}
+              </button>
+            ) : (
+              <button
+                onClick={() => handlePurchaseTheme(selectedTheme)}
+                style={{
+                  padding: '7px 14px',
+                  borderRadius: 10,
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #F43F5E 0%, #E11D48 100%)',
+                  color: '#FFFFFF',
+                  fontWeight: 900,
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(225,29,72,0.35)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
+              >
+                <span>테마 구매 & 적용</span>
+                <span style={{ fontSize: 11, background: 'rgba(0,0,0,0.15)', padding: '1px 5px', borderRadius: 6 }}>
+                  🎀 {selectedTheme.price}
+                </span>
+              </button>
+            )
           ) : selectedFurniture ? (
-            ownedItems.has(selectedFurniture.id) ? (
+            ownedItems.has(selectedFurniture.id) || selectedFurniture.price === 0 ? (
               <button
                 onClick={onOpenMyRoom}
                 style={{
@@ -811,9 +936,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
               </button>
             ) : (
               <button
-                onClick={() =>
-                  handlePurchaseInterior(selectedFurniture.id, selectedFurniture.name, selectedFurniture.price)
-                }
+                onClick={() => handlePurchaseFurniture(selectedFurniture)}
                 style={{
                   padding: '7px 12px',
                   borderRadius: 10,
@@ -828,7 +951,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
                   gap: 4,
                 }}
               >
-                <span>구매</span>
+                <span>가구 구매</span>
                 <span style={{ fontSize: 11, background: 'rgba(0,0,0,0.15)', padding: '1px 5px', borderRadius: 6 }}>
                   🎀 {selectedFurniture.price}
                 </span>
@@ -862,15 +985,13 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
             <span style={{ fontSize: 11, fontWeight: 900, color: '#9D174D' }}>🎨 벽지 &amp; 바닥 테마 선택</span>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 4, width: '100%', boxSizing: 'border-box' }}>
               {ROOM_THEMES.map((theme) => {
-                const isSelected = selectedTheme.id === theme.id
+                const isSelected = interiorType === 'theme' && selectedTheme.id === theme.id
                 const isOwned = ownedItems.has(theme.id) || theme.price === 0
+                const isApplied = currentThemeId === theme.id
                 return (
                   <button
                     key={theme.id}
-                    onClick={() => {
-                      setSelectedTheme(theme)
-                      playDessertAsmr('mochi-squish')
-                    }}
+                    onClick={() => handleSelectTheme(theme)}
                     style={{
                       padding: '5px 2px',
                       borderRadius: 8,
@@ -882,6 +1003,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
                       alignItems: 'center',
                       minWidth: 0,
                       boxSizing: 'border-box',
+                      position: 'relative',
                     }}
                   >
                     <span style={{ fontSize: 18 }}>{theme.icon}</span>
@@ -899,8 +1021,8 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
                     >
                       {theme.name.slice(0, 4)}
                     </span>
-                    <span style={{ fontSize: 8, color: isOwned ? '#059669' : '#BE185D', fontWeight: 800 }}>
-                      {isOwned ? '보유' : `🎀${theme.price}`}
+                    <span style={{ fontSize: 8, color: isApplied ? '#2563EB' : isOwned ? '#059669' : '#BE185D', fontWeight: 800 }}>
+                      {isApplied ? '적용중' : isOwned ? '보유' : `🎀${theme.price}`}
                     </span>
                   </button>
                 )
@@ -1083,16 +1205,13 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
               )
             })
           : ROOM_FURNITURE_CATALOG.map((furn) => {
-              const isOwned = ownedItems.has(furn.id)
-              const isSelected = selectedFurniture?.id === furn.id
+              const isOwned = ownedItems.has(furn.id) || furn.price === 0
+              const isSelected = interiorType === 'furniture' && selectedFurniture?.id === furn.id
 
               return (
                 <div
                   key={furn.id}
-                  onClick={() => {
-                    setSelectedFurniture(furn)
-                    playDessertAsmr('wax-pop')
-                  }}
+                  onClick={() => handleSelectFurniture(furn)}
                   style={{
                     padding: '8px 6px',
                     borderRadius: 12,
@@ -1128,7 +1247,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
                   </span>
                   <div style={{ marginTop: 2 }}>
                     {isOwned ? (
-                      <span style={{ fontSize: 9, color: '#059669', fontWeight: 800 }}>소유완료</span>
+                      <span style={{ fontSize: 9, color: '#059669', fontWeight: 800 }}>{furn.price === 0 ? '기본 제공' : '소유완료'}</span>
                     ) : (
                       <span style={{ fontSize: 10, color: '#BE185D', fontWeight: 800 }}>🎀 {furn.price}</span>
                     )}

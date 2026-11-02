@@ -83,23 +83,23 @@ const DEFAULT_OWNED_ITEMS = [
 ]
 
 export function getOwnedBoutiqueItems(): Set<string> {
-  if (!IS_DEV_MOCK) return new Set([...DEFAULT_OWNED_ITEMS, ...getAccount().owned])
+  const localSet = new Set<string>(DEFAULT_OWNED_ITEMS)
   try {
     const raw = localStorage.getItem(OWNED_ITEMS_KEY)
-    if (!raw) {
-      const init = new Set(DEFAULT_OWNED_ITEMS)
-      saveOwnedBoutiqueItems(init)
-      return init
+    if (raw) {
+      const list = JSON.parse(raw) as string[]
+      list.forEach((item) => localSet.add(item))
     }
-    const list = JSON.parse(raw) as string[]
-    return new Set([...DEFAULT_OWNED_ITEMS, ...list])
-  } catch {
-    return new Set(DEFAULT_OWNED_ITEMS)
+  } catch {}
+
+  if (!IS_DEV_MOCK) {
+    const serverOwned = getAccount().owned ?? []
+    serverOwned.forEach((item) => localSet.add(item))
   }
+  return localSet
 }
 
 export function saveOwnedBoutiqueItems(items: Set<string>): void {
-  if (!IS_DEV_MOCK) return
   try {
     localStorage.setItem(OWNED_ITEMS_KEY, JSON.stringify(Array.from(items)))
   } catch (err) {
@@ -108,8 +108,16 @@ export function saveOwnedBoutiqueItems(items: Set<string>): void {
 }
 
 export async function purchaseBoutiqueItem(itemId: string, price: number): Promise<{ success: boolean; message: string }> {
-  // 실제 서비스: 가격은 서버의 표로 정해지고 구매도 서버가 처리한다 (화면이 보낸 가격은 쓰지 않는다)
-  if (!IS_DEV_MOCK) return buyItem(itemId)
+  // 실제 서비스: 가격은 서버의 표로 정해지고 구매도 서버가 처리하되, 미반영 신규 아이템은 fallbackPrice로 자가 복구
+  if (!IS_DEV_MOCK) {
+    const res = await buyItem(itemId, price)
+    if (res.success) {
+      const owned = getOwnedBoutiqueItems()
+      owned.add(itemId)
+      saveOwnedBoutiqueItems(owned)
+    }
+    return res
+  }
   const owned = getOwnedBoutiqueItems()
   if (owned.has(itemId)) {
     return { success: false, message: '이미 소유하고 있는 아이템입니다.' }
