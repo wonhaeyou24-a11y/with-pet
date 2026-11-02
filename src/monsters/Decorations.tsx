@@ -89,6 +89,31 @@ export const DECO_ITEMS: DecoItemDef[] = [
   { id: 'lollipop-wand', slot: 'hand', name: '롤리팝 캔디봉', rarity: 'rare', charm: 26, icon: '🍭', desc: '달콤한 파스텔 소용돌이 막대사탕' },
   { id: 'lantern-staff', slot: 'hand', name: '별빛 등불 지팡이', rarity: 'legendary', charm: 40, icon: '🏮', desc: '따스한 별빛을 비추는 마법 나무 지팡이' },
   { id: 'star-wand', slot: 'hand', name: '요술 별봉', rarity: 'rare', charm: 22, icon: '🪄', desc: '휘두르면 반짝이가 퍼지는 황금 요술봉' },
+  // 신규 머리 (head)
+  { id: 'iphone-headset', slot: 'head', name: '애플 맥스 실버 헤드셋', rarity: 'rare', charm: 32, icon: '🎧', desc: '알루미늄 아노다이징 실버 메탈과 메시 이어쿠션의 트렌디 하이파이 헤드폰' },
+  { id: 'street-ball-cap', slot: 'head', name: '스트릿 스포티 볼캡', rarity: 'common', charm: 24, icon: '🧢', desc: '힙한 스트릿 감성의 자수 로고와 둥근 챙이 매력적인 캐주얼 볼캡' },
+  { id: 'knit-beanie-hat', slot: 'head', name: '포근 쫀득 니트 비니', rarity: 'common', charm: 22, icon: '🧶', desc: '도톰한 골지 짜임과 롤업 커프가 귀여운 따스한 웜톤 니트 비니 모자' },
+  { id: 'pastry-chef-toque', slot: 'head', name: '명장 파티시에 셰프 토크', rarity: 'rare', charm: 28, icon: '👨‍🍳', desc: '주름 잡힌 높은 돔 형태의 프랑스 정통 고급 디저트 셰프 모자' },
+  { id: 'angel-holy-halo', slot: 'head', name: '성스러운 황금 엔젤 링', rarity: 'legendary', charm: 42, icon: '😇', desc: '머리 위 정수리에 둥둥 떠서 끊임없이 은은한 금빛을 뿜는 천사의 링' },
+  { id: 'xmas-santa-fur-hat', slot: 'head', name: '루돌프 뿔 산타 털모자', rarity: 'rare', charm: 32, icon: '🎅', desc: '새빨간 벨벳 삼각모에 퐁퐁 흰 방울과 앙증맞은 사슴 뿔이 솟은 크리스마스 모자' },
+  { id: 'birthday-party-cone-deluxe', slot: 'head', name: '무지개 스프링클 생일 꼬깔', rarity: 'common', charm: 22, icon: '🥳', desc: '생일 파티의 주인공! 알록달록 무지개 패턴에 폼폼 왕방울이 달린 파티 꼬깔모자' },
+  { id: 'taeguk-glory-headband', slot: 'head', name: '광복 태극 리본 머리띠', rarity: 'rare', charm: 30, icon: '🇰🇷', desc: '대한독립 만세! 선명한 빨강과 파랑의 태극 문양 리본이 당당히 휘날리는 머리띠' },
+  // 신규 얼굴 (face)
+  { id: 'pince-nez-retro-specs', slot: 'face', name: '빈티지 핀치네 콧등 안경', rarity: 'rare', charm: 26, icon: '🧐', desc: '안경다리 없이 콧등에 살포시 걸쳐 쓰는 클래식 앤틱 골드 핀치네 안경' },
+  { id: 'round-tortoise-glasses', slot: 'face', name: '레트로 호피 동글이 뿔테', rarity: 'common', charm: 20, icon: '👓', desc: '지적이고 단정한 분위기를 연출해 주는 브라운 호피 무늬 아세테이트 뿔테' },
+  { id: 'cyber-pixel-shades', slot: 'face', name: '사이버 8비트 픽셀 셰이드', rarity: 'rare', charm: 28, icon: '🕶️', desc: '힙스터의 필수템! 계단식 8비트 도트 프레임의 블랙 픽셀 선글라스' },
+  { id: 'lovely-heart-sunglasses', slot: 'face', name: '러블리 틴트 하트 선글라스', rarity: 'common', charm: 24, icon: '💖', desc: '사랑스러운 하트 쉐입 렌즈와 핑크 그라데이션 틴트가 돋보이는 바캉스 안경' },
+  { id: 'party-blower-flute', slot: 'face', name: '롤링 휘슬 파티 피리', rarity: 'common', charm: 18, icon: '🎺', desc: '입에 물고 후- 불면 삐익 소리와 함께 앞으로 길게 펼쳐지는 신나는 파티 피리' },
+  { id: 'snorkel-dive-mask', slot: 'face', name: '투명 오션 스노클링 마스크', rarity: 'common', charm: 25, icon: '🤿', desc: '바닷속 산호초를 선명하게 감상할 수 있는 방수 고글과 수중 숨대롱 세트' },
+  // 신규 목 (neck)
+  { id: 'xmas-holy-cape', slot: 'neck', name: '골드벨 산타 윈터 망토', rarity: 'rare', charm: 36, icon: '🎄', desc: '도톰한 하얀 밍크 퍼 트리밍과 딸랑딸랑 금빛 종이 달린 크리스마스 케이프' },
+  { id: 'vintage-film-camera', slot: 'neck', name: '레트로 필름 스트랩 카메라', rarity: 'rare', charm: 30, icon: '📷', desc: '가죽 스트랩으로 목에 걸어 언제든 디저트 풍경을 찰칵 남기는 아날로그 카메라' },
+  // 신규 등 (back)
+  { id: 'taeguk-hero-cape', slot: 'back', name: '영웅의 태극기 펄럭 망토', rarity: 'legendary', charm: 45, icon: '🇰🇷', desc: '건곤감리 사괘와 태극 문양이 웅장하게 수놓아진 자랑스러운 태극기 망토' },
+  { id: 'surfing-wave-board', slot: 'back', name: '트로피컬 파도 서핑보드', rarity: 'rare', charm: 36, icon: '🏄‍♂️', desc: '푸른 바다의 에메랄드 파도 그래픽이 시원하게 그려진 에어로 다이내믹 서프보드' },
+  { id: 'snow-polar-sled-board', slot: 'back', name: '은빛 눈꽃 설원 썰매보드', rarity: 'rare', charm: 38, icon: '🏂', desc: '새하얀 눈밭을 가르며 활주하는 고속 스노보드 겸 루돌프 썰매 플레이트' },
+  // 신규 손 (hand)
+  { id: 'travel-roller-suitcase', slot: 'hand', name: '여행 스티커 캐리어 가방', rarity: 'rare', charm: 34, icon: '🧳', desc: '전 세계 디저트 명소 스티커가 붙은 손잡이 달린 앙증맞은 미니 캐리어' },
   // 6. 배경 (bg)
   { id: 'night-observatory', slot: 'bg', name: '밤하늘 천문대', rarity: 'legendary', charm: 28, icon: '🌌', desc: '초승달과 은하수가 흐르는 밤하늘 무대' },
   { id: 'sunny-meadow', slot: 'bg', name: '햇살 클로버 언덕', rarity: 'common', charm: 12, icon: '🍀', desc: '따사로운 햇살과 꽃잎이 날리는 들판' },
