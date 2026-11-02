@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   getRibbonCoins,
+  addRibbonCoins,
   getUnreadGuestBookCount,
   markGuestBookAsRead,
   GUESTBOOK_LAST_READ_KEY,
@@ -35,6 +36,7 @@ import { getSpeciesSoundKind, playDessertAsmr, playBabyGiggleSound } from '../li
 import MonsterView from '../monsters/MonsterView'
 import CakeBoxShareModal from './CakeBoxShareModal'
 import { DessertPartyScreen } from './DessertPartyScreen'
+import { PetJengaScreen } from './PetJengaScreen'
 import MissionModal from './MissionModal'
 import { useAccount } from '../lib/shopApi'
 import DessertShowroomModal from './DessertShowroomModal'
@@ -187,6 +189,7 @@ export default function MonsterHome({
 }: Props) {
   const [showMissions, setShowMissions] = useState<boolean>(false)
   const [showDessertParty, setShowDessertParty] = useState<boolean>(false)
+  const [showJengaModal, setShowJengaModal] = useState<boolean>(false)
   const [showCakeBox, setShowCakeBox] = useState<boolean>(false)
   const [showShowroom, setShowShowroom] = useState<boolean>(false)
   const [showNotifModal, setShowNotifModal] = useState<boolean>(false)
@@ -1076,18 +1079,19 @@ export default function MonsterHome({
 
 
 
-      {/* 🌟 4. 프로필 배너 (심플 복원) */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 6, flexShrink: 0 }}>
+      {/* 🌟 4. 프로필 및 신규 릴레이 미니게임 [위태위태 펫 젠가] 배너 */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, flexShrink: 0 }}>
         <button
+          type="button"
           onClick={onDetail}
           style={{
-            padding: '9px 14px',
+            padding: '9px 12px',
             borderRadius: 14,
             border: 'none',
             background: 'linear-gradient(90deg, #FF7043 0%, #FF9800 100%)',
             color: '#FFFFFF',
             fontWeight: 900,
-            fontSize: 12,
+            fontSize: 11.5,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -1095,11 +1099,46 @@ export default function MonsterHome({
             cursor: 'pointer',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 16 }}>🧁</span>
-            <span>프로필·기록 & 훈장</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <span style={{ fontSize: 15 }}>🧁</span>
+            <span>프로필·훈장</span>
           </div>
-          <span style={{ fontSize: 11, opacity: 0.95, fontWeight: 900 }}>⚔️ 종합 전투력 {totalStats(monster.stats)}</span>
+          <span style={{ fontSize: 10, opacity: 0.95, fontWeight: 900 }}>⚔️ {totalStats(monster.stats)}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setShowJengaModal(true)}
+          style={{
+            padding: '9px 12px',
+            borderRadius: 14,
+            border: 'none',
+            background: 'linear-gradient(90deg, #7C3AED 0%, #EC4899 100%)',
+            color: '#FFFFFF',
+            fontWeight: 900,
+            fontSize: 11.5,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            boxShadow: '0 3px 10px rgba(124, 58, 237, 0.32)',
+            cursor: 'pointer',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <span style={{ fontSize: 15 }}>🪨</span>
+            <span>위태위태 펫젠가</span>
+          </div>
+          <span
+            style={{
+              fontSize: 9.5,
+              background: 'rgba(255,255,255,0.25)',
+              padding: '1px 5px',
+              borderRadius: 6,
+              fontWeight: 900,
+            }}
+          >
+            릴레이 팟✨
+          </span>
         </button>
       </div>
 
@@ -1821,6 +1860,20 @@ export default function MonsterHome({
           onSuccess={() => {
             // 성공 시 알림 및 최신 상태 동기화
             playDessertAsmr('sugar-crack', 2)
+          }}
+        />
+      )}
+
+      {/* 🪨 [위태위태 펫 젠가] 지인 릴레이 펫 돌탑 쌓기 & 솔로 챌린지 모달 (대표님 기획 반영) */}
+      {showJengaModal && (
+        <PetJengaScreen
+          myMonster={monster}
+          onClose={() => setShowJengaModal(false)}
+          onRewardCoins={(c, r) => {
+            onRewardCoins?.(c)
+            if (r > 0) {
+              addRibbonCoins(r)
+            }
           }}
         />
       )}

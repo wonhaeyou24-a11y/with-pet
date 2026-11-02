@@ -25,6 +25,7 @@ import Naming from '../screens/Naming'
 import Nickname from '../screens/Nickname'
 import PatisserieTraining from '../screens/PatisserieTraining'
 import { DessertPartyScreen } from '../screens/DessertPartyScreen'
+import { PetJengaScreen } from '../screens/PetJengaScreen'
 import SkillTreeScreen from '../screens/SkillTreeScreen'
 import { createWorldBossMonster, WORLD_BOSS_CATALOG } from '../lib/bossScheduler'
 
@@ -138,6 +139,7 @@ const SCREENS: Record<string, () => ReactNode> = {
   ),
   '탐험(M5)': () => <ExploreScreen monster={{ ...shiny, name: '두바이쫀득', level: 8, evo_stage: 2 }} coins={320} onUpdate={noop} onGoRest={noop} onBack={noop} />,
   '에그 온기 숙성(M5)': () => <EggResonanceModal monster={{ ...shiny, name: '두바이쫀득' }} onClose={noop} />,
+  '위태위태 펫 젠가(돌탑)': () => <PetJengaScreen myMonster={{ ...shiny, name: '두바이쫀득' }} onClose={noop} />,
   '장비·강화(M5)': () => <GearGallery monster={{ ...shiny, name: '두바이쫀득', level: 8 }} />,
   '식감 스킬트리(M3)': () => (
     <SkillTreeScreen

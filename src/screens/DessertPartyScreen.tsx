@@ -596,7 +596,7 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
     })
   }
 
-  // 슬롯 비우기
+  // 슬롯 비우기 (쇼케이스 상자에서 펫 / 데코 꺼내기)
   const handleClearSoloSlot = (slotIdx: number) => {
     try {
       playDessertAsmr('wax-pop')
@@ -608,6 +608,34 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
       copy[slotIdx] = null
       return copy
     })
+    setGiftSentToast(`🐾 ${slotIdx + 1}번 칸에서 디저트를 꺼냈습니다!`)
+    setTimeout(() => setGiftSentToast(null), 2400)
+  }
+
+  // 🐾 오픈 파티 상자에서 내 펫 꺼내기 (슬롯 회수)
+  const handleLeaveOpenPartySlot = (roomId: string, slotIdx: number) => {
+    const room = openParties.find((r) => r.id === roomId)
+    if (!room || room.isCompleted) return
+
+    try {
+      playDessertAsmr('wax-pop')
+    } catch {
+      // ignore
+    }
+
+    const updatedSlots = [...room.slots]
+    updatedSlots[slotIdx] = null
+    const updatedRoom: OpenPartyRoom = {
+      ...room,
+      slots: updatedSlots,
+      isCompleted: false,
+    }
+
+    const updatedList = openParties.map((r) => (r.id === roomId ? updatedRoom : r))
+    setOpenParties(updatedList)
+    localStorage.setItem(OPEN_PARTIES_STORAGE_KEY, JSON.stringify(updatedList))
+    setGiftSentToast(`🐾 파티 상자 ${slotIdx + 1}번 칸에서 내 펫을 꺼냈습니다!`)
+    setTimeout(() => setGiftSentToast(null), 2500)
   }
 
   // 미니룸으로 선물 배달
@@ -943,7 +971,8 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
     slotsArr: (PartySlotItem | null)[],
     interactive: boolean,
     onSlotClick?: (idx: number) => void,
-    overrideTheme?: BoxThemeType
+    overrideTheme?: BoxThemeType,
+    onSlotClear?: (idx: number) => void
   ) => {
     const currentTheme = overrideTheme || boxTheme
     const isWalnut = currentTheme === 'walnut-9'
@@ -1203,36 +1232,40 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                             {item.petName}
                           </span>
 
-                          {/* 슬롯 비우기 버튼 */}
+                          {/* 🐾 슬롯 비우기 / 펫 꺼내기 버튼 (대표님 피드백 반영: 한눈에 보이고 쉽게 탭되는 크기) */}
                           {interactive && item.isMine && (
                             <button
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation()
-                                handleClearSoloSlot(idx)
+                                if (onSlotClear) {
+                                  onSlotClear(idx)
+                                } else {
+                                  handleClearSoloSlot(idx)
+                                }
                               }}
                               style={{
                                 position: 'absolute',
-                                top: -2,
-                                right: -2,
-                                width: 17,
-                                height: 17,
+                                top: -3,
+                                right: -3,
+                                width: 22,
+                                height: 22,
                                 borderRadius: '50%',
-                                background: '#EF4444',
+                                background: 'linear-gradient(135deg, #EF4444, #DC2626)',
                                 color: '#FFFFFF',
-                                fontSize: 10,
+                                fontSize: 12,
                                 fontWeight: 900,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                border: 'none',
+                                border: '2px solid #FFFFFF',
                                 cursor: 'pointer',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.5)',
-                                zIndex: 10,
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.6)',
+                                zIndex: 12,
                               }}
-                              title="비우기"
+                              title="상자에서 꺼내기 (슬롯 비우기)"
                             >
-                              ×
+                              ✕
                             </button>
                           )}
                         </div>
@@ -1612,28 +1645,52 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                 )}
               </div>
 
-              {/* 1. 내 펫 넣기 메인 버튼 */}
-              <button
-                type="button"
-                onClick={() => handlePlaceMyPetInSoloSlot(selectedSlotIndex)}
-                style={{
-                  padding: '9px 12px',
-                  borderRadius: 12,
-                  background: 'linear-gradient(135deg, #EC4899, #BE185D)',
-                  color: '#FFFFFF',
-                  fontWeight: 900,
-                  fontSize: 12,
-                  border: 'none',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                  boxShadow: '0 3px 8px rgba(236,72,153,0.25)',
-                }}
-              >
-                <span>🐾 내가 꾸민 디저트 펫 넣기 ({currentMonster.name || '내 펫'})</span>
-              </button>
+              {/* 1. 내 펫 넣기 / 꺼내기 메인 토글 버튼 (대표님 피드백 반영: 펫 넣기 및 빼기 직관적 원클릭 지원) */}
+              {soloSlots[selectedSlotIndex] ? (
+                <button
+                  type="button"
+                  onClick={() => handleClearSoloSlot(selectedSlotIndex)}
+                  style={{
+                    padding: '11px 14px',
+                    borderRadius: 12,
+                    background: 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)',
+                    color: '#FFFFFF',
+                    fontWeight: 900,
+                    fontSize: 12.5,
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    boxShadow: '0 3px 8px rgba(239,68,68,0.3)',
+                  }}
+                >
+                  <span>🐾 {selectedSlotIndex + 1}번 칸에서 디저트 꺼내기 (비우기) ✕</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handlePlaceMyPetInSoloSlot(selectedSlotIndex)}
+                  style={{
+                    padding: '11px 14px',
+                    borderRadius: 12,
+                    background: 'linear-gradient(135deg, #EC4899, #BE185D)',
+                    color: '#FFFFFF',
+                    fontWeight: 900,
+                    fontSize: 12.5,
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    boxShadow: '0 3px 8px rgba(236,72,153,0.25)',
+                  }}
+                >
+                  <span>🐾 내가 꾸민 디저트 펫 넣기 ({currentMonster.name || '내 펫'})</span>
+                </button>
+              )}
 
               {/* 2. 실물 사진 수제 초콜릿 데코 넣기 (사진 5번 레터링 & 봉봉 3열 깔끔 배치) */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
@@ -1980,11 +2037,17 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                     currentOpenRoom.slots,
                     !currentOpenRoom.isCompleted,
                     (idx) => {
-                      if (!currentOpenRoom.slots[idx]) {
+                      const item = currentOpenRoom.slots[idx]
+                      if (!item) {
                         handleJoinOpenPartySlot(currentOpenRoom.id, idx)
+                      } else if (item.isMine) {
+                        if (window.confirm(`${idx + 1}번 칸에서 내 펫을 꺼내시겠습니까?`)) {
+                          handleLeaveOpenPartySlot(currentOpenRoom.id, idx)
+                        }
                       }
                     },
-                    currentOpenRoom.boxTheme
+                    currentOpenRoom.boxTheme,
+                    (idx) => handleLeaveOpenPartySlot(currentOpenRoom.id, idx)
                   )}
 
                   {/* 파티룸 상태별 하단 액션 덱 */}
@@ -2002,7 +2065,7 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                           textAlign: 'center',
                         }}
                       >
-                        💡 비어있는 칸을 터치하면 현재 내가 색칠하고 꾸민 펫이 즉시 들어갑니다!
+                        💡 빈 칸 터치: 내 펫 넣기 · 내 펫 칸 터치(또는 ✕): 상자에서 펫 꺼내기
                       </div>
                       <button
                         type="button"

@@ -18,6 +18,7 @@ import { getPvpMatchRecords, formatTimeAgo, type PvpMatchRecord } from '../lib/p
 import MonsterSnapshot from '../monsters/MonsterSnapshot'
 import WorldBoss3DView from '../monsters/WorldBoss3DView'
 import { BackIcon, ElementIcon } from '../ui/Icons'
+import { PetJengaScreen } from './PetJengaScreen'
 import { ROOM_THEMES, type RoomThemeDef } from '../config/boutique'
 import ScenicBackdrop from '../ui/ScenicBackdrop'
 import {
@@ -257,6 +258,7 @@ export default function DessertPlaza({
 
   // ⚔️ 부재 중 방어전 기록 카드 모달 상태
   const [showDefenseHistoryModal, setShowDefenseHistoryModal] = useState<boolean>(false)
+  const [showJenga, setShowJenga] = useState<boolean>(false)
   const [pvpRecords] = useState<PvpMatchRecord[]>(() => getPvpMatchRecords())
 
   useEffect(() => {
@@ -722,6 +724,29 @@ export default function DessertPlaza({
         </div>
 
         <div className="row" style={{ gap: 6, alignItems: 'center' }}>
+          {/* 🪨 위태위태 펫 젠가 (릴레이 돌탑 쌓기) 퀵 버튼 */}
+          <button
+            type="button"
+            onClick={() => setShowJenga(true)}
+            style={{
+              padding: '4px 10px',
+              borderRadius: 999,
+              border: '1.5px solid #C084FC',
+              background: 'linear-gradient(135deg, #7C3AED, #9333EA)',
+              color: '#FFFFFF',
+              fontSize: 11,
+              fontWeight: 900,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              cursor: 'pointer',
+              boxShadow: '0 2px 6px rgba(124, 58, 237, 0.35)',
+            }}
+          >
+            <span>🪨</span>
+            <span>돌탑 젠가</span>
+          </button>
+
           {/* 🍁 현실 사계절 및 이벤트 자동 동기화 뱃지 (지인/방문자는 선택창이 보이지 않고 계절 뱃지만 표시) */}
           <div
             style={{
@@ -2109,6 +2134,20 @@ export default function DessertPlaza({
             </button>
           </div>
         </div>
+      )}
+
+      {/* 🪨 [위태위태 펫 젠가] 지인 릴레이 펫 돌탑 쌓기 & 솔로 챌린지 모달 */}
+      {showJenga && (
+        <PetJengaScreen
+          myMonster={myMonster}
+          onClose={() => setShowJenga(false)}
+          onRewardCoins={(c, r) => {
+            onEarnCoins?.(c)
+            if (r > 0) {
+              addRibbonCoins(r)
+            }
+          }}
+        />
       )}
 
       {toast && <div className="toast">{toast}</div>}
