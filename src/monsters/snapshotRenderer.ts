@@ -66,14 +66,14 @@ export function getMonsterSnapshot(look: Look): string | null {
   scene.environment = envTex
 
   const isLargeBase = [
-    'eiffel-tower',
     'snow-mountain',
-    'mini-car',
-    'motorcycle',
     'strawberry-cake',
     'parfait-cup',
     'ufo-beam',
     'custard-pudding',
+    'eiffel-tower',
+    'mini-car',
+    'motorcycle',
   ].includes(dessertBase)
 
   const camFov = isLargeBase ? 42 : 36

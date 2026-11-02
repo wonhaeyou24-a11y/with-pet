@@ -30,12 +30,16 @@ export type DessertBaseId =
   | 'custard-pudding'
   | 'macaron-cushion'
   | 'parfait-cup'
-  | 'eiffel-tower'
-  | 'mini-car'
+  | 'coffee-cup'
+  | 'antique-plate'
+  | 'oven-pizza'
+  | 'ramen-pot'
   | 'snow-mountain'
-  | 'motorcycle'
   | 'cast-iron-pan'
   | 'ufo-beam'
+  | 'eiffel-tower'
+  | 'mini-car'
+  | 'motorcycle'
 export type SyrupId = 'choco-drizzle' | 'berry-syrup' | 'matcha-powder' | 'rainbow-sprinkles' | 'sugar-powder'
 
 export type DoughShapeId =
@@ -150,11 +154,12 @@ export const DESSERT_BASES: { id: DessertBaseId; name: string; icon: string; cha
   { id: 'macaron-cushion', name: '파스텔 마카롱 방석', icon: '🧁', charm: 25, desc: '쫀득한 꼬끄와 필링 크림이 가득한 마카롱' },
   { id: 'parfait-cup', name: '베리 파르페 유리컵', icon: '🍨', charm: 30, desc: '요거트와 베리가 층층이 쌓인 파르페 잔' },
   { id: 'nest', name: '포근 나무 둥지', icon: '🪹', charm: 10, desc: '기본으로 제공되는 따뜻한 나뭇가지 둥지' },
-  { id: 'eiffel-tower', name: '에펠탑 전망대', icon: '🗼', charm: 35, desc: '파리 하늘 위 웅장한 에펠탑 첨탑 전망대 위의 럭셔리 디저트' },
-  { id: 'mini-car', name: '노란 비틀 꼬마차', icon: '🚗', charm: 30, desc: '부릉부릉! 귀여운 클래식 비틀 자동차 루프탑 위에 얹힌 디저트' },
-  { id: 'snow-mountain', name: '알프스 만년설산', icon: '🏔️', charm: 32, desc: '하얗게 눈 덮인 웅장한 설산 봉우리 꼭대기 만년설 위의 디저트' },
-  { id: 'motorcycle', name: '레트로 라이더 바이크', icon: '🏍️', charm: 32, desc: '바람을 가르는 클래식 오토바이 가죽 시트 안장 위의 디저트' },
+  { id: 'coffee-cup', name: '따스한 라떼 커피잔', icon: '☕', charm: 30, desc: '모락모락 김과 하트 라떼아트가 그려진 아늑한 세라믹 커피잔 소서' },
+  { id: 'antique-plate', name: '앤틱 골드 림 접시', icon: '🍽️', charm: 32, desc: '유럽 명품 황실 파티세리의 금박 레이스 엠보싱이 빛나는 도자기 명품 접시' },
+  { id: 'oven-pizza', name: '치즈 폭포 화덕 피자', icon: '🍕', charm: 32, desc: '노릇한 크러스트와 쭉 늘어나는 모짜렐라 치즈가 가득한 화덕 피자 트레이' },
+  { id: 'ramen-pot', name: '보글보글 황금 라면냄비', icon: '🍲', charm: 30, desc: '보글보글 김이 오르는 정겨운 황금 양은냄비와 냄비 뚜껑 받침대' },
   { id: 'cast-iron-pan', name: '브런치 주물팬', icon: '🍳', charm: 22, desc: '감성 브런치 카페의 뜨끈하고 묵직한 무쇠 주물 후라이팬' },
+  { id: 'snow-mountain', name: '알프스 만년설산', icon: '🏔️', charm: 32, desc: '하얗게 눈 덮인 웅장한 설산 봉우리 꼭대기 만년설 위의 디저트' },
   { id: 'ufo-beam', name: '외계 UFO 광선', icon: '🛸', charm: 38, desc: '신비로운 비행접시가 뿜어내는 영롱한 네온 빔 라이트 받침대' },
 ]
 

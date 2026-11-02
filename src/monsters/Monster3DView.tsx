@@ -266,6 +266,238 @@ export function build3DDessertBase(baseId: DessertBaseId): THREE.Group {
     wafer.rotation.set(0.3, 0.2, 0.6)
     wafer.position.set(0.85, 0.35, -0.45)
     group.add(wafer)
+  } else if (baseId === 'coffee-cup') {
+    // ☕ 6. 따스한 라떼 커피잔 & 소서 3D:
+    // - 세라믹 도자기 소서(받침 접시) + 따스한 크림 머그잔 + 둥근 머그 손잡이
+    // - 크리미한 에스프레소 & 하트 라떼아트 + 모락모락 피어오르는 부드러운 스팀 링 + 시나몬 스틱!
+    const saucerMat = new THREE.MeshPhysicalMaterial({ color: '#FFFDF9', roughness: 0.15, clearcoat: 0.95 })
+    const cupMat = new THREE.MeshPhysicalMaterial({ color: '#E0F2FE', roughness: 0.18, clearcoat: 0.9 })
+    const goldRimMat = new THREE.MeshPhysicalMaterial({ color: '#F59E0B', metalness: 0.9, roughness: 0.15, clearcoat: 1.0 })
+    const coffeeMat = new THREE.MeshPhysicalMaterial({ color: '#6F4E37', roughness: 0.35, clearcoat: 0.5 })
+    const foamMat = new THREE.MeshPhysicalMaterial({ color: '#FFFBEB', roughness: 0.45, sheen: 0.6 })
+    const steamMat = new THREE.MeshBasicMaterial({ color: '#FFFFFF', transparent: true, opacity: 0.42 })
+    const cinnamonMat = new THREE.MeshPhysicalMaterial({ color: '#78350F', roughness: 0.75 })
+
+    // 하단 세라믹 소서 (커피 받침 접시)
+    const saucer = new THREE.Mesh(new THREE.CylinderGeometry(1.68, 1.38, 0.12, 36), saucerMat)
+    saucer.position.y = -0.28
+    group.add(saucer)
+
+    // 소서 가장자리 골드 림
+    const saucerRim = new THREE.Mesh(new THREE.TorusGeometry(1.65, 0.035, 10, 36), goldRimMat)
+    saucerRim.rotation.x = Math.PI / 2
+    saucerRim.position.y = -0.22
+    group.add(saucerRim)
+
+    // 머그잔 본체 (넓고 둥근 카푸치노 잔)
+    const cup = new THREE.Mesh(new THREE.CylinderGeometry(1.42, 1.22, 0.38, 36), cupMat)
+    cup.position.y = -0.06
+    group.add(cup)
+
+    // 잔 둥근 손잡이 (오른쪽에 장착)
+    const handle = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.06, 12, 24, Math.PI * 1.2), cupMat)
+    handle.rotation.y = Math.PI / 2
+    handle.position.set(1.42, -0.05, 0)
+    group.add(handle)
+
+    // 상단 부드러운 브라운 에스프레소 & 크리미한 밀크폼 데크 (펫 착석 구역)
+    const coffeeSurface = new THREE.Mesh(new THREE.CylinderGeometry(1.35, 1.35, 0.1, 36), foamMat)
+    coffeeSurface.position.y = 0.12
+    group.add(coffeeSurface)
+
+    // 하트 라떼아트 (표면에 그려진 사랑스러운 하트 아트)
+    const heartLeft = new THREE.Mesh(new THREE.SphereGeometry(0.18, 14, 12), coffeeMat)
+    heartLeft.scale.set(1, 0.2, 1.4)
+    heartLeft.rotation.y = 0.35
+    heartLeft.position.set(-0.12, 0.17, 0.48)
+    group.add(heartLeft)
+
+    const heartRight = new THREE.Mesh(new THREE.SphereGeometry(0.18, 14, 12), coffeeMat)
+    heartRight.scale.set(1, 0.2, 1.4)
+    heartRight.rotation.y = -0.35
+    heartRight.position.set(0.12, 0.17, 0.48)
+    group.add(heartRight)
+
+    // 모락모락 피어오르는 부드러운 커피 김(스팀) 링 2개
+    const steam1 = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.035, 8, 20), steamMat)
+    steam1.rotation.x = Math.PI / 2.5
+    steam1.position.set(0.25, 0.42, -0.35)
+    group.add(steam1)
+
+    const steam2 = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.04, 8, 20), steamMat)
+    steam2.rotation.x = Math.PI / 2.3
+    steam2.position.set(-0.35, 0.65, -0.42)
+    group.add(steam2)
+
+    // 잔 옆에 비스듬히 놓인 바삭한 시나몬 스틱 1개
+    const cinnamon = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.85, 10), cinnamonMat)
+    cinnamon.rotation.set(0.2, 0.3, 1.4)
+    cinnamon.position.set(-0.85, 0.18, -0.55)
+    group.add(cinnamon)
+  } else if (baseId === 'antique-plate') {
+    // 🍽️ 7. 앤틱 골드 림 명품 디저트 접시 3D:
+    // - 유럽 황실 파티세리의 최고급 화이트 로얄 포슬린 세라믹 접시
+    // - 가장자리를 섬세하게 감싼 24K 순금 레이스 엠보싱 림 & 골드 도트 비즈
+    // - 접시 옆에 우아하게 놓인 실버 디저트 포크 가니쉬!
+    const plateMat = new THREE.MeshPhysicalMaterial({ color: '#FFFDF9', roughness: 0.12, clearcoat: 0.98 })
+    const goldMat = new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.96, roughness: 0.12, clearcoat: 1.0 })
+    const silverMat = new THREE.MeshPhysicalMaterial({ color: '#F1F5F9', metalness: 0.95, roughness: 0.08, clearcoat: 1.0 })
+    const innerFloral = new THREE.MeshPhysicalMaterial({ color: '#FDF2F8', roughness: 0.25, clearcoat: 0.8 })
+
+    // 메인 로얄 포슬린 도자기 접시 (완벽하게 납작하고 넓은 원형)
+    const plate = new THREE.Mesh(new THREE.CylinderGeometry(1.68, 1.45, 0.16, 40), plateMat)
+    plate.position.y = -0.15
+    group.add(plate)
+
+    // 접시 중앙 앤틱 플로럴 이너 데크 (펫 착석 구역)
+    const innerDeck = new THREE.Mesh(new THREE.CylinderGeometry(1.42, 1.42, 0.08, 36), innerFloral)
+    innerDeck.position.y = -0.06
+    group.add(innerDeck)
+
+    // 접시 바깥쪽 24K 골드 레이스 림
+    const goldRim = new THREE.Mesh(new THREE.TorusGeometry(1.65, 0.05, 12, 40), goldMat)
+    goldRim.rotation.x = Math.PI / 2
+    goldRim.position.y = -0.06
+    group.add(goldRim)
+
+    // 골드 림을 수놓은 16개 황금 엠보싱 비즈 도트
+    for (let bi = 0; bi < 16; bi++) {
+      const bAng = (bi / 16) * Math.PI * 2
+      const bead = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 8), goldMat)
+      bead.position.set(Math.cos(bAng) * 1.62, -0.04, Math.sin(bAng) * 1.62)
+      group.add(bead)
+    }
+
+    // 접시 오른쪽 가니쉬: 우아한 실버 디저트 포크
+    const forkHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.02, 0.95, 8), silverMat)
+    forkHandle.rotation.set(0, 0.15, Math.PI / 2)
+    forkHandle.position.set(1.15, -0.02, 0.65)
+    group.add(forkHandle)
+
+    const forkHead = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.02, 0.22), silverMat)
+    forkHead.position.set(1.58, -0.02, 0.72)
+    group.add(forkHead)
+  } else if (baseId === 'oven-pizza') {
+    // 🍕 8. 치즈 폭포 화덕 피자 3D:
+    // - 원목 손잡이가 달린 러스틱 우드 피자 보드 트레이
+    // - 노릇노릇 바삭하게 구워진 황금 화덕 피자 크러스트 도우
+    // - 모짜렐라 치즈 듬뿍 + 빨간 페퍼로니 슬라이스 + 초록 바질 잎 + 치즈 드립!
+    const woodMat = new THREE.MeshPhysicalMaterial({ color: '#A16207', roughness: 0.68 })
+    const crustMat = new THREE.MeshPhysicalMaterial({ color: '#D97706', roughness: 0.62, bumpScale: 0.05 })
+    const cheeseMat = new THREE.MeshPhysicalMaterial({ color: '#FEF08A', roughness: 0.35, clearcoat: 0.6, sheen: 0.8, sheenColor: new THREE.Color('#FACC15') })
+    const pepMat = new THREE.MeshPhysicalMaterial({ color: '#DC2626', roughness: 0.4 })
+    const basilMat = new THREE.MeshPhysicalMaterial({ color: '#16A34A', roughness: 0.35 })
+
+    // 원목 피자보드 트레이 (손잡이 포함)
+    const board = new THREE.Mesh(new THREE.CylinderGeometry(1.65, 1.65, 0.12, 36), woodMat)
+    board.position.y = -0.22
+    group.add(board)
+
+    const woodHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.06, 0.85, 12), woodMat)
+    woodHandle.rotation.z = Math.PI / 2
+    woodHandle.position.set(1.95, -0.22, 0)
+    group.add(woodHandle)
+
+    // 화덕 피자 크러스트 (도톰하고 노릇한 가장자리 림)
+    const crust = new THREE.Mesh(new THREE.CylinderGeometry(1.52, 1.55, 0.18, 36), crustMat)
+    crust.position.y = -0.08
+    group.add(crust)
+
+    // 중앙 쫀득한 모짜렐라 치즈 필링 (펫 착석 구역)
+    const cheeseLayer = new THREE.Mesh(new THREE.CylinderGeometry(1.42, 1.45, 0.08, 36), cheeseMat)
+    cheeseLayer.position.y = 0.04
+    group.add(cheeseLayer)
+
+    // 페퍼로니 슬라이스 6개 토핑
+    for (let pi = 0; pi < 6; pi++) {
+      const pAng = (pi / 6) * Math.PI * 2 + 0.25
+      const pep = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.03, 16), pepMat)
+      pep.position.set(Math.cos(pAng) * 1.05, 0.09, Math.sin(pAng) * 1.05)
+      group.add(pep)
+    }
+
+    // 신선한 초록 바질 잎 4개 토핑
+    for (let bi = 0; bi < 4; bi++) {
+      const bAng = (bi / 4) * Math.PI * 2 + 0.65
+      const basil = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 8), basilMat)
+      basil.scale.set(1.4, 0.2, 0.8)
+      basil.rotation.y = bAng
+      basil.position.set(Math.cos(bAng) * 0.72, 0.09, Math.sin(bAng) * 0.72)
+      group.add(basil)
+    }
+
+    // 가장자리로 주르륵 흐르는 모짜렐라 치즈 드립 3개
+    ;[0.85, 2.45, 4.2].forEach((ca) => {
+      const drip = new THREE.Mesh(new THREE.SphereGeometry(0.08, 10, 8), cheeseMat)
+      drip.scale.set(0.9, 1.8, 0.9)
+      drip.position.set(Math.cos(ca) * 1.55, -0.08, Math.sin(ca) * 1.55)
+      group.add(drip)
+    })
+  } else if (baseId === 'ramen-pot') {
+    // 🍲 9. 보글보글 황금 라면냄비 3D:
+    // - 정겨운 레트로 황금빛 알루미늄 양은냄비 + 양옆 리벳 손잡이
+    // - 얼큰하고 진한 라면 국물 & 꼬들꼬들 면발 + 계란 반숙 노른자 + 송송 대파 링!
+    const potGoldMat = new THREE.MeshPhysicalMaterial({ color: '#EAB308', metalness: 0.82, roughness: 0.28, clearcoat: 0.8 })
+    const soupMat = new THREE.MeshPhysicalMaterial({ color: '#EA580C', roughness: 0.25, clearcoat: 0.7 })
+    const noodleMat = new THREE.MeshPhysicalMaterial({ color: '#FDE047', roughness: 0.5 })
+    const yolkMat = new THREE.MeshPhysicalMaterial({ color: '#F97316', roughness: 0.15, clearcoat: 0.9 })
+    const scallionMat = new THREE.MeshPhysicalMaterial({ color: '#22C55E', roughness: 0.4 })
+    const handleMat = new THREE.MeshPhysicalMaterial({ color: '#451A03', roughness: 0.75 })
+
+    // 황금 양은냄비 본체
+    const pot = new THREE.Mesh(new THREE.CylinderGeometry(1.55, 1.35, 0.36, 36), potGoldMat)
+    pot.position.y = -0.1
+    group.add(pot)
+
+    // 냄비 테두리 둥근 림
+    const potRim = new THREE.Mesh(new THREE.TorusGeometry(1.54, 0.05, 12, 36), potGoldMat)
+    potRim.rotation.x = Math.PI / 2
+    potRim.position.y = 0.08
+    group.add(potRim)
+
+    // 양옆 양은냄비 손잡이 2개 (좌우)
+    const handleL = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.045, 10, 20, Math.PI), handleMat)
+    handleL.rotation.y = Math.PI / 2
+    handleL.position.set(1.56, 0.02, 0)
+    group.add(handleL)
+
+    const handleR = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.045, 10, 20, Math.PI), handleMat)
+    handleR.rotation.y = -Math.PI / 2
+    handleR.position.set(-1.56, 0.02, 0)
+    group.add(handleR)
+
+    // 얼큰한 라면 국물 표면 (펫 착석 구역)
+    const soup = new THREE.Mesh(new THREE.CylinderGeometry(1.42, 1.42, 0.08, 36), soupMat)
+    soup.position.y = 0.06
+    group.add(soup)
+
+    // 꼬들꼬들 라면 면발 링 4개
+    for (let ni = 0; ni < 4; ni++) {
+      const nAng = (ni / 4) * Math.PI * 2
+      const noodle = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.035, 8, 16), noodleMat)
+      noodle.rotation.x = Math.PI / 2
+      noodle.position.set(Math.cos(nAng) * 0.85, 0.1, Math.sin(nAng) * 0.85)
+      group.add(noodle)
+    }
+
+    // 신선한 계란 반숙 노른자 고명 1개
+    const yolk = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 14), yolkMat)
+    yolk.scale.set(1, 0.5, 1)
+    yolk.position.set(0.45, 0.12, 0.45)
+    group.add(yolk)
+
+    // 송송 썬 초록 대파 링 4개
+    ;[
+      [-0.45, 0.1, 0.35],
+      [-0.65, 0.1, -0.25],
+      [0.25, 0.1, -0.65],
+      [-0.15, 0.1, -0.72],
+    ].forEach(([sx, sy, sz]) => {
+      const scallion = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.03, 8, 14), scallionMat)
+      scallion.rotation.x = Math.PI / 2
+      scallion.position.set(sx, sy, sz)
+      group.add(scallion)
+    })
   } else if (baseId === 'eiffel-tower') {
     // 🗼 6. 파리 에펠탑 전망대 & 황금 첨탑 디오라마 3D:
     // - 펫 뒤편으로 하늘 높이 솟은 3단 격자 트러스 첨탑 (Spire & Pinnacle) + 꼭대기 프랑스 삼색기 리본 플래그!
@@ -4669,17 +4901,25 @@ export default function Monster3DView({
     // 키가 큰 대형 탑승형 받침대(에펠탑, 설산, 자동차, 바이크, 케이크 등) 장착 시,
     // 카메라 거리·화각과 수직 위치를 지능적으로 조절하여 머리 위 왕관부터 받침대 맨 밑바닥까지 황금비로 쏙 담음!
     const isLargeBase = [
-      'eiffel-tower',
       'snow-mountain',
-      'mini-car',
-      'motorcycle',
       'strawberry-cake',
       'parfait-cup',
       'ufo-beam',
       'custard-pudding',
+      'eiffel-tower',
+      'mini-car',
+      'motorcycle',
     ].includes(dessertBase)
 
-    const isMidBase = ['choco-cookie', 'macaron-cushion', 'cast-iron-pan'].includes(dessertBase)
+    const isMidBase = [
+      'coffee-cup',
+      'antique-plate',
+      'oven-pizza',
+      'ramen-pot',
+      'choco-cookie',
+      'macaron-cushion',
+      'cast-iron-pan',
+    ].includes(dessertBase)
 
     // 카메라 FOV 및 거리: 대형 받침대일 때 화각을 45도로 확장하고 거리를 5.75로 뒤로 살짝 물려 전체 가시성 극대화
     const camFov = isLargeBase ? 45 : isMidBase ? 42 : 40
