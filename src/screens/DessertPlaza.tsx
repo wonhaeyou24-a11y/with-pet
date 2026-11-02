@@ -505,7 +505,13 @@ export default function DessertPlaza({
           }
         })
 
-        setEntries([...mapped, ...PLAZA_SHOWCASE_FRIENDS])
+        if (mapped.length > 0) {
+          // 실제 가입된 지인들만 광장에 표시! (테스터 봇 전면 배제)
+          setEntries(mapped)
+        } else {
+          // 지인이 아직 없을 때 연습용 지인 1명만 아늑하게 표시
+          setEntries(PLAZA_SHOWCASE_FRIENDS.slice(0, 1))
+        }
       } catch {
         // 오프라인 폴백
       }

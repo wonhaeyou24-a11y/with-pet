@@ -42,61 +42,24 @@ export interface RelayTowerState {
   isFallen: boolean
 }
 
-const RELAY_STORAGE_KEY = 'pet_together_jenga_relay_v2'
-const SOLO_RECORD_STORAGE_KEY = 'pet_together_jenga_solo_record_v2'
+const RELAY_STORAGE_KEY = 'pet_together_jenga_relay_v4'
+const SOLO_RECORD_STORAGE_KEY = 'pet_together_jenga_solo_record_v4'
 
-// 📐 층수가 올라갈수록 탑처럼 펫이 점점 작아지는 함수 (46px -> 24px)
+// 📐 1단부터 위로 올라갈수록 펫의 크기가 뚜렷하게 작아지는 피라미드 스케일링 (54px -> 48px -> 42px -> 36px -> 30px -> 25px -> 20px)
 export function getTierPetSize(floor: number): number {
-  return Math.max(24, Math.round(46 - (floor - 1) * 2.8))
+  return Math.max(20, Math.round(54 - (floor - 1) * 5.5))
 }
 
-// 기본 지인 릴레이 돌탑 초기 데이터 (3D 디저트 펫 스냅샷 유지)
-function getInitialRelayState(myLook: MonsterLook): RelayTowerState {
+// 기본 지인 릴레이 돌탑 초기 데이터 (가짜 테스터 전면 제거: 순수 지인과 1단부터 직접 구축)
+function getInitialRelayState(): RelayTowerState {
   return {
     towerId: `tower-${Date.now()}`,
-    tiers: [
-      {
-        id: 'tier-base',
-        floor: 1,
-        ownerName: '베이커리 마스터',
-        petName: '단단한 버터 비스킷',
-        species: 'dubai-cookie',
-        look: { ...myLook, species: 'dubai-cookie' },
-        offsetX: 0,
-        petSize: getTierPetSize(1),
-        accuracy: 'PERFECT',
-        placedAt: new Date(Date.now() - 3600000).toISOString(),
-      },
-      {
-        id: 'tier-2',
-        floor: 2,
-        ownerName: '민트초코 지인',
-        petName: '퐁신 스모어',
-        species: 'smore',
-        look: { ...myLook, species: 'smore' },
-        offsetX: 4,
-        petSize: getTierPetSize(2),
-        accuracy: 'PERFECT',
-        placedAt: new Date(Date.now() - 1800000).toISOString(),
-      },
-      {
-        id: 'tier-3',
-        floor: 3,
-        ownerName: '말랑 파티시에',
-        petName: '달콤 모찌',
-        species: 'mochi',
-        look: { ...myLook, species: 'mochi' },
-        offsetX: -6,
-        petSize: getTierPetSize(3),
-        accuracy: 'GREAT',
-        placedAt: new Date(Date.now() - 600000).toISOString(),
-      },
-    ],
-    potCoins: 250,
-    potRibbons: 40,
-    highestRecord: 12,
-    lastPlayerName: '말랑 파티시에',
-    cumulativeTilt: -3,
+    tiers: [], // 더미 테스터 봇 전면 제거! 1단부터 시작
+    potCoins: 100,
+    potRibbons: 20,
+    highestRecord: 0,
+    lastPlayerName: '대기 중',
+    cumulativeTilt: 0,
     isFallen: false,
   }
 }
@@ -114,7 +77,7 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
     } catch {
       // ignore
     }
-    return getInitialRelayState(myLook)
+    return getInitialRelayState()
   })
 
   // 솔로 탑 층수 및 기록
@@ -164,21 +127,9 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
     }
   }, [activeTilt, gameState])
 
-  // 솔로 모드 시작
+  // 솔로 모드 시작 (가짜 테스터 없이 1단부터 직접 조준 및 안착)
   const startSoloGame = () => {
-    const baseTier: TowerTier = {
-      id: `solo-base-${Date.now()}`,
-      floor: 1,
-      ownerName: '도전의 시작',
-      petName: '단단한 버터 비스킷',
-      species: 'dubai-cookie',
-      look: myLook,
-      offsetX: 0,
-      petSize: getTierPetSize(1),
-      accuracy: 'PERFECT',
-      placedAt: new Date().toISOString(),
-    }
-    setSoloTiers([baseTier])
+    setSoloTiers([])
     setSoloTilt(0)
     dragXRef.current = 0
     if (aimPetRef.current) aimPetRef.current.style.transform = 'translate3d(0px, 0, 0)'
@@ -190,7 +141,7 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
   // 릴레이 모드 시작
   const startRelayGame = () => {
     if (relayState.isFallen) {
-      const fresh = getInitialRelayState(myLook)
+      const fresh = getInitialRelayState()
       setRelayState(fresh)
       localStorage.setItem(RELAY_STORAGE_KEY, JSON.stringify(fresh))
     }
@@ -242,8 +193,9 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
     setGameState('dropping')
     const finalDropX = dragXRef.current
 
-    // 계산된 낙하 높이 (탑 층수에 맞춰 꼭대기까지 슉 떨어짐)
-    const targetDropY = Math.max(160, 275 - activeTiers.length * 11)
+    // 계산된 낙하 높이 (탑 층수와 펫 실제 크기에 맞춰 꼭대기까지 슉 떨어짐)
+    const stackHeight = activeTiers.reduce((acc, t) => acc + Math.round((t.petSize || 40) * 0.72), 0)
+    const targetDropY = Math.max(120, 275 - stackHeight)
 
     // 하드웨어 가속 중력 자유낙하 애니메이션 (0.42s)
     aimPetRef.current.style.transition = 'transform 0.42s cubic-bezier(0.45, 0, 0.75, 0.6)'
@@ -723,7 +675,7 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
             willChange: 'transform',
           }}
         >
-          {/* 황금 파티세리 받침대 플래터 */}
+          {/* 황금 파티세리 받침대 플래터 (column-reverse의 맨 아래 바닥) */}
           <div
             style={{
               width: 140,
@@ -745,7 +697,28 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
             🧁 황금 받침대
           </div>
 
-          {/* 층수가 올라갈수록 점점 작아지는 피라미드 돌탑 구조 (46px -> 24px) */}
+          {/* 탑이 비어있을 때 받침대 바로 위에 띄우는 안내 말풍선 */}
+          {activeTiers.length === 0 && gameState === 'ready' && (
+            <div
+              style={{
+                marginBottom: 16,
+                background: 'rgba(245, 158, 11, 0.25)',
+                border: '1.5px dashed #FDE047',
+                borderRadius: 14,
+                padding: '8px 16px',
+                color: '#FEF08A',
+                fontSize: 11,
+                fontWeight: 800,
+                textAlign: 'center',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                animation: 'pulse 1.8s infinite',
+              }}
+            >
+              ✨ 탑이 비어있어요! 황금 받침대 위에 1단을 올려보세요!
+            </div>
+          )}
+
+          {/* 층수가 올라갈수록 1단(54px)부터 뚜렷하게 작아지는 피라미드 돌탑 구조 */}
           {activeTiers.map((tier, idx) => {
             const isTop = idx === activeTiers.length - 1
             const size = tier.petSize || getTierPetSize(tier.floor)

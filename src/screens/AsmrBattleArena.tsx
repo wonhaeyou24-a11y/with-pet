@@ -46,8 +46,8 @@ interface Props {
   onBack: () => void
 }
 
-// 👥 거대 보스 레이드에 참여 가능한 개성 넘치는 지인 펫 12마리 풀
-const RAID_PARTICIPANTS_POOL: RaidParticipantItem[] = [
+// 👥 (개발 테스트/참조용) 지인 펫 풀
+export const RAID_PARTICIPANTS_POOL: RaidParticipantItem[] = [
   {
     id: 'participant-1',
     ownerName: '말랑 님',
@@ -249,7 +249,7 @@ export default function AsmrBattleArena({
   battleMode,
   initialSeed,
   precomputed,
-  raidParticipantCount,
+  raidParticipantCount: _raidParticipantCount,
   customParticipants,
   onRematch,
   onRewardClaimed,
@@ -326,12 +326,11 @@ export default function AsmrBattleArena({
   const cInfo = SPECIES_INFO[cLook.mallang?.morphForm ?? challenger.species] ?? SPECIES_INFO[challenger.species]
   const dInfo = SPECIES_INFO[dLook.mallang?.morphForm ?? defender.species] ?? SPECIES_INFO[defender.species]
 
-    // ⚔️ 거대 보스 레이드에 참여한 지인 펫들 (인원수에 따라 크기 및 배치가 자동 최적화됨)
-  const activeCount = raidParticipantCount ?? 8
+    // ⚔️ 거대 보스 레이드에 참여한 지인 펫들 (테스터 봇 전면 제거: 실제 참여한 지인만 노출, 없으면 1인 솔로 참전)
   const rawParticipants = useMemo(() => {
     if (customParticipants && customParticipants.length > 0) return customParticipants
-    return RAID_PARTICIPANTS_POOL.slice(0, Math.min(Math.max(activeCount, 1), RAID_PARTICIPANTS_POOL.length))
-  }, [customParticipants, activeCount])
+    return [] // 가짜 테스터 봇 제거: 실제 지인만 함께 전투!
+  }, [customParticipants])
 
   const { items: raidParticipants } = useMemo(
     () => computeRaidFormation(rawParticipants),
@@ -844,7 +843,11 @@ export default function AsmrBattleArena({
               {challenger.name || cInfo?.name}
             </span>
             <span style={{ color: isRaid ? '#FFD54F' : '#D84315', fontSize: 10 }}>
-              {isRaid ? `참전 7인 연합 (지인 누적 -${totalAllyDmg})` : `나 · Lv.${challenger.level}`}
+              {isRaid
+                ? raidParticipants.length > 0
+                  ? `참전 지인 연합 (${raidParticipants.length}인 · 누적 -${totalAllyDmg})`
+                  : `지인 솔로 레이드 (나 홀로 참전)`
+                : `나 · Lv.${challenger.level}`}
             </span>
           </div>
           <div style={{ height: 9, borderRadius: 999, background: isRaid ? 'rgba(255,255,255,0.15)' : '#F5E8C9', overflow: 'hidden' }}>
