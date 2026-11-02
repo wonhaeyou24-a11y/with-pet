@@ -282,9 +282,13 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
         flexDirection: 'column',
         height: '100dvh',
         maxHeight: '100dvh',
+        width: '100%',
+        maxWidth: '100vw',
+        boxSizing: 'border-box',
         background: '#FFF5F7',
         color: '#4A2E2B',
         overflow: 'hidden',
+        overflowX: 'hidden',
         userSelect: 'none',
         position: 'relative',
       }}
@@ -378,11 +382,13 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
           padding: '6px 12px 2px',
           gap: 5,
           background: '#FFF5F7',
           flexShrink: 0,
+          width: '100%',
+          boxSizing: 'border-box',
         }}
       >
         <button
@@ -463,6 +469,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
           justifyContent: 'center',
           overflow: 'hidden',
           flexShrink: 0,
+          boxSizing: 'border-box',
         }}
       >
         {tab !== 'interior' ? (
@@ -594,6 +601,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
           alignItems: 'center',
           justifyContent: 'space-between',
           flexShrink: 0,
+          boxSizing: 'border-box',
         }}
       >
         <div style={{ minWidth: 0, flex: 1, paddingRight: 8 }}>
@@ -820,21 +828,29 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
         </div>
       </div>
 
-      {/* 5. 아이템 카탈로그 격자 목록 (내부 스크롤) */}
+      {/* 5. 아이템 카탈로그 격자 목록 (내부 스크롤 - 좌우 덜렁거림 및 가로 스크롤 완벽 차단) */}
       <div
         style={{
           flex: 1,
+          minHeight: 0,
           overflowY: 'auto',
+          overflowX: 'hidden',
+          WebkitOverflowScrolling: 'touch',
+          touchAction: 'pan-y',
+          overscrollBehaviorX: 'none',
+          overscrollBehaviorY: 'auto',
           padding: '0 12px 10px',
           display: 'flex',
           flexDirection: 'column',
           gap: 8,
+          width: '100%',
+          boxSizing: 'border-box',
         }}
       >
         {tab === 'interior' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', boxSizing: 'border-box' }}>
             <span style={{ fontSize: 11, fontWeight: 900, color: '#9D174D' }}>🎨 벽지 &amp; 바닥 테마 선택</span>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 4, width: '100%', boxSizing: 'border-box' }}>
               {ROOM_THEMES.map((theme) => {
                 const isSelected = selectedTheme.id === theme.id
                 const isOwned = ownedItems.has(theme.id) || theme.price === 0
@@ -854,10 +870,23 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
+                      minWidth: 0,
+                      boxSizing: 'border-box',
                     }}
                   >
                     <span style={{ fontSize: 18 }}>{theme.icon}</span>
-                    <span style={{ fontSize: 9, fontWeight: 800, color: '#4E342E', whiteSpace: 'nowrap' }}>
+                    <span
+                      style={{
+                        fontSize: 9,
+                        fontWeight: 800,
+                        color: '#4E342E',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        display: 'block',
+                        maxWidth: '100%',
+                      }}
+                    >
                       {theme.name.slice(0, 4)}
                     </span>
                     <span style={{ fontSize: 8, color: isOwned ? '#059669' : '#BE185D', fontWeight: 800 }}>
@@ -874,9 +903,11 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
+            gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
             gap: 6,
             alignContent: 'start',
+            width: '100%',
+            boxSizing: 'border-box',
           }}
         >
         {tab === 'fashion'
@@ -901,6 +932,9 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
                     cursor: 'pointer',
                     position: 'relative',
                     boxShadow: isSelected ? '0 2px 6px rgba(236,72,153,0.2)' : 'none',
+                    minWidth: 0,
+                    maxWidth: '100%',
+                    boxSizing: 'border-box',
                   }}
                 >
                   {isEquipped && (
@@ -932,6 +966,8 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap',
                       width: '100%',
+                      maxWidth: '100%',
+                      display: 'block',
                     }}
                   >
                     {item.name}
@@ -969,6 +1005,9 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
                     cursor: 'pointer',
                     position: 'relative',
                     boxShadow: isSelected ? '0 2px 6px rgba(236,72,153,0.2)' : 'none',
+                    minWidth: 0,
+                    maxWidth: '100%',
+                    boxSizing: 'border-box',
                   }}
                 >
                   {isEquipped ? (
@@ -1017,6 +1056,8 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap',
                       width: '100%',
+                      maxWidth: '100%',
+                      display: 'block',
                     }}
                   >
                     {item.name}
@@ -1053,6 +1094,9 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
                     justifyContent: 'center',
                     cursor: 'pointer',
                     position: 'relative',
+                    minWidth: 0,
+                    maxWidth: '100%',
+                    boxSizing: 'border-box',
                   }}
                 >
                   <span style={{ fontSize: 28, margin: '2px 0' }}>{furn.icon}</span>
@@ -1066,6 +1110,8 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap',
                       width: '100%',
+                      maxWidth: '100%',
+                      display: 'block',
                     }}
                   >
                     {furn.name}
@@ -1086,6 +1132,8 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
       {/* 6. 하단 마이룸 바로가기 액션 바 (화면 짤림 원천 차단) */}
       <div
         style={{
+          width: '100%',
+          boxSizing: 'border-box',
           padding: '10px 14px calc(10px + env(safe-area-inset-bottom, 0px))',
           background: '#FFFFFF',
           borderTop: '1.5px solid #FCE7F3',

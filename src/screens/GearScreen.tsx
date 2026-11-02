@@ -149,7 +149,12 @@ export default function GearScreen({ monster, coins, onCoins, onBack }: Props) {
         position: 'relative',
         height: '100dvh',
         maxHeight: '100dvh',
+        width: '100%',
+        maxWidth: '100vw',
         overflow: 'hidden',
+        overflowX: 'hidden',
+        touchAction: 'pan-y',
+        overscrollBehaviorX: 'none',
         boxSizing: 'border-box',
         display: 'flex',
         flexDirection: 'column',
@@ -245,8 +250,26 @@ export default function GearScreen({ monster, coins, onCoins, onBack }: Props) {
         ))}
       </div>
 
-      {/* 목록 */}
-      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, alignContent: 'start', paddingBottom: selected && tab === 'bag' ? 150 : 4 }}>
+      {/* 목록 (가로 스크롤 및 좌우 흔들림 방지 가드) */}
+      <div
+        style={{
+          flex: 1,
+          minHeight: 0,
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          WebkitOverflowScrolling: 'touch',
+          touchAction: 'pan-y',
+          overscrollBehaviorX: 'none',
+          overscrollBehaviorY: 'auto',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+          gap: 8,
+          alignContent: 'start',
+          paddingBottom: selected && tab === 'bag' ? 150 : 4,
+          width: '100%',
+          boxSizing: 'border-box',
+        }}
+      >
         {tab === 'bag' && items.length === 0 && (
           <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '26px 8px', fontSize: 13, fontWeight: 800, color: '#8D6E63', lineHeight: 1.6 }}>
             아직 장비가 없어요.<br />상점에서 사거나, 디저트 타워 5층마다 있는 보스 층에서 얻을 수 있어요.
@@ -274,6 +297,8 @@ export default function GearScreen({ monster, coins, onCoins, onBack }: Props) {
                   gap: 8,
                   alignItems: 'center',
                   minWidth: 0,
+                  maxWidth: '100%',
+                  boxSizing: 'border-box',
                 }}
               >
                 <span style={{ fontSize: 26, flexShrink: 0 }}>{d.icon}</span>
@@ -293,7 +318,7 @@ export default function GearScreen({ monster, coins, onCoins, onBack }: Props) {
             const g = GEAR_GRADES[d.grade]
             const afford = coins >= (d.price ?? 0)
             return (
-              <div key={d.id} style={{ padding: 9, borderRadius: 14, border: `2px solid ${g.color}`, background: g.bg, display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div key={d.id} style={{ padding: 9, borderRadius: 14, border: `2px solid ${g.color}`, background: g.bg, display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}>
                 <div style={{ display: 'flex', gap: 7, alignItems: 'center' }}>
                   <span style={{ fontSize: 26 }}>{d.icon}</span>
                   <span style={{ fontSize: 12, fontWeight: 900, color: '#3E2723' }}>{d.name}</span>
