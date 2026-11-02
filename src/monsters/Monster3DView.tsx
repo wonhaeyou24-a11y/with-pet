@@ -535,13 +535,23 @@ export function build3DCharacterMesh(
         wEye.position.set(0, 0, 0.06)
         eyeGroup.add(wEye)
       } else if (isRainbowStar) {
-        // ⭐ 4. 무지개 스타눈: 별빛 가득한 영롱한 오망성 눈매
-        const star = new THREE.Mesh(new THREE.OctahedronGeometry(0.12, 0), new THREE.MeshPhysicalMaterial({ color: '#FFD700', emissive: '#FFA000', emissiveIntensity: 0.8 }))
-        star.scale.set(1.2, 1.2, 0.5)
-        eyeGroup.add(star)
-        const glint = new THREE.Mesh(new THREE.SphereGeometry(0.032, 8, 8), glintMat)
-        glint.position.set(0, 0.04, 0.07)
-        eyeGroup.add(glint)
+        // 💖 무지개 고메 및 별빛 표정에서도 본래의 사랑스러운 딥초코 젤리눈 유지 (노란색 외계인 눈 현상 원천 차단)
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.125, 24, 22), eyeMat)
+        eye.scale.set(1.05, 1.15, 0.65)
+        eyeGroup.add(eye)
+
+        // 눈동자 속 앙증맞고 영롱한 크리스탈 별빛 하이라이트 글린트 (순백 + 은은한 광채)
+        const starGlint = new THREE.Mesh(new THREE.SphereGeometry(0.042, 12, 12), glintMat)
+        starGlint.position.set(xSide * -0.035, 0.075, 0.075)
+        eyeGroup.add(starGlint)
+
+        const glint2 = new THREE.Mesh(new THREE.SphereGeometry(0.024, 10, 10), glintMat)
+        glint2.position.set(xSide * 0.038, -0.02, 0.075)
+        eyeGroup.add(glint2)
+
+        const glint3 = new THREE.Mesh(new THREE.SphereGeometry(0.016, 8, 8), glintMat)
+        glint3.position.set(xSide * -0.01, -0.045, 0.07)
+        eyeGroup.add(glint3)
       } else if (expr === 'sleepy') {
         // 😴 5. 졸린 눈: 아래로 살짝 감긴 힐링 반달 눈
         const arc = new THREE.Mesh(new THREE.TorusGeometry(0.092, 0.022, 12, 24, Math.PI), eyeMat)
