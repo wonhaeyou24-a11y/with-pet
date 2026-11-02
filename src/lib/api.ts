@@ -460,3 +460,51 @@ async function callEggDevMock(action: EggAction, params: { eggId?: string }): Pr
 
   return { ok: false, code: 'network', message: '잠시 후 다시 시도해 주세요.' }
 }
+
+/**
+ * 🧹 테스터 펫 및 로컬 더미 기록 정리 유틸리티
+ * - 개발 및 테스트 중 생성된 중복/더미 로컬 몬스터 및 만료된 테스트 알 정리
+ * - 빈 선물 데이터 및 파티 잔여 캐시 정돈
+ */
+export function cleanupTesterPetsAndLogs(): { cleanedMonsters: number; cleanedLogs: boolean } {
+  let cleanedMonsters = 0
+  try {
+    const monsters = loadLocalMonsters()
+    if (monsters.length > 1) {
+      // 가장 최근에 활동한 최신 1마리만 보존하고 나머지 더미 테스트 펫 제거
+      const sorted = [...monsters].sort((a, b) => {
+        const timeA = a.hatched_at ? Date.parse(a.hatched_at) : 0
+        const timeB = b.hatched_at ? Date.parse(b.hatched_at) : 0
+        return timeB - timeA
+      })
+      const kept = [sorted[0]]
+      cleanedMonsters = monsters.length - 1
+      saveLocalMonsters(kept)
+    }
+
+    // 빈 배달 선물 목록 정리
+    const rawGifts = localStorage.getItem('withpet_delivered_gifts_v1')
+    if (rawGifts) {
+      const parsed = JSON.parse(rawGifts)
+      if (Array.isArray(parsed)) {
+        const valid = parsed.filter((g) => g && g.id && Array.isArray(g.slots) && g.slots.length > 0)
+        localStorage.setItem('withpet_delivered_gifts_v1', JSON.stringify(valid.slice(0, 20)))
+      }
+    }
+
+    // 진열장 빈 박스 정리
+    const rawShowcase = localStorage.getItem('withpet_party_showcase_v1')
+    if (rawShowcase) {
+      const parsed = JSON.parse(rawShowcase)
+      if (Array.isArray(parsed)) {
+        const valid = parsed.filter((s) => s && s.id && Array.isArray(s.slots) && s.slots.some((it: unknown) => it !== null))
+        localStorage.setItem('withpet_party_showcase_v1', JSON.stringify(valid.slice(0, 20)))
+      }
+    }
+
+    return { cleanedMonsters, cleanedLogs: true }
+  } catch (err) {
+    console.warn('테스터 기록 정리 중 알림:', err)
+    return { cleanedMonsters: 0, cleanedLogs: false }
+  }
+}

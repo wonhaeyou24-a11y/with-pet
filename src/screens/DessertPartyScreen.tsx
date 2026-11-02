@@ -18,7 +18,7 @@
 
 import React, { useState, useEffect } from 'react'
 import type { MonsterRow } from '../lib/api'
-import { monsterLook } from '../lib/api'
+import { monsterLook, cleanupTesterPetsAndLogs } from '../lib/api'
 import Monster3DView from '../monsters/Monster3DView'
 import type { MonsterLook } from '../monsters/types'
 import { loadMallangCustom } from '../monsters/MallangChameleon'
@@ -747,14 +747,193 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
     localStorage.setItem(OPEN_PARTIES_STORAGE_KEY, JSON.stringify(updatedList))
 
     if (isNowCompleted) {
+      // 🎁 슬롯이 100% 채워졌을 때 참여한 지인들에게 자동으로 완성 선물 발송!
+      const participants = updatedSlots.filter((s): s is PartySlotItem => s !== null)
+      const existingGifts = localStorage.getItem(DELIVERED_GIFTS_STORAGE_KEY)
+      const giftList: DeliveredGiftPackage[] = existingGifts ? JSON.parse(existingGifts) : []
+
+      participants.forEach((p, pIdx) => {
+        const giftPkg: DeliveredGiftPackage = {
+          id: `gift-party-${roomId}-${pIdx}-${Date.now()}`,
+          senderName: room.hostName || '달콤 파티룸',
+          recipientName: p.ownerName || '소중한 지인',
+          title: `🎉 ${room.title} 합작 완성 세트!`,
+          baseType: room.baseType,
+          boxTheme: room.boxTheme,
+          capacity: room.capacity,
+          slots: participants,
+          finishing: room.finishing || { lettering: '모두 함께 완성했어요! ✨', powder: 'gold-leaf', ribbon: 'royal-gold' },
+          letterMessage: `"${room.title}" 파티가 만석으로 멋지게 완성되었습니다! 참여해 주신 지인 여러분 감사합니다 💖 (보너스: 30🎀 + 100🪙)`,
+          sentAt: new Date().toISOString(),
+          isOpened: false,
+        }
+        giftList.unshift(giftPkg)
+      })
+
+      localStorage.setItem(DELIVERED_GIFTS_STORAGE_KEY, JSON.stringify(giftList.slice(0, 30)))
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('gift_delivered'))
+      }
+
       setShowCelebration(true)
       const existingShowcase = localStorage.getItem(SHOWCASE_STORAGE_KEY)
       const showcaseArr: OpenPartyRoom[] = existingShowcase ? JSON.parse(existingShowcase) : []
       showcaseArr.unshift(updatedRoom)
       localStorage.setItem(SHOWCASE_STORAGE_KEY, JSON.stringify(showcaseArr.slice(0, 30)))
       setShowcaseList(showcaseArr)
-      setTimeout(() => setShowCelebration(false), 4000)
+      setGiftSentToast(`🎉 파티가 완성되어 참여한 ${participants.length}명의 지인 전원에게 선물이 자동 발송되었습니다!`)
+      setTimeout(() => {
+        setShowCelebration(false)
+        setGiftSentToast(null)
+      }, 4500)
     }
+  }
+
+  // 🗑️ 오픈 파티 삭제 (방장 또는 유저가 생성한 파티 취소)
+  const handleDeleteOpenParty = (roomId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation()
+    const targetRoom = openParties.find((r) => r.id === roomId)
+    const title = targetRoom ? targetRoom.title : '오픈 파티'
+
+    if (!window.confirm(`"${title}" 파티를 정말 삭제(취소)하시겠습니까?`)) {
+      return
+    }
+
+    try {
+      playDessertAsmr('wax-pop')
+    } catch {
+      // ignore
+    }
+
+    const updated = openParties.filter((r) => r.id !== roomId)
+    setOpenParties(updated)
+    localStorage.setItem(OPEN_PARTIES_STORAGE_KEY, JSON.stringify(updated))
+
+    if (activeRoomId === roomId) {
+      setActiveRoomId(null)
+    }
+
+    setGiftSentToast('🗑️ 오픈 파티가 삭제되었습니다.')
+    setTimeout(() => setGiftSentToast(null), 3000)
+  }
+
+  // 🎁 완성된 오픈 파티 참여 지인들에게 선물 수동/조기 발송 및 파티룸 완료
+  const handleCompletePartyAndSendGifts = (roomId: string) => {
+    const room = openParties.find((r) => r.id === roomId)
+    if (!room) return
+
+    const participants = room.slots.filter((s): s is PartySlotItem => s !== null)
+    if (participants.length === 0) {
+      alert('파티에 최소 1명 이상의 디저트가 참여해야 완료할 수 있습니다!')
+      return
+    }
+
+    if (!window.confirm(`🎉 파티를 완성하고 참여한 ${participants.length}명의 지인 전원에게 완성 선물을 발송하시겠습니까?`)) {
+      return
+    }
+
+    try {
+      playDessertAsmr('sugar-crack')
+    } catch {
+      // ignore
+    }
+
+    // 1) 참여자 전원에게 선물 배달 패키지 생성
+    const existingGifts = localStorage.getItem(DELIVERED_GIFTS_STORAGE_KEY)
+    const giftList: DeliveredGiftPackage[] = existingGifts ? JSON.parse(existingGifts) : []
+
+    participants.forEach((p, idx) => {
+      const giftPkg: DeliveredGiftPackage = {
+        id: `gift-party-${roomId}-${idx}-${Date.now()}`,
+        senderName: room.hostName || '달콤 파티룸',
+        recipientName: p.ownerName || '소중한 지인',
+        title: `🎉 ${room.title} 완성 선물 세트!`,
+        baseType: room.baseType,
+        boxTheme: room.boxTheme,
+        capacity: room.capacity,
+        slots: participants,
+        finishing: room.finishing || { lettering: '함께해서 달콤했어!', powder: 'gold-leaf', ribbon: 'royal-gold' },
+        letterMessage: `"${room.title}" 파티가 완성되었습니다! 함께해 주셔서 감사해요 💖 (선물: 30🎀 + 100🪙)`,
+        sentAt: new Date().toISOString(),
+        isOpened: false,
+      }
+      giftList.unshift(giftPkg)
+    })
+
+    localStorage.setItem(DELIVERED_GIFTS_STORAGE_KEY, JSON.stringify(giftList.slice(0, 30)))
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('gift_delivered'))
+    }
+
+    // 2) 파티룸 상태 완료(isCompleted = true) 처리
+    const updatedRoom: OpenPartyRoom = {
+      ...room,
+      isCompleted: true,
+    }
+
+    const updatedParties = openParties.map((r) => (r.id === roomId ? updatedRoom : r))
+    setOpenParties(updatedParties)
+    localStorage.setItem(OPEN_PARTIES_STORAGE_KEY, JSON.stringify(updatedParties))
+
+    // 명예 진열장에 보관
+    const existingShowcase = localStorage.getItem(SHOWCASE_STORAGE_KEY)
+    const showcaseArr: OpenPartyRoom[] = existingShowcase ? JSON.parse(existingShowcase) : []
+    showcaseArr.unshift(updatedRoom)
+    localStorage.setItem(SHOWCASE_STORAGE_KEY, JSON.stringify(showcaseArr.slice(0, 30)))
+    setShowcaseList(showcaseArr)
+
+    setShowCelebration(true)
+    setGiftSentToast(`🎁 파티가 완료되어 참여한 ${participants.length}명의 지인 전원에게 선물이 발송되었습니다!`)
+    setTimeout(() => {
+      setShowCelebration(false)
+      setGiftSentToast(null)
+    }, 4500)
+  }
+
+  // 🗑️ 명예 진열장 진열된 박스 삭제
+  const handleDeleteShowcaseItem = (itemId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation()
+    if (!window.confirm('진열장에서 이 디저트 박스를 철거(삭제)하시겠습니까?')) {
+      return
+    }
+
+    try {
+      playDessertAsmr('wax-pop')
+    } catch {
+      // ignore
+    }
+
+    const updated = showcaseList.filter((item) => item.id !== itemId)
+    setShowcaseList(updated)
+    localStorage.setItem(SHOWCASE_STORAGE_KEY, JSON.stringify(updated))
+    setGiftSentToast('🗑️ 진열장에서 박스가 삭제되었습니다.')
+    setTimeout(() => setGiftSentToast(null), 3000)
+  }
+
+  // 🧹 테스터 펫 및 로컬 더미 기록 정리
+  const handleCleanupTesterData = () => {
+    if (!window.confirm('테스트 중 생성된 중복 테스터 펫과 오래된 더미 로그를 깔끔하게 정리하시겠습니까?\n(가장 최근 대표 펫과 정상 데이터는 안전하게 보존됩니다)')) {
+      return
+    }
+
+    try {
+      playDessertAsmr('mochi-squish')
+    } catch {
+      // ignore
+    }
+
+    const result = cleanupTesterPetsAndLogs()
+    // 화면의 오픈 파티 중 유효하지 않은 데이터도 함께 정돈
+    const cleanedParties = openParties.filter((p) => p && p.id && Array.isArray(p.slots))
+    setOpenParties(cleanedParties)
+    localStorage.setItem(OPEN_PARTIES_STORAGE_KEY, JSON.stringify(cleanedParties))
+
+    const cleanedShowcase = showcaseList.filter((s) => s && s.id && Array.isArray(s.slots))
+    setShowcaseList(cleanedShowcase)
+    localStorage.setItem(SHOWCASE_STORAGE_KEY, JSON.stringify(cleanedShowcase))
+
+    setGiftSentToast(`🧹 정리 완료: 더미 펫 ${result.cleanedMonsters}마리 및 잔여 테스트 로그가 깨끗하게 정돈되었습니다!`)
+    setTimeout(() => setGiftSentToast(null), 4000)
   }
 
   // 🏆 대표님 첨부 실물 사진 5종 100% 동일 렌더러
@@ -1190,31 +1369,52 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
             {mainTab === 'showcase' && '명예의 파티 진열장'}
           </span>
         </div>
-        {onOpenBoutique ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <button
             type="button"
-            onClick={onOpenBoutique}
+            onClick={handleCleanupTesterData}
             style={{
-              background: '#FFF1F2',
-              border: '1px solid #FECDD3',
+              background: '#F1F5F9',
+              border: '1px solid #CBD5E1',
               cursor: 'pointer',
               padding: '4px 8px',
               borderRadius: 10,
-              color: '#BE185D',
+              color: '#475569',
               fontSize: 11,
-              fontWeight: 900,
+              fontWeight: 800,
               display: 'flex',
               alignItems: 'center',
               gap: 3,
             }}
-            title="부티크 상점"
+            title="테스터 펫 & 더미 기록 깔끔 정리"
           >
-            <span>🛍️</span>
-            <span>상점</span>
+            <span>🧹</span>
+            <span>정리</span>
           </button>
-        ) : (
-          <div style={{ width: 32 }} />
-        )}
+          {onOpenBoutique && (
+            <button
+              type="button"
+              onClick={onOpenBoutique}
+              style={{
+                background: '#FFF1F2',
+                border: '1px solid #FECDD3',
+                cursor: 'pointer',
+                padding: '4px 8px',
+                borderRadius: 10,
+                color: '#BE185D',
+                fontSize: 11,
+                fontWeight: 900,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 3,
+              }}
+              title="부티크 상점"
+            >
+              <span>🛍️</span>
+              <span>상점</span>
+            </button>
+          )}
+        </div>
       </header>
 
       {/* 🎀 3대 메인 탭 바 */}
@@ -1648,49 +1848,91 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
             {!activeRoomId ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <span style={{ fontSize: 12, fontWeight: 900, color: '#334155' }}>참여 가능한 열린 파티 목록</span>
-                {openParties.map((room) => {
-                  const filledCount = room.slots.filter((s) => s !== null).length
-                  return (
-                    <div
-                      key={room.id}
-                      onClick={() => setActiveRoomId(room.id)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '12px 14px',
-                        borderRadius: 16,
-                        background: '#FFFFFF',
-                        border: '1px solid #E9D5FF',
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontSize: 12.5, fontWeight: 900, color: '#1E293B' }}>{room.title}</span>
-                        <span style={{ fontSize: 10.5, color: '#9333EA', fontWeight: 800, marginTop: 2 }}>
-                          호스트: {room.hostName} • {room.capacity}구 세트
-                        </span>
+                {openParties.length === 0 ? (
+                  <div
+                    style={{
+                      padding: '30px 16px',
+                      textAlign: 'center',
+                      fontSize: 11.5,
+                      fontWeight: 800,
+                      color: '#94A3B8',
+                      background: '#FFFFFF',
+                      borderRadius: 16,
+                      border: '2px dashed #E9D5FF',
+                    }}
+                  >
+                    현재 열린 파티가 없습니다. 상단의 <strong>[+ 새 파티 열기]</strong>를 눌러 지인들을 초대해 보세요!
+                  </div>
+                ) : (
+                  openParties.map((room) => {
+                    const filledCount = room.slots.filter((s) => s !== null).length
+                    return (
+                      <div
+                        key={room.id}
+                        onClick={() => setActiveRoomId(room.id)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '12px 14px',
+                          borderRadius: 16,
+                          background: '#FFFFFF',
+                          border: room.isCompleted ? '1.5px solid #10B981' : '1px solid #E9D5FF',
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1, paddingRight: 8 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span style={{ fontSize: 12.5, fontWeight: 900, color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {room.title}
+                            </span>
+                            {room.isCompleted && (
+                              <span style={{ fontSize: 9.5, fontWeight: 800, padding: '1px 5px', borderRadius: 6, background: '#DCFCE7', color: '#16A34A' }}>
+                                완성됨
+                              </span>
+                            )}
+                          </div>
+                          <span style={{ fontSize: 10.5, color: '#9333EA', fontWeight: 800, marginTop: 2 }}>
+                            호스트: {room.hostName} • {room.capacity}구 세트
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                          <span
+                            style={{
+                              fontSize: 11.5,
+                              fontWeight: 900,
+                              padding: '3px 8px',
+                              borderRadius: 10,
+                              background: '#FAF5FF',
+                              color: '#7E22CE',
+                              border: '1px solid #E9D5FF',
+                            }}
+                          >
+                            {filledCount} / {room.capacity}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => handleDeleteOpenParty(room.id, e)}
+                            style={{
+                              background: '#FFF1F2',
+                              border: '1px solid #FECDD3',
+                              borderRadius: 8,
+                              color: '#E11D48',
+                              fontSize: 11,
+                              fontWeight: 800,
+                              padding: '3px 7px',
+                              cursor: 'pointer',
+                            }}
+                            title="파티 삭제"
+                          >
+                            🗑️
+                          </button>
+                        </div>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span
-                          style={{
-                            fontSize: 11.5,
-                            fontWeight: 900,
-                            padding: '3px 9px',
-                            borderRadius: 10,
-                            background: '#FAF5FF',
-                            color: '#7E22CE',
-                            border: '1px solid #E9D5FF',
-                          }}
-                        >
-                          {filledCount} / {room.capacity}
-                        </span>
-                        <span style={{ fontSize: 11.5, fontWeight: 900, color: '#94A3B8' }}>입장 ➔</span>
-                      </div>
-                    </div>
-                  )
-                })}
+                    )
+                  })
+                )}
               </div>
             ) : (
               currentOpenRoom && (
@@ -1711,7 +1953,25 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                     >
                       ← 목록으로 돌아가기
                     </button>
-                    <span style={{ fontSize: 12.5, fontWeight: 900, color: '#1E293B' }}>{currentOpenRoom.title}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontSize: 12.5, fontWeight: 900, color: '#1E293B' }}>{currentOpenRoom.title}</span>
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeleteOpenParty(currentOpenRoom.id, e)}
+                        style={{
+                          background: '#FFF1F2',
+                          border: '1px solid #FECDD3',
+                          borderRadius: 8,
+                          color: '#E11D48',
+                          fontSize: 10.5,
+                          fontWeight: 800,
+                          padding: '3px 7px',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        🗑️ 파티 삭제
+                      </button>
+                    </div>
                   </div>
 
                   {renderLuxuryShowcaseBase(
@@ -1727,20 +1987,67 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                     currentOpenRoom.boxTheme
                   )}
 
-                  <div
-                    style={{
-                      padding: 10,
-                      borderRadius: 12,
-                      background: '#FEF3C7',
-                      border: '1.5px solid #FCD34D',
-                      fontSize: 11,
-                      fontWeight: 800,
-                      color: '#92400E',
-                      textAlign: 'center',
-                    }}
-                  >
-                    💡 비어있는 칸을 터치하면 현재 내가 색칠하고 꾸민 펫이 즉시 들어갑니다!
-                  </div>
+                  {/* 파티룸 상태별 하단 액션 덱 */}
+                  {!currentOpenRoom.isCompleted ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <div
+                        style={{
+                          padding: 10,
+                          borderRadius: 12,
+                          background: '#FEF3C7',
+                          border: '1.5px solid #FCD34D',
+                          fontSize: 11,
+                          fontWeight: 800,
+                          color: '#92400E',
+                          textAlign: 'center',
+                        }}
+                      >
+                        💡 비어있는 칸을 터치하면 현재 내가 색칠하고 꾸민 펫이 즉시 들어갑니다!
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleCompletePartyAndSendGifts(currentOpenRoom.id)}
+                        style={{
+                          width: '100%',
+                          padding: '11px 14px',
+                          borderRadius: 14,
+                          border: 'none',
+                          background: 'linear-gradient(135deg, #EC4899 0%, #BE185D 100%)',
+                          color: '#FFFFFF',
+                          fontWeight: 900,
+                          fontSize: 12.5,
+                          cursor: 'pointer',
+                          boxShadow: '0 4px 10px rgba(236,72,153,0.3)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 6,
+                        }}
+                      >
+                        <span>🎁</span>
+                        <span>파티 완성 & 참여 지인 전원에게 선물 발송하기</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        padding: 12,
+                        borderRadius: 14,
+                        background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)',
+                        border: '1.5px solid #6EE7B7',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 8,
+                        color: '#065F46',
+                        fontSize: 12,
+                        fontWeight: 900,
+                      }}
+                    >
+                      <span>✨</span>
+                      <span>참여한 모든 지인들에게 선물이 발송된 완료된 파티입니다!</span>
+                    </div>
+                  )}
                 </div>
               )
             )}
@@ -1788,7 +2095,7 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
             ) : (
               showcaseList.map((item, idx) => (
                 <div
-                  key={idx}
+                  key={item.id || idx}
                   style={{
                     padding: 12,
                     borderRadius: 18,
@@ -1802,9 +2109,28 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #FEF3C7', paddingBottom: 6 }}>
                     <span style={{ fontSize: 12.5, fontWeight: 900, color: '#1E293B' }}>{item.title}</span>
-                    <span style={{ fontSize: 10.5, fontWeight: 800, color: '#EC4899' }}>
-                      {item.slots.filter((s) => s !== null).length}구 완성
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 10.5, fontWeight: 800, color: '#EC4899' }}>
+                        {item.slots.filter((s) => s !== null).length}구 완성
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeleteShowcaseItem(item.id, e)}
+                        style={{
+                          padding: '3px 7px',
+                          borderRadius: 8,
+                          border: '1px solid #FECDD3',
+                          background: '#FFF1F2',
+                          color: '#E11D48',
+                          fontSize: 10.5,
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                        }}
+                        title="진열장 박스 삭제"
+                      >
+                        🗑️ 삭제
+                      </button>
+                    </div>
                   </div>
                   {renderLuxuryShowcaseBase(item.baseType, item.capacity, item.slots, false, undefined, item.boxTheme)}
                 </div>

@@ -2140,6 +2140,30 @@ function add3DDecorations(
     taegukGroup.add(blueSemi)
 
     bodyGroup.add(taegukGroup)
+  } else if (deco?.head === 'lux-tweed-pearl-beret') {
+    // 👒 오뜨 트위드 진주 베레모: 흑백 부클레 트위드 울 돔 + 영롱한 남양 진주 브로치 핀
+    const beretGroup = new THREE.Group()
+    beretGroup.position.set(0.18, 1.05, 0.05)
+    beretGroup.rotation.set(-0.15, 0, -0.32)
+
+    const tweedMat = new THREE.MeshPhysicalMaterial({ color: '#18181B', roughness: 0.75, sheen: 0.4, clearcoat: 0.2 })
+    const pearlMat = new THREE.MeshPhysicalMaterial({ color: '#FFFDF9', roughness: 0.12, clearcoat: 1.0, sheen: 0.8, sheenColor: new THREE.Color('#FFD1DC') })
+    const goldMat = new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.95, roughness: 0.15 })
+
+    // 납작하고 볼륨감 있는 트위드 베레모 돔
+    const dome = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.42, 0.28, 24), tweedMat)
+    beretGroup.add(dome)
+
+    // 모자 옆면 영롱한 남양 진주 핀
+    const pearl = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 14), pearlMat)
+    pearl.position.set(0.55, 0.05, 0.35)
+    beretGroup.add(pearl)
+
+    const pin = new THREE.Mesh(new THREE.TorusGeometry(0.08, 0.02, 10, 16), goldMat)
+    pin.position.set(0.55, 0.05, 0.35)
+    beretGroup.add(pin)
+
+    bodyGroup.add(beretGroup)
   }
 
   // 2. 얼굴 장식 (face) - 1.5배 큼직하게
@@ -2614,6 +2638,38 @@ function add3DDecorations(
     snorkelGroup.add(tube)
 
     bodyGroup.add(snorkelGroup)
+  } else if (deco?.face === 'lux-celebrity-oversized-shades') {
+    // 🕶️ VIP 오버사이즈 캣아이 셰이드: 볼드한 블랙 아세테이트 프레임 + 딥블랙 틴트 렌즈 + 골드 템플 로고
+    const shadesGroup = new THREE.Group()
+    shadesGroup.position.set(0, 0.16, 1.04)
+
+    const blackGloss = new THREE.MeshPhysicalMaterial({ color: '#09090B', roughness: 0.1, clearcoat: 1.0 })
+    const lensMat = new THREE.MeshPhysicalMaterial({ color: '#18181B', transmission: 0.35, transparent: true, opacity: 0.92, roughness: 0.05, clearcoat: 1.0 })
+    const goldLogo = new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.95, roughness: 0.1 })
+
+    ;[-0.42, 0.42].forEach((sx) => {
+      // 캣아이 오버사이즈 사각 림
+      const rim = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.045, 14, 24), blackGloss)
+      rim.scale.set(1.3, 0.9, 1)
+      rim.position.x = sx
+      shadesGroup.add(rim)
+
+      const lens = new THREE.Mesh(new THREE.CircleGeometry(0.31, 24), lensMat)
+      lens.scale.set(1.3, 0.9, 1)
+      lens.position.x = sx
+      shadesGroup.add(lens)
+
+      // 양쪽 템플(힌지) 골드 더블 링 로고
+      const logo = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.05, 0.05), goldLogo)
+      logo.position.set(sx > 0 ? sx + 0.38 : sx - 0.38, 0.08, 0)
+      shadesGroup.add(logo)
+    })
+
+    const bridge = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.08, 0.05), blackGloss)
+    bridge.position.y = 0.06
+    shadesGroup.add(bridge)
+
+    bodyGroup.add(shadesGroup)
   }
 
   // 3. 목 장식 (neck) - 풍성한 볼륨감
@@ -3047,6 +3103,59 @@ function add3DDecorations(
     camGroup.add(lens)
 
     bodyGroup.add(camGroup)
+  } else if (deco?.neck === 'lux-hermes-silk-twilly') {
+    // 🧣 에르메스풍 오렌지 실크 트윌리: 시그니처 오렌지 실크 넥 밴드 + 사선으로 늘어뜨려진 긴 트윌리 리본 타이
+    const twillyGroup = new THREE.Group()
+    twillyGroup.position.set(0, -0.12, 0.45)
+
+    const silkMat = new THREE.MeshPhysicalMaterial({ color: '#EA580C', roughness: 0.25, clearcoat: 0.8, sheen: 0.6, sheenColor: new THREE.Color('#FFEDD5') })
+    const goldRingMat = new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.95, roughness: 0.15 })
+
+    // 목을 감싸는 실크 링
+    const collar = new THREE.Mesh(new THREE.TorusGeometry(0.82, 0.08, 14, 28), silkMat)
+    collar.rotation.x = Math.PI / 2
+    twillyGroup.add(collar)
+
+    // 전면 골드 스카프 링 버클
+    const buckle = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.03, 10, 20), goldRingMat)
+    buckle.position.set(0.15, -0.05, 0.78)
+    twillyGroup.add(buckle)
+
+    // 사선으로 늘어뜨려진 실크 타이 2가닥
+    const ribbon1 = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.65, 0.04), silkMat)
+    ribbon1.rotation.set(0.25, 0.2, -0.35)
+    ribbon1.position.set(0.18, -0.32, 0.72)
+    twillyGroup.add(ribbon1)
+
+    const ribbon2 = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.52, 0.04), silkMat)
+    ribbon2.rotation.set(0.2, -0.15, 0.28)
+    ribbon2.position.set(0.08, -0.28, 0.74)
+    twillyGroup.add(ribbon2)
+
+    bodyGroup.add(twillyGroup)
+  } else if (deco?.neck === 'lux-diamond-camellia-brooch') {
+    // 💎 다이아 까멜리아 브로치: 순백의 도자기 입체 꽃잎 + 중앙 바게트 다이아몬드 파베 코어
+    const broochGroup = new THREE.Group()
+    broochGroup.position.set(0, -0.18, 0.96)
+
+    const petalMat = new THREE.MeshPhysicalMaterial({ color: '#FFFFFF', roughness: 0.2, clearcoat: 1.0, sheen: 0.5 })
+    const diamondMat = new THREE.MeshPhysicalMaterial({ color: '#E0F2FE', transmission: 0.85, transparent: true, opacity: 0.9, roughness: 0.04, clearcoat: 1.0, ior: 2.4 })
+
+    // 5장의 입체 카멜리아 꽃잎
+    for (let pi = 0; pi < 5; pi++) {
+      const ang = (pi / 5) * Math.PI * 2
+      const petal = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 10), petalMat)
+      petal.scale.set(1.2, 0.45, 1)
+      petal.position.set(Math.cos(ang) * 0.16, Math.sin(ang) * 0.16, 0)
+      broochGroup.add(petal)
+    }
+
+    // 중앙 파베 다이아몬드 코어
+    const diamond = new THREE.Mesh(new THREE.OctahedronGeometry(0.12, 0), diamondMat)
+    diamond.position.z = 0.06
+    broochGroup.add(diamond)
+
+    bodyGroup.add(broochGroup)
   }
 
   // 4. 등 장식 & 만능 날개 (back / wingKind) - 대형 날개 연출
@@ -3688,6 +3797,59 @@ function add3DDecorations(
     luggageGroup.add(sticker2)
 
     bodyGroup.add(luggageGroup)
+  } else if (deco?.hand === 'lux-gold-rolex-watch') {
+    // ⌚ 골드 오이스터 럭셔리 워치: 24K 순금 3열 링크 브레이슬릿 + 에메랄드 썬레이 다이얼 + 크로노그래프 푸셔
+    const watchGroup = new THREE.Group()
+    watchGroup.position.set(1.08, -0.15, 0.65)
+    watchGroup.rotation.y = -0.35
+
+    const goldMat = new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.95, roughness: 0.12, clearcoat: 1.0 })
+    const dialMat = new THREE.MeshPhysicalMaterial({ color: '#065F46', roughness: 0.15, clearcoat: 0.9 })
+    const glassMat = new THREE.MeshPhysicalMaterial({ color: '#FFFFFF', transmission: 0.92, transparent: true, opacity: 0.85, roughness: 0.05 })
+
+    // 골드 오이스터 케이스
+    const caseMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.08, 24), goldMat)
+    caseMesh.rotation.x = Math.PI / 2
+    watchGroup.add(caseMesh)
+
+    // 에메랄드 그린 썬레이 다이얼
+    const dial = new THREE.Mesh(new THREE.CircleGeometry(0.2, 24), dialMat)
+    dial.position.z = 0.045
+    watchGroup.add(dial)
+
+    // 사파이어 크리스탈 글라스
+    const glass = new THREE.Mesh(new THREE.CircleGeometry(0.21, 24), glassMat)
+    glass.position.z = 0.05
+    watchGroup.add(glass)
+
+    // 골드 브레이슬릿 스트랩 링
+    const bracelet = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.05, 10, 24), goldMat)
+    bracelet.rotation.y = Math.PI / 2
+    watchGroup.add(bracelet)
+
+    bodyGroup.add(watchGroup)
+  } else if (deco?.hand === 'lux-cartier-trinity-ring') {
+    // 💍 트리니티 3색 골드 링: 옐로우 골드 + 화이트 골드 + 핑크 로즈 골드가 유려하게 교차하는 3중 링
+    const ringGroup = new THREE.Group()
+    ringGroup.position.set(1.06, -0.18, 0.65)
+
+    const yellowGold = new THREE.MeshPhysicalMaterial({ color: '#FACC15', metalness: 0.95, roughness: 0.12, clearcoat: 1.0 })
+    const whiteGold = new THREE.MeshPhysicalMaterial({ color: '#F1F5F9', metalness: 0.95, roughness: 0.12, clearcoat: 1.0 })
+    const roseGold = new THREE.MeshPhysicalMaterial({ color: '#FB7185', metalness: 0.9, roughness: 0.15, clearcoat: 1.0 })
+
+    const r1 = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.04, 12, 28), yellowGold)
+    r1.rotation.set(0.2, 0.3, 0)
+    ringGroup.add(r1)
+
+    const r2 = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.04, 12, 28), whiteGold)
+    r2.rotation.set(-0.3, 0.1, 0.4)
+    ringGroup.add(r2)
+
+    const r3 = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.04, 12, 28), roseGold)
+    r3.rotation.set(0.1, -0.4, -0.2)
+    ringGroup.add(r3)
+
+    bodyGroup.add(ringGroup)
   }
 
   // 6. 이펙트 장식 (effect) - 펫을 가리지 않고 뒤에서 위로 뿜어지는 포스 아우라 & 머리 위 끊임없이 도는 천사 고리 & 반짝이는 별빛 공전

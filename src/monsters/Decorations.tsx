@@ -114,6 +114,13 @@ export const DECO_ITEMS: DecoItemDef[] = [
   { id: 'snow-polar-sled-board', slot: 'back', name: '은빛 눈꽃 설원 썰매보드', rarity: 'rare', charm: 38, icon: '🏂', desc: '새하얀 눈밭을 가르며 활주하는 고속 스노보드 겸 루돌프 썰매 플레이트' },
   // 신규 손 (hand)
   { id: 'travel-roller-suitcase', slot: 'hand', name: '여행 스티커 캐리어 가방', rarity: 'rare', charm: 34, icon: '🧳', desc: '전 세계 디저트 명소 스티커가 붙은 손잡이 달린 앙증맞은 미니 캐리어' },
+  // 하이엔드 럭셔리 명품 장신구 컬렉션
+  { id: 'lux-gold-rolex-watch', slot: 'hand', name: '골드 오이스터 럭셔리 워치', rarity: 'legendary', charm: 48, icon: '⌚', desc: '24K 순금 브레이슬릿과 쥬얼 인덱스가 빛나는 스위스 마스터 크로노그래프 시계' },
+  { id: 'lux-tweed-pearl-beret', slot: 'head', name: '오뜨 트위드 진주 베레모', rarity: 'legendary', charm: 44, icon: '👒', desc: '프랑스 명품 하우스의 블랙&화이트 부클레 트위드 원단과 남양 진주 브로치 베레모' },
+  { id: 'lux-hermes-silk-twilly', slot: 'neck', name: '에르메스풍 오렌지 실크 트윌리', rarity: 'rare', charm: 38, icon: '🧣', desc: '시그니처 오렌지 컬러와 말안장 기하학 일러스트가 수놓아진 100% 실크 트윌리 스카프' },
+  { id: 'lux-cartier-trinity-ring', slot: 'hand', name: '트리니티 3색 골드 링', rarity: 'legendary', charm: 45, icon: '💍', desc: '옐로우·화이트·핑크 골드가 조화롭게 얽혀 영원한 사랑을 상징하는 명품 뱅글 링' },
+  { id: 'lux-diamond-camellia-brooch', slot: 'neck', name: '다이아 까멜리아 브로치', rarity: 'legendary', charm: 46, icon: '💎', desc: '순백의 꽃잎마다 최상급 브릴리언트 다이아몬드가 촘촘히 파베 세팅된 명품 브로치' },
+  { id: 'lux-celebrity-oversized-shades', slot: 'face', name: 'VIP 오버사이즈 캣아이 셰이드', rarity: 'rare', charm: 35, icon: '🕶️', desc: '런웨이 프론트로우 셀럽의 품격을 완성하는 볼드한 블랙 아세테이트와 골드 템플 안경' },
   // 6. 배경 (bg)
   { id: 'night-observatory', slot: 'bg', name: '밤하늘 천문대', rarity: 'legendary', charm: 28, icon: '🌌', desc: '초승달과 은하수가 흐르는 밤하늘 무대' },
   { id: 'sunny-meadow', slot: 'bg', name: '햇살 클로버 언덕', rarity: 'common', charm: 12, icon: '🍀', desc: '따사로운 햇살과 꽃잎이 날리는 들판' },
