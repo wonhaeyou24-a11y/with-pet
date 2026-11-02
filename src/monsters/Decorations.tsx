@@ -43,10 +43,14 @@ export const DECO_ITEMS: DecoItemDef[] = [
   { id: 'crown-emoji-floating', slot: 'head', name: '감정 이모티콘 크라운', rarity: 'rare', charm: 40, icon: '💖', desc: '펫의 기분에 맞춰 하트와 별빛이 퐁퐁 솟아오르는 이모티콘 크라운' },
   { id: 'spring-cherry-blossom-beret', slot: 'head', name: '살랑살랑 벚꽃잎 베레모', rarity: 'rare', charm: 32, icon: '🌸', desc: '살랑살랑 봄바람에 흩날리는 벚꽃잎과 은은한 펄 진주 핀이 달린 핑크 울 베레모' },
   { id: 'winter-fluffy-earmuffs', slot: 'head', name: '보송보송 눈꽃 털 귀마개', rarity: 'common', charm: 26, icon: '🎧', desc: '보송보송 솜사탕처럼 부드러운 화이트 폼폼 퍼(Fur) 밴드와 은빛 눈꽃 자수 귀마개' },
+  { id: 'astral-sorcerer-hood', slot: 'head', name: '별빛 소서러 후드', rarity: 'rare', charm: 34, icon: '🔮', desc: '밤하늘 은하수가 수놓아진 딥네이비 마법사 후드와 흔들리는 황금 초승달 펜던트' },
+  { id: 'fairy-sugar-winged-circlet', slot: 'head', name: '요정의 슈가 윙 서클릿', rarity: 'rare', charm: 32, icon: '🧚', desc: '무지갯빛 반투명 요정 날개 이어링과 에메랄드 이마 티아라' },
   // 2. 얼굴 (face)
   { id: 'alchemy-glasses', slot: 'face', name: '연금술 동글안경', rarity: 'rare', charm: 20, icon: '👓', desc: '지적인 매력을 더해주는 황금 테 안경' },
   { id: 'round-gold-spectacles', slot: 'face', name: '스마트 골드 동글안경', rarity: 'rare', charm: 28, icon: '👓', desc: '지적인 매력과 똘똘함을 한껏 뽐내는 24K 순금테 클래식 동글안경' },
   { id: 'summer-cool-sunglasses', slot: 'face', name: '틴트 쿨 선글라스', rarity: 'common', charm: 26, icon: '🕶️', desc: '강렬한 여름 햇살을 쿨하게 막아주는 레트로 틴트 블루 라운드 선글라스' },
+  { id: 'crystal-monocle', slot: 'face', name: '아케인 크리스탈 모노클', rarity: 'rare', charm: 28, icon: '💎', desc: '고대 마법 룬 문자가 새겨진 24K 골드 체인 외알 안경과 투명 굴절 크리스탈' },
+  { id: 'arcane-rune-mask', slot: 'face', name: '신비의 룬 하프 가면', rarity: 'common', charm: 26, icon: '🎭', desc: '디저트 대현자의 지혜가 깃든 유선형 은빛 무도회 반가면과 문양' },
   { id: 'sleep-mask', slot: 'face', name: '포근 수면안대', rarity: 'common', charm: 10, icon: '💤', desc: '이마에 살짝 얹은 구름결 수면안대' },
   { id: 'star-patch', slot: 'face', name: '유성 볼 스티커', rarity: 'rare', charm: 18, icon: '🌟', desc: '양볼에 붙이는 반짝이는 별빛 페인팅' },
   // 3. 목 (neck)
@@ -57,6 +61,8 @@ export const DECO_ITEMS: DecoItemDef[] = [
   { id: 'summer-marine-sailor-collar', slot: 'neck', name: '마린 세일러 칼라', rarity: 'rare', charm: 30, icon: '⚓', desc: '청량한 바다 내음이 느껴지는 네이비 & 화이트 스트라이프 세일러 깃과 골드 닻 타이' },
   { id: 'autumn-maple-knit-muffler', slot: 'neck', name: '단풍 버건디 니트 머플러', rarity: 'common', charm: 28, icon: '🧣', desc: '포근한 꽈배기 울 짜임새의 단풍빛 버건디 레드 니트 머플러와 풍성한 프린지 수술' },
   { id: 'winter-snow-padded-vest', slot: 'neck', name: '스노우 퐁퐁 패딩 조끼', rarity: 'legendary', charm: 44, icon: '❄️', desc: '영하의 칼바람도 따뜻하게 녹여주는 퐁퐁 스노우 화이트 누빔 패딩 조끼' },
+  { id: 'celestial-wizard-robe', slot: 'neck', name: '천상 별자리 마법 로브', rarity: 'legendary', charm: 46, icon: '✨', desc: '별빛 궤도와 금빛 성운이 흐르는 최고위 마도사의 숄더 케이프와 마법석 브로치' },
+  { id: 'moonlight-velvet-choker', slot: 'neck', name: '달빛 벨벳 젬 초커', rarity: 'common', charm: 24, icon: '🖤', desc: '부드러운 미드나잇 블랙 벨벳 밴드와 물방울 루비 드롭 펜던트' },
   { id: 'pretzel-ribbon', slot: 'neck', name: '솔티드 프레첼 리본', rarity: 'rare', charm: 20, icon: '🥨', desc: '노릇하게 구운 하트 모양 프레첼 과자 장식' },
   { id: 'rune-scarf', slot: 'neck', name: '룬 무늬 머플러', rarity: 'rare', charm: 18, icon: '🧣', desc: '고대 룬 문양이 수놓아진 따뜻한 목도리' },
   { id: 'bell-ribbon', slot: 'neck', name: '별방울 리본', rarity: 'common', charm: 12, icon: '🎀', desc: '움직일 때마다 딸랑거리는 금방울 리본' },
@@ -68,6 +74,8 @@ export const DECO_ITEMS: DecoItemDef[] = [
   // 5. 손 (hand)
   { id: 'spring-picnic-basket', slot: 'hand', name: '딸기 피크닉 라탄 바구니', rarity: 'rare', charm: 28, icon: '🧺', desc: '빨간 깅엄 체크 천 덮개 위로 달콤한 산딸기와 파운드 케이크가 담긴 라탄 바구니' },
   { id: 'autumn-artist-palette', slot: 'hand', name: '가을 감성 우드 팔레트', rarity: 'rare', charm: 28, icon: '🎨', desc: '가을 낙엽과 디저트 시럽 물감이 알록달록 짜여진 아티스트 나무 팔레트와 세필 붓' },
+  { id: 'arcane-sugar-grimoire', slot: 'hand', name: '아케인 슈가 마도서', rarity: 'rare', charm: 32, icon: '📕', desc: '황금 장정 가죽 표지와 부유하는 룬 보석이 박힌 공중 부양 디저트 마도서' },
+  { id: 'celestial-meteor-staff', slot: 'hand', name: '유성 소환 별빛 셉터', rarity: 'legendary', charm: 45, icon: '💫', desc: '회전하는 천체 궤도 링과 24K 황금 별자리 셉터, 영롱한 빛무리 파티클' },
   { id: 'tiny-wood-rollingpin', slot: 'hand', name: '달콤 반죽 미니 밀대', rarity: 'rare', charm: 28, icon: '🥖', desc: '달콤한 쿠키 도우를 슥슥 밀어 펴는 단풍나무 제과용 미니 밀대' },
   { id: 'bubble-detective-magnifier', slot: 'hand', name: '황금 버블 돋보기', rarity: 'rare', charm: 30, icon: '🔍', desc: '디저트의 숨겨진 레시피를 찾으면 무지갯빛 비눗방울이 퐁퐁 솟아나는 탐정 돋보기' },
   { id: 'lollipop-wand', slot: 'hand', name: '롤리팝 캔디봉', rarity: 'rare', charm: 26, icon: '🍭', desc: '달콤한 파스텔 소용돌이 막대사탕' },
@@ -395,6 +403,24 @@ export function FrontDecorations({
           <circle cx={120} cy={155} r={3} fill="#38BDF8" stroke="#0284C7" strokeWidth={1} />
         </g>
       )}
+      {deco?.neck === 'celestial-wizard-robe' && (
+        <g stroke={INK} strokeWidth={2.6} strokeLinejoin="round">
+          {/* 천상 별자리 마법 로브 */}
+          <path d="M 76 142 C 72 186 168 186 164 142 C 142 148 98 148 76 142 Z" fill="#312E81" />
+          <path d="M 88 152 Q 120 162 152 152" fill="none" stroke="#FDE047" strokeWidth={2} strokeDasharray="4 4" />
+          <circle cx={98} cy={166} r={2.5} fill="#FDE047" strokeWidth={0} />
+          <circle cx={142} cy={166} r={2.5} fill="#67E8F9" strokeWidth={0} />
+          {/* 중앙 에메랄드 마법석 브로치 */}
+          <polygon points="120,146 128,154 120,162 112,154" fill="#10B981" stroke="#F59E0B" strokeWidth={1.8} />
+        </g>
+      )}
+      {deco?.neck === 'moonlight-velvet-choker' && (
+        <g stroke={INK} strokeWidth={2.2} strokeLinejoin="round">
+          {/* 달빛 벨벳 젬 초커 */}
+          <rect x={94} y={145} width={52} height={8} rx={3} fill="#0F172A" />
+          <path d="M 120 153 C 124 153 126 157 124 162 C 122 166 120 169 120 169 C 120 169 118 166 116 162 C 114 157 116 153 120 153 Z" fill="#E11D48" stroke="#FFD700" strokeWidth={1.2} />
+        </g>
+      )}
 
       {/* 2. 얼굴 장식 (face) */}
       {deco?.face === 'round-gold-spectacles' && (
@@ -406,6 +432,24 @@ export function FrontDecorations({
           <path d="M 134 101 L 140 107" stroke="#FFFFFF" strokeWidth={2.4} strokeLinecap="round" />
           <path d="M 113.5 108 C 117 103 123 103 126.5 108" fill="none" stroke="#FFD700" strokeWidth={3.2} strokeLinecap="round" />
           <path d="M 84.5 109 L 72 110 M 155.5 109 L 168 110" stroke="#B45309" strokeWidth={2.6} strokeLinecap="round" />
+        </g>
+      )}
+      {deco?.face === 'crystal-monocle' && (
+        <g>
+          {/* 아케인 크리스탈 모노클 (우측 외알) */}
+          <circle cx={141} cy={109} r={15.5} fill="#E0F2FE" fillOpacity={0.4} stroke="#FFD700" strokeWidth={3.5} />
+          <path d="M 134 100 L 142 108" stroke="#FFFFFF" strokeWidth={2.6} strokeLinecap="round" />
+          <path d="M 141 124.5 Q 152 142 154 162" fill="none" stroke="#FFD700" strokeWidth={1.8} strokeDasharray="2 3" />
+          <circle cx={141} cy={109} r={3} fill="#A855F7" opacity={0.6} strokeWidth={0} />
+        </g>
+      )}
+      {deco?.face === 'arcane-rune-mask' && (
+        <g stroke={INK} strokeWidth={2.2} strokeLinejoin="round">
+          {/* 신비의 룬 하프 가면 */}
+          <path d="M 80 100 C 85 88 120 92 120 106 C 120 92 155 88 160 100 C 158 118 135 120 120 114 C 105 120 82 118 80 100 Z" fill="#F1F5F9" />
+          <ellipse cx={99} cy={105} rx={8} ry={5} fill="#1E293B" strokeWidth={0} />
+          <ellipse cx={141} cy={105} rx={8} ry={5} fill="#1E293B" strokeWidth={0} />
+          <path d="M 120 95 L 120 103" stroke="#8B5CF6" strokeWidth={2} strokeLinecap="round" />
         </g>
       )}
       {deco?.face === 'summer-cool-sunglasses' && (
@@ -538,8 +582,47 @@ export function FrontDecorations({
           <path d="M 162 70 L 162 78 M 158 74 L 166 74" stroke="#38BDF8" strokeWidth={1.8} strokeLinecap="round" />
         </g>
       )}
+      {deco?.head === 'astral-sorcerer-hood' && (
+        <g stroke={INK} strokeWidth={2.6} strokeLinejoin="round">
+          {/* 별빛 소서러 후드 */}
+          <path d="M 70 70 C 72 20 168 20 170 70 C 154 62 140 68 120 66 C 100 68 86 62 70 70 Z" fill="#1E1B4B" />
+          <path d="M 94 48 C 104 38 136 38 146 48" fill="none" stroke="#FDE047" strokeWidth={2} strokeDasharray="3 3" />
+          {/* 황금 초승달 펜던트 */}
+          <path d="M 120 30 C 124 30 126 34 124 38 C 122 36 118 36 116 38 C 114 34 116 30 120 30 Z" fill="#FBBF24" stroke="#B45309" strokeWidth={1} />
+        </g>
+      )}
+      {deco?.head === 'fairy-sugar-winged-circlet' && (
+        <g stroke={INK} strokeWidth={2.2} strokeLinejoin="round">
+          {/* 요정의 슈가 윙 서클릿 */}
+          <path d="M 88 56 Q 120 62 152 56" fill="none" stroke="#FFD700" strokeWidth={3} strokeLinecap="round" />
+          <circle cx={120} cy={59} r={4.5} fill="#10B981" stroke="#FFD700" strokeWidth={1.2} />
+          {/* 좌우 요정 날개 귀 장식 */}
+          <path d="M 86 54 C 62 38 52 52 68 64 C 76 58 84 56 86 54 Z" fill="#E0F2FE" fillOpacity={0.65} stroke="#38BDF8" strokeWidth={1.8} />
+          <path d="M 154 54 C 178 38 188 52 172 64 C 164 58 156 56 154 54 Z" fill="#E0F2FE" fillOpacity={0.65} stroke="#38BDF8" strokeWidth={1.8} />
+        </g>
+      )}
 
       {/* 5. 손 장식 (hand) */}
+      {deco?.hand === 'arcane-sugar-grimoire' && (
+        <g stroke={INK} strokeWidth={2.4} strokeLinejoin="round" className="deco-anim-hand">
+          {/* 아케인 슈가 마도서 (공중 부양) */}
+          <rect x={36} y={130} width={34} height={44} rx={4} fill="#4C1D95" />
+          <rect x={40} y={134} width={26} height={36} rx={2} fill="#5B21B6" strokeWidth={1} />
+          <path d="M 36 130 L 44 126 L 74 126 L 70 130 Z" fill="#FDE047" strokeWidth={1} />
+          {/* 중앙 마법 룬 보석 */}
+          <polygon points="53,146 59,152 53,158 47,152" fill="#F43F5E" stroke="#FFD700" strokeWidth={1.4} />
+        </g>
+      )}
+      {deco?.hand === 'celestial-meteor-staff' && (
+        <g stroke={INK} strokeWidth={2.4} strokeLinejoin="round" className="deco-anim-hand">
+          {/* 유성 소환 별빛 셉터 */}
+          <line x1={56} y1={120} x2={66} y2={212} stroke="#FFD700" strokeWidth={4.5} strokeLinecap="round" />
+          {/* 천체 궤도 링 */}
+          <ellipse cx={54} cy={118} rx={16} ry={7} fill="none" stroke="#67E8F9" strokeWidth={2} transform="rotate(-25 54 118)" />
+          {/* 꼭대기 황금 별 */}
+          <path d="M 54 104 L 56 112 L 64 114 L 58 119 L 60 127 L 54 122 L 48 127 L 50 119 L 44 114 L 52 112 Z" fill="#FBBF24" stroke="#B45309" strokeWidth={1.5} />
+        </g>
+      )}
       {deco?.hand === 'spring-picnic-basket' && (
         <g stroke={INK} strokeWidth={2.4} strokeLinejoin="round" className="deco-anim-hand">
           {/* 라탄 바구니 아치 손잡이 */}

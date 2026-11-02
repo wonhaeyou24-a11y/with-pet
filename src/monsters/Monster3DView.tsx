@@ -1618,6 +1618,68 @@ function add3DDecorations(
       earmuffGroup.add(emblem)
     })
     bodyGroup.add(earmuffGroup)
+  } else if (deco?.head === 'astral-sorcerer-hood') {
+    // 🌟 별빛 소서러 후드: 딥네이비 마법사 후드 + 흔들리는 황금 초승달 펜던트
+    const hoodGroup = new THREE.Group()
+    hoodGroup.position.set(0, 0.95, -0.05)
+
+    const hoodMat = new THREE.MeshPhysicalMaterial({
+      color: '#1E1B4B',
+      roughness: 0.65,
+      sheen: 0.8,
+      sheenColor: '#4338CA',
+    })
+    const goldMat = new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.95, roughness: 0.12, clearcoat: 1.0 })
+
+    // 머리를 감싸는 후드 돔
+    const hoodDome = new THREE.Mesh(new THREE.SphereGeometry(0.92, 28, 24, 0, Math.PI * 2, 0, Math.PI * 0.65), hoodMat)
+    hoodDome.rotation.x = -0.15
+    hoodGroup.add(hoodDome)
+
+    // 이마 중앙 황금 초승달 펜던트
+    const crescent = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.035, 10, 20, Math.PI * 1.3), goldMat)
+    crescent.position.set(0, 0.1, 0.88)
+    crescent.rotation.z = Math.PI * 0.35
+    hoodGroup.add(crescent)
+
+    bodyGroup.add(hoodGroup)
+  } else if (deco?.head === 'fairy-sugar-winged-circlet') {
+    // 🧝‍♀️ 요정의 슈가 윙 서클릿: 24K 골드 서클릿 + 에메랄드 이마 티아라 + 양옆 반투명 요정 날개
+    const circletGroup = new THREE.Group()
+    circletGroup.position.set(0, 0.82, 0)
+
+    const goldMat = new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.95, roughness: 0.12, clearcoat: 1.0 })
+    const emeraldMat = new THREE.MeshPhysicalMaterial({ color: '#10B981', roughness: 0.1, clearcoat: 1.0, emissive: '#059669', emissiveIntensity: 0.5 })
+    const fairyWingMat = new THREE.MeshPhysicalMaterial({
+      color: '#E0F2FE',
+      transmission: 0.9,
+      transparent: true,
+      opacity: 0.7,
+      roughness: 0.05,
+      clearcoat: 1.0,
+      ior: 1.45,
+    })
+
+    // 이마 둘레 골드 밴드
+    const band = new THREE.Mesh(new THREE.TorusGeometry(0.88, 0.032, 12, 32), goldMat)
+    band.rotation.x = Math.PI / 2
+    circletGroup.add(band)
+
+    // 중앙 에메랄드 마름모 젬
+    const gem = new THREE.Mesh(new THREE.OctahedronGeometry(0.12, 0), emeraldMat)
+    gem.position.set(0, 0.04, 0.88)
+    circletGroup.add(gem)
+
+    // 양옆 솟아오른 요정 날개 귀 장식
+    ;[-0.92, 0.92].forEach((xSide) => {
+      const wing = new THREE.Mesh(new THREE.SphereGeometry(0.28, 16, 12), fairyWingMat)
+      wing.scale.set(0.3, 1.4, 0.8)
+      wing.position.set(xSide, 0.22, 0.1)
+      wing.rotation.z = xSide > 0 ? -0.35 : 0.35
+      circletGroup.add(wing)
+    })
+
+    bodyGroup.add(circletGroup)
   }
 
   // 2. 얼굴 장식 (face) - 1.5배 큼직하게
@@ -1825,6 +1887,65 @@ function add3DDecorations(
     sunglassGroup.add(bridge)
 
     bodyGroup.add(sunglassGroup)
+  } else if (deco?.face === 'crystal-monocle') {
+    // 🧐 아케인 크리스탈 모노클: 우측 눈 24K 골드 외알 안경 + 투명 굴절 렌즈 + 금빛 체인 링크
+    const monocleGroup = new THREE.Group()
+    monocleGroup.position.set(0.44, 0.16, 0.88)
+
+    const goldMat = new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.95, roughness: 0.12, clearcoat: 1.0 })
+    const lensMat = new THREE.MeshPhysicalMaterial({
+      color: '#E0F2FE',
+      transmission: 0.95,
+      transparent: true,
+      opacity: 0.5,
+      roughness: 0.04,
+      clearcoat: 1.0,
+      ior: 1.54,
+    })
+
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.038, 14, 28), goldMat)
+    monocleGroup.add(rim)
+
+    const lens = new THREE.Mesh(new THREE.CircleGeometry(0.29, 24), lensMat)
+    monocleGroup.add(lens)
+
+    // 볼 아래로 늘어뜨려진 금빛 체인 방울 3개
+    ;[0.1, 0.22, 0.35].forEach((dy, ci) => {
+      const bead = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 8), goldMat)
+      bead.position.set(0.28 + ci * 0.04, -dy, 0.02)
+      monocleGroup.add(bead)
+    })
+
+    bodyGroup.add(monocleGroup)
+  } else if (deco?.face === 'arcane-rune-mask') {
+    // 🎭 신비의 룬 하프 가면: 유선형 실버 무도회 마스크 + 퍼플 룬 엠블럼
+    const maskGroup = new THREE.Group()
+    maskGroup.position.set(0, 0.16, 0.9)
+
+    const silverMat = new THREE.MeshPhysicalMaterial({
+      color: '#F1F5F9',
+      metalness: 0.85,
+      roughness: 0.2,
+      clearcoat: 0.8,
+    })
+    const runeMat = new THREE.MeshPhysicalMaterial({
+      color: '#A855F7',
+      emissive: '#9333EA',
+      emissiveIntensity: 0.8,
+      roughness: 0.1,
+    })
+
+    // 마스크 본체
+    const mask = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.95, 0.38, 24, 1, true, -Math.PI * 0.45, Math.PI * 0.9), silverMat)
+    mask.rotation.y = Math.PI
+    maskGroup.add(mask)
+
+    // 이마 중앙 아케인 룬 젬
+    const rune = new THREE.Mesh(new THREE.OctahedronGeometry(0.09, 0), runeMat)
+    rune.position.set(0, 0.12, 0.88)
+    maskGroup.add(rune)
+
+    bodyGroup.add(maskGroup)
   }
 
   // 3. 목 장식 (neck) - 풍성한 볼륨감
@@ -2067,6 +2188,77 @@ function add3DDecorations(
     vestGroup.add(slider)
 
     bodyGroup.add(vestGroup)
+  } else if (deco?.neck === 'celestial-wizard-robe') {
+    // 🌌 천상 별자리 마법 로브: 딥인디고 숄더 케이프 + 3개의 별빛 젬 + 에메랄드 마법석 브로치
+    const robeGroup = new THREE.Group()
+    robeGroup.position.set(0, -0.32, 0.06)
+
+    const indigoMat = new THREE.MeshPhysicalMaterial({
+      color: '#312E81',
+      roughness: 0.6,
+      sheen: 0.8,
+      sheenColor: '#6366F1',
+    })
+    const goldMat = new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.95, roughness: 0.12, clearcoat: 1.0 })
+    const starMat = new THREE.MeshPhysicalMaterial({ color: '#FDE047', emissive: '#F59E0B', emissiveIntensity: 0.7 })
+
+    // 숄더 케이프 칼라
+    const cape = new THREE.Mesh(new THREE.CylinderGeometry(0.86, 1.25, 0.45, 24, 1, true, -Math.PI * 0.8, Math.PI * 1.6), indigoMat)
+    cape.position.set(0, -0.12, 0)
+    robeGroup.add(cape)
+
+    // 케이프 위 3개의 황금 별자리 젬
+    ;[-0.42, 0, 0.42].forEach((sx, si) => {
+      const star = new THREE.Mesh(new THREE.OctahedronGeometry(0.065, 0), starMat)
+      star.position.set(sx, -0.16 + (si % 2) * 0.04, 0.88)
+      robeGroup.add(star)
+    })
+
+    // 중앙 에메랄드 마법석 & 골드 세팅
+    const broochBase = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.04, 8), goldMat)
+    broochBase.rotation.x = Math.PI / 2
+    broochBase.position.set(0, -0.06, 0.9)
+    robeGroup.add(broochBase)
+
+    const brooch = new THREE.Mesh(
+      new THREE.OctahedronGeometry(0.11, 0),
+      new THREE.MeshPhysicalMaterial({ color: '#10B981', emissive: '#059669', emissiveIntensity: 0.6, roughness: 0.1 }),
+    )
+    brooch.position.set(0, -0.06, 0.93)
+    robeGroup.add(brooch)
+
+    bodyGroup.add(robeGroup)
+  } else if (deco?.neck === 'moonlight-velvet-choker') {
+    // 🌙 달빛 벨벳 젬 초커: 미드나잇 블랙 벨벳 밴드 + 물방울 루비 드롭 펜던트
+    const chokerGroup = new THREE.Group()
+    chokerGroup.position.set(0, -0.28, 0.08)
+
+    const velvetMat = new THREE.MeshPhysicalMaterial({
+      color: '#0F172A',
+      roughness: 0.85,
+      sheen: 0.5,
+      sheenColor: '#334155',
+    })
+    const rubyMat = new THREE.MeshPhysicalMaterial({
+      color: '#E11D48',
+      emissive: '#BE123C',
+      emissiveIntensity: 0.6,
+      roughness: 0.1,
+      clearcoat: 1.0,
+    })
+
+    // 벨벳 초커 링
+    const band = new THREE.Mesh(new THREE.TorusGeometry(0.86, 0.065, 14, 32), velvetMat)
+    band.rotation.x = Math.PI / 2
+    chokerGroup.add(band)
+
+    // 물방울 루비 펜던트
+    const drop = new THREE.Mesh(new THREE.OctahedronGeometry(0.1, 0), rubyMat)
+    drop.scale.set(0.85, 1.4, 0.85)
+    drop.position.set(0, -0.1, 0.88)
+    chokerGroup.add(drop)
+
+    bodyGroup.add(chokerGroup)
   }
 
   // 4. 등 장식 & 만능 날개 (back / wingKind) - 대형 날개 연출
@@ -2396,6 +2588,87 @@ function add3DDecorations(
     palGroup.add(tip)
 
     bodyGroup.add(palGroup)
+  } else if (deco?.hand === 'arcane-sugar-grimoire') {
+    // 📖 아케인 슈가 마도서: 공중 부양 퍼플 & 골드 마도서 + 회전하는 룬 보석
+    const bookGroup = new THREE.Group()
+    bookGroup.position.set(1.15, 0.05, 0.72)
+    bookGroup.rotation.y = -0.3
+    bookGroup.rotation.z = 0.15
+
+    const coverMat = new THREE.MeshPhysicalMaterial({ color: '#4C1D95', roughness: 0.4, clearcoat: 0.6 })
+    const goldMat = new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.95, roughness: 0.12, clearcoat: 1.0 })
+    const pageMat = new THREE.MeshPhysicalMaterial({ color: '#FFFBEB', roughness: 0.7 })
+
+    // 표지 바인더
+    const cover = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.92, 0.16), coverMat)
+    bookGroup.add(cover)
+
+    // 금장 코너 장식 4개
+    ;[-0.32, 0.32].forEach((cx) => {
+      ;[-0.42, 0.42].forEach((cy) => {
+        const corner = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.18), goldMat)
+        corner.position.set(cx, cy, 0)
+        bookGroup.add(corner)
+      })
+    })
+
+    // 종이 속지
+    const pages = new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.86, 0.14), pageMat)
+    pages.position.set(0.02, 0, 0)
+    bookGroup.add(pages)
+
+    // 표지 위 공중 부양 룬 보석
+    const rune = new THREE.Mesh(
+      new THREE.OctahedronGeometry(0.14, 0),
+      new THREE.MeshPhysicalMaterial({ color: '#F43F5E', emissive: '#E11D48', emissiveIntensity: 0.8 }),
+    )
+    rune.position.set(0, 0, 0.16)
+    bookGroup.add(rune)
+
+    bodyGroup.add(bookGroup)
+  } else if (deco?.hand === 'celestial-meteor-staff') {
+    // 🪄 유성 소환 별빛 셉터: 24K 골드 셉터 자루 + 회전하는 천체 궤도 링 + 상단 별똥별 스타
+    const staffGroup = new THREE.Group()
+    staffGroup.position.set(1.12, -0.05, 0.72)
+    staffGroup.rotation.z = -0.15
+
+    const goldMat = new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.95, roughness: 0.12, clearcoat: 1.0 })
+    const ringMat = new THREE.MeshPhysicalMaterial({
+      color: '#67E8F9',
+      emissive: '#06B6D4',
+      emissiveIntensity: 0.6,
+      roughness: 0.1,
+      metalness: 0.8,
+    })
+    const starMat = new THREE.MeshPhysicalMaterial({
+      color: '#FDE047',
+      emissive: '#F59E0B',
+      emissiveIntensity: 0.9,
+      roughness: 0.1,
+    })
+
+    // 셉터 메인 자루
+    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 1.75, 12), goldMat)
+    shaft.position.y = 0.3
+    staffGroup.add(shaft)
+
+    // 천체 궤도 링 2겹
+    const ring1 = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.028, 12, 28), ringMat)
+    ring1.position.y = 1.15
+    ring1.rotation.x = Math.PI * 0.35
+    staffGroup.add(ring1)
+
+    const ring2 = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.024, 12, 28), ringMat)
+    ring2.position.y = 1.15
+    ring2.rotation.y = Math.PI * 0.4
+    staffGroup.add(ring2)
+
+    // 셉터 꼭대기 유성 스타
+    const starHead = new THREE.Mesh(new THREE.OctahedronGeometry(0.18, 0), starMat)
+    starHead.position.y = 1.15
+    staffGroup.add(starHead)
+
+    bodyGroup.add(staffGroup)
   } else if (deco?.hand === 'lantern-staff' || deco?.hand === 'star-wand' || deco?.hand === 'lollipop-wand') {
     const handGroup = new THREE.Group()
     handGroup.position.set(1.15, -0.05, 0.75)
