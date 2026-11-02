@@ -289,6 +289,14 @@ export function build3DDessertBase(baseId: DessertBaseId): THREE.Group {
     rail.position.y = 0.28
     group.add(rail)
 
+    // 🏝️ 플로팅 디오라마 베이스: 클래식 파리 자갈마당 석조 원형 플레이트 (바닥 짤림 방지 및 피규어 감성 완성)
+    const stonePlate = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.78, 1.88, 0.12, 36),
+      new THREE.MeshPhysicalMaterial({ color: '#E2E8F0', roughness: 0.85, bumpScale: 0.05 }),
+    )
+    stonePlate.position.y = -0.64
+    group.add(stonePlate)
+
     // 몽실몽실 파스텔 구름 4개 (발밑 상공 연출)
     const clouds = [
       [-1.15, -0.05, 0.75],
@@ -308,6 +316,14 @@ export function build3DDessertBase(baseId: DessertBaseId): THREE.Group {
     const wheelMat = new THREE.MeshPhysicalMaterial({ color: '#1E293B', roughness: 0.8 })
     const chromeMat = new THREE.MeshPhysicalMaterial({ color: '#F1F5F9', metalness: 0.95, roughness: 0.08, clearcoat: 1.0 })
     const seatMat = new THREE.MeshPhysicalMaterial({ color: '#DC2626', roughness: 0.45, sheen: 0.5 })
+
+    // 🏝️ 플로팅 디오라마 베이스: 라운드 쿠키 쇼룸 플레이트 스탠드
+    const carStand = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.82, 1.88, 0.1, 36),
+      new THREE.MeshPhysicalMaterial({ color: '#334155', roughness: 0.65, clearcoat: 0.3 }),
+    )
+    carStand.position.y = -0.42
+    group.add(carStand)
 
     // 차체 하부 베이스
     const lowerBody = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.36, 1.48), bodyMat)
@@ -374,6 +390,14 @@ export function build3DDessertBase(baseId: DessertBaseId): THREE.Group {
     const treeMat = new THREE.MeshPhysicalMaterial({ color: '#065F46', roughness: 0.75 })
     const flagMat = new THREE.MeshPhysicalMaterial({ color: '#DC2626', roughness: 0.35 })
 
+    // 🏝️ 플로팅 디오라마 베이스: 에메랄드 빙하 크리스탈 라운드 베이스
+    const glacierPlate = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.85, 1.94, 0.14, 36),
+      new THREE.MeshPhysicalMaterial({ color: '#E0F2FE', roughness: 0.2, clearcoat: 0.9, transmission: 0.5, transparent: true, opacity: 0.9 }),
+    )
+    glacierPlate.position.y = -0.58
+    group.add(glacierPlate)
+
     // 거대한 암벽 설산 바디
     const mountain = new THREE.Mesh(new THREE.CylinderGeometry(1.28, 1.72, 0.72, 18), rockMat)
     mountain.position.y = -0.2
@@ -410,6 +434,14 @@ export function build3DDessertBase(baseId: DessertBaseId): THREE.Group {
     const chromeMat = new THREE.MeshPhysicalMaterial({ color: '#F1F5F9', metalness: 0.95, roughness: 0.08, clearcoat: 1.0 })
     const leatherSeatMat = new THREE.MeshPhysicalMaterial({ color: '#78350F', roughness: 0.5, sheen: 0.5 })
     const tireMat = new THREE.MeshPhysicalMaterial({ color: '#0F172A', roughness: 0.85 })
+
+    // 🏝️ 플로팅 디오라마 베이스: 레이싱 라운드 플레이트 스탠드
+    const bikeStand = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.76, 1.84, 0.09, 36),
+      new THREE.MeshPhysicalMaterial({ color: '#334155', roughness: 0.5, clearcoat: 0.4 }),
+    )
+    bikeStand.position.y = -0.36
+    group.add(bikeStand)
 
     // 앞뒤 대형 바이크 타이어 2개
     const frontTire = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.14, 14, 28), tireMat)
@@ -4300,11 +4332,31 @@ export default function Monster3DView({
     const envTex = createPatisserieEnvMap(renderer)
     scene.environment = envTex
 
-    // 🎯 대표님 피드백 반영: 높은 왕관, 긴 모자, 부유 이모티콘 상단 짤림 100% 해소
-    // FOV 40도 + 카메라 쿼터뷰(Quarter-View: 약 13도 하향 시각)로 받침대 상단 윗면 볼륨감과 펫 탑승감 극대화
-    const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 30)
-    camera.position.set(0, 1.05, 5.25)
-    camera.lookAt(0, -0.15, 0)
+    // 🎯 대표님 피드백 반영: 받침대 하단 짤림 100% 해소하는 '스마트 오토-프레이밍 (Smart Auto-Framing)'
+    // 키가 큰 대형 탑승형 받침대(에펠탑, 설산, 자동차, 바이크, 케이크 등) 장착 시,
+    // 카메라 거리·화각과 수직 위치를 지능적으로 조절하여 머리 위 왕관부터 받침대 맨 밑바닥까지 황금비로 쏙 담음!
+    const isLargeBase = [
+      'eiffel-tower',
+      'snow-mountain',
+      'mini-car',
+      'motorcycle',
+      'strawberry-cake',
+      'parfait-cup',
+      'ufo-beam',
+      'custard-pudding',
+    ].includes(dessertBase)
+
+    const isMidBase = ['choco-cookie', 'macaron-cushion', 'cast-iron-pan'].includes(dessertBase)
+
+    // 카메라 FOV 및 거리: 대형 받침대일 때 화각을 45도로 확장하고 거리를 5.75로 뒤로 살짝 물려 전체 가시성 극대화
+    const camFov = isLargeBase ? 45 : isMidBase ? 42 : 40
+    const camDist = isLargeBase ? 5.75 : isMidBase ? 5.45 : 5.25
+    const camY = isLargeBase ? 1.28 : isMidBase ? 1.15 : 1.05
+    const lookY = isLargeBase ? -0.18 : isMidBase ? -0.16 : -0.15
+
+    const camera = new THREE.PerspectiveCamera(camFov, 1, 0.1, 30)
+    camera.position.set(0, camY, camDist)
+    camera.lookAt(0, lookY, 0)
 
     // 따뜻한 파티세리 3점 조명
     const ambient = new THREE.AmbientLight('#FFF5E8', 0.78)
@@ -4322,9 +4374,11 @@ export default function Monster3DView({
     bottomBounce.position.set(0, -3.0, 2.0)
     scene.add(bottomBounce)
 
-    // 3D 플레이팅 받침대 + 3D 디저트 캐릭터 조립 (상단 왕관/모자 헤드룸 넉넉하게 확보: y = -0.34)
+    // 3D 플레이팅 받침대 + 3D 디저트 캐릭터 조립
+    // 대형 받침대일 때 스테이지를 위로 약 0.24 올려서(y = -0.10) 받침대 밑바닥/바퀴/트러스 다리가 뷰포트 하단과 넉넉한 여백 확보
     const stageGroup = new THREE.Group()
-    stageGroup.position.y = -0.34
+    const stageY = isLargeBase ? -0.10 : isMidBase ? -0.22 : -0.32
+    stageGroup.position.y = stageY
     scene.add(stageGroup)
 
     const baseGroup = build3DDessertBase(dessertBase)
@@ -4338,13 +4392,14 @@ export default function Monster3DView({
     charRoot.position.y = 0.08
     stageGroup.add(charRoot)
 
-    // 바닥 소프트 그림자 디스크
+    // 바닥 소프트 그림자 디스크: 받침대 높이에 맞춰 바닥면에 자연스럽게 밀착
+    const shadowY = isLargeBase ? -1.05 : isMidBase ? -0.92 : -0.88
     const shadowDisc = new THREE.Mesh(
-      new THREE.CircleGeometry(1.15, 32),
-      new THREE.MeshBasicMaterial({ color: '#5D4037', transparent: true, opacity: 0.16 }),
+      new THREE.CircleGeometry(isLargeBase ? 1.55 : 1.15, 32),
+      new THREE.MeshBasicMaterial({ color: '#5D4037', transparent: true, opacity: 0.22 }),
     )
     shadowDisc.rotation.x = -Math.PI / 2
-    shadowDisc.position.y = -0.88
+    shadowDisc.position.y = shadowY
     stageGroup.add(shadowDisc)
 
     // 터치 시 튀어오르는 3D 식감 파편(카다이프/설탕조각/과즙방울/모찌파우더) 파티클 풀
