@@ -45,12 +45,16 @@ export const DECO_ITEMS: DecoItemDef[] = [
   { id: 'winter-fluffy-earmuffs', slot: 'head', name: '보송보송 눈꽃 털 귀마개', rarity: 'common', charm: 26, icon: '🎧', desc: '보송보송 솜사탕처럼 부드러운 화이트 폼폼 퍼(Fur) 밴드와 은빛 눈꽃 자수 귀마개' },
   { id: 'astral-sorcerer-hood', slot: 'head', name: '별빛 소서러 후드', rarity: 'rare', charm: 34, icon: '🔮', desc: '밤하늘 은하수가 수놓아진 딥네이비 마법사 후드와 흔들리는 황금 초승달 펜던트' },
   { id: 'fairy-sugar-winged-circlet', slot: 'head', name: '요정의 슈가 윙 서클릿', rarity: 'rare', charm: 32, icon: '🧚', desc: '무지갯빛 반투명 요정 날개 이어링과 에메랄드 이마 티아라' },
+  { id: 'party-confetti-cone-hat', slot: 'head', name: '축하 폭죽 꼬깔모자', rarity: 'common', charm: 26, icon: '🎉', desc: '파티 분위기를 한껏 돋우는 알록달록 스프링클 꼬깔모자와 폼폼 방울' },
+  { id: 'champagne-cork-topper', slot: 'head', name: '샴페인 버블 실크햇', rarity: 'legendary', charm: 44, icon: '🎩', desc: '황금 샴페인 코르크와 퐁퐁 솟아오르는 탄산 기포가 매력적인 로열 실크햇' },
   // 2. 얼굴 (face)
   { id: 'alchemy-glasses', slot: 'face', name: '연금술 동글안경', rarity: 'rare', charm: 20, icon: '👓', desc: '지적인 매력을 더해주는 황금 테 안경' },
   { id: 'round-gold-spectacles', slot: 'face', name: '스마트 골드 동글안경', rarity: 'rare', charm: 28, icon: '👓', desc: '지적인 매력과 똘똘함을 한껏 뽐내는 24K 순금테 클래식 동글안경' },
   { id: 'summer-cool-sunglasses', slot: 'face', name: '틴트 쿨 선글라스', rarity: 'common', charm: 26, icon: '🕶️', desc: '강렬한 여름 햇살을 쿨하게 막아주는 레트로 틴트 블루 라운드 선글라스' },
   { id: 'crystal-monocle', slot: 'face', name: '아케인 크리스탈 모노클', rarity: 'rare', charm: 28, icon: '💎', desc: '고대 마법 룬 문자가 새겨진 24K 골드 체인 외알 안경과 투명 굴절 크리스탈' },
   { id: 'arcane-rune-mask', slot: 'face', name: '신비의 룬 하프 가면', rarity: 'common', charm: 26, icon: '🎭', desc: '디저트 대현자의 지혜가 깃든 유선형 은빛 무도회 반가면과 문양' },
+  { id: 'masquerade-feather-eyemask', slot: 'face', name: '무도회 깃털 가면', rarity: 'rare', charm: 30, icon: '🎭', desc: '화려한 공작 깃털과 자수정 보석이 돋보이는 가면무도회 레이스 아이마스크' },
+  { id: 'party-whistle-blower', slot: 'face', name: '롤링 파티 피리', rarity: 'common', charm: 22, icon: '🎺', desc: '입에 물고 후- 불면 도로록 풀렸다 말려드는 알록달록 파티 롤링 피리' },
   { id: 'sleep-mask', slot: 'face', name: '포근 수면안대', rarity: 'common', charm: 10, icon: '💤', desc: '이마에 살짝 얹은 구름결 수면안대' },
   { id: 'star-patch', slot: 'face', name: '유성 볼 스티커', rarity: 'rare', charm: 18, icon: '🌟', desc: '양볼에 붙이는 반짝이는 별빛 페인팅' },
   // 3. 목 (neck)
@@ -63,6 +67,8 @@ export const DECO_ITEMS: DecoItemDef[] = [
   { id: 'winter-snow-padded-vest', slot: 'neck', name: '스노우 퐁퐁 패딩 조끼', rarity: 'legendary', charm: 44, icon: '❄️', desc: '영하의 칼바람도 따뜻하게 녹여주는 퐁퐁 스노우 화이트 누빔 패딩 조끼' },
   { id: 'celestial-wizard-robe', slot: 'neck', name: '천상 별자리 마법 로브', rarity: 'legendary', charm: 46, icon: '✨', desc: '별빛 궤도와 금빛 성운이 흐르는 최고위 마도사의 숄더 케이프와 마법석 브로치' },
   { id: 'moonlight-velvet-choker', slot: 'neck', name: '달빛 벨벳 젬 초커', rarity: 'common', charm: 24, icon: '🖤', desc: '부드러운 미드나잇 블랙 벨벳 밴드와 물방울 루비 드롭 펜던트' },
+  { id: 'masquerade-tuxedo-bowtie', slot: 'neck', name: '턱시도 실크 윙 보타이', rarity: 'rare', charm: 32, icon: '🤵', desc: '고급스러운 블랙 벨벳 윙 칼라와 새틴 실크 보타이, 골드 핀 체인' },
+  { id: 'birthday-cake-ruffle-collar', slot: 'neck', name: '케이크 크림 프릴 칼라', rarity: 'rare', charm: 35, icon: '🎂', desc: '생크림 깍지로 풍성하게 짠 달콤한 3단 프릴 칼라와 슈가 진주 장식' },
   { id: 'pretzel-ribbon', slot: 'neck', name: '솔티드 프레첼 리본', rarity: 'rare', charm: 20, icon: '🥨', desc: '노릇하게 구운 하트 모양 프레첼 과자 장식' },
   { id: 'rune-scarf', slot: 'neck', name: '룬 무늬 머플러', rarity: 'rare', charm: 18, icon: '🧣', desc: '고대 룬 문양이 수놓아진 따뜻한 목도리' },
   { id: 'bell-ribbon', slot: 'neck', name: '별방울 리본', rarity: 'common', charm: 12, icon: '🎀', desc: '움직일 때마다 딸랑거리는 금방울 리본' },
@@ -76,6 +82,8 @@ export const DECO_ITEMS: DecoItemDef[] = [
   { id: 'autumn-artist-palette', slot: 'hand', name: '가을 감성 우드 팔레트', rarity: 'rare', charm: 28, icon: '🎨', desc: '가을 낙엽과 디저트 시럽 물감이 알록달록 짜여진 아티스트 나무 팔레트와 세필 붓' },
   { id: 'arcane-sugar-grimoire', slot: 'hand', name: '아케인 슈가 마도서', rarity: 'rare', charm: 32, icon: '📕', desc: '황금 장정 가죽 표지와 부유하는 룬 보석이 박힌 공중 부양 디저트 마도서' },
   { id: 'celestial-meteor-staff', slot: 'hand', name: '유성 소환 별빛 셉터', rarity: 'legendary', charm: 45, icon: '💫', desc: '회전하는 천체 궤도 링과 24K 황금 별자리 셉터, 영롱한 빛무리 파티클' },
+  { id: 'sparkler-party-firework', slot: 'hand', name: '챠르릉 축제 스파클러', rarity: 'rare', charm: 32, icon: '🎆', desc: '타닥타닥 황금빛 불꽃이 춤추며 반짝이는 파티용 슈가 스파클러' },
+  { id: 'royal-party-champagne-glass', slot: 'hand', name: '골드 버블 샴페인 글라스', rarity: 'rare', charm: 30, icon: '🥂', desc: '황금빛 스파클링 소다가 찰랑이며 마카롱 가니쉬가 꽂힌 파티 글라스' },
   { id: 'tiny-wood-rollingpin', slot: 'hand', name: '달콤 반죽 미니 밀대', rarity: 'rare', charm: 28, icon: '🥖', desc: '달콤한 쿠키 도우를 슥슥 밀어 펴는 단풍나무 제과용 미니 밀대' },
   { id: 'bubble-detective-magnifier', slot: 'hand', name: '황금 버블 돋보기', rarity: 'rare', charm: 30, icon: '🔍', desc: '디저트의 숨겨진 레시피를 찾으면 무지갯빛 비눗방울이 퐁퐁 솟아나는 탐정 돋보기' },
   { id: 'lollipop-wand', slot: 'hand', name: '롤리팝 캔디봉', rarity: 'rare', charm: 26, icon: '🍭', desc: '달콤한 파스텔 소용돌이 막대사탕' },
@@ -421,8 +429,52 @@ export function FrontDecorations({
           <path d="M 120 153 C 124 153 126 157 124 162 C 122 166 120 169 120 169 C 120 169 118 166 116 162 C 114 157 116 153 120 153 Z" fill="#E11D48" stroke="#FFD700" strokeWidth={1.2} />
         </g>
       )}
+      {deco?.neck === 'masquerade-tuxedo-bowtie' && (
+        <g stroke={INK} strokeWidth={2.4} strokeLinejoin="round">
+          {/* 턱시도 실크 윙 보타이 */}
+          <polygon points="98,144 120,156 106,144" fill="#FFFFFF" />
+          <polygon points="142,144 120,156 134,144" fill="#FFFFFF" />
+          {/* 새틴 레드 나비 보타이 */}
+          <path d="M 120 152 L 104 144 L 106 162 Z" fill="#DC2626" />
+          <path d="M 120 152 L 136 144 L 134 162 Z" fill="#DC2626" />
+          <circle cx={120} cy={152} r={3.5} fill="#B91C1C" stroke="#FFD700" strokeWidth={1} />
+          {/* 골드 체인 링크 */}
+          <path d="M 112 158 Q 120 166 128 158" fill="none" stroke="#F59E0B" strokeWidth={1.5} />
+        </g>
+      )}
+      {deco?.neck === 'birthday-cake-ruffle-collar' && (
+        <g stroke={INK} strokeWidth={2.2} strokeLinejoin="round">
+          {/* 3단 케이크 크림 프릴 칼라 */}
+          <path d="M 76 146 C 78 178 162 178 164 146 C 146 150 94 150 76 146 Z" fill="#FFFDF9" />
+          <path d="M 80 154 Q 90 162 100 154 Q 110 162 120 154 Q 130 162 140 154 Q 150 162 160 154" fill="none" stroke="#FBCFE8" strokeWidth={2.2} />
+          {/* 슈가 진주 4알 */}
+          <circle cx={92} cy={160} r={2.5} fill="#F472B6" strokeWidth={0} />
+          <circle cx={110} cy={162} r={2.5} fill="#FDE047" strokeWidth={0} />
+          <circle cx={130} cy={162} r={2.5} fill="#67E8F9" strokeWidth={0} />
+          <circle cx={148} cy={160} r={2.5} fill="#A78BFA" strokeWidth={0} />
+        </g>
+      )}
 
       {/* 2. 얼굴 장식 (face) */}
+      {deco?.face === 'masquerade-feather-eyemask' && (
+        <g stroke={INK} strokeWidth={2.2} strokeLinejoin="round">
+          {/* 로열 무도회 깃털 안경가면 */}
+          <path d="M 82 104 C 84 94 116 94 118 108 C 122 94 154 94 158 104 C 158 116 138 122 120 114 C 102 122 82 116 82 104 Z" fill="#581C87" />
+          <ellipse cx={100} cy={108} rx={7} ry={4.5} fill="#E0E7FF" fillOpacity={0.4} stroke="#C084FC" strokeWidth={1.5} />
+          <ellipse cx={140} cy={108} rx={7} ry={4.5} fill="#E0E7FF" fillOpacity={0.4} stroke="#C084FC" strokeWidth={1.5} />
+          {/* 좌측 화려한 공작 깃털 */}
+          <path d="M 82 102 C 64 80 58 64 72 58 C 84 56 82 82 84 98 Z" fill="#0D9488" stroke="#10B981" strokeWidth={1.5} />
+          <circle cx={72} cy={66} r={3} fill="#FDE047" strokeWidth={0} />
+          <circle cx={84} cy={100} r={3.2} fill="#A855F7" stroke="#FFD700" strokeWidth={1.2} />
+        </g>
+      )}
+      {deco?.face === 'party-whistle-blower' && (
+        <g stroke={INK} strokeWidth={2.2} strokeLinejoin="round">
+          {/* 롤링 파티 피리 */}
+          <rect x={114} y={122} width={12} height={8} rx={2} fill="#FDE047" />
+          <path d="M 126 126 C 142 124 156 114 158 124 C 160 134 148 136 142 130 C 138 126 142 124 146 128" fill="none" stroke="#EC4899" strokeWidth={4} strokeLinecap="round" />
+        </g>
+      )}
       {deco?.face === 'round-gold-spectacles' && (
         <g>
           {/* 24K 순금테 동글안경 */}
@@ -601,8 +653,53 @@ export function FrontDecorations({
           <path d="M 154 54 C 178 38 188 52 172 64 C 164 58 156 56 154 54 Z" fill="#E0F2FE" fillOpacity={0.65} stroke="#38BDF8" strokeWidth={1.8} />
         </g>
       )}
+      {deco?.head === 'party-confetti-cone-hat' && (
+        <g stroke={INK} strokeWidth={2.4} strokeLinejoin="round">
+          {/* 축하 폭죽 꼬깔모자 */}
+          <polygon points="120,24 94,68 146,68" fill="#F43F5E" />
+          {/* 스트라이프 & 스프링클 */}
+          <path d="M 102,54 L 138,54" stroke="#FDE047" strokeWidth={3} />
+          <circle cx={112} cy={42} r={2.5} fill="#67E8F9" strokeWidth={0} />
+          <circle cx={128} cy={44} r={2.5} fill="#A78BFA" strokeWidth={0} />
+          {/* 꼭대기 폼폼 털방울 */}
+          <circle cx={120} cy={22} r={5} fill="#FEF08A" stroke="#F59E0B" strokeWidth={1.5} />
+        </g>
+      )}
+      {deco?.head === 'champagne-cork-topper' && (
+        <g stroke={INK} strokeWidth={2.4} strokeLinejoin="round">
+          {/* 샴페인 버블 실크햇 */}
+          <ellipse cx={120} cy={66} rx={36} ry={12} fill="#1E293B" />
+          <path d="M 96 64 L 100 36 L 140 36 L 144 64 Z" fill="#D97706" />
+          <ellipse cx={120} cy={36} rx={20} ry={7} fill="#B45309" />
+          {/* 골드 리본 밴드 */}
+          <rect x={98} y={54} width={44} height={7} rx={1} fill="#FFD700" strokeWidth={1} />
+          {/* 퐁퐁 솟아오르는 탄산 기포 */}
+          <circle cx={138} cy={22} r={3.5} fill="#FEF08A" opacity={0.8} strokeWidth={0} />
+          <circle cx={146} cy={12} r={2.5} fill="#FEF08A" opacity={0.6} strokeWidth={0} />
+        </g>
+      )}
 
       {/* 5. 손 장식 (hand) */}
+      {deco?.hand === 'sparkler-party-firework' && (
+        <g stroke={INK} strokeWidth={2.4} strokeLinejoin="round" className="deco-anim-hand">
+          {/* 챠르릉 축제 스파클러 */}
+          <line x1={54} y1={134} x2={66} y2={204} stroke="#94A3B8" strokeWidth={3.5} strokeLinecap="round" />
+          {/* 스파클 코어 & 불꽃 파티클 */}
+          <circle cx={54} cy={134} r={5} fill="#FEF08A" stroke="#F59E0B" strokeWidth={1.5} />
+          <path d="M 54 118 L 54 126 M 54 142 L 54 150 M 42 134 L 50 134 M 58 134 L 66 134" stroke="#FBBF24" strokeWidth={2} strokeLinecap="round" />
+          <path d="M 45 125 L 50 130 M 58 138 L 63 143 M 63 125 L 58 130 M 50 138 L 45 143" stroke="#F43F5E" strokeWidth={1.8} strokeLinecap="round" />
+        </g>
+      )}
+      {deco?.hand === 'royal-party-champagne-glass' && (
+        <g stroke={INK} strokeWidth={2.2} strokeLinejoin="round" className="deco-anim-hand">
+          {/* 골드 버블 샴페인 글라스 */}
+          <path d="M 46 132 L 62 132 L 58 154 C 58 158 50 158 50 154 Z" fill="#FEF08A" fillOpacity={0.65} stroke="#E2E8F0" strokeWidth={1.8} />
+          <line x1={54} y1={157} x2={54} y2={178} stroke="#CBD5E1" strokeWidth={2.5} strokeLinecap="round" />
+          <ellipse cx={54} cy={178} rx={10} ry={3.5} fill="#E2E8F0" strokeWidth={1.5} />
+          {/* 림에 꽂힌 미니 핑크 마카롱 */}
+          <ellipse cx={46} cy={132} rx={4.5} ry={3} fill="#F472B6" strokeWidth={1} />
+        </g>
+      )}
       {deco?.hand === 'arcane-sugar-grimoire' && (
         <g stroke={INK} strokeWidth={2.4} strokeLinejoin="round" className="deco-anim-hand">
           {/* 아케인 슈가 마도서 (공중 부양) */}

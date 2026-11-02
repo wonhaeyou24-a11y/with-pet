@@ -1680,6 +1680,73 @@ function add3DDecorations(
     })
 
     bodyGroup.add(circletGroup)
+  } else if (deco?.head === 'party-confetti-cone-hat') {
+    // 🎉 축하 폭죽 꼬깔모자: 스트로베리 레드 꼬깔콘 + 상단 폼폼 방울 + 스프링클 비즈 3개
+    const hatGroup = new THREE.Group()
+    hatGroup.position.set(0.12, 1.15, 0.05)
+    hatGroup.rotation.z = -0.15
+
+    const coneMat = new THREE.MeshPhysicalMaterial({ color: '#F43F5E', roughness: 0.35, clearcoat: 0.5 })
+    const pompomMat = new THREE.MeshPhysicalMaterial({ color: '#FEF08A', roughness: 0.85, sheen: 1.0, sheenColor: '#FFFFFF' })
+
+    const cone = new THREE.Mesh(new THREE.ConeGeometry(0.38, 0.85, 20), coneMat)
+    hatGroup.add(cone)
+
+    const pompom = new THREE.Mesh(new THREE.SphereGeometry(0.12, 14, 12), pompomMat)
+    pompom.position.y = 0.44
+    hatGroup.add(pompom)
+
+    // 콘 둘레 스프링클 도트 3개
+    ;[-0.15, 0, 0.15].forEach((sx, si) => {
+      const dot = new THREE.Mesh(
+        new THREE.SphereGeometry(0.045, 8, 8),
+        new THREE.MeshPhysicalMaterial({ color: si === 0 ? '#67E8F9' : si === 1 ? '#FDE047' : '#A78BFA' }),
+      )
+      dot.position.set(sx, -0.1 + (si % 2) * 0.1, 0.28)
+      hatGroup.add(dot)
+    })
+
+    bodyGroup.add(hatGroup)
+  } else if (deco?.head === 'champagne-cork-topper') {
+    // 🎩 샴페인 버블 실크햇: 코르크 브라운 실크햇 + 24K 골드 리본 밴드 + 퐁퐁 솟아오르는 탄산 기포
+    const topGroup = new THREE.Group()
+    topGroup.position.set(0.15, 1.1, 0)
+    topGroup.rotation.z = -0.18
+
+    const corkMat = new THREE.MeshPhysicalMaterial({ color: '#D97706', roughness: 0.7, clearcoat: 0.2 })
+    const brimMat = new THREE.MeshPhysicalMaterial({ color: '#1E293B', roughness: 0.5, clearcoat: 0.4 })
+    const goldMat = new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.95, roughness: 0.12, clearcoat: 1.0 })
+    const bubbleMat = new THREE.MeshPhysicalMaterial({
+      color: '#FEF08A',
+      transmission: 0.9,
+      transparent: true,
+      opacity: 0.75,
+      emissive: '#F59E0B',
+      emissiveIntensity: 0.4,
+    })
+
+    // 모자 챙
+    const brim = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.65, 0.05, 24), brimMat)
+    topGroup.add(brim)
+
+    // 모자 본체
+    const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.44, 0.55, 20), corkMat)
+    crown.position.y = 0.28
+    topGroup.add(crown)
+
+    // 골드 리본 밴드
+    const band = new THREE.Mesh(new THREE.CylinderGeometry(0.442, 0.442, 0.12, 20), goldMat)
+    band.position.y = 0.1
+    topGroup.add(band)
+
+    // 모자 위로 솟아오른 샴페인 기포 3개
+    ;[[0.2, 0.65, 0.1], [0.3, 0.8, -0.05], [0.15, 0.92, 0.08]].forEach(([bx, by, bz], bi) => {
+      const bubble = new THREE.Mesh(new THREE.SphereGeometry(0.06 + (bi % 2) * 0.02, 10, 10), bubbleMat)
+      bubble.position.set(bx, by, bz)
+      topGroup.add(bubble)
+    })
+
+    bodyGroup.add(topGroup)
   }
 
   // 2. 얼굴 장식 (face) - 1.5배 큼직하게
@@ -1946,6 +2013,60 @@ function add3DDecorations(
     maskGroup.add(rune)
 
     bodyGroup.add(maskGroup)
+  } else if (deco?.face === 'masquerade-feather-eyemask') {
+    // 🦚 로열 무도회 깃털 가면: 퍼플 벨벳 아이마스크 + 좌측 공작 깃털 & 자수정 젬
+    const maskGroup = new THREE.Group()
+    maskGroup.position.set(0, 0.18, 0.88)
+
+    const velvetMat = new THREE.MeshPhysicalMaterial({ color: '#581C87', roughness: 0.65, clearcoat: 0.4 })
+    const featherMat = new THREE.MeshPhysicalMaterial({ color: '#0D9488', roughness: 0.3, clearcoat: 0.6 })
+    const gemMat = new THREE.MeshPhysicalMaterial({ color: '#C084FC', emissive: '#A855F7', emissiveIntensity: 0.7, roughness: 0.1 })
+
+    // 좌우 눈 둘레 마스크 패널 2개
+    ;[-0.42, 0.42].forEach((gx) => {
+      const eyePuff = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.055, 12, 24), velvetMat)
+      eyePuff.position.x = gx
+      maskGroup.add(eyePuff)
+    })
+    const bridge = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.28, 8), velvetMat)
+    bridge.rotation.z = Math.PI / 2
+    bridge.position.y = 0.04
+    maskGroup.add(bridge)
+
+    // 좌측 화려한 공작 깃털 메쉬
+    const feather = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.82, 4), featherMat)
+    feather.scale.set(0.4, 1, 1.2)
+    feather.position.set(-0.62, 0.42, 0.02)
+    feather.rotation.z = 0.42
+    maskGroup.add(feather)
+
+    // 깃털 베이스 자수정 젬
+    const gem = new THREE.Mesh(new THREE.OctahedronGeometry(0.09, 0), gemMat)
+    gem.position.set(-0.52, 0.18, 0.05)
+    maskGroup.add(gem)
+
+    bodyGroup.add(maskGroup)
+  } else if (deco?.face === 'party-whistle-blower') {
+    // 🎺 롤링 파티 피리: 입가에 비스듬히 문 옐로우 피리 + 핑크 나선형 롤링 페이퍼
+    const whistleGroup = new THREE.Group()
+    whistleGroup.position.set(0.18, -0.06, 0.96)
+    whistleGroup.rotation.z = -0.2
+    whistleGroup.rotation.y = 0.35
+
+    const pipeMat = new THREE.MeshPhysicalMaterial({ color: '#FDE047', roughness: 0.3, clearcoat: 0.6 })
+    const rollMat = new THREE.MeshPhysicalMaterial({ color: '#EC4899', roughness: 0.4 })
+
+    // 피리 마우스피스
+    const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.065, 0.32, 10), pipeMat)
+    pipe.rotation.x = Math.PI / 2
+    whistleGroup.add(pipe)
+
+    // 롤링 페이퍼 (말려있는 타원형 튜브)
+    const roll = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.035, 10, 20, Math.PI * 1.6), rollMat)
+    roll.position.set(0, 0, 0.24)
+    whistleGroup.add(roll)
+
+    bodyGroup.add(whistleGroup)
   }
 
   // 3. 목 장식 (neck) - 풍성한 볼륨감
@@ -2259,6 +2380,71 @@ function add3DDecorations(
     chokerGroup.add(drop)
 
     bodyGroup.add(chokerGroup)
+  } else if (deco?.neck === 'masquerade-tuxedo-bowtie') {
+    // 🤵 턱시도 실크 윙 보타이: 화이트 윙 칼라 + 새틴 레드 보타이 + 골드 핀 체인
+    const tuxGroup = new THREE.Group()
+    tuxGroup.position.set(0, -0.32, 0.08)
+
+    const shirtMat = new THREE.MeshPhysicalMaterial({ color: '#FFFFFF', roughness: 0.25 })
+    const bowtieMat = new THREE.MeshPhysicalMaterial({ color: '#DC2626', roughness: 0.2, clearcoat: 0.8 })
+    const goldMat = new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.95, roughness: 0.12 })
+
+    // 화이트 윙 칼라
+    const collar = new THREE.Mesh(new THREE.TorusGeometry(0.86, 0.12, 14, 32), shirtMat)
+    collar.rotation.x = Math.PI / 2
+    tuxGroup.add(collar)
+
+    // 레드 나비 보타이 날개 2개
+    ;[-1, 1].forEach((side) => {
+      const wing = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.24, 4), bowtieMat)
+      wing.rotation.z = side * (Math.PI / 2)
+      wing.position.set(side * 0.12, -0.06, 0.9)
+      tuxGroup.add(wing)
+    })
+    const centerKnot = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 10), bowtieMat)
+    centerKnot.position.set(0, -0.06, 0.92)
+    tuxGroup.add(centerKnot)
+
+    // 골드 핀 체인
+    const pin = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 8), goldMat)
+    pin.position.set(0.16, -0.16, 0.9)
+    tuxGroup.add(pin)
+
+    bodyGroup.add(tuxGroup)
+  } else if (deco?.neck === 'birthday-cake-ruffle-collar') {
+    // 🎂 3단 케이크 크림 프릴 칼라: 순백 생크림 3단 프릴 링 + 4색 슈가 진주
+    const ruffleGroup = new THREE.Group()
+    ruffleGroup.position.set(0, -0.32, 0.06)
+
+    const creamMat = new THREE.MeshPhysicalMaterial({
+      color: '#FFFDF9',
+      roughness: 0.35,
+      clearcoat: 0.6,
+      sheen: 0.5,
+      sheenColor: '#FDE047',
+    })
+
+    // 3단 볼륨 크림 프릴
+    ;[0.82, 0.92, 1.02].forEach((radius, ri) => {
+      const ruffle = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.1 + ri * 0.03, 14, 32), creamMat)
+      ruffle.rotation.x = Math.PI / 2
+      ruffle.position.y = -ri * 0.08
+      ruffleGroup.add(ruffle)
+    })
+
+    // 4색 슈가 진주
+    const pearlColors = ['#F43F5E', '#FDE047', '#67E8F9', '#A78BFA']
+    pearlColors.forEach((pcol, pi) => {
+      const ang = (pi / pearlColors.length) * Math.PI * 0.8 - Math.PI * 0.4
+      const pearl = new THREE.Mesh(
+        new THREE.SphereGeometry(0.065, 12, 10),
+        new THREE.MeshPhysicalMaterial({ color: pcol, roughness: 0.15, clearcoat: 1.0 }),
+      )
+      pearl.position.set(Math.sin(ang) * 0.96, -0.22, Math.cos(ang) * 0.96)
+      ruffleGroup.add(pearl)
+    })
+
+    bodyGroup.add(ruffleGroup)
   }
 
   // 4. 등 장식 & 만능 날개 (back / wingKind) - 대형 날개 연출
@@ -2669,6 +2855,89 @@ function add3DDecorations(
     staffGroup.add(starHead)
 
     bodyGroup.add(staffGroup)
+  } else if (deco?.hand === 'sparkler-party-firework') {
+    // 🎆 챠르릉 축제 스파클러: 은빛 메탈 스틱 + 타닥타닥 튀는 골드/레드 불꽃 파티클
+    const sparkGroup = new THREE.Group()
+    sparkGroup.position.set(1.12, -0.05, 0.72)
+    sparkGroup.rotation.z = -0.22
+
+    const stickMat = new THREE.MeshPhysicalMaterial({ color: '#94A3B8', metalness: 0.9, roughness: 0.15 })
+    const sparkMat1 = new THREE.MeshPhysicalMaterial({ color: '#FEF08A', emissive: '#F59E0B', emissiveIntensity: 1.0, roughness: 0.1 })
+    const sparkMat2 = new THREE.MeshPhysicalMaterial({ color: '#F43F5E', emissive: '#E11D48', emissiveIntensity: 0.9, roughness: 0.1 })
+
+    // 스파클러 메탈 스틱
+    const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 1.45, 10), stickMat)
+    stick.position.y = 0.2
+    sparkGroup.add(stick)
+
+    // 스파클 코어
+    const core = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 10), sparkMat1)
+    core.position.y = 0.82
+    sparkGroup.add(core)
+
+    // 사방으로 튀는 불꽃 파티클 6개
+    const sparkOffsets = [
+      [0.15, 0.92, 0.08], [-0.14, 0.88, -0.06], [0.18, 0.76, -0.08],
+      [-0.16, 0.74, 0.09], [0, 1.02, 0], [0.08, 0.68, 0.12]
+    ]
+    sparkOffsets.forEach(([sx, sy, sz], si) => {
+      const spark = new THREE.Mesh(new THREE.OctahedronGeometry(0.055, 0), si % 2 === 0 ? sparkMat1 : sparkMat2)
+      spark.position.set(sx, sy, sz)
+      sparkGroup.add(spark)
+    })
+
+    bodyGroup.add(sparkGroup)
+  } else if (deco?.hand === 'royal-party-champagne-glass') {
+    // 🥂 골드 버블 샴페인 글라스: 크리스탈 투명 글라스 + 황금빛 탄산 음료 + 미니 핑크 마카롱
+    const glassGroup = new THREE.Group()
+    glassGroup.position.set(1.1, -0.1, 0.7)
+    glassGroup.rotation.y = -0.2
+
+    const crystalMat = new THREE.MeshPhysicalMaterial({
+      color: '#FFFFFF',
+      transmission: 0.95,
+      transparent: true,
+      opacity: 0.45,
+      roughness: 0.05,
+      clearcoat: 1.0,
+      ior: 1.5,
+    })
+    const liquidMat = new THREE.MeshPhysicalMaterial({
+      color: '#FEF08A',
+      transmission: 0.85,
+      transparent: true,
+      opacity: 0.8,
+      emissive: '#F59E0B',
+      emissiveIntensity: 0.35,
+    })
+    const macaronMat = new THREE.MeshPhysicalMaterial({ color: '#F472B6', roughness: 0.4, clearcoat: 0.4 })
+
+    // 글라스 보울
+    const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.08, 0.42, 16, 1, true), crystalMat)
+    bowl.position.y = 0.32
+    glassGroup.add(bowl)
+
+    // 내부 황금빛 샴페인
+    const liquid = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.07, 0.32, 14), liquidMat)
+    liquid.position.y = 0.28
+    glassGroup.add(liquid)
+
+    // 스템 & 베이스
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.38, 8), crystalMat)
+    stem.position.y = 0.08
+    glassGroup.add(stem)
+
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.025, 14), crystalMat)
+    base.position.y = -0.1
+    glassGroup.add(base)
+
+    // 글라스 림에 꽂힌 미니 핑크 마카롱
+    const macaron = new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 10), macaronMat)
+    macaron.scale.set(1.1, 0.65, 1.1)
+    macaron.position.set(0.16, 0.52, 0)
+    glassGroup.add(macaron)
+
+    bodyGroup.add(glassGroup)
   } else if (deco?.hand === 'lantern-staff' || deco?.hand === 'star-wand' || deco?.hand === 'lollipop-wand') {
     const handGroup = new THREE.Group()
     handGroup.position.set(1.15, -0.05, 0.75)
