@@ -65,9 +65,25 @@ export function getMonsterSnapshot(look: Look): string | null {
   const scene = new THREE.Scene()
   scene.environment = envTex
 
-  const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 30)
-  camera.position.set(0, 0.42, 4.85)
-  camera.lookAt(0, -0.1, 0)
+  const isLargeBase = [
+    'eiffel-tower',
+    'snow-mountain',
+    'mini-car',
+    'motorcycle',
+    'strawberry-cake',
+    'parfait-cup',
+    'ufo-beam',
+    'custard-pudding',
+  ].includes(dessertBase)
+
+  const camFov = isLargeBase ? 42 : 36
+  const camDist = isLargeBase ? 5.6 : 4.95
+  const camY = isLargeBase ? 0.95 : 0.45
+  const lookY = isLargeBase ? -0.16 : -0.1
+
+  const camera = new THREE.PerspectiveCamera(camFov, 1, 0.1, 30)
+  camera.position.set(0, camY, camDist)
+  camera.lookAt(0, lookY, 0)
 
   scene.add(new THREE.AmbientLight('#FFF5E8', 0.78))
   const key1 = new THREE.DirectionalLight('#FFFDF9', 1.85)
