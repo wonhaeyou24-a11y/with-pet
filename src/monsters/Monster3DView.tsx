@@ -2137,6 +2137,11 @@ export default function Monster3DView({
   const dessertBase: DessertBaseId = look.mallang?.dessertBase ?? 'none'
   const paletteKey = look.mallang?.skinPalette ?? look.palette ?? 0
 
+  // 🚀 성능 최적화: 부모 리렌더링 시 불필요한 Three.js 씬 재구축을 원천 차단하는 시그니처 키
+  const deco = look.mallang?.decorations ?? look.decorations
+  const wingKind = look.mallang?.wingKind
+  const lookSignature = `${activeSpecies}_${dessertBase}_${paletteKey}_${look.evoStage ?? 1}_${look.evoBranch ?? ''}_${look.expression ?? ''}_${look.mutation ?? ''}_${deco?.head ?? ''}_${deco?.back ?? ''}_${deco?.neck ?? ''}_${deco?.face ?? ''}_${deco?.effect ?? ''}_${wingKind ?? ''}`
+
   // 스프링 물리 상태 레퍼런스 (포인터 터치·드래그 시 실시간 반응)
   const physRef = useRef({
     squash: 0, // +면 위아래로 납작해지고 옆으로 퍼짐 (Squash), -면 위로 솟음 (Stretch)
@@ -2194,7 +2199,7 @@ export default function Monster3DView({
     const side = fluid ? Math.min(el.clientWidth || 210, el.clientHeight || 210, 220) : Math.max(125, size || 200)
     const w = side
     const h = side
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75))
     renderer.setSize(w, h)
     renderer.toneMapping = THREE.ACESFilmicToneMapping
     renderer.toneMappingExposure = 1.02
@@ -2343,8 +2348,8 @@ export default function Monster3DView({
         // 드래그를 놓았을 때 무한 회전 루프를 방지하고 자연스럽게 멈추도록 감쇠
         st.targetRotY += (Math.round(st.targetRotY / (Math.PI * 2)) * Math.PI * 2 - st.targetRotY) * 0.02
       }
-      st.rotY += (st.targetRotY - st.rotY) * Math.min(1, dt * 12)
-      st.rotX += (st.targetRotX - st.rotX) * Math.min(1, dt * 12)
+      st.rotY += (st.targetRotY - st.rotY) * Math.min(1, dt * 18)
+      st.rotX += (st.targetRotX - st.rotX) * Math.min(1, dt * 18)
       charRoot.rotation.y = st.rotY
       charRoot.rotation.x = st.rotX
 
@@ -2456,7 +2461,7 @@ export default function Monster3DView({
       renderer.dispose()
       activeWebglContexts = Math.max(0, activeWebglContexts - 1)
     }
-  }, [activeSpecies, dessertBase, paletteKey, look, onFallbackNeeded, size])
+  }, [lookSignature, onFallbackNeeded, size, fluid])
 
   if (webglFailed) return null
 
@@ -2486,9 +2491,9 @@ export default function Monster3DView({
         const dy = e.clientY - st.lastY
         st.lastX = e.clientX
         st.lastY = e.clientY
-        // 360도 무한 자유 회전 (좌우 제한 없이 부드럽게 360° 확인 가능)
-        st.targetRotY += dx * 0.016
-        st.targetRotX = Math.max(-0.6, Math.min(0.6, st.targetRotX + dy * 0.008))
+        // 360도 무한 자유 회전 (손끝에 착 감기는 빠르고 경쾌한 감도)
+        st.targetRotY += dx * 0.022
+        st.targetRotX = Math.max(-0.6, Math.min(0.6, st.targetRotX + dy * 0.012))
       }}
       onPointerUp={(e) => {
         try {

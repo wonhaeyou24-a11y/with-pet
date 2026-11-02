@@ -10,9 +10,7 @@ import { defaultDessertBase, SPECIES_INFO } from '../config/species'
 import { monsterLook, serverNow, type MonsterRow } from '../lib/api'
 import {
   getSpeciesSoundKind,
-  isAsmrMuted,
   playDessertAsmr,
-  setAsmrMuted,
   type DessertSoundKind,
 } from '../lib/sound'
 import { DECO_ITEMS } from '../monsters/Decorations'
@@ -67,9 +65,8 @@ export default function MonsterDetail({
   const skinPalette = savedCustom?.skinPalette ?? monster.parts.palette ?? 0
   const dessertBase: DessertBaseId = savedCustom?.dessertBase ?? defaultDessertBase(monster.species)
   const wingKind: WingKind = savedCustom?.wingKind ?? 'none'
-  const [syrups, setSyrups] = useState<SyrupId[]>(savedCustom?.syrups ?? ['choco-drizzle', 'rainbow-sprinkles'])
-  const [showcaseBoxMode, setShowcaseBoxMode] = useState<boolean>(false)
-  const [biteVotes, setBiteVotes] = useState<number>(42)
+  const syrups: SyrupId[] = savedCustom?.syrups ?? ['choco-drizzle', 'rainbow-sprinkles']
+  const biteVotes = 42
 
   // 보존 상태
   const [strokes] = useState<PaintStroke[]>(savedCustom?.strokes ?? [])
@@ -103,7 +100,6 @@ export default function MonsterDetail({
   const [burstKey, setBurstKey] = useState<number>(0)
   const [combo, setCombo] = useState<number>(1)
   const lastTouchRef = useRef<number>(0)
-  const [muted, setMuted] = useState<boolean>(() => isAsmrMuted())
 
   // 🥚 에그 온기 숙성(블렌딩) 비기 스킬 & 승급 등급 조회 (대표님 피드백 반영)
   const secretSkill: SecretSkillDef | null = getPetSecretSkill(monster.id)
@@ -119,12 +115,6 @@ export default function MonsterDetail({
     setAsmrBubble(meta.onomatopoeia)
     setBurstKey((k) => k + 1)
     setTimeout(() => setAsmrBubble(null), 1650)
-  }
-
-  function handleToggleMute() {
-    const next = !muted
-    setMuted(next)
-    setAsmrMuted(next)
   }
 
   const info = SPECIES_INFO[monster.species]
@@ -154,23 +144,6 @@ export default function MonsterDetail({
   const syrupCharm = syrups.reduce((sum, s) => sum + (SYRUP_CATALOG.find((c) => c.id === s)?.charm ?? 0), 0)
   const paintBonusCharm =
     baseCharm + syrupCharm + Math.min(30, strokes.length * 3 + stamps.length * 5 + (wingKind !== 'none' ? 10 : 0))
-
-  function toggleSyrup(id: SyrupId) {
-    const next = syrups.includes(id) ? syrups.filter((s) => s !== id) : [...syrups, id]
-    setSyrups(next)
-    saveMallangCustom(monster.id, {
-      morphForm,
-      skinPalette,
-      wingKind,
-      strokes,
-      stamps,
-      dessertBase,
-      syrups: next,
-      decorations: deco,
-      medals,
-    })
-    triggerAsmr('syrup-drizzle')
-  }
 
   function handleSaveStudio() {
     const ok = saveMallangCustom(monster.id, {
@@ -202,15 +175,6 @@ export default function MonsterDetail({
         </button>
         <h1 className="title" style={{ fontSize: 17 }}>🧁 펫 상세 프로필</h1>
         <div className="row" style={{ gap: 4 }}>
-          {onOpenBoutique && (
-            <button
-              className="chip honey"
-              onClick={onOpenBoutique}
-              style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 12, padding: '3px 8px' }}
-            >
-              🛍️ 부티크
-            </button>
-          )}
           <button
             className="chip coral"
             onClick={handleSaveStudio}
@@ -229,8 +193,6 @@ export default function MonsterDetail({
           padding: '8px 12px',
           gap: 5,
           flexShrink: 0,
-          background: showcaseBoxMode ? 'linear-gradient(180deg, #FFF5F7 0%, #FFFDF9 100%)' : undefined,
-          border: showcaseBoxMode ? '2px dashed #FF7A59' : undefined,
         }}
       >
         <div className="row wrap between" style={{ width: '100%', gap: 4 }}>
@@ -276,41 +238,6 @@ export default function MonsterDetail({
               animate
             />
           </div>
-        </div>
-
-        {/* 퀵 인터랙션 바 */}
-        <div className="row wrap center" style={{ gap: 5 }}>
-          <button
-            className="chip coral"
-            onClick={() => triggerAsmr(getSpeciesSoundKind(monster.species, dessertBase))}
-            style={{ cursor: 'pointer', border: 'none', fontWeight: 800, fontSize: 12, padding: '4px 10px' }}
-          >
-            🎧 식감 ASMR
-          </button>
-          <button
-            className={muted ? 'chip' : 'chip honey'}
-            onClick={handleToggleMute}
-            style={{ cursor: 'pointer', border: 'none', fontWeight: 700, fontSize: 12, padding: '4px 10px' }}
-          >
-            {muted ? '🔇 음소거' : '🔊 소리켜짐'}
-          </button>
-          <button
-            className={showcaseBoxMode ? 'chip coral' : 'chip'}
-            onClick={() => setShowcaseBoxMode((v) => !v)}
-            style={{ cursor: 'pointer', border: 'none', fontWeight: 700, fontSize: 12, padding: '4px 10px' }}
-          >
-            📦 {showcaseBoxMode ? '상자해제' : '케이크상자'}
-          </button>
-          <button
-            className="chip honey"
-            onClick={() => {
-              setBiteVotes((v) => v + 1)
-              triggerAsmr(getSpeciesSoundKind(monster.species, dessertBase))
-            }}
-            style={{ cursor: 'pointer', border: 'none', fontWeight: 700, fontSize: 12, padding: '4px 10px' }}
-          >
-            🥄 쓰다듬기 +1
-          </button>
         </div>
 
         {saveToast && (
@@ -534,36 +461,6 @@ export default function MonsterDetail({
                   아직 전수받은 에그 비기가 없어요. 탐험에서 획득한 알을 [에그 온기 숙성]하면 강력한 비기를 계승받을 수 있어요!
                 </div>
               )}
-            </div>
-
-            {/* 시럽 토핑 */}
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 800, color: '#5D4037', marginBottom: 4 }}>
-                🍫 시럽 토핑 ({syrups.length}개 선택됨)
-              </div>
-              <div className="row wrap" style={{ gap: 4 }}>
-                {SYRUP_CATALOG.map((s) => {
-                  const active = syrups.includes(s.id)
-                  return (
-                    <button
-                      key={s.id}
-                      onClick={() => toggleSyrup(s.id)}
-                      style={{
-                        padding: '4px 8px',
-                        borderRadius: 999,
-                        border: active ? '2px solid #8D4024' : '1px solid #F0DFB8',
-                        background: active ? '#FFE8D6' : '#FFFFFF',
-                        fontSize: 11,
-                        fontWeight: 800,
-                        color: '#3B2F2F',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {s.icon} {s.name}
-                    </button>
-                  )
-                })}
-              </div>
             </div>
           </div>
         </div>

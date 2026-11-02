@@ -18,7 +18,7 @@ import {
   type TowerExpeditionSession,
   type TrainingSession,
 } from '../lib/idleActivity'
-import { getSpeciesSoundKind, playDessertAsmr } from '../lib/sound'
+import { getSpeciesSoundKind, playDessertAsmr, playBabyGiggleSound } from '../lib/sound'
 import MonsterView from '../monsters/MonsterView'
 import CakeBoxShareModal from './CakeBoxShareModal'
 import { DessertPartyScreen } from './DessertPartyScreen'
@@ -349,7 +349,18 @@ export default function MonsterHome({
     lastTouchRef.current = now
     setCombo(nextCombo)
     const meta = playDessertAsmr(soundKind, nextCombo - 1)
-    setAsmrBubble(meta.onomatopoeia)
+
+    // 👶 대표님 요청 반영: 디저트 식감 소리 직후 귀여운 아기 펫의 까르르·헤헤 웃음소리 연속 재생!
+    const giggleVariants: ('giggle' | 'chuckle' | 'cheer')[] = ['giggle', 'chuckle', 'cheer']
+    const pickVariant = giggleVariants[(nextCombo - 1) % giggleVariants.length]
+    window.setTimeout(() => {
+      playBabyGiggleSound(pickVariant)
+    }, 85)
+
+    // 식감 의성어와 귀여운 웃음 멘트 조합
+    const giggleLaughs = ['까르르~ 💖', '헤헤헤! ✨', '꺄앙~ 🌸', '퐁퐁~ 💕']
+    const laughTag = giggleLaughs[Math.floor(Math.random() * giggleLaughs.length)]
+    setAsmrBubble(`${meta.onomatopoeia} ${laughTag}`)
     setBurstKey((k) => k + 1)
     setTimeout(() => setAsmrBubble(null), 1650)
   }

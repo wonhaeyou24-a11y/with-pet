@@ -372,6 +372,59 @@ export function playDessertAsmr(kind: DessertSoundKind, comboStep = 0): SoundMet
   return meta
 }
 
+// 👶 펫 터치 시 디저트 ASMR과 함께 어우러지는 사랑스러운 아기/디저트 펫 웃음소리 (까르르~ 헤헤헤! 꺄아~!)
+export function playBabyGiggleSound(variant: 'giggle' | 'chuckle' | 'cheer' = 'giggle'): void {
+  try {
+    if (isAsmrMuted()) return
+    const ctx = getAudioContext()
+    if (!ctx) return
+
+    const now = ctx.currentTime
+    const master = getMasterBus(ctx)
+
+    // 웃음 변형 타입별 펄스 횟수와 기본 음높이
+    const burstCount = variant === 'giggle' ? 4 : variant === 'chuckle' ? 3 : 2
+    const baseFreq = variant === 'giggle' ? 640 : variant === 'chuckle' ? 530 : 750
+    const interval = variant === 'giggle' ? 0.075 : 0.088
+
+    for (let i = 0; i < burstCount; i++) {
+      const startTime = now + i * interval
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      const filter = ctx.createBiquadFilter()
+
+      // 부드러운 아기 목소리 톤: 삼각파 & 정현파 혼합 질감
+      osc.type = i % 2 === 0 ? 'sine' : 'triangle'
+
+      // 음정이 퐁퐁 솟아오르는 귀여운 피치 벤딩
+      const startPitch = baseFreq * (1 + i * 0.07)
+      const peakPitch = startPitch * (variant === 'cheer' ? 1.35 : 1.22)
+      osc.frequency.setValueAtTime(startPitch, startTime)
+      osc.frequency.exponentialRampToValueAtTime(peakPitch, startTime + interval * 0.38)
+      osc.frequency.exponentialRampToValueAtTime(startPitch * 0.94, startTime + interval * 0.85)
+
+      // 아기 목소리 포먼트 필터링 (맑고 동글동글한 울림)
+      filter.type = 'bandpass'
+      filter.frequency.setValueAtTime(peakPitch * 1.55, startTime)
+      filter.Q.setValueAtTime(2.4, startTime)
+
+      // 부드러운 볼륨 엔벨로프
+      gain.gain.setValueAtTime(0.001, startTime)
+      gain.gain.linearRampToValueAtTime(0.24, startTime + interval * 0.22)
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + interval * 0.88)
+
+      osc.connect(filter)
+      filter.connect(gain)
+      gain.connect(master)
+
+      osc.start(startTime)
+      osc.stop(startTime + interval * 0.92)
+    }
+  } catch {
+    // 오디오 미지원 시 안전 무시 (Zero-Crash)
+  }
+}
+
 // ───────── 기본 선택 버튼음: 왁뿌볼 ─────────
 // 화면의 모든 버튼을 누를 때 짧은 왁뿌볼 소리(wax-tap)를 낸다.
 // - 버튼이 이미 자기 소리를 내는 경우(돌보기·훈련·대전 등)에는 겹치지 않도록 건너뛴다
