@@ -23,6 +23,7 @@ import Monster3DView from '../monsters/Monster3DView'
 import type { MonsterDecorations } from '../monsters/types'
 import { BackIcon } from '../ui/Icons'
 import DessertShowroomModal from './DessertShowroomModal'
+import ScenicBackdrop from '../ui/ScenicBackdrop'
 
 type BoutiqueTab = 'fashion' | 'plating' | 'interior'
 
@@ -526,9 +527,16 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
               display: 'flex',
               flexDirection: 'column',
               position: 'relative',
+              overflow: 'hidden',
             }}
           >
-            <div style={{ flex: 1, padding: 8, position: 'relative' }}>
+            {/* 🗺️ 랜드마크 & 자연풍경 백드롭 미리보기 */}
+            <ScenicBackdrop
+              themeId={selectedTheme.id}
+              mode="room"
+              style={{ position: 'absolute', inset: 0, zIndex: 0 }}
+            />
+            <div style={{ flex: 1, padding: 8, position: 'relative', zIndex: 1 }}>
               <div
                 style={{
                   position: 'absolute',
@@ -537,12 +545,14 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
                   fontSize: 11,
                   fontWeight: 900,
                   color: selectedTheme.accentColor,
-                  background: 'rgba(255,255,255,0.9)',
+                  background: 'rgba(255,255,255,0.92)',
+                  backdropFilter: 'blur(4px)',
                   padding: '2px 8px',
                   borderRadius: 8,
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
                 }}
               >
-                테마: {selectedTheme.name}
+                테마: {selectedTheme.icon} {selectedTheme.name}
               </div>
             </div>
             {/* 바닥 영역 */}

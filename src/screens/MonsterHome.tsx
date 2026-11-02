@@ -1,8 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { getRibbonCoins, getUnreadGuestBookCount, markGuestBookAsRead, GUESTBOOK_LAST_READ_KEY } from '../config/boutique'
+import {
+  getRibbonCoins,
+  getUnreadGuestBookCount,
+  markGuestBookAsRead,
+  GUESTBOOK_LAST_READ_KEY,
+  ROOM_THEMES,
+  type RoomThemeDef,
+  loadRoomCustom,
+  saveRoomCustom,
+  type RoomCustom,
+} from '../config/boutique'
 import { getClaimableMissionsCount } from '../config/missions'
 import { ELEMENT_INFO, SPECIES_INFO } from '../config/species'
 import { monsterLook, serverNow, type MonsterRow } from '../lib/api'
+import { loadMallangCustom, saveMallangCustom } from '../monsters/MallangChameleon'
+import ScenicBackdrop from '../ui/ScenicBackdrop'
+import { roomSave } from '../lib/roomApi'
 import { exploreState, type Trip } from '../lib/exploreApi'
 import { checkEvolutionEligibility } from '../lib/evolutionEngine'
 import {
@@ -181,6 +194,18 @@ export default function MonsterHome({
   const [showSoundStudio, setShowSoundStudio] = useState<boolean>(false)
   const [showGrowthModal, setShowGrowthModal] = useState<boolean>(false)
   const [showEggResonance, setShowEggResonance] = useState<boolean>(false)
+  // 🗺️ 랜드마크 & 자연풍경 여행지 테마 상태
+  const [roomCustomState, setRoomCustomState] = useState<RoomCustom>(() => loadRoomCustom())
+  const [showTravelModal, setShowTravelModal] = useState<boolean>(false)
+  const [travelFilter, setTravelFilter] = useState<'all' | 'landmark' | 'nature' | 'classic'>('all')
+  const [toastMsg, setToastMsg] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!toastMsg) return
+    const t = window.setTimeout(() => setToastMsg(null), 3000)
+    return () => window.clearTimeout(t)
+  }, [toastMsg])
+
   const [exploreTrip, setExploreTrip] = useState<Trip | null>(null)
   const [exploreLeftSec, setExploreLeftSec] = useState<number>(0)
   const [notifStatus, setNotifStatus] = useState<string>(() =>
@@ -194,6 +219,44 @@ export default function MonsterHome({
     setClaimableMissions(getClaimableMissionsCount())
   }, [account])
   const look = monsterLook(monster)
+  const currentScenicThemeId = look.decorations?.bg || roomCustomState.themeId || 'room-patisserie'
+  const currentScenicTheme = useMemo(
+    () => ROOM_THEMES.find((t) => t.id === currentScenicThemeId) ?? ROOM_THEMES[0],
+    [currentScenicThemeId]
+  )
+
+  const handleSelectTravelDestination = async (theme: RoomThemeDef) => {
+    playDessertAsmr('wax-pop')
+    const updatedCustom: RoomCustom = {
+      ...roomCustomState,
+      themeId: theme.id,
+    }
+    setRoomCustomState(updatedCustom)
+    saveRoomCustom(updatedCustom)
+
+    // 서버 방 설정 저장 시도
+    try {
+      void roomSave(theme.id, updatedCustom.placedFurniture)
+    } catch {}
+
+    // 펫 커스텀 bg 동기화
+    try {
+      const currentCustom = loadMallangCustom(monster.id) ?? {}
+      const updatedDeco = {
+        ...(currentCustom.decorations ?? {}),
+        bg: theme.id,
+      }
+      saveMallangCustom(monster.id, {
+        ...currentCustom,
+        decorations: updatedDeco,
+      })
+    } catch (e) {
+      console.warn('펫 커스텀 동기화 실패:', e)
+    }
+
+    setToastMsg(`✈️ [${theme.name}]으로 여행을 떠났어요! 미니룸과 펫창에 함께 반영되었습니다.`)
+    setShowTravelModal(false)
+  }
   const activeSpecies = look.mallang?.morphForm ?? monster.species
   const info = SPECIES_INFO[activeSpecies] ?? SPECIES_INFO[monster.species]
   // 🥚 에그 온기 숙성(블렌딩) 승급 등급 조회
@@ -639,7 +702,7 @@ export default function MonsterHome({
         </div>
       </div>
 
-      {/* 3. 3D 디저트 캐릭터 전용 스테이지 카드 (글박스 충돌 완전 해소) */}
+      {/* 3. 3D 디저트 캐릭터 전용 스테이지 카드 (랜드마크 & 자연풍경 여행 백드롭) */}
       <div
         className="card"
         style={{
@@ -650,8 +713,20 @@ export default function MonsterHome({
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'space-between',
+          position: 'relative',
+          overflow: 'hidden',
+          background: currentScenicTheme.cardGradient || '#FFFFFF',
+          border: '1.5px solid rgba(0,0,0,0.08)',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
+          transition: 'background 0.5s ease',
         }}
       >
+        {/* 🗺️ 랜드마크 & 자연풍경 백드롭 SVG 레이어 */}
+        <ScenicBackdrop
+          themeId={currentScenicTheme.id}
+          mode="pet-card"
+          style={{ position: 'absolute', inset: 0, zIndex: 0 }}
+        />
         <div
           style={{
             position: 'relative',
@@ -886,10 +961,66 @@ export default function MonsterHome({
             {/* 🌟 메인 디저트 펫 강조: 145px ➔ 210px 짤림 없이 시원하게 표시 */}
             <MonsterView look={look} size={210} title={info?.name} />
           </div>
+
+          {/* ✈️ 펫 여행지 뱃지 & 풍경 변경 버튼 */}
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 4,
+              left: 4,
+              zIndex: 13,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+            }}
+          >
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setShowTravelModal(true)
+              }}
+              style={{
+                padding: '2.5px 8px',
+                borderRadius: 999,
+                background: 'rgba(255, 255, 255, 0.92)',
+                backdropFilter: 'blur(6px)',
+                border: `1.5px solid ${currentScenicTheme.accentColor || '#EC4899'}`,
+                color: '#3E2723',
+                fontSize: 10,
+                fontWeight: 900,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+                cursor: 'pointer',
+              }}
+              title="터치하면 랜드마크 및 자연풍경 여행지를 변경할 수 있습니다"
+            >
+              <span>{currentScenicTheme.icon}</span>
+              <span>{currentScenicTheme.travelBadge || `${currentScenicTheme.name} 여행 중`}</span>
+              <span style={{ fontSize: 9, color: currentScenicTheme.accentColor || '#EC4899', fontWeight: 900 }}>🗺️변경</span>
+            </button>
+          </div>
         </div>
 
-        {/* 캐릭터 이름 및 종족·속성·레벨 뱃지 (캐릭터와 절대 겹치지 않게 분리) */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, width: '100%', flexShrink: 0, marginTop: 4 }}>
+        {/* 캐릭터 이름 및 종족·속성·레벨 뱃지 (캐릭터와 절대 겹치지 않게 분리, 풍경 위에서 선명하게 읽히도록 은은한 블러 처리) */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 3,
+            width: '100%',
+            flexShrink: 0,
+            marginTop: 4,
+            zIndex: 1,
+            background: 'rgba(255, 255, 255, 0.85)',
+            backdropFilter: 'blur(4px)',
+            padding: '4px 6px',
+            borderRadius: 14,
+            boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
             <h1 className="title-xl" style={{ fontSize: 18, margin: 0, lineHeight: 1.1 }}>{monster.name}</h1>
             {petRarity !== 'common' && (
@@ -1691,6 +1822,243 @@ export default function MonsterHome({
             playDessertAsmr('sugar-crack', 2)
           }}
         />
+      )}
+
+      {/* 8. 🗺️ 랜드마크 & 자연풍경 여행지 선택 모달 */}
+      {showTravelModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1000,
+            background: 'rgba(0, 0, 0, 0.65)',
+            backdropFilter: 'blur(5px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 14,
+          }}
+          onClick={() => setShowTravelModal(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%',
+              maxWidth: 420,
+              maxHeight: '85vh',
+              background: '#FFFDF9',
+              borderRadius: 20,
+              border: '2px solid #FBCFE8',
+              boxShadow: '0 12px 36px rgba(0,0,0,0.3)',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+            }}
+          >
+            {/* 상단 헤더 */}
+            <div
+              style={{
+                padding: '14px 16px 10px',
+                borderBottom: '1px solid #FCE7F3',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                background: 'linear-gradient(180deg, #FDF2F8 0%, #FFFDF9 100%)',
+              }}
+            >
+              <div>
+                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: '#831843' }}>
+                  🗺️ 펫 랜드마크 & 자연풍경 여행
+                </h3>
+                <p style={{ margin: '3px 0 0', fontSize: 11, color: '#9D174D', fontWeight: 600 }}>
+                  펫이 놀러간 풍경을 선택하세요. 미니룸 뒷배경에도 함께 반영됩니다!
+                </p>
+              </div>
+              <button
+                onClick={() => setShowTravelModal(false)}
+                style={{
+                  border: 'none',
+                  background: 'none',
+                  fontSize: 18,
+                  cursor: 'pointer',
+                  color: '#94A3B8',
+                  padding: 4,
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* 카테고리 필터 탭 */}
+            <div style={{ display: 'flex', gap: 6, padding: '8px 14px', borderBottom: '1px solid #F3F4F6' }}>
+              {[
+                { id: 'all', label: '전체 (16)' },
+                { id: 'landmark', label: '🗼 랜드마크 (7)' },
+                { id: 'nature', label: '🌿 자연풍경 (5)' },
+                { id: 'classic', label: '🍰 클래식 (4)' },
+              ].map((f) => (
+                <button
+                  key={f.id}
+                  onClick={() => setTravelFilter(f.id as any)}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: 999,
+                    border: 'none',
+                    fontSize: 11,
+                    fontWeight: travelFilter === f.id ? 900 : 700,
+                    background: travelFilter === f.id ? '#EC4899' : '#F1F5F9',
+                    color: travelFilter === f.id ? '#FFFFFF' : '#64748B',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+
+            {/* 테마 리스트 그리드 */}
+            <div
+              style={{
+                flex: 1,
+                overflowY: 'auto',
+                padding: '10px 14px',
+                display: 'grid',
+                gridTemplateColumns: '1fr',
+                gap: 8,
+              }}
+            >
+              {ROOM_THEMES.filter((t) => travelFilter === 'all' || t.category === travelFilter).map((t) => {
+                const isCurrent = currentScenicTheme.id === t.id
+                return (
+                  <div
+                    key={t.id}
+                    onClick={() => handleSelectTravelDestination(t)}
+                    style={{
+                      padding: '10px 12px',
+                      borderRadius: 14,
+                      border: isCurrent ? '2px solid #EC4899' : '1px solid #E2E8F0',
+                      background: isCurrent ? 'linear-gradient(135deg, #FDF2F8 0%, #FFF1F2 100%)' : '#FFFFFF',
+                      boxShadow: isCurrent ? '0 4px 12px rgba(236,72,153,0.18)' : '0 1px 4px rgba(0,0,0,0.04)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          width: 44,
+                          height: 44,
+                          borderRadius: 12,
+                          background: t.cardGradient || '#F3F4F6',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 22,
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {t.icon}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 13, fontWeight: 900, color: '#3E2723' }}>{t.name}</span>
+                          <span
+                            style={{
+                              fontSize: 9,
+                              fontWeight: 800,
+                              padding: '1px 5px',
+                              borderRadius: 4,
+                              background: t.category === 'landmark' ? '#EFF6FF' : t.category === 'nature' ? '#F0FDF4' : '#FFF7ED',
+                              color: t.category === 'landmark' ? '#2563EB' : t.category === 'nature' ? '#16A34A' : '#EA580C',
+                            }}
+                          >
+                            {t.category === 'landmark' ? '랜드마크' : t.category === 'nature' ? '자연풍경' : '클래식'}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: 10.5, color: '#64748B', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {t.desc}
+                        </div>
+                        <div style={{ fontSize: 10, fontWeight: 800, color: t.accentColor || '#EC4899', marginTop: 3 }}>
+                          {t.travelBadge}
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleSelectTravelDestination(t)
+                      }}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: 10,
+                        border: 'none',
+                        background: isCurrent ? '#059669' : 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)',
+                        color: '#FFFFFF',
+                        fontSize: 11,
+                        fontWeight: 900,
+                        cursor: 'pointer',
+                        flexShrink: 0,
+                        marginLeft: 8,
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                      }}
+                    >
+                      {isCurrent ? '✨ 여행 중' : '✈️ 출발'}
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* 하단 닫기 */}
+            <div style={{ padding: '8px 14px', borderTop: '1px solid #F3F4F6', display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowTravelModal(false)}
+                style={{
+                  padding: '6px 16px',
+                  borderRadius: 10,
+                  border: '1px solid #CBD5E1',
+                  background: '#F8FAFC',
+                  color: '#475569',
+                  fontSize: 11,
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                }}
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🌟 토스트 메시지 */}
+      {toastMsg && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: 68,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(15, 23, 42, 0.92)',
+            backdropFilter: 'blur(6px)',
+            color: '#FFFFFF',
+            padding: '8px 18px',
+            borderRadius: 999,
+            fontSize: 12,
+            fontWeight: 800,
+            zIndex: 2000,
+            pointerEvents: 'none',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {toastMsg}
+        </div>
       )}
     </main>
   )

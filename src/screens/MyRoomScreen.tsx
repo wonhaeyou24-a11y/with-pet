@@ -29,6 +29,8 @@ import { getSpeciesSoundKind, playDessertAsmr } from '../lib/sound'
 import Monster3DView from '../monsters/Monster3DView'
 import type { DeliveredGiftPackage } from './DessertPartyScreen'
 import { BackIcon } from '../ui/Icons'
+import ScenicBackdrop from '../ui/ScenicBackdrop'
+import { loadMallangCustom, saveMallangCustom } from '../monsters/MallangChameleon'
 
 interface Props {
   monster: MonsterRow
@@ -119,6 +121,7 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
       return []
     }
   })
+  const [themeCategory, setThemeCategory] = useState<'all' | 'landmark' | 'nature' | 'classic'>('all')
   const [activeUnboxGift, setActiveUnboxGift] = useState<DeliveredGiftPackage | null>(null)
   const [isRibbonUntied, setIsRibbonUntied] = useState<boolean>(false)
   const [isBoxOpened, setIsBoxOpened] = useState<boolean>(false)
@@ -328,8 +331,22 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
     const nextRoom = { ...room, themeId: theme.id }
     setRoom(nextRoom)
     void persistRoom(nextRoom)
+    // 💡 펫의 장식 배경 및 여행 풍경에도 실시간 동기화
+    try {
+      const currentCustom = loadMallangCustom(monster.id) ?? {}
+      const updatedDeco = {
+        ...(currentCustom.decorations ?? {}),
+        bg: theme.id,
+      }
+      saveMallangCustom(monster.id, {
+        ...currentCustom,
+        decorations: updatedDeco,
+      })
+    } catch (e) {
+      console.warn('펫 커스텀 동기화 실패:', e)
+    }
     playDessertAsmr('mochi-squish')
-    showToast(`✨ ${theme.name}으로 벽지와 바닥을 바꿨습니다!`)
+    showToast(`✨ [${theme.name}]으로 벽지와 바닥을 바꿨습니다! 펫창에도 함께 여행 풍경이 적용되었어요.`)
   }
 
   // 가구 배치 토글
@@ -799,8 +816,23 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
           transition: 'all 0.4s ease',
         }}
       >
+        {/* 🗺️ 랜드마크 & 자연풍경 백드롭 SVG (지인 방문 시에도 동일하게 펼쳐짐) */}
+        <ScenicBackdrop
+          themeId={currentTheme.id}
+          mode="room"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '78%',
+            zIndex: 0,
+            opacity: roomLightOn ? 0.95 : 0.65,
+          }}
+        />
+
         {/* 상단 벽면 (감성 레이스 창문 & 파티세리 벽면 선반 & 네온 레터링) */}
-        <div style={{ flex: 1, position: 'relative', padding: 8 }}>
+        <div style={{ flex: 1, position: 'relative', padding: 8, zIndex: 1 }}>
           {/* 1. 감성 레이스 창문 (터치 시 낮 🌤️ / 노을 🌅 / 밤 🌙 조명 전환) */}
           <div
             onClick={() => {
@@ -1237,9 +1269,37 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
               </button>
             </div>
 
+            {/* 벽지 테마 카테고리 탭 (전체 / 랜드마크 / 자연풍경 / 클래식) */}
+            <div style={{ display: 'flex', gap: 4, marginBottom: 5 }}>
+              {[
+                { id: 'all', label: '전체 (16)' },
+                { id: 'landmark', label: '🗼 랜드마크 (7)' },
+                { id: 'nature', label: '🌿 자연풍경 (5)' },
+                { id: 'classic', label: '🍰 클래식 (4)' },
+              ].map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => setThemeCategory(c.id as any)}
+                  style={{
+                    padding: '2px 7px',
+                    borderRadius: 999,
+                    border: 'none',
+                    fontSize: 9.5,
+                    fontWeight: themeCategory === c.id ? 900 : 700,
+                    background: themeCategory === c.id ? '#EC4899' : '#F3F4F6',
+                    color: themeCategory === c.id ? '#FFFFFF' : '#64748B',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
+
             {/* 벽지 테마 선택 */}
             <div style={{ display: 'flex', gap: 6, marginBottom: 8, overflowX: 'auto', paddingBottom: 4 }}>
-              {ROOM_THEMES.map((theme) => {
+              {ROOM_THEMES.filter((t) => themeCategory === 'all' || t.category === themeCategory).map((theme) => {
                 const isSelected = room.themeId === theme.id
                 const isOwned = ownedItems.has(theme.id) || theme.price === 0
                 return (
