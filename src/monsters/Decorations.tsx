@@ -41,9 +41,12 @@ export const DECO_ITEMS: DecoItemDef[] = [
   { id: 'berry-beret', slot: 'head', name: '딸기 베레모', rarity: 'common', charm: 12, icon: '🍓', desc: '상큼한 딸기 꼭지가 달린 폭신한 베레모' },
   { id: 'star-crown', slot: 'head', name: '별빛 미니 왕관', rarity: 'rare', charm: 24, icon: '👑', desc: '보석이 박힌 앙증맞은 황금 왕관' },
   { id: 'crown-emoji-floating', slot: 'head', name: '감정 이모티콘 크라운', rarity: 'rare', charm: 40, icon: '💖', desc: '펫의 기분에 맞춰 하트와 별빛이 퐁퐁 솟아오르는 이모티콘 크라운' },
+  { id: 'spring-cherry-blossom-beret', slot: 'head', name: '살랑살랑 벚꽃잎 베레모', rarity: 'rare', charm: 32, icon: '🌸', desc: '살랑살랑 봄바람에 흩날리는 벚꽃잎과 은은한 펄 진주 핀이 달린 핑크 울 베레모' },
+  { id: 'winter-fluffy-earmuffs', slot: 'head', name: '보송보송 눈꽃 털 귀마개', rarity: 'common', charm: 26, icon: '🎧', desc: '보송보송 솜사탕처럼 부드러운 화이트 폼폼 퍼(Fur) 밴드와 은빛 눈꽃 자수 귀마개' },
   // 2. 얼굴 (face)
   { id: 'alchemy-glasses', slot: 'face', name: '연금술 동글안경', rarity: 'rare', charm: 20, icon: '👓', desc: '지적인 매력을 더해주는 황금 테 안경' },
   { id: 'round-gold-spectacles', slot: 'face', name: '스마트 골드 동글안경', rarity: 'rare', charm: 28, icon: '👓', desc: '지적인 매력과 똘똘함을 한껏 뽐내는 24K 순금테 클래식 동글안경' },
+  { id: 'summer-cool-sunglasses', slot: 'face', name: '틴트 쿨 선글라스', rarity: 'common', charm: 26, icon: '🕶️', desc: '강렬한 여름 햇살을 쿨하게 막아주는 레트로 틴트 블루 라운드 선글라스' },
   { id: 'sleep-mask', slot: 'face', name: '포근 수면안대', rarity: 'common', charm: 10, icon: '💤', desc: '이마에 살짝 얹은 구름결 수면안대' },
   { id: 'star-patch', slot: 'face', name: '유성 볼 스티커', rarity: 'rare', charm: 18, icon: '🌟', desc: '양볼에 붙이는 반짝이는 별빛 페인팅' },
   // 3. 목 (neck)
@@ -51,6 +54,9 @@ export const DECO_ITEMS: DecoItemDef[] = [
   { id: 'preppy-school-tie', slot: 'neck', name: '브리티시 프레피 타이 & 칼라', rarity: 'rare', charm: 30, icon: '🎓', desc: '영국 명문 베이킹 아카데미 스타일의 타탄체크 리본 타이와 금장 단추 셔츠 칼라' },
   { id: 'bear-knit-suspenders', slot: 'neck', name: '곰돌이 니트 멜빵 보타이', rarity: 'rare', charm: 26, icon: '🧸', desc: '포근한 브라운 코듀로이 멜빵 스트랩과 앙증맞은 곰돌이 자수 보타이' },
   { id: 'sherlock-cape-coat', slot: 'neck', name: '셜록 하운드투스 케이프', rarity: 'legendary', charm: 42, icon: '🕵️‍♂️', desc: '안개 낀 베이커리 거리의 미스터리를 푸는 클래식 하운드투스 체크 케이프 망토' },
+  { id: 'summer-marine-sailor-collar', slot: 'neck', name: '마린 세일러 칼라', rarity: 'rare', charm: 30, icon: '⚓', desc: '청량한 바다 내음이 느껴지는 네이비 & 화이트 스트라이프 세일러 깃과 골드 닻 타이' },
+  { id: 'autumn-maple-knit-muffler', slot: 'neck', name: '단풍 버건디 니트 머플러', rarity: 'common', charm: 28, icon: '🧣', desc: '포근한 꽈배기 울 짜임새의 단풍빛 버건디 레드 니트 머플러와 풍성한 프린지 수술' },
+  { id: 'winter-snow-padded-vest', slot: 'neck', name: '스노우 퐁퐁 패딩 조끼', rarity: 'legendary', charm: 44, icon: '❄️', desc: '영하의 칼바람도 따뜻하게 녹여주는 퐁퐁 스노우 화이트 누빔 패딩 조끼' },
   { id: 'pretzel-ribbon', slot: 'neck', name: '솔티드 프레첼 리본', rarity: 'rare', charm: 20, icon: '🥨', desc: '노릇하게 구운 하트 모양 프레첼 과자 장식' },
   { id: 'rune-scarf', slot: 'neck', name: '룬 무늬 머플러', rarity: 'rare', charm: 18, icon: '🧣', desc: '고대 룬 문양이 수놓아진 따뜻한 목도리' },
   { id: 'bell-ribbon', slot: 'neck', name: '별방울 리본', rarity: 'common', charm: 12, icon: '🎀', desc: '움직일 때마다 딸랑거리는 금방울 리본' },
@@ -60,6 +66,8 @@ export const DECO_ITEMS: DecoItemDef[] = [
   { id: 'vintage-leather-satchel', slot: 'back', name: '클래식 사첼 책가방', rarity: 'rare', charm: 32, icon: '🎒', desc: '고급 카라멜색 가죽으로 마감된 앤틱 버클 스쿨 사첼 백팩' },
   { id: 'explorer-pack', slot: 'back', name: '탐험가 미니 배낭', rarity: 'common', charm: 14, icon: '🎒', desc: '나침반과 지도가 든 작은 가죽 배낭' },
   // 5. 손 (hand)
+  { id: 'spring-picnic-basket', slot: 'hand', name: '딸기 피크닉 라탄 바구니', rarity: 'rare', charm: 28, icon: '🧺', desc: '빨간 깅엄 체크 천 덮개 위로 달콤한 산딸기와 파운드 케이크가 담긴 라탄 바구니' },
+  { id: 'autumn-artist-palette', slot: 'hand', name: '가을 감성 우드 팔레트', rarity: 'rare', charm: 28, icon: '🎨', desc: '가을 낙엽과 디저트 시럽 물감이 알록달록 짜여진 아티스트 나무 팔레트와 세필 붓' },
   { id: 'tiny-wood-rollingpin', slot: 'hand', name: '달콤 반죽 미니 밀대', rarity: 'rare', charm: 28, icon: '🥖', desc: '달콤한 쿠키 도우를 슥슥 밀어 펴는 단풍나무 제과용 미니 밀대' },
   { id: 'bubble-detective-magnifier', slot: 'hand', name: '황금 버블 돋보기', rarity: 'rare', charm: 30, icon: '🔍', desc: '디저트의 숨겨진 레시피를 찾으면 무지갯빛 비눗방울이 퐁퐁 솟아나는 탐정 돋보기' },
   { id: 'lollipop-wand', slot: 'hand', name: '롤리팝 캔디봉', rarity: 'rare', charm: 26, icon: '🍭', desc: '달콤한 파스텔 소용돌이 막대사탕' },
@@ -352,6 +360,41 @@ export function FrontDecorations({
           <rect x={112} y={143} width={16} height={6} rx={2} fill="#FFB300" stroke="#8D6E63" strokeWidth={1.2} />
         </g>
       )}
+      {deco?.neck === 'summer-marine-sailor-collar' && (
+        <g stroke={INK} strokeWidth={2.4} strokeLinejoin="round">
+          {/* 마린 세일러 칼라 */}
+          <path d="M 82 140 L 68 168 L 110 166 L 120 148 L 130 166 L 172 168 L 158 140 Z" fill="#1E3A8A" />
+          <path d="M 74 162 L 106 161 M 134 161 L 166 162" stroke="#FFFFFF" strokeWidth={2.2} />
+          {/* V넥 화이트 셔츠 & 골드 닻 타이 */}
+          <polygon points="112,146 120,162 128,146" fill="#FFFFFF" strokeWidth={1.5} />
+          <circle cx={120} cy={162} r={3.5} fill="#F59E0B" stroke="#B45309" strokeWidth={1} />
+          <path d="M 120 165 L 120 174 M 116 172 Q 120 176 124 172" fill="none" stroke="#F59E0B" strokeWidth={1.8} strokeLinecap="round" />
+        </g>
+      )}
+      {deco?.neck === 'autumn-maple-knit-muffler' && (
+        <g stroke={INK} strokeWidth={2.4} strokeLinejoin="round">
+          {/* 단풍 버건디 니트 머플러 */}
+          <ellipse cx={120} cy={148} rx={38} ry={13} fill="#881337" />
+          <path d="M 94 148 Q 120 156 146 148" fill="none" stroke="#BE123C" strokeWidth={2.5} strokeDasharray="3 3" />
+          {/* 길게 늘어뜨려진 자락과 술 */}
+          <path d="M 124 154 L 138 184 L 152 182 L 136 152 Z" fill="#9F1239" />
+          <line x1={138} y1={184} x2={137} y2={191} stroke="#E11D48" strokeWidth={2} strokeLinecap="round" />
+          <line x1={143} y1={183} x2={143} y2={191} stroke="#E11D48" strokeWidth={2} strokeLinecap="round" />
+          <line x1={148} y1={183} x2={149} y2={190} stroke="#E11D48" strokeWidth={2} strokeLinecap="round" />
+        </g>
+      )}
+      {deco?.neck === 'winter-snow-padded-vest' && (
+        <g stroke={INK} strokeWidth={2.4} strokeLinejoin="round">
+          {/* 스노우 퐁퐁 패딩 조끼 */}
+          <path d="M 80 144 C 76 182 164 182 160 144 C 142 148 98 148 80 144 Z" fill="#F8FAFC" />
+          {/* 3단 엠보싱 누빔 라인 */}
+          <path d="M 84 154 C 102 160 138 160 156 154" fill="none" stroke="#CBD5E1" strokeWidth={2.4} />
+          <path d="M 86 165 C 104 171 136 171 154 165" fill="none" stroke="#CBD5E1" strokeWidth={2.4} />
+          {/* 중앙 지퍼 및 은빛 눈꽃 슬라이더 */}
+          <line x1={120} y1={145} x2={120} y2={178} stroke="#64748B" strokeWidth={2.2} />
+          <circle cx={120} cy={155} r={3} fill="#38BDF8" stroke="#0284C7" strokeWidth={1} />
+        </g>
+      )}
 
       {/* 2. 얼굴 장식 (face) */}
       {deco?.face === 'round-gold-spectacles' && (
@@ -363,6 +406,17 @@ export function FrontDecorations({
           <path d="M 134 101 L 140 107" stroke="#FFFFFF" strokeWidth={2.4} strokeLinecap="round" />
           <path d="M 113.5 108 C 117 103 123 103 126.5 108" fill="none" stroke="#FFD700" strokeWidth={3.2} strokeLinecap="round" />
           <path d="M 84.5 109 L 72 110 M 155.5 109 L 168 110" stroke="#B45309" strokeWidth={2.6} strokeLinecap="round" />
+        </g>
+      )}
+      {deco?.face === 'summer-cool-sunglasses' && (
+        <g>
+          {/* 틴트 쿨 선글라스 */}
+          <circle cx={99} cy={109} r={14.5} fill="#0284C7" fillOpacity={0.65} stroke="#0F172A" strokeWidth={3.2} />
+          <path d="M 92 102 L 98 108" stroke="#BAE6FD" strokeWidth={2.4} strokeLinecap="round" />
+          <circle cx={141} cy={109} r={14.5} fill="#0284C7" fillOpacity={0.65} stroke="#0F172A" strokeWidth={3.2} />
+          <path d="M 134 102 L 140 108" stroke="#BAE6FD" strokeWidth={2.4} strokeLinecap="round" />
+          <path d="M 113.5 108 C 117 103 123 103 126.5 108" fill="none" stroke="#0F172A" strokeWidth={3.2} strokeLinecap="round" />
+          <path d="M 84.5 109 L 72 110 M 155.5 109 L 168 110" stroke="#0F172A" strokeWidth={2.8} strokeLinecap="round" />
         </g>
       )}
       {deco?.face === 'alchemy-glasses' && (
@@ -460,8 +514,62 @@ export function FrontDecorations({
           <path d="M 126 10 L 126 3 L 132 5" fill="none" stroke="#38BDF8" strokeWidth={1.5} strokeLinecap="round" />
         </g>
       )}
+      {deco?.head === 'spring-cherry-blossom-beret' && (
+        <g stroke={INK} strokeWidth={2.6} strokeLinejoin="round">
+          {/* 살랑살랑 벚꽃잎 핑크 울 베레모 */}
+          <ellipse cx={124} cy={50} rx={42} ry={16} transform="rotate(-6 124 50)" fill="#FBCFE8" />
+          <ellipse cx={124} cy={48} rx={36} ry={12} transform="rotate(-6 124 48)" fill="#F472B6" opacity={0.3} strokeWidth={0} />
+          {/* 벚꽃잎 5엽 꽃송이 & 펄 진주 핀 */}
+          <circle cx={104} cy={44} r={4.5} fill="#FFFDF9" stroke="#E2E8F0" strokeWidth={1.5} />
+          <path d="M 112 40 C 114 34 122 34 124 40 C 122 46 114 46 112 40 Z" fill="#F472B6" strokeWidth={1.2} />
+          <path d="M 124 38 C 130 36 134 42 128 46 C 122 46 122 40 124 38 Z" fill="#FDA4AF" strokeWidth={1.2} />
+        </g>
+      )}
+      {deco?.head === 'winter-fluffy-earmuffs' && (
+        <g stroke={INK} strokeWidth={2.4} strokeLinejoin="round">
+          {/* 보송보송 눈꽃 털 귀마개 아치 밴드 */}
+          <path d="M 82 72 C 84 32 156 32 158 72" fill="none" stroke="#64748B" strokeWidth={4} strokeLinecap="round" />
+          {/* 양옆 폭신한 화이트 퍼(Fur) 폼폼 볼 */}
+          <circle cx={78} cy={74} r={15} fill="#F8FAFC" />
+          <circle cx={78} cy={74} r={8} fill="#E2E8F0" opacity={0.6} strokeWidth={0} />
+          <path d="M 78 70 L 78 78 M 74 74 L 82 74" stroke="#38BDF8" strokeWidth={1.8} strokeLinecap="round" />
+          <circle cx={162} cy={74} r={15} fill="#F8FAFC" />
+          <circle cx={162} cy={74} r={8} fill="#E2E8F0" opacity={0.6} strokeWidth={0} />
+          <path d="M 162 70 L 162 78 M 158 74 L 166 74" stroke="#38BDF8" strokeWidth={1.8} strokeLinecap="round" />
+        </g>
+      )}
 
       {/* 5. 손 장식 (hand) */}
+      {deco?.hand === 'spring-picnic-basket' && (
+        <g stroke={INK} strokeWidth={2.4} strokeLinejoin="round" className="deco-anim-hand">
+          {/* 라탄 바구니 아치 손잡이 */}
+          <path d="M 40 142 C 40 122 68 122 68 142" fill="none" stroke="#8D6E63" strokeWidth={3.5} strokeLinecap="round" />
+          {/* 라탄 바구니 본체 */}
+          <rect x={36} y={142} width={36} height={26} rx={4} fill="#D7CCC8" />
+          <line x1={36} y1={150} x2={72} y2={150} stroke="#A1887F" strokeWidth={1.5} />
+          <line x1={36} y1={158} x2={72} y2={158} stroke="#A1887F" strokeWidth={1.5} />
+          {/* 깅엄 체크 천 덮개 */}
+          <path d="M 34 142 C 42 146 66 146 74 142 L 72 148 L 36 148 Z" fill="#EF4444" />
+          {/* 딸기 토핑 */}
+          <circle cx={54} cy={138} r={5} fill="#E11D48" strokeWidth={1} />
+          <polygon points="52,134 54,131 56,134" fill="#22C55E" strokeWidth={0} />
+        </g>
+      )}
+      {deco?.hand === 'autumn-artist-palette' && (
+        <g stroke={INK} strokeWidth={2.4} strokeLinejoin="round" className="deco-anim-hand">
+          {/* 가을 감성 우드 팔레트 */}
+          <path d="M 36 146 C 36 128 72 128 74 150 C 76 168 44 172 38 160 C 34 152 36 146 36 146 Z" fill="#D7CCC8" />
+          <circle cx={44} cy={158} r={3.5} fill="#4E342E" strokeWidth={1} />
+          {/* 4색 단풍 물감 팟 */}
+          <circle cx={46} cy={138} r={3.2} fill="#DC2626" strokeWidth={0} />
+          <circle cx={56} cy={136} r={3.2} fill="#F59E0B" strokeWidth={0} />
+          <circle cx={66} cy={142} r={3.2} fill="#D97706" strokeWidth={0} />
+          <circle cx={68} cy={154} r={3.2} fill="#78350F" strokeWidth={0} />
+          {/* 세필 붓 */}
+          <line x1={32} y1={130} x2={62} y2={164} stroke="#8D6E63" strokeWidth={3} strokeLinecap="round" />
+          <path d="M 32 130 L 28 126" stroke="#DC2626" strokeWidth={3.5} strokeLinecap="round" />
+        </g>
+      )}
       {deco?.hand === 'lantern-staff' && (
         <g stroke={INK} strokeWidth={2.6} strokeLinejoin="round" className="deco-anim-hand">
           <path d="M 56 106 L 58 214" stroke="#78350F" strokeWidth={5} strokeLinecap="round" />

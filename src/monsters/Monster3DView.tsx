@@ -1531,6 +1531,93 @@ function add3DDecorations(
     crownGroup.add(note)
 
     bodyGroup.add(crownGroup)
+  } else if (deco?.head === 'spring-cherry-blossom-beret') {
+    // 🌸 살랑살랑 벚꽃잎 베레모: 핑크 울 베레모 본체 + 펄 진주 핀 + 입체 벚꽃잎 2장
+    const beretGroup = new THREE.Group()
+    beretGroup.position.set(0.18, 1.08, 0.05)
+    beretGroup.rotation.z = -0.22
+    beretGroup.rotation.x = 0.1
+
+    const beretMat = new THREE.MeshPhysicalMaterial({
+      color: '#F48FB1',
+      roughness: 0.5,
+      sheen: 0.9,
+      sheenColor: '#FCE4EC',
+      clearcoat: 0.15,
+    })
+    // 베레모 바디
+    const beretBody = new THREE.Mesh(new THREE.CylinderGeometry(0.56, 0.62, 0.22, 28), beretMat)
+    beretGroup.add(beretBody)
+    const beretTop = new THREE.Mesh(new THREE.SphereGeometry(0.58, 24, 16), beretMat)
+    beretTop.scale.set(1.0, 0.35, 1.0)
+    beretTop.position.y = 0.08
+    beretGroup.add(beretTop)
+
+    // 진주 핀
+    const pearl = new THREE.Mesh(
+      new THREE.SphereGeometry(0.09, 14, 14),
+      new THREE.MeshPhysicalMaterial({ color: '#FFFDF7', roughness: 0.1, clearcoat: 1.0, metalness: 0.1 }),
+    )
+    pearl.position.set(-0.35, 0.15, 0.38)
+    beretGroup.add(pearl)
+
+    // 벚꽃잎 2장
+    const petalMat = new THREE.MeshPhysicalMaterial({
+      color: '#FF80AB',
+      roughness: 0.3,
+      clearcoat: 0.5,
+    })
+    ;[-0.15, 0.15].forEach((pRot, pi) => {
+      const petal = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 10), petalMat)
+      petal.scale.set(1.4, 0.25, 0.75)
+      petal.position.set(-0.25 + pi * 0.15, 0.18, 0.42)
+      petal.rotation.z = pRot
+      beretGroup.add(petal)
+    })
+    bodyGroup.add(beretGroup)
+  } else if (deco?.head === 'winter-fluffy-earmuffs') {
+    // 🎧 보송보송 눈꽃 털 귀마개: 상단 아치 밴드 + 양옆 폼폼 화이트 퍼 볼 + 실버 눈꽃 엠블럼
+    const earmuffGroup = new THREE.Group()
+    earmuffGroup.position.set(0, 0.65, 0)
+
+    // 헤드 아치 밴드
+    const bandMat = new THREE.MeshPhysicalMaterial({
+      color: '#475569',
+      metalness: 0.8,
+      roughness: 0.2,
+      clearcoat: 0.8,
+    })
+    const band = new THREE.Mesh(new THREE.TorusGeometry(0.92, 0.045, 12, 32, Math.PI), bandMat)
+    band.rotation.z = -Math.PI / 2
+    band.position.y = 0.25
+    earmuffGroup.add(band)
+
+    // 양옆 폼폼 퍼 볼 & 눈꽃 엠블럼
+    const furMat = new THREE.MeshPhysicalMaterial({
+      color: '#F8FAFC',
+      roughness: 0.85,
+      sheen: 1.0,
+      sheenColor: '#FFFFFF',
+    })
+    const snowflakeMat = new THREE.MeshPhysicalMaterial({
+      color: '#38BDF8',
+      metalness: 0.9,
+      roughness: 0.1,
+      emissive: '#0284C7',
+      emissiveIntensity: 0.4,
+    })
+
+    ;[-0.92, 0.92].forEach((sideX) => {
+      const muff = new THREE.Mesh(new THREE.SphereGeometry(0.35, 20, 20), furMat)
+      muff.scale.set(0.65, 1.1, 1.05)
+      muff.position.set(sideX, 0.22, 0)
+      earmuffGroup.add(muff)
+
+      const emblem = new THREE.Mesh(new THREE.OctahedronGeometry(0.12, 0), snowflakeMat)
+      emblem.position.set(sideX * 1.08, 0.22, 0)
+      earmuffGroup.add(emblem)
+    })
+    bodyGroup.add(earmuffGroup)
   }
 
   // 2. 얼굴 장식 (face) - 1.5배 큼직하게
@@ -1701,6 +1788,43 @@ function add3DDecorations(
     glassGroup.add(bridge)
 
     bodyGroup.add(glassGroup)
+  } else if (deco?.face === 'summer-cool-sunglasses') {
+    // 🕶️ 틴트 쿨 선글라스: 시크한 블랙 메탈 림 + 딥블루 틴트 렌즈 + 브릿지
+    const sunglassGroup = new THREE.Group()
+    sunglassGroup.position.set(0, 0.16, 0.88)
+
+    const frameMat = new THREE.MeshPhysicalMaterial({
+      color: '#0F172A',
+      metalness: 0.9,
+      roughness: 0.2,
+      clearcoat: 0.8,
+    })
+    const tintLensMat = new THREE.MeshPhysicalMaterial({
+      color: '#0284C7',
+      transmission: 0.65,
+      transparent: true,
+      opacity: 0.75,
+      roughness: 0.08,
+      clearcoat: 1.0,
+      ior: 1.55,
+    })
+
+    ;[-0.44, 0.44].forEach((gx) => {
+      const rim = new THREE.Mesh(new THREE.TorusGeometry(0.29, 0.038, 14, 28), frameMat)
+      rim.position.x = gx
+      sunglassGroup.add(rim)
+
+      const lens = new THREE.Mesh(new THREE.CircleGeometry(0.28, 24), tintLensMat)
+      lens.position.x = gx
+      sunglassGroup.add(lens)
+    })
+
+    const bridge = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 0.32, 8), frameMat)
+    bridge.rotation.z = Math.PI / 2
+    bridge.position.set(0, 0.04, 0.02)
+    sunglassGroup.add(bridge)
+
+    bodyGroup.add(sunglassGroup)
   }
 
   // 3. 목 장식 (neck) - 풍성한 볼륨감
@@ -1844,6 +1968,105 @@ function add3DDecorations(
     capeGroup.add(buckle)
 
     bodyGroup.add(capeGroup)
+  } else if (deco?.neck === 'summer-marine-sailor-collar') {
+    // ⚓ 마린 세일러 칼라: 청량한 네이비 숄더 플랩 + 화이트 스트라이프 + 골드 닻 펜던트 타이
+    const sailorGroup = new THREE.Group()
+    sailorGroup.position.set(0, -0.32, 0.06)
+
+    const navyMat = new THREE.MeshPhysicalMaterial({ color: '#1E3A8A', roughness: 0.45, clearcoat: 0.2 })
+    const whiteMat = new THREE.MeshPhysicalMaterial({ color: '#FFFFFF', roughness: 0.35 })
+    const goldMat = new THREE.MeshPhysicalMaterial({ color: '#F59E0B', metalness: 0.9, roughness: 0.15, clearcoat: 1.0 })
+
+    // 어깨를 감싸는 칼라 패널
+    const flap = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 1.15, 0.32, 24, 1, true, -Math.PI * 0.75, Math.PI * 1.5), navyMat)
+    flap.position.set(0, -0.1, 0)
+    sailorGroup.add(flap)
+
+    // 화이트 보더 스트라이프 링
+    const stripe = new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.035, 12, 28, Math.PI * 1.4), whiteMat)
+    stripe.rotation.x = Math.PI / 2
+    stripe.rotation.z = Math.PI * 0.3
+    stripe.position.set(0, -0.05, 0)
+    sailorGroup.add(stripe)
+
+    // 앞쪽 V넥 화이트 타이 매듭
+    const knot = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.28, 4), whiteMat)
+    knot.rotation.x = Math.PI
+    knot.position.set(0, -0.18, 0.88)
+    sailorGroup.add(knot)
+
+    // 골드 닻(Anchor) 엠블럼
+    const anchor = new THREE.Mesh(new THREE.TorusGeometry(0.08, 0.025, 8, 16, Math.PI), goldMat)
+    anchor.position.set(0, -0.22, 0.92)
+    sailorGroup.add(anchor)
+
+    bodyGroup.add(sailorGroup)
+  } else if (deco?.neck === 'autumn-maple-knit-muffler') {
+    // 🧣 단풍 버건디 니트 머플러: 꽈배기 울 목도리 링 + 사선으로 늘어진 머플러 자락 & 프린지 술
+    const mufflerGroup = new THREE.Group()
+    mufflerGroup.position.set(0, -0.32, 0.06)
+
+    const knitMat = new THREE.MeshPhysicalMaterial({ color: '#881337', roughness: 0.85, sheen: 0.8, sheenColor: '#BE123C' })
+    const fringeMat = new THREE.MeshPhysicalMaterial({ color: '#E11D48', roughness: 0.7 })
+
+    // 목을 2중으로 감싸는 포근한 니트 링
+    const neckWrap = new THREE.Mesh(new THREE.TorusGeometry(0.88, 0.2, 16, 32), knitMat)
+    neckWrap.rotation.x = Math.PI / 2
+    mufflerGroup.add(neckWrap)
+
+    // 길게 아래로 늘어뜨려진 머플러 자락
+    const scarfTail = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.75, 0.14), knitMat)
+    scarfTail.position.set(0.36, -0.48, 0.82)
+    scarfTail.rotation.z = -0.2
+    mufflerGroup.add(scarfTail)
+
+    // 하단 프린지 술 3가닥
+    ;[-0.1, 0, 0.1].forEach((fx) => {
+      const tassel = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.16, 6), fringeMat)
+      tassel.position.set(0.36 + fx, -0.9, 0.84)
+      mufflerGroup.add(tassel)
+    })
+
+    bodyGroup.add(mufflerGroup)
+  } else if (deco?.neck === 'winter-snow-padded-vest') {
+    // ❄️ 스노우 퐁퐁 패딩 조끼: 볼륨감 넘치는 2단 누빔 패딩 베스트 + 실버 지퍼 라인
+    const vestGroup = new THREE.Group()
+    vestGroup.position.set(0, -0.35, 0.05)
+
+    const puffMat = new THREE.MeshPhysicalMaterial({
+      color: '#F8FAFC',
+      roughness: 0.45,
+      clearcoat: 0.4,
+      sheen: 0.5,
+      sheenColor: '#E2E8F0',
+    })
+    const zipMat = new THREE.MeshPhysicalMaterial({ color: '#94A3B8', metalness: 0.9, roughness: 0.2 })
+
+    // 상단 패딩 누빔 튜브
+    const topPuff = new THREE.Mesh(new THREE.TorusGeometry(0.88, 0.18, 16, 32), puffMat)
+    topPuff.rotation.x = Math.PI / 2
+    topPuff.position.y = 0.08
+    vestGroup.add(topPuff)
+
+    // 하단 패딩 누빔 튜브
+    const botPuff = new THREE.Mesh(new THREE.TorusGeometry(0.96, 0.2, 16, 32), puffMat)
+    botPuff.rotation.x = Math.PI / 2
+    botPuff.position.y = -0.16
+    vestGroup.add(botPuff)
+
+    // 중앙 지퍼 라인 & 눈꽃 지퍼 슬라이더
+    const zipLine = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.52, 0.04), zipMat)
+    zipLine.position.set(0, -0.05, 0.96)
+    vestGroup.add(zipLine)
+
+    const slider = new THREE.Mesh(
+      new THREE.OctahedronGeometry(0.08, 0),
+      new THREE.MeshPhysicalMaterial({ color: '#38BDF8', emissive: '#0284C7', emissiveIntensity: 0.5 }),
+    )
+    slider.position.set(0, 0.02, 1.0)
+    vestGroup.add(slider)
+
+    bodyGroup.add(vestGroup)
   }
 
   // 4. 등 장식 & 만능 날개 (back / wingKind) - 대형 날개 연출
@@ -2097,6 +2320,82 @@ function add3DDecorations(
     })
 
     bodyGroup.add(magGroup)
+  } else if (deco?.hand === 'spring-picnic-basket') {
+    // 🧺 딸기 피크닉 라탄 바구니: 라탄 우븐 바스켓 + 깅엄 체크 천 덮개 + 아치 손잡이 + 딸기 토핑
+    const basketGroup = new THREE.Group()
+    basketGroup.position.set(1.12, -0.15, 0.65)
+    basketGroup.rotation.y = -0.2
+
+    const rattanMat = new THREE.MeshPhysicalMaterial({ color: '#D7CCC8', roughness: 0.8, clearcoat: 0.1 })
+    const clothMat = new THREE.MeshPhysicalMaterial({ color: '#EF4444', roughness: 0.6, sheen: 0.4, sheenColor: '#FCA5A5' })
+    const woodMat = new THREE.MeshPhysicalMaterial({ color: '#8D6E63', roughness: 0.6 })
+    const berryMat = new THREE.MeshPhysicalMaterial({ color: '#E11D48', roughness: 0.25, clearcoat: 0.8 })
+
+    // 바구니 본체
+    const basket = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.44, 0.42), rattanMat)
+    basketGroup.add(basket)
+
+    // 아치 손잡이
+    const handle = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.035, 12, 24, Math.PI), woodMat)
+    handle.position.y = 0.2
+    basketGroup.add(handle)
+
+    // 깅엄 체크 천 덮개
+    const cloth = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.08, 0.46), clothMat)
+    cloth.position.y = 0.2
+    basketGroup.add(cloth)
+
+    // 새빨간 딸기 1알
+    const berry = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 10), berryMat)
+    berry.scale.set(1, 1.25, 1)
+    berry.position.set(0.12, 0.28, 0.06)
+    basketGroup.add(berry)
+
+    bodyGroup.add(basketGroup)
+  } else if (deco?.hand === 'autumn-artist-palette') {
+    // 🎨 가을 감성 우드 팔레트: 타원형 나무 팔레트 + 4색 가을 단풍 물감 팟 + 세필 붓
+    const palGroup = new THREE.Group()
+    palGroup.position.set(1.08, -0.05, 0.68)
+    palGroup.rotation.z = -0.32
+    palGroup.rotation.y = 0.25
+
+    const woodMat = new THREE.MeshPhysicalMaterial({ color: '#D7CCC8', roughness: 0.7, clearcoat: 0.2 })
+    const brushMat = new THREE.MeshPhysicalMaterial({ color: '#8D6E63', roughness: 0.5 })
+
+    // 타원형 팔레트 보드
+    const board = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 0.04, 24), woodMat)
+    board.scale.set(1.3, 1, 0.95)
+    board.rotation.x = Math.PI / 2
+    palGroup.add(board)
+
+    // 4색 가을 물감 팟
+    const paintColors = ['#DC2626', '#F59E0B', '#D97706', '#5D4037']
+    paintColors.forEach((col, ci) => {
+      const ang = (ci / paintColors.length) * Math.PI * 1.5 - Math.PI * 0.75
+      const paint = new THREE.Mesh(
+        new THREE.SphereGeometry(0.065, 10, 8),
+        new THREE.MeshPhysicalMaterial({ color: col, roughness: 0.2, clearcoat: 0.9 }),
+      )
+      paint.scale.set(1, 0.5, 1)
+      paint.position.set(Math.cos(ang) * 0.32, Math.sin(ang) * 0.24, 0.03)
+      palGroup.add(paint)
+    })
+
+    // 세필 붓
+    const brush = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.65, 8), brushMat)
+    brush.position.set(-0.15, -0.15, 0.06)
+    brush.rotation.z = -0.5
+    palGroup.add(brush)
+
+    const tip = new THREE.Mesh(
+      new THREE.ConeGeometry(0.04, 0.12, 8),
+      new THREE.MeshPhysicalMaterial({ color: '#DC2626', roughness: 0.3 }),
+    )
+    tip.position.set(-0.3, 0.12, 0.06)
+    tip.rotation.z = -0.5
+    palGroup.add(tip)
+
+    bodyGroup.add(palGroup)
   } else if (deco?.hand === 'lantern-staff' || deco?.hand === 'star-wand' || deco?.hand === 'lollipop-wand') {
     const handGroup = new THREE.Group()
     handGroup.position.set(1.15, -0.05, 0.75)
