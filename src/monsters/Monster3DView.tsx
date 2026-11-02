@@ -82,372 +82,459 @@ export function createPatisserieEnvMap(renderer: THREE.WebGLRenderer): THREE.Tex
   return rt.texture
 }
 
-// 3D 케이크·쿠키·푸딩·파르페 받침대 생성
+// 3D 케이크·쿠키·푸딩·파르페 및 탈것/명소 입체 받침대 생성
 export function build3DDessertBase(baseId: DessertBaseId): THREE.Group {
   const group = new THREE.Group()
-  group.position.y = -0.92
+  group.position.y = -0.80
 
   // 🍰 받침대가 없거나 기본 순백 도우 상태일 때는 아래 기본 접시를 완전히 제거하여 도화지 실루엣만 남김
   if (!baseId || (baseId as string) === 'none') {
     return group
   }
 
+  // 🌟 받침대 상단 펫 접촉 엠보싱 그림자 디스크 (펫이 받침대 위에 정말 올라타 있는 밀착감 부여)
+  const contactShadow = new THREE.Mesh(
+    new THREE.CircleGeometry(0.82, 32),
+    new THREE.MeshBasicMaterial({ color: '#2B1708', transparent: true, opacity: 0.28, depthWrite: false }),
+  )
+  contactShadow.rotation.x = -Math.PI / 2
+  contactShadow.position.y = 0.08
+  group.add(contactShadow)
+
   if (baseId === 'strawberry-cake') {
-    // 생딸기 홀케이크 3D
-    const plate = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.52, 1.38, 0.1, 36),
-      new THREE.MeshPhysicalMaterial({ color: '#FFFDF9', roughness: 0.2, clearcoat: 0.8 }),
-    )
-    plate.position.y = -0.22
+    // 🍰 1. 생딸기 2단 홀케이크 3D: 두툼한 스펀지 케이크 2단 + 딸기잼 레이어 + 흘러내리는 생크림 드립 + 통딸기 토핑
+    const plateMat = new THREE.MeshPhysicalMaterial({ color: '#FFFDF9', roughness: 0.15, clearcoat: 0.9 })
+    const spongeMat = new THREE.MeshPhysicalMaterial({ color: '#FFF5E4', roughness: 0.55, sheen: 0.6, sheenColor: new THREE.Color('#FFE0B2') })
+    const jamMat = new THREE.MeshPhysicalMaterial({ color: '#E11D48', roughness: 0.2, clearcoat: 0.8 })
+    const creamMat = new THREE.MeshPhysicalMaterial({ color: '#FFFFFF', roughness: 0.3, clearcoat: 0.4 })
+
+    // 도자기 서빙 접시
+    const plate = new THREE.Mesh(new THREE.CylinderGeometry(1.65, 1.42, 0.14, 40), plateMat)
+    plate.position.y = -0.32
     group.add(plate)
 
-    const sponge = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.28, 1.28, 0.36, 36),
-      new THREE.MeshPhysicalMaterial({ color: '#FFF5E4', roughness: 0.55, sheen: 0.6, sheenColor: new THREE.Color('#FFE0B2') }),
-    )
-    sponge.position.y = -0.02
+    // 1단 두툼한 스펀지 케이크 본체 (높이 0.45)
+    const sponge = new THREE.Mesh(new THREE.CylinderGeometry(1.38, 1.42, 0.46, 36), spongeMat)
+    sponge.position.y = -0.06
     group.add(sponge)
 
-    const jamLayer = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.29, 1.29, 0.07, 36),
-      new THREE.MeshPhysicalMaterial({ color: '#FF6B81', roughness: 0.25, clearcoat: 0.6 }),
-    )
-    jamLayer.position.y = -0.02
+    // 딸기잼 층
+    const jamLayer = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 0.08, 36), jamMat)
+    jamLayer.position.y = -0.06
     group.add(jamLayer)
 
-    // 가장자리 생크림 볼 & 딸기 토핑 8개
+    // 상단 생크림 아이싱 데크 (펫 착석 구역)
+    const topIcing = new THREE.Mesh(new THREE.CylinderGeometry(1.36, 1.38, 0.12, 36), creamMat)
+    topIcing.position.y = 0.15
+    group.add(topIcing)
+
+    // 가장자리 생크림 돔 & 통딸기 토핑 8개
     for (let i = 0; i < 8; i++) {
       const ang = (i / 8) * Math.PI * 2
-      const rx = Math.cos(ang) * 1.06
-      const rz = Math.sin(ang) * 1.06
-      const cream = new THREE.Mesh(
-        new THREE.SphereGeometry(0.16, 16, 14),
-        new THREE.MeshPhysicalMaterial({ color: '#FFFFFF', roughness: 0.35, clearcoat: 0.3 }),
-      )
-      cream.scale.set(1, 0.72, 1)
-      cream.position.set(rx, 0.16, rz)
+      const rx = Math.cos(ang) * 1.18
+      const rz = Math.sin(ang) * 1.18
+      const cream = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 14), creamMat)
+      cream.scale.set(1, 0.75, 1)
+      cream.position.set(rx, 0.22, rz)
       group.add(cream)
 
       if (i % 2 === 0) {
-        const berry = new THREE.Mesh(
-          new THREE.ConeGeometry(0.11, 0.2, 14),
-          new THREE.MeshPhysicalMaterial({ color: '#E11D48', roughness: 0.2, clearcoat: 0.7 }),
-        )
-        berry.position.set(rx, 0.28, rz)
+        const berry = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.26, 14), jamMat)
+        berry.position.set(rx, 0.36, rz)
         group.add(berry)
       }
     }
   } else if (baseId === 'choco-cookie') {
-    // 오독 초코칩 버터쿠키 3D
-    const cookie = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.36, 1.42, 0.24, 36),
-      new THREE.MeshPhysicalMaterial({
-        color: '#D99B52',
-        roughness: 0.68,
-        bumpScale: 0.04,
-      }),
-    )
-    cookie.position.y = -0.06
+    // 🍪 2. 오독 초코칩 버터쿠키 3D: 두툼한 르뱅 아메리칸 쿠키 (높이 0.44) + 큼직한 다크 초콜릿 청크 & 바삭한 크랙
+    const cookieMat = new THREE.MeshPhysicalMaterial({ color: '#D99B52', roughness: 0.72, bumpScale: 0.06 })
+    const chipMat = new THREE.MeshPhysicalMaterial({ color: '#2B1708', roughness: 0.25, clearcoat: 0.6 })
+
+    const cookie = new THREE.Mesh(new THREE.CylinderGeometry(1.44, 1.52, 0.44, 36), cookieMat)
+    cookie.position.y = -0.1
     group.add(cookie)
 
+    const cookieTop = new THREE.Mesh(new THREE.SphereGeometry(1.45, 32, 20), cookieMat)
+    cookieTop.scale.set(1.0, 0.18, 1.0)
+    cookieTop.position.y = 0.04
+    group.add(cookieTop)
+
     const chipCoords = [
-      [-0.85, 0.07, 0.55],
-      [0.88, 0.07, 0.48],
-      [0.15, 0.08, 0.96],
-      [-0.35, 0.08, 0.92],
-      [-0.95, 0.06, -0.35],
-      [0.92, 0.06, -0.4],
+      [-0.95, 0.16, 0.65],
+      [0.98, 0.15, 0.52],
+      [0.18, 0.18, 1.05],
+      [-0.45, 0.18, 0.98],
+      [-1.05, 0.14, -0.42],
+      [1.02, 0.14, -0.48],
+      [-0.2, 0.17, -1.02],
+      [0.65, 0.16, -0.85],
     ]
     chipCoords.forEach(([x, y, z]) => {
-      const chip = new THREE.Mesh(
-        new THREE.SphereGeometry(0.13, 14, 12),
-        new THREE.MeshPhysicalMaterial({ color: '#3E2723', roughness: 0.25, clearcoat: 0.5 }),
-      )
-      chip.scale.set(1, 0.55, 1)
+      const chip = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.14, 0.22), chipMat)
+      chip.rotation.set(Math.random() * 0.4, Math.random() * Math.PI, Math.random() * 0.4)
       chip.position.set(x, y, z)
       group.add(chip)
     })
   } else if (baseId === 'custard-pudding') {
-    // 커스터드 푸딩 접시 3D
+    // 🍮 3. 탱글 커스터드 푸딩 3D: 우아한 도자기 접시 + 두툼하고 높은 푸딩 본체 (높이 0.52) + 진한 카라멜 소스
     const plate = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.48, 1.25, 0.14, 36),
-      new THREE.MeshPhysicalMaterial({ color: '#FFFDF9', roughness: 0.15, clearcoat: 0.9 }),
+      new THREE.CylinderGeometry(1.58, 1.32, 0.18, 36),
+      new THREE.MeshPhysicalMaterial({ color: '#FFFDF9', roughness: 0.12, clearcoat: 0.95 }),
     )
-    plate.position.y = -0.14
+    plate.position.y = -0.25
     group.add(plate)
 
-    const caramelPool = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.18, 1.18, 0.06, 36),
-      new THREE.MeshPhysicalMaterial({ color: '#8D4004', roughness: 0.08, clearcoat: 1.0 }),
+    const pudding = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.18, 1.38, 0.48, 36),
+      new THREE.MeshPhysicalMaterial({ color: '#FEF08A', roughness: 0.18, clearcoat: 0.85, sheen: 0.6, sheenColor: new THREE.Color('#FDE047') }),
     )
-    caramelPool.position.y = -0.05
-    group.add(caramelPool)
+    pudding.position.y = 0.02
+    group.add(pudding)
+
+    // 푸딩 상단 카라멜 층 & 사방으로 흐르는 카라멜 드립
+    const caramel = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.19, 1.2, 0.08, 36),
+      new THREE.MeshPhysicalMaterial({ color: '#78350F', roughness: 0.08, clearcoat: 1.0 }),
+    )
+    caramel.position.y = 0.26
+    group.add(caramel)
+
+    // 카라멜 흘러내리는 눈물 방울 5개
+    for (let ci = 0; ci < 5; ci++) {
+      const cAng = (ci / 5) * Math.PI * 2 + 0.3
+      const drop = new THREE.Mesh(
+        new THREE.SphereGeometry(0.09, 12, 10),
+        new THREE.MeshPhysicalMaterial({ color: '#78350F', roughness: 0.08, clearcoat: 1.0 }),
+      )
+      drop.scale.set(0.8, 1.5, 0.8)
+      drop.position.set(Math.cos(cAng) * 1.18, 0.16, Math.sin(cAng) * 1.18)
+      group.add(drop)
+    }
+
+    // 꼭대기 체리 토핑
+    const cherry = new THREE.Mesh(
+      new THREE.SphereGeometry(0.16, 16, 14),
+      new THREE.MeshPhysicalMaterial({ color: '#DC2626', roughness: 0.1, clearcoat: 1.0 }),
+    )
+    cherry.position.set(0.72, 0.38, 0.48)
+    group.add(cherry)
   } else if (baseId === 'macaron-cushion') {
-    // 파스텔 마카롱 방석 3D
-    const bottomShell = new THREE.Mesh(
-      new THREE.SphereGeometry(1.32, 32, 20),
-      new THREE.MeshPhysicalMaterial({ color: '#FFB7C5', roughness: 0.32, clearcoat: 0.45, sheen: 0.5 }),
-    )
-    bottomShell.scale.set(1, 0.22, 1)
-    bottomShell.position.y = -0.06
+    // 🧁 4. 파스텔 마카롱 방석 3D: 도톰한 마카롱 코크 + 피에 주름 + 풍성한 버터크림 필링
+    const shellMat = new THREE.MeshPhysicalMaterial({ color: '#F472B6', roughness: 0.32, clearcoat: 0.5, sheen: 0.6 })
+    const creamMat = new THREE.MeshPhysicalMaterial({ color: '#FFFDF9', roughness: 0.35 })
+
+    // 하단 코크
+    const bottomShell = new THREE.Mesh(new THREE.CylinderGeometry(1.38, 1.42, 0.24, 36), shellMat)
+    bottomShell.position.y = -0.2
     group.add(bottomShell)
 
-    const creamFilling = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.24, 1.24, 0.12, 32),
-      new THREE.MeshPhysicalMaterial({ color: '#FFFDF9', roughness: 0.35 }),
-    )
-    creamFilling.position.y = 0.04
+    // 중앙 크림 필링
+    const creamFilling = new THREE.Mesh(new THREE.CylinderGeometry(1.32, 1.32, 0.22, 36), creamMat)
+    creamFilling.position.y = 0.01
     group.add(creamFilling)
+
+    // 상단 코크 (펫 안착 평면)
+    const topShell = new THREE.Mesh(new THREE.CylinderGeometry(1.42, 1.36, 0.24, 36), shellMat)
+    topShell.position.y = 0.2
+    group.add(topShell)
   } else if (baseId === 'parfait-cup') {
-    // 베리 파르페 유리컵 3D
-    const glassRim = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.38, 0.95, 0.42, 36),
-      new THREE.MeshPhysicalMaterial({
-        color: '#E0F7FA',
-        transmission: 0.72,
-        opacity: 0.88,
-        transparent: true,
-        roughness: 0.06,
-        clearcoat: 1.0,
-      }),
-    )
-    glassRim.position.y = -0.15
+    // 🍨 5. 베리 파르페 유리컵 3D: 투명한 유리 볼 + 요거트 & 생크림 + 과일
+    const glassMat = new THREE.MeshPhysicalMaterial({
+      color: '#E0F7FA',
+      transmission: 0.78,
+      opacity: 0.88,
+      transparent: true,
+      roughness: 0.05,
+      clearcoat: 1.0,
+      ior: 1.5,
+    })
+    const glassRim = new THREE.Mesh(new THREE.CylinderGeometry(1.48, 1.05, 0.62, 36), glassMat)
+    glassRim.position.y = -0.16
     group.add(glassRim)
 
     const yogurtTop = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.26, 1.15, 0.12, 32),
-      new THREE.MeshPhysicalMaterial({ color: '#FCE4EC', roughness: 0.22, clearcoat: 0.6 }),
+      new THREE.CylinderGeometry(1.38, 1.25, 0.22, 32),
+      new THREE.MeshPhysicalMaterial({ color: '#FCE4EC', roughness: 0.25, clearcoat: 0.6 }),
     )
-    yogurtTop.position.y = 0.02
+    yogurtTop.position.y = 0.12
     group.add(yogurtTop)
+
+    // 바삭한 웨하스 롤 스틱
+    const wafer = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.065, 0.065, 0.95, 12),
+      new THREE.MeshPhysicalMaterial({ color: '#D97706', roughness: 0.6 }),
+    )
+    wafer.rotation.set(0.3, 0.2, 0.6)
+    wafer.position.set(0.85, 0.35, -0.45)
+    group.add(wafer)
   } else if (baseId === 'eiffel-tower') {
-    // 🗼 파리 에펠탑 전망대 3D: 황금 브론즈 철골 트러스 다리 4개 + 플랫폼 전망대 + 꼭대기 첨탑
-    const towerMat = new THREE.MeshPhysicalMaterial({ color: '#C5A059', metalness: 0.75, roughness: 0.25, clearcoat: 0.6 })
-    const deckMat = new THREE.MeshPhysicalMaterial({ color: '#FFF8E1', roughness: 0.2, clearcoat: 0.8 })
-    const cloudMat = new THREE.MeshPhysicalMaterial({ color: '#FFFFFF', roughness: 0.4, clearcoat: 0.3, transparent: true, opacity: 0.85 })
+    // 🗼 6. 파리 에펠탑 전망대 3D: 높게 솟은 4개 트러스 기둥(높이 0.85) + 2층 원형 전망대 데크 + 난간 + 몽실몽실 구름!
+    const towerMat = new THREE.MeshPhysicalMaterial({ color: '#D97706', metalness: 0.82, roughness: 0.2, clearcoat: 0.7 })
+    const deckMat = new THREE.MeshPhysicalMaterial({ color: '#FFF8E1', roughness: 0.25, clearcoat: 0.8 })
+    const cloudMat = new THREE.MeshPhysicalMaterial({ color: '#FFFFFF', roughness: 0.4, clearcoat: 0.4, transparent: true, opacity: 0.9 })
 
-    // 1층 베이스 아치형 사각 철골 피라미드 기둥
-    const towerLegs = new THREE.Mesh(new THREE.ConeGeometry(1.48, 0.52, 4), towerMat)
-    towerLegs.rotation.y = Math.PI / 4
-    towerLegs.position.y = -0.16
-    group.add(towerLegs)
+    // 4개 거대한 트러스 철골 아치 기둥 (바닥에서 테라스까지 굵게 솟아오름)
+    const towerBody = new THREE.Mesh(new THREE.CylinderGeometry(1.15, 1.65, 0.78, 4), towerMat)
+    towerBody.rotation.y = Math.PI / 4
+    towerBody.position.y = -0.24
+    group.add(towerBody)
 
-    // 에펠탑 2층 전망대 라운드 테라스 데크
-    const deck = new THREE.Mesh(new THREE.CylinderGeometry(1.36, 1.25, 0.14, 32), deckMat)
-    deck.position.y = 0.04
+    // 에펠탑 2층 전망대 넓은 원형 테라스 데크 (펫 탑승 구역)
+    const deck = new THREE.Mesh(new THREE.CylinderGeometry(1.45, 1.36, 0.22, 36), deckMat)
+    deck.position.y = 0.16
     group.add(deck)
 
-    // 에펠탑 난간 림
-    const rail = new THREE.Mesh(new THREE.TorusGeometry(1.3, 0.04, 12, 32), towerMat)
+    // 전망대 클래식 황금 난간 림
+    const rail = new THREE.Mesh(new THREE.TorusGeometry(1.42, 0.055, 12, 36), towerMat)
     rail.rotation.x = Math.PI / 2
-    rail.position.y = 0.13
+    rail.position.y = 0.28
     group.add(rail)
 
-    // 구름 퐁퐁 3개 (파리 하늘 위 구름)
-    const clouds = [[-0.85, -0.02, 0.6], [0.92, -0.04, 0.4], [0.1, -0.06, -0.9]]
+    // 몽실몽실 파스텔 구름 4개 (발밑 상공 연출)
+    const clouds = [
+      [-1.15, -0.05, 0.75],
+      [1.22, -0.08, 0.55],
+      [0.15, -0.12, -1.2],
+      [-0.8, -0.15, -0.9],
+    ]
     clouds.forEach(([cx, cy, cz]) => {
-      const c = new THREE.Mesh(new THREE.SphereGeometry(0.24, 14, 12), cloudMat)
-      c.scale.set(1.4, 0.6, 1)
+      const c = new THREE.Mesh(new THREE.SphereGeometry(0.32, 16, 14), cloudMat)
+      c.scale.set(1.4, 0.7, 1.0)
       c.position.set(cx, cy, cz)
       group.add(c)
     })
   } else if (baseId === 'mini-car') {
-    // 🚗 노란 비틀 꼬마자동차 3D: 둥글둥글한 비틀 차체 + 검은 바퀴 4개 + 크롬 범퍼 & 헤드라이트 + 루프탑 시트
-    const bodyMat = new THREE.MeshPhysicalMaterial({ color: '#FACC15', roughness: 0.2, clearcoat: 0.85, metalness: 0.1 })
-    const wheelMat = new THREE.MeshPhysicalMaterial({ color: '#1E293B', roughness: 0.7 })
-    const chromeMat = new THREE.MeshPhysicalMaterial({ color: '#E2E8F0', metalness: 0.95, roughness: 0.1, clearcoat: 1.0 })
-    const roofRackMat = new THREE.MeshPhysicalMaterial({ color: '#475569', metalness: 0.8, roughness: 0.3 })
+    // 🚗 7. 노란 비틀 꼬마자동차 3D: 묵직하고 둥근 3D 비틀 차체 (높이 0.58) + 4개 크롬 휠 + 루프탑 가죽 시트 탑승!
+    const bodyMat = new THREE.MeshPhysicalMaterial({ color: '#FACC15', roughness: 0.18, clearcoat: 0.9, metalness: 0.15 })
+    const wheelMat = new THREE.MeshPhysicalMaterial({ color: '#1E293B', roughness: 0.8 })
+    const chromeMat = new THREE.MeshPhysicalMaterial({ color: '#F1F5F9', metalness: 0.95, roughness: 0.08, clearcoat: 1.0 })
+    const seatMat = new THREE.MeshPhysicalMaterial({ color: '#DC2626', roughness: 0.45, sheen: 0.5 })
 
     // 차체 하부 베이스
-    const lowerBody = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.22, 1.35), bodyMat)
-    lowerBody.position.y = -0.08
+    const lowerBody = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.36, 1.48), bodyMat)
+    lowerBody.position.y = -0.14
     group.add(lowerBody)
 
-    // 비틀 특유의 둥근 펜더 & 본네트 곡면
-    const hoodDome = new THREE.Mesh(new THREE.CylinderGeometry(1.28, 1.38, 0.2, 32), bodyMat)
-    hoodDome.position.y = 0.02
+    // 비틀 둥근 보닛 & 펜더 돔
+    const hoodDome = new THREE.Mesh(new THREE.CylinderGeometry(1.35, 1.48, 0.32, 36), bodyMat)
+    hoodDome.position.y = 0.08
     group.add(hoodDome)
 
-    // 루프탑 원형 캐리어 랙 (펫이 편안히 앉는 쿠션 받침)
-    const rackPlate = new THREE.Mesh(new THREE.CylinderGeometry(1.22, 1.22, 0.08, 32), roofRackMat)
-    rackPlate.position.y = 0.08
-    group.add(rackPlate)
+    // 푹신한 루프탑 캐리어 시트 (펫이 자동차 지붕에 의기양양하게 탑승)
+    const roofSeat = new THREE.Mesh(new THREE.CylinderGeometry(1.32, 1.34, 0.14, 36), seatMat)
+    roofSeat.position.y = 0.22
+    group.add(roofSeat)
 
-    // 바퀴 4개 (좌우 앞뒤)
-    const wheelCoords = [[-0.78, -0.16, 0.68], [0.78, -0.16, 0.68], [-0.78, -0.16, -0.68], [0.78, -0.16, -0.68]]
+    // 크롬 휠 & 타이어 4개
+    const wheelCoords = [
+      [-0.82, -0.22, 0.78],
+      [0.82, -0.22, 0.78],
+      [-0.82, -0.22, -0.78],
+      [0.82, -0.22, -0.78],
+    ]
     wheelCoords.forEach(([wx, wy, wz]) => {
-      const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.14, 16), wheelMat)
+      const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 0.16, 20), wheelMat)
       wheel.rotation.x = Math.PI / 2
       wheel.position.set(wx, wy, wz)
       group.add(wheel)
 
-      const hubcap = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.16, 12), chromeMat)
+      const hubcap = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.18, 14), chromeMat)
       hubcap.rotation.x = Math.PI / 2
       hubcap.position.set(wx, wy, wz)
       group.add(hubcap)
     })
 
-    // 헤드라이트 2개
-    const lights = [[0.98, -0.02, 0.38], [0.98, -0.02, -0.38]]
+    // 반짝이는 헤드라이트 2개 & 크롬 범퍼
+    const lights = [
+      [1.08, -0.06, 0.45],
+      [1.08, -0.06, -0.45],
+    ]
     lights.forEach(([lx, ly, lz]) => {
-      const light = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 10), chromeMat)
+      const light = new THREE.Mesh(new THREE.SphereGeometry(0.14, 14, 12), chromeMat)
       light.position.set(lx, ly, lz)
       group.add(light)
     })
+
+    // 배기구 머플러 & 퐁퐁 피어나는 연기 링 2개
+    const exhaust = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.35, 12), chromeMat)
+    exhaust.rotation.z = Math.PI / 2
+    exhaust.position.set(-1.15, -0.24, 0.38)
+    group.add(exhaust)
+
+    const puffMat = new THREE.MeshBasicMaterial({ color: '#FFFFFF', transparent: true, opacity: 0.65 })
+    const puff1 = new THREE.Mesh(new THREE.TorusGeometry(0.08, 0.035, 8, 16), puffMat)
+    puff1.position.set(-1.38, -0.18, 0.38)
+    group.add(puff1)
+    const puff2 = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.045, 8, 16), puffMat)
+    puff2.position.set(-1.58, -0.12, 0.38)
+    group.add(puff2)
   } else if (baseId === 'snow-mountain') {
-    // 🏔️ 알프스 만년설산 봉우리 3D: 암갈색 산체 + 하얀 만년설 캡 + 미니 상록수 전나무들
-    const rockMat = new THREE.MeshPhysicalMaterial({ color: '#475569', roughness: 0.85, bumpScale: 0.06 })
-    const snowMat = new THREE.MeshPhysicalMaterial({ color: '#F8FAFC', roughness: 0.35, clearcoat: 0.6 })
-    const treeMat = new THREE.MeshPhysicalMaterial({ color: '#065F46', roughness: 0.7 })
+    // 🏔️ 8. 알프스 만년설산 마테호른 봉우리 3D: 거대한 각진 설산 암벽(높이 0.88) + 만년설 캡 + 🚩정상 등정 깃발 + 전나무들!
+    const rockMat = new THREE.MeshPhysicalMaterial({ color: '#334155', roughness: 0.88, bumpScale: 0.08 })
+    const snowMat = new THREE.MeshPhysicalMaterial({ color: '#F8FAFC', roughness: 0.3, clearcoat: 0.7 })
+    const treeMat = new THREE.MeshPhysicalMaterial({ color: '#065F46', roughness: 0.75 })
+    const flagMat = new THREE.MeshPhysicalMaterial({ color: '#DC2626', roughness: 0.35 })
 
-    // 산체 암반 베이스 (원추 사각 베이스)
-    const mountainBase = new THREE.Mesh(new THREE.CylinderGeometry(1.22, 1.55, 0.36, 18), rockMat)
-    mountainBase.position.y = -0.12
-    group.add(mountainBase)
+    // 거대한 암벽 설산 바디
+    const mountain = new THREE.Mesh(new THREE.CylinderGeometry(1.28, 1.72, 0.72, 18), rockMat)
+    mountain.position.y = -0.2
+    group.add(mountain)
 
-    // 산 정상 평탄화된 만년설 평원 (펫 착석 구역)
-    const snowCap = new THREE.Mesh(new THREE.CylinderGeometry(1.25, 1.28, 0.14, 24), snowMat)
-    snowCap.position.y = 0.06
+    // 마테호른 정상 만년설 캡 (펫 정복 탑승 구역)
+    const snowCap = new THREE.Mesh(new THREE.CylinderGeometry(1.34, 1.38, 0.26, 24), snowMat)
+    snowCap.position.y = 0.16
     group.add(snowCap)
 
-    // 만년설 아래로 흐르는 빙하 자국 4개
-    for (let si = 0; si < 5; si++) {
-      const sAng = (si / 5) * Math.PI * 2
-      const snowTongue = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.28, 8), snowMat)
-      snowTongue.rotation.z = Math.PI
-      snowTongue.position.set(Math.cos(sAng) * 1.24, -0.04, Math.sin(sAng) * 1.24)
-      group.add(snowTongue)
-    }
+    // 🚩 알프스 최고봉 정복 빨간 깃발
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.85, 8), rockMat)
+    pole.position.set(-0.95, 0.45, 0.65)
+    group.add(pole)
 
-    // 산기슭의 미니 크리스마스 전나무 3그루
-    const treeLocs = [[-0.95, -0.02, 0.72], [1.02, -0.04, 0.45], [-0.35, -0.02, -1.05]]
+    const flag = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.2, 0.02), flagMat)
+    flag.position.set(-0.78, 0.72, 0.65)
+    group.add(flag)
+
+    // 산기슭 미니 침엽수 3그루
+    const treeLocs = [
+      [1.15, -0.06, 0.55],
+      [-1.15, -0.08, -0.45],
+      [0.35, -0.08, -1.25],
+    ]
     treeLocs.forEach(([tx, ty, tz]) => {
-      const tree = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.32, 8), treeMat)
+      const tree = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.42, 8), treeMat)
       tree.position.set(tx, ty, tz)
       group.add(tree)
     })
   } else if (baseId === 'motorcycle') {
-    // 🏍️ 레트로 라이더 바이크 3D: 크롬 스포크 휠 + 묵직한 바이크 프레임 + 엠보싱 브라운 가죽 안장 시트
-    const bikeMat = new THREE.MeshPhysicalMaterial({ color: '#DC2626', roughness: 0.25, clearcoat: 0.8, metalness: 0.2 })
-    const chromeMat = new THREE.MeshPhysicalMaterial({ color: '#E2E8F0', metalness: 0.95, roughness: 0.1, clearcoat: 1.0 })
-    const leatherSeatMat = new THREE.MeshPhysicalMaterial({ color: '#78350F', roughness: 0.55, sheen: 0.4 })
-    const tireMat = new THREE.MeshPhysicalMaterial({ color: '#1E293B', roughness: 0.8 })
+    // 🏍️ 9. 레트로 라이더 바이크 3D: 묵직한 크롬 휠 2개 + 메탈 프레임 + 헤드라이트 & 핸들바 + 엠보싱 브라운 가죽 롱 시트 탑승!
+    const bikeMat = new THREE.MeshPhysicalMaterial({ color: '#DC2626', roughness: 0.2, clearcoat: 0.9, metalness: 0.3 })
+    const chromeMat = new THREE.MeshPhysicalMaterial({ color: '#F1F5F9', metalness: 0.95, roughness: 0.08, clearcoat: 1.0 })
+    const leatherSeatMat = new THREE.MeshPhysicalMaterial({ color: '#78350F', roughness: 0.5, sheen: 0.5 })
+    const tireMat = new THREE.MeshPhysicalMaterial({ color: '#0F172A', roughness: 0.85 })
 
-    // 앞뒤 대형 광폭 타이어 2개
-    const frontTire = new THREE.Mesh(new THREE.TorusGeometry(0.35, 0.12, 12, 24), tireMat)
-    frontTire.position.set(0.9, -0.06, 0)
+    // 앞뒤 대형 바이크 타이어 2개
+    const frontTire = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.14, 14, 28), tireMat)
+    frontTire.position.set(1.05, -0.1, 0)
     group.add(frontTire)
 
-    const rearTire = new THREE.Mesh(new THREE.TorusGeometry(0.35, 0.12, 12, 24), tireMat)
-    rearTire.position.set(-0.9, -0.06, 0)
+    const rearTire = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.14, 14, 28), tireMat)
+    rearTire.position.set(-1.05, -0.1, 0)
     group.add(rearTire)
 
     // 크롬 머플러 배기관
-    const exhaust = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 1.4, 12), chromeMat)
+    const exhaust = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.09, 1.65, 14), chromeMat)
     exhaust.rotation.z = Math.PI / 2
-    exhaust.position.set(0, -0.16, 0.45)
+    exhaust.position.set(0, -0.22, 0.52)
     group.add(exhaust)
 
-    // 바이크 프레임 & 연료 탱크
-    const frame = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.25, 0.65), bikeMat)
-    frame.position.set(0, -0.02, 0)
+    // 바이크 메인 바디 프레임
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.38, 0.72), bikeMat)
+    frame.position.set(0, -0.04, 0)
     group.add(frame)
 
-    // 푹신하고 넓은 가죽 안장 시트 (디저트 펫 탑승)
-    const seat = new THREE.Mesh(new THREE.CylinderGeometry(1.22, 1.25, 0.12, 32), leatherSeatMat)
-    seat.position.y = 0.08
+    // 앞쪽 원형 헤드라이트 & 핸들바
+    const headlamp = new THREE.Mesh(new THREE.SphereGeometry(0.18, 14, 12), chromeMat)
+    headlamp.position.set(1.15, 0.18, 0)
+    group.add(headlamp)
+
+    const handlebar = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.9, 10), chromeMat)
+    handlebar.rotation.x = Math.PI / 2
+    handlebar.position.set(0.95, 0.35, 0)
+    group.add(handlebar)
+
+    // 푹신하고 넓은 가죽 안장 시트 (디저트 펫 라이딩 탑승)
+    const seat = new THREE.Mesh(new THREE.CylinderGeometry(1.32, 1.36, 0.18, 36), leatherSeatMat)
+    seat.position.y = 0.18
     group.add(seat)
   } else if (baseId === 'cast-iron-pan') {
-    // 🍳 지글지글 브런치 무쇠 주물팬 3D: 무광 블랙 주물 림 + 긴 손잡이 + 노릇한 버터 종이호일 + 로즈마리
-    const ironMat = new THREE.MeshPhysicalMaterial({ color: '#18181B', metalness: 0.65, roughness: 0.6, bumpScale: 0.05 })
-    const paperMat = new THREE.MeshPhysicalMaterial({ color: '#FEF3C7', roughness: 0.8, bumpScale: 0.02 })
+    // 🍳 10. 브런치 무쇠 주물팬 3D: 깊고 묵직한 블랙 무쇠 스킬렛 (높이 0.38) + 롱 손잡이 + 바삭한 종이호일 + 로즈마리
+    const ironMat = new THREE.MeshPhysicalMaterial({ color: '#18181B', metalness: 0.7, roughness: 0.55 })
+    const paperMat = new THREE.MeshPhysicalMaterial({ color: '#FEF3C7', roughness: 0.78 })
     const herbMat = new THREE.MeshPhysicalMaterial({ color: '#15803D', roughness: 0.4 })
 
-    // 주물팬 몸체 바닥 및 벽
-    const panBase = new THREE.Mesh(new THREE.CylinderGeometry(1.42, 1.34, 0.16, 36), ironMat)
+    const panBase = new THREE.Mesh(new THREE.CylinderGeometry(1.52, 1.42, 0.36, 36), ironMat)
     panBase.position.y = -0.12
     group.add(panBase)
 
-    const panRim = new THREE.Mesh(new THREE.TorusGeometry(1.42, 0.09, 14, 36), ironMat)
+    const panRim = new THREE.Mesh(new THREE.TorusGeometry(1.52, 0.12, 16, 36), ironMat)
     panRim.rotation.x = Math.PI / 2
-    panRim.position.y = -0.02
+    panRim.position.y = 0.06
     group.add(panRim)
 
-    // 주물팬 긴 손잡이 (오른쪽으로 뻗음)
-    const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.09, 0.85, 14), ironMat)
+    // 긴 주물팬 손잡이
+    const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.09, 0.95, 14), ironMat)
     handle.rotation.z = Math.PI / 2
-    handle.position.set(1.78, -0.06, 0)
+    handle.position.set(1.95, -0.04, 0)
     group.add(handle)
 
-    // 내부 노릇한 베이킹 페이퍼 (종이 호일)
-    const paper = new THREE.Mesh(new THREE.CylinderGeometry(1.28, 1.28, 0.05, 32), paperMat)
-    paper.position.y = -0.02
+    // 내부 노릇한 베이킹 페이퍼 (종이호일)
+    const paper = new THREE.Mesh(new THREE.CylinderGeometry(1.38, 1.38, 0.08, 36), paperMat)
+    paper.position.y = 0.08
     group.add(paper)
 
-    // 감성 허브 로즈마리 줄기
-    const herb = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.02, 0.65, 8), herbMat)
+    // 로즈마리 허브 가지
+    const herb = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.02, 0.75, 8), herbMat)
     herb.rotation.set(0.2, 0.4, 1.2)
-    herb.position.set(-0.65, 0.04, 0.45)
+    herb.position.set(-0.75, 0.14, 0.55)
     group.add(herb)
   } else if (baseId === 'ufo-beam') {
-    // 🛸 외계 UFO 네온광선 3D: 공중에 뜬 은빛 비행접시 돔 + 지상으로 뿜어지는 원뿔형 홀로그램 네온 광선
-    const ufoMetal = new THREE.MeshPhysicalMaterial({ color: '#94A3B8', metalness: 0.95, roughness: 0.12, clearcoat: 1.0 })
-    const ufoGlow = new THREE.MeshPhysicalMaterial({ color: '#22D3EE', emissive: '#06B6D4', emissiveIntensity: 1.2, roughness: 0.1 })
+    // 🛸 11. 외계 UFO 네온광선 3D: 공중에 뜬 은빛 비행접시 돔 + 네온 펄스 링 + 바닥 원통형 반중력 네온 광선 기둥!
+    const ufoMetal = new THREE.MeshPhysicalMaterial({ color: '#94A3B8', metalness: 0.95, roughness: 0.1, clearcoat: 1.0 })
+    const ufoGlow = new THREE.MeshPhysicalMaterial({ color: '#22D3EE', emissive: '#06B6D4', emissiveIntensity: 1.4, roughness: 0.1 })
     const beamMat = new THREE.MeshBasicMaterial({
       color: '#38BDF8',
       transparent: true,
-      opacity: 0.35,
+      opacity: 0.45,
       side: THREE.DoubleSide,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     })
 
     // 바닥 네온 광선 착지 링
-    const landingRing = new THREE.Mesh(new THREE.RingGeometry(0.9, 1.42, 32), beamMat)
+    const landingRing = new THREE.Mesh(new THREE.RingGeometry(0.8, 1.55, 36), beamMat)
     landingRing.rotation.x = -Math.PI / 2
-    landingRing.position.y = -0.16
+    landingRing.position.y = -0.22
     group.add(landingRing)
 
-    // 원뿔형 네온 광선 빔 (하늘에서 바닥으로 쏟아지는 빛기둥)
-    const lightCone = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 1.35, 0.48, 32, 1, true), beamMat)
-    lightCone.position.y = 0.08
-    group.add(lightCone)
+    // 두꺼운 원통형 반중력 네온 광선 빔 기둥 (펫을 공중부양시킴)
+    const lightCylinder = new THREE.Mesh(new THREE.CylinderGeometry(1.25, 1.48, 0.58, 36, 1, true), beamMat)
+    lightCylinder.position.y = 0.06
+    group.add(lightCylinder)
 
-    // 비행접시 하부 발광 코어 링
-    const ufoCore = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.07, 16, 32), ufoGlow)
+    // 비행접시 하부 네온 링
+    const ufoCore = new THREE.Mesh(new THREE.TorusGeometry(0.68, 0.08, 16, 36), ufoGlow)
     ufoCore.rotation.x = Math.PI / 2
-    ufoCore.position.y = 0.28
+    ufoCore.position.y = 0.32
     group.add(ufoCore)
 
     // 비행접시 상부 메탈릭 캡
-    const ufoDome = new THREE.Mesh(new THREE.SphereGeometry(0.48, 24, 16), ufoMetal)
-    ufoDome.scale.set(1.2, 0.35, 1.2)
-    ufoDome.position.y = 0.34
+    const ufoDome = new THREE.Mesh(new THREE.SphereGeometry(0.58, 28, 18), ufoMetal)
+    ufoDome.scale.set(1.25, 0.38, 1.25)
+    ufoDome.position.y = 0.38
     group.add(ufoDome)
   } else {
-    // 🪹 기본 포근 나무 둥지 3D (원목 질감의 바깥 둥지 림 + 푹신한 짚풀 안감)
+    // 🪹 12. 기본 포근 나무 둥지 3D: 두툼한 원목 둥지 (높이 0.38) + 나뭇가지 림 + 푹신한 짚풀 베드
     const nestOuter = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.42, 1.18, 0.28, 32),
-      new THREE.MeshPhysicalMaterial({ color: '#8D6E63', roughness: 0.85, bumpScale: 0.05 }),
+      new THREE.CylinderGeometry(1.52, 1.25, 0.38, 36),
+      new THREE.MeshPhysicalMaterial({ color: '#8D6E63', roughness: 0.85, bumpScale: 0.06 }),
     )
     nestOuter.position.y = -0.1
     group.add(nestOuter)
 
     // 둥지 테두리 나뭇가지 엮음 림
     const nestRim = new THREE.Mesh(
-      new THREE.TorusGeometry(1.35, 0.14, 16, 32),
+      new THREE.TorusGeometry(1.46, 0.16, 16, 36),
       new THREE.MeshPhysicalMaterial({ color: '#6D4C41', roughness: 0.9 }),
     )
     nestRim.rotation.x = Math.PI / 2
-    nestRim.position.y = 0.04
+    nestRim.position.y = 0.08
     group.add(nestRim)
 
     // 둥지 내부 푹신한 짚풀 침대
     const nestBed = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.22, 1.1, 0.12, 32),
+      new THREE.CylinderGeometry(1.32, 1.2, 0.16, 32),
       new THREE.MeshPhysicalMaterial({ color: '#D7CCC8', roughness: 0.7, sheen: 0.3, sheenColor: new THREE.Color('#FFE0B2') }),
     )
-    nestBed.position.y = -0.02
+    nestBed.position.y = 0.06
     group.add(nestBed)
   }
 
@@ -4214,10 +4301,10 @@ export default function Monster3DView({
     scene.environment = envTex
 
     // 🎯 대표님 피드백 반영: 높은 왕관, 긴 모자, 부유 이모티콘 상단 짤림 100% 해소
-    // FOV 40도 + 카메라 거리 5.65 + 캐릭터 중심점 최적화 + 아래 여백 활용
+    // FOV 40도 + 카메라 쿼터뷰(Quarter-View: 약 13도 하향 시각)로 받침대 상단 윗면 볼륨감과 펫 탑승감 극대화
     const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 30)
-    camera.position.set(0, 0.38, 5.65)
-    camera.lookAt(0, 0.06, 0)
+    camera.position.set(0, 1.05, 5.25)
+    camera.lookAt(0, -0.15, 0)
 
     // 따뜻한 파티세리 3점 조명
     const ambient = new THREE.AmbientLight('#FFF5E8', 0.78)
@@ -4235,9 +4322,9 @@ export default function Monster3DView({
     bottomBounce.position.set(0, -3.0, 2.0)
     scene.add(bottomBounce)
 
-    // 3D 플레이팅 받침대 + 3D 디저트 캐릭터 조립 (상단 왕관/모자 헤드룸 넉넉하게 확보: y = -0.38)
+    // 3D 플레이팅 받침대 + 3D 디저트 캐릭터 조립 (상단 왕관/모자 헤드룸 넉넉하게 확보: y = -0.34)
     const stageGroup = new THREE.Group()
-    stageGroup.position.y = -0.38
+    stageGroup.position.y = -0.34
     scene.add(stageGroup)
 
     const baseGroup = build3DDessertBase(dessertBase)
