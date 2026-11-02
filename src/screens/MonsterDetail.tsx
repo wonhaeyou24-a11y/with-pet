@@ -11,6 +11,7 @@ import { monsterLook, serverNow, type MonsterRow } from '../lib/api'
 import {
   getSpeciesSoundKind,
   playDessertAsmr,
+  playBabyGiggleSound,
   type DessertSoundKind,
 } from '../lib/sound'
 import { DECO_ITEMS } from '../monsters/Decorations'
@@ -112,7 +113,13 @@ export default function MonsterDetail({
     setCombo(nextCombo)
     setActiveSoundKind(kind)
     const meta = playDessertAsmr(kind, nextCombo - 1)
-    setAsmrBubble(meta.onomatopoeia)
+    const voiceWords: ('까르르' | '헤헤헤' | '아잉' | '꺄앙')[] = ['까르르', '헤헤헤', '아잉', '꺄앙']
+    const chosenWord = voiceWords[(nextCombo - 1) % voiceWords.length]
+    window.setTimeout(() => {
+      playBabyGiggleSound(chosenWord)
+    }, 80)
+    const laughTag = chosenWord === '까르르' ? '까르르~ 💖' : chosenWord === '헤헤헤' ? '헤헤헤! ✨' : chosenWord === '아잉' ? '아잉~ 💕' : '꺄앙~ 🌸'
+    setAsmrBubble(`${meta.onomatopoeia} ${laughTag}`)
     setBurstKey((k) => k + 1)
     setTimeout(() => setAsmrBubble(null), 1650)
   }

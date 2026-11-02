@@ -993,7 +993,7 @@ export default function AsmrBattleArena({
           </div>
         )}
 
-        {/* 컷인 배너 연출 */}
+        {/* 컷인 배너 연출 (보스전에서는 보스 스킬은 상단, 내 펫 스킬은 하단으로 명확히 분리하여 겹침 원천 차단) */}
         {cutin && (
           <div
             style={{
@@ -1003,7 +1003,13 @@ export default function AsmrBattleArena({
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              justifyContent: 'center',
+              justifyContent: isRaid
+                ? cutin.actor === 'defender'
+                  ? 'flex-start'
+                  : 'flex-end'
+                : 'center',
+              paddingTop: isRaid && cutin.actor === 'defender' ? '12%' : undefined,
+              paddingBottom: isRaid && cutin.actor === 'challenger' ? '24%' : undefined,
               pointerEvents: 'none',
             }}
           >

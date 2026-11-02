@@ -413,16 +413,17 @@ export default function MonsterHome({
     setCombo(nextCombo)
     const meta = playDessertAsmr(soundKind, nextCombo - 1)
 
-    // 👶 대표님 요청 반영: 디저트 식감 소리 직후 귀여운 아기 펫의 까르르·헤헤 웃음소리 연속 재생!
+    // 👶 대표님 요청 반영: 디저트 식감 소리 직후 진짜 아기 목소리로 "까르르~", "헤헤헤!", "아잉~" 실제 음성 발성 + 하모닉스 사운드 동시 재생!
+    const voiceWords: ('까르르' | '헤헤헤' | '아잉' | '꺄앙')[] = ['까르르', '헤헤헤', '아잉', '꺄앙']
+    const chosenWord = voiceWords[(nextCombo - 1) % voiceWords.length]
     const giggleVariants: ('giggle' | 'chuckle' | 'cheer')[] = ['giggle', 'chuckle', 'cheer']
     const pickVariant = giggleVariants[(nextCombo - 1) % giggleVariants.length]
     window.setTimeout(() => {
-      playBabyGiggleSound(pickVariant)
+      playBabyGiggleSound(chosenWord, pickVariant)
     }, 85)
 
-    // 식감 의성어와 귀여운 웃음 멘트 조합
-    const giggleLaughs = ['까르르~ 💖', '헤헤헤! ✨', '꺄앙~ 🌸', '퐁퐁~ 💕']
-    const laughTag = giggleLaughs[Math.floor(Math.random() * giggleLaughs.length)]
+    // 식감 의성어와 귀여운 웃음 멘트 조합 (음성과 100% 일치)
+    const laughTag = chosenWord === '까르르' ? '까르르~ 💖' : chosenWord === '헤헤헤' ? '헤헤헤! ✨' : chosenWord === '아잉' ? '아잉~ 💕' : '꺄앙~ 🌸'
     setAsmrBubble(`${meta.onomatopoeia} ${laughTag}`)
     setBurstKey((k) => k + 1)
     setTimeout(() => setAsmrBubble(null), 1650)
