@@ -43,17 +43,25 @@ export const DECO_ITEMS: DecoItemDef[] = [
   { id: 'crown-emoji-floating', slot: 'head', name: '감정 이모티콘 크라운', rarity: 'rare', charm: 40, icon: '💖', desc: '펫의 기분에 맞춰 하트와 별빛이 퐁퐁 솟아오르는 이모티콘 크라운' },
   // 2. 얼굴 (face)
   { id: 'alchemy-glasses', slot: 'face', name: '연금술 동글안경', rarity: 'rare', charm: 20, icon: '👓', desc: '지적인 매력을 더해주는 황금 테 안경' },
+  { id: 'round-gold-spectacles', slot: 'face', name: '스마트 골드 동글안경', rarity: 'rare', charm: 28, icon: '👓', desc: '지적인 매력과 똘똘함을 한껏 뽐내는 24K 순금테 클래식 동글안경' },
   { id: 'sleep-mask', slot: 'face', name: '포근 수면안대', rarity: 'common', charm: 10, icon: '💤', desc: '이마에 살짝 얹은 구름결 수면안대' },
   { id: 'star-patch', slot: 'face', name: '유성 볼 스티커', rarity: 'rare', charm: 18, icon: '🌟', desc: '양볼에 붙이는 반짝이는 별빛 페인팅' },
   // 3. 목 (neck)
+  { id: 'chef-coat-tie', slot: 'neck', name: '명장 파티시에 제복 & 타이', rarity: 'legendary', charm: 45, icon: '🧑‍🍳', desc: '프랑스 수제 제과 명장의 더블 버튼 순백 셰프 자켓과 실크 레드 타이' },
+  { id: 'preppy-school-tie', slot: 'neck', name: '브리티시 프레피 타이 & 칼라', rarity: 'rare', charm: 30, icon: '🎓', desc: '영국 명문 베이킹 아카데미 스타일의 타탄체크 리본 타이와 금장 단추 셔츠 칼라' },
+  { id: 'bear-knit-suspenders', slot: 'neck', name: '곰돌이 니트 멜빵 보타이', rarity: 'rare', charm: 26, icon: '🧸', desc: '포근한 브라운 코듀로이 멜빵 스트랩과 앙증맞은 곰돌이 자수 보타이' },
+  { id: 'sherlock-cape-coat', slot: 'neck', name: '셜록 하운드투스 케이프', rarity: 'legendary', charm: 42, icon: '🕵️‍♂️', desc: '안개 낀 베이커리 거리의 미스터리를 푸는 클래식 하운드투스 체크 케이프 망토' },
   { id: 'pretzel-ribbon', slot: 'neck', name: '솔티드 프레첼 리본', rarity: 'rare', charm: 20, icon: '🥨', desc: '노릇하게 구운 하트 모양 프레첼 과자 장식' },
   { id: 'rune-scarf', slot: 'neck', name: '룬 무늬 머플러', rarity: 'rare', charm: 18, icon: '🧣', desc: '고대 룬 문양이 수놓아진 따뜻한 목도리' },
   { id: 'bell-ribbon', slot: 'neck', name: '별방울 리본', rarity: 'common', charm: 12, icon: '🎀', desc: '움직일 때마다 딸랑거리는 금방울 리본' },
   // 4. 등 (back)
   { id: 'meteor-wings', slot: 'back', name: '유성 날개 망토', rarity: 'legendary', charm: 32, icon: '🪽', desc: '별똥별 궤적이 흐르는 반투명 천사 날개' },
   { id: 'wings-meringue-angel', slot: 'back', name: '천사 머랭 날개', rarity: 'legendary', charm: 45, icon: '🪽', desc: '바삭하고 폭신한 순백의 슈가 머랭 깃털 날개' },
+  { id: 'vintage-leather-satchel', slot: 'back', name: '클래식 사첼 책가방', rarity: 'rare', charm: 32, icon: '🎒', desc: '고급 카라멜색 가죽으로 마감된 앤틱 버클 스쿨 사첼 백팩' },
   { id: 'explorer-pack', slot: 'back', name: '탐험가 미니 배낭', rarity: 'common', charm: 14, icon: '🎒', desc: '나침반과 지도가 든 작은 가죽 배낭' },
   // 5. 손 (hand)
+  { id: 'tiny-wood-rollingpin', slot: 'hand', name: '달콤 반죽 미니 밀대', rarity: 'rare', charm: 28, icon: '🥖', desc: '달콤한 쿠키 도우를 슥슥 밀어 펴는 단풍나무 제과용 미니 밀대' },
+  { id: 'bubble-detective-magnifier', slot: 'hand', name: '황금 버블 돋보기', rarity: 'rare', charm: 30, icon: '🔍', desc: '디저트의 숨겨진 레시피를 찾으면 무지갯빛 비눗방울이 퐁퐁 솟아나는 탐정 돋보기' },
   { id: 'lollipop-wand', slot: 'hand', name: '롤리팝 캔디봉', rarity: 'rare', charm: 26, icon: '🍭', desc: '달콤한 파스텔 소용돌이 막대사탕' },
   { id: 'lantern-staff', slot: 'hand', name: '별빛 등불 지팡이', rarity: 'legendary', charm: 40, icon: '🏮', desc: '따스한 별빛을 비추는 마법 나무 지팡이' },
   { id: 'star-wand', slot: 'hand', name: '요술 별봉', rarity: 'rare', charm: 22, icon: '🪄', desc: '휘두르면 반짝이가 퍼지는 황금 요술봉' },
@@ -156,6 +164,21 @@ export function BackDecorations({ deco }: { deco?: MonsterDecorations }) {
           <path d="M 162 134 C 194 112 216 120 220 142 C 222 160 200 170 182 162 C 174 158 168 152 164 146 Z" fill="#E0E7FF" />
           <path d="M 174 142 C 196 130 210 136 212 148 C 200 152 186 150 174 144 Z" fill={dye.gem} opacity={0.55} strokeWidth={0} />
           <path d="M 188 122 L 210 102" stroke="#FBBF24" strokeWidth={2.4} strokeDasharray="3 3" />
+        </g>
+      )}
+      {deco.back === 'vintage-leather-satchel' && (
+        <g stroke={INK} strokeWidth={2.6} strokeLinejoin="round">
+          {/* 가방 바디 */}
+          <rect x={76} y={136} width={88} height={64} rx={12} fill="#A0522D" />
+          {/* 가방 덮개 플랩 */}
+          <path d="M 74 136 L 74 162 C 74 172 166 172 166 162 L 166 136 Z" fill="#8B4513" />
+          {/* 좌우 버클 스트랩 */}
+          <rect x={92} y={142} width={10} height={34} rx={3} fill="#6D3B17" />
+          <rect x={90} y={160} width={14} height={10} rx={2} fill="#FFD700" strokeWidth={1.5} />
+          <rect x={138} y={142} width={10} height={34} rx={3} fill="#6D3B17" />
+          <rect x={136} y={160} width={14} height={10} rx={2} fill="#FFD700" strokeWidth={1.5} />
+          {/* 상단 손잡이 */}
+          <path d="M 106 136 C 106 126 134 126 134 136" fill="none" stroke="#6D3B17" strokeWidth={4} />
         </g>
       )}
       {deco.back === 'explorer-pack' && (
@@ -276,7 +299,72 @@ export function FrontDecorations({
         </g>
       )}
 
+      {deco?.neck === 'chef-coat-tie' && (
+        <g stroke={INK} strokeWidth={2.4} strokeLinejoin="round">
+          {/* 순백 더블 브레스트 자켓 */}
+          <path d="M 82 144 C 82 178 158 178 158 144 Z" fill="#FFFDF9" />
+          {/* 라펠 칼라 */}
+          <path d="M 88 144 L 108 162 L 120 150 L 132 162 L 152 144" fill="none" stroke="#E2E8F0" strokeWidth={2} />
+          {/* 금장 버튼 4개 */}
+          <circle cx={104} cy={155} r={2.5} fill="#FFD700" strokeWidth={1} stroke="#B45309" />
+          <circle cx={104} cy={166} r={2.5} fill="#FFD700" strokeWidth={1} stroke="#B45309" />
+          <circle cx={136} cy={155} r={2.5} fill="#FFD700" strokeWidth={1} stroke="#B45309" />
+          <circle cx={136} cy={166} r={2.5} fill="#FFD700" strokeWidth={1} stroke="#B45309" />
+          {/* 실크 레드 타이 */}
+          <path d="M 116 148 L 124 148 L 126 168 L 120 174 L 114 168 Z" fill="#DC2626" stroke="#991B1B" strokeWidth={1.5} />
+        </g>
+      )}
+      {deco?.neck === 'preppy-school-tie' && (
+        <g stroke={INK} strokeWidth={2.4} strokeLinejoin="round">
+          {/* 화이트 셔츠 깃 칼라 */}
+          <polygon points="104,144 120,154 112,144" fill="#FFFFFF" />
+          <polygon points="136,144 120,154 128,144" fill="#FFFFFF" />
+          {/* 타탄 리본 타이 */}
+          <path d="M 120 152 L 106 145 L 108 160 Z" fill="#1E3A8A" />
+          <path d="M 120 152 L 134 145 L 132 160 Z" fill="#1E3A8A" />
+          <path d="M 116 156 L 114 172 L 120 170 L 126 172 L 124 156 Z" fill="#DC2626" />
+          <circle cx={120} cy={152} r={3.5} fill="#FFD700" stroke="#B45309" strokeWidth={1} />
+        </g>
+      )}
+      {deco?.neck === 'bear-knit-suspenders' && (
+        <g stroke={INK} strokeWidth={2.4} strokeLinejoin="round">
+          {/* 어깨 멜빵 스트랩 2가닥 */}
+          <rect x={92} y={142} width={10} height={38} rx={3} fill="#8D6E63" />
+          <rect x={138} y={142} width={10} height={38} rx={3} fill="#8D6E63" />
+          <rect x={91} y={168} width={12} height={6} rx={2} fill="#D7CCC8" strokeWidth={1} />
+          <rect x={137} y={168} width={12} height={6} rx={2} fill="#D7CCC8" strokeWidth={1} />
+          {/* 레드 나비 보타이 */}
+          <path d="M 120 148 L 108 142 L 110 156 Z" fill="#E11D48" />
+          <path d="M 120 148 L 132 142 L 130 156 Z" fill="#E11D48" />
+          {/* 곰돌이 얼굴 센터 */}
+          <circle cx={120} cy={148} r={5.5} fill="#FFCC80" stroke="#8D6E63" strokeWidth={1.2} />
+          <circle cx={116} cy={144} r={2} fill="#FFCC80" stroke="#8D6E63" strokeWidth={1} />
+          <circle cx={124} cy={144} r={2} fill="#FFCC80" stroke="#8D6E63" strokeWidth={1} />
+        </g>
+      )}
+      {deco?.neck === 'sherlock-cape-coat' && (
+        <g stroke={INK} strokeWidth={2.6} strokeLinejoin="round">
+          {/* 셜록 체크 숄 케이프 망토 */}
+          <path d="M 78 142 C 78 176 162 176 162 142 C 140 148 100 148 78 142 Z" fill="#A1887F" />
+          <path d="M 94 148 L 146 148" stroke="#5D4037" strokeWidth={2} strokeDasharray="3 3" />
+          <path d="M 104 158 L 136 158" stroke="#5D4037" strokeWidth={2} strokeDasharray="3 3" />
+          {/* 앤틱 황동 클립 */}
+          <rect x={112} y={143} width={16} height={6} rx={2} fill="#FFB300" stroke="#8D6E63" strokeWidth={1.2} />
+        </g>
+      )}
+
       {/* 2. 얼굴 장식 (face) */}
+      {deco?.face === 'round-gold-spectacles' && (
+        <g>
+          {/* 24K 순금테 동글안경 */}
+          <circle cx={99} cy={109} r={14.5} fill="#E0F2FE" fillOpacity={0.35} stroke="#FFD700" strokeWidth={3.2} />
+          <path d="M 92 101 L 98 107" stroke="#FFFFFF" strokeWidth={2.4} strokeLinecap="round" />
+          <circle cx={141} cy={109} r={14.5} fill="#E0F2FE" fillOpacity={0.35} stroke="#FFD700" strokeWidth={3.2} />
+          <path d="M 134 101 L 140 107" stroke="#FFFFFF" strokeWidth={2.4} strokeLinecap="round" />
+          <path d="M 113.5 108 C 117 103 123 103 126.5 108" fill="none" stroke="#FFD700" strokeWidth={3.2} strokeLinecap="round" />
+          <path d="M 84.5 109 L 72 110 M 155.5 109 L 168 110" stroke="#B45309" strokeWidth={2.6} strokeLinecap="round" />
+        </g>
+      )}
       {deco?.face === 'alchemy-glasses' && (
         <g>
           <circle cx={99} cy={109} r={14} fill="#E0F2FE" fillOpacity={0.38} stroke="#D97706" strokeWidth={3} />
@@ -392,6 +480,25 @@ export function FrontDecorations({
             fill="#FDE047"
           />
           <circle cx={56} cy={130} r={3.5} fill={dye.gem} strokeWidth={1.5} />
+        </g>
+      )}
+      {deco?.hand === 'tiny-wood-rollingpin' && (
+        <g stroke={INK} strokeWidth={2.4} strokeLinejoin="round" className="deco-anim-hand">
+          {/* 달콤 반죽 미니 밀대 */}
+          <line x1={42} y1={120} x2={78} y2={186} stroke="#D7CCC8" strokeWidth={5} strokeLinecap="round" />
+          <line x1={48} y1={130} x2={72} y2={174} stroke="#FFE0B2" strokeWidth={11} strokeLinecap="round" />
+          <circle cx={60} cy={152} r={3} fill="#E11D48" strokeWidth={0} />
+        </g>
+      )}
+      {deco?.hand === 'bubble-detective-magnifier' && (
+        <g stroke={INK} strokeWidth={2.4} strokeLinejoin="round" className="deco-anim-hand">
+          {/* 황금 버블 돋보기 */}
+          <line x1={54} y1={148} x2={66} y2={196} stroke="#B45309" strokeWidth={4.5} strokeLinecap="round" />
+          <circle cx={50} cy={134} r={14} fill="#E0F2FE" fillOpacity={0.4} stroke="#FFD700" strokeWidth={3.5} />
+          <path d="M 44 128 L 50 134" stroke="#FFFFFF" strokeWidth={2.2} strokeLinecap="round" />
+          {/* 무지개 비눗방울 */}
+          <circle cx={34} cy={120} r={4.5} fill="#F472B6" fillOpacity={0.65} stroke="#FFFFFF" strokeWidth={1} />
+          <circle cx={66} cy={122} r={3.5} fill="#60A5FA" fillOpacity={0.65} stroke="#FFFFFF" strokeWidth={1} />
         </g>
       )}
       {deco?.hand === 'lollipop-wand' && (

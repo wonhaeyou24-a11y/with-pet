@@ -1656,6 +1656,51 @@ function add3DDecorations(
       goldGroup.add(flake)
     })
     bodyGroup.add(goldGroup)
+  } else if (deco?.face === 'round-gold-spectacles') {
+    // 👓 스마트 골드 동글안경: 24K 순금테와 투명 렌즈, 중앙 브릿지와 템플 힌지
+    const glassGroup = new THREE.Group()
+    glassGroup.position.set(0, 0.16, 0.88)
+
+    const goldMat = new THREE.MeshPhysicalMaterial({
+      color: '#FFD700',
+      metalness: 0.95,
+      roughness: 0.12,
+      clearcoat: 1.0,
+    })
+    const lensMat = new THREE.MeshPhysicalMaterial({
+      color: '#E0F2FE',
+      transmission: 0.92,
+      transparent: true,
+      opacity: 0.55,
+      roughness: 0.05,
+      clearcoat: 1.0,
+      ior: 1.5,
+    })
+
+    // 좌우 안경알 림 & 렌즈
+    ;[-0.42, 0.42].forEach((xSide) => {
+      const rim = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.032, 12, 28), goldMat)
+      rim.position.set(xSide, 0, 0)
+      glassGroup.add(rim)
+
+      const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.015, 20), lensMat)
+      lens.rotation.x = Math.PI / 2
+      lens.position.set(xSide, 0, 0)
+      glassGroup.add(lens)
+
+      // 안경 템플 힌지
+      const hinge = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.03, 0.18), goldMat)
+      hinge.position.set(xSide * 1.45, 0.02, -0.06)
+      glassGroup.add(hinge)
+    })
+
+    // 중앙 코 브릿지
+    const bridge = new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.024, 0.22, 8), goldMat)
+    bridge.rotation.z = Math.PI / 2
+    bridge.position.set(0, 0.04, 0.02)
+    glassGroup.add(bridge)
+
+    bodyGroup.add(glassGroup)
   }
 
   // 3. 목 장식 (neck) - 풍성한 볼륨감
@@ -1674,21 +1719,131 @@ function add3DDecorations(
     tail.position.set(0.42, -0.68, 0.82)
     tail.rotation.z = -0.22
     bodyGroup.add(tail)
-  } else if (deco?.neck === 'bell-ribbon' || deco?.neck === 'pretzel-ribbon') {
-    const ribbon = new THREE.Mesh(
-      new THREE.TorusGeometry(0.88, 0.16, 16, 32),
-      new THREE.MeshPhysicalMaterial({ color: '#E53935', roughness: 0.25, clearcoat: 0.8 }),
-    )
-    ribbon.rotation.x = Math.PI / 2
-    ribbon.position.set(0, -0.32, 0.05)
-    bodyGroup.add(ribbon)
-    // 큼직한 황금 방울
-    const bell = new THREE.Mesh(
-      new THREE.SphereGeometry(0.22, 18, 16),
-      new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.95, roughness: 0.1, clearcoat: 1.0 }),
-    )
-    bell.position.set(0, -0.42, 0.92)
-    bodyGroup.add(bell)
+  } else if (deco?.neck === 'chef-coat-tie') {
+    // 🧑‍🍳 명장 파티시에 제복 & 타이: 순백 더블 브레스트 자켓 라펠과 4개의 금장 단추, 실크 레드 타이
+    const coatGroup = new THREE.Group()
+    coatGroup.position.set(0, -0.34, 0.08)
+
+    const fabricMat = new THREE.MeshPhysicalMaterial({ color: '#FFFDF9', roughness: 0.35, clearcoat: 0.25 })
+    const goldBtnMat = new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.9, roughness: 0.15, clearcoat: 1.0 })
+    const tieMat = new THREE.MeshPhysicalMaterial({ color: '#D32F2F', roughness: 0.25, clearcoat: 0.6 })
+
+    // 목을 감싸는 스탠드업 셰프 칼라 링
+    const collar = new THREE.Mesh(new THREE.TorusGeometry(0.86, 0.14, 16, 32), fabricMat)
+    collar.rotation.x = Math.PI / 2
+    coatGroup.add(collar)
+
+    // 앞섬 더블 버튼 4개 (좌우 2열)
+    ;[-0.24, 0.24].forEach((bx) => {
+      ;[-0.14, -0.32].forEach((by) => {
+        const btn = new THREE.Mesh(new THREE.SphereGeometry(0.065, 12, 10), goldBtnMat)
+        btn.scale.set(1, 1, 0.6)
+        btn.position.set(bx, by, 0.88)
+        coatGroup.add(btn)
+      })
+    })
+
+    // 중앙 실크 레드 타이
+    const tieKnot = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.14, 0.12), tieMat)
+    tieKnot.position.set(0, -0.06, 0.92)
+    coatGroup.add(tieKnot)
+
+    const tieBody = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.46, 4), tieMat)
+    tieBody.rotation.z = Math.PI
+    tieBody.rotation.y = Math.PI / 4
+    tieBody.position.set(0, -0.32, 0.9)
+    coatGroup.add(tieBody)
+
+    bodyGroup.add(coatGroup)
+  } else if (deco?.neck === 'preppy-school-tie') {
+    // 🎓 브리티시 프레피 타이 & 칼라: 타탄체크 리본 타이와 금장 엠블럼 뱃지
+    const prepGroup = new THREE.Group()
+    prepGroup.position.set(0, -0.32, 0.08)
+
+    const shirtMat = new THREE.MeshPhysicalMaterial({ color: '#FFFFFF', roughness: 0.3 })
+    const ribbonMat = new THREE.MeshPhysicalMaterial({ color: '#1E3A8A', roughness: 0.35, clearcoat: 0.5 })
+    const badgeMat = new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.9, roughness: 0.15 })
+
+    // 화이트 셔츠 깃
+    const collar = new THREE.Mesh(new THREE.TorusGeometry(0.85, 0.12, 16, 32), shirtMat)
+    collar.rotation.x = Math.PI / 2
+    prepGroup.add(collar)
+
+    // 크로스 타탄 리본 날개 2쪽
+    ;[-1, 1].forEach((side) => {
+      const wing = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.14, 0.08), ribbonMat)
+      wing.rotation.z = side * 0.35
+      wing.position.set(side * 0.14, -0.12, 0.9)
+      prepGroup.add(wing)
+
+      // 리본 아래 꼬리 2가닥
+      const tail = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.32, 0.06), ribbonMat)
+      tail.rotation.z = side * 0.18
+      tail.position.set(side * 0.09, -0.28, 0.88)
+      prepGroup.add(tail)
+    })
+
+    // 중앙 골드 아카데미 엠블럼
+    const emblem = new THREE.Mesh(new THREE.OctahedronGeometry(0.08, 0), badgeMat)
+    emblem.position.set(0, -0.12, 0.94)
+    prepGroup.add(emblem)
+
+    bodyGroup.add(prepGroup)
+  } else if (deco?.neck === 'bear-knit-suspenders') {
+    // 🧸 곰돌이 니트 멜빵 보타이: 코듀로이 멜빵 스트랩과 곰돌이 단추 보타이
+    const suspGroup = new THREE.Group()
+    suspGroup.position.set(0, -0.32, 0.08)
+
+    const strapMat = new THREE.MeshPhysicalMaterial({ color: '#8D6E63', roughness: 0.65 })
+    const bowtieMat = new THREE.MeshPhysicalMaterial({ color: '#E11D48', roughness: 0.35 })
+    const bearMat = new THREE.MeshPhysicalMaterial({ color: '#FFCC80', roughness: 0.4 })
+
+    // 어깨 양옆 멜빵 스트랩 2가닥
+    ;[-0.38, 0.38].forEach((sx) => {
+      const strap = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.65, 0.08), strapMat)
+      strap.position.set(sx, -0.28, 0.84)
+      suspGroup.add(strap)
+
+      // 멜빵 쇠 버클 클립
+      const clip = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.06, 0.09), new THREE.MeshStandardMaterial({ color: '#D7CCC8', metalness: 0.8 }))
+      clip.position.set(sx, -0.48, 0.86)
+      suspGroup.add(clip)
+    })
+
+    // 중앙 레드 나비 보타이
+    ;[-1, 1].forEach((side) => {
+      const tieWing = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.22, 4), bowtieMat)
+      tieWing.rotation.z = side * (Math.PI / 2)
+      tieWing.position.set(side * 0.11, -0.08, 0.9)
+      suspGroup.add(tieWing)
+    })
+
+    // 곰돌이 얼굴 센터 단추
+    const bearFace = new THREE.Mesh(new THREE.SphereGeometry(0.09, 14, 12), bearMat)
+    bearFace.scale.set(1, 0.85, 0.6)
+    bearFace.position.set(0, -0.08, 0.93)
+    suspGroup.add(bearFace)
+
+    bodyGroup.add(suspGroup)
+  } else if (deco?.neck === 'sherlock-cape-coat') {
+    // 🕵️‍♂️ 셜록 하운드투스 케이프: 클래식 숄 케이프 망토와 앤틱 황동 버클 체인
+    const capeGroup = new THREE.Group()
+    capeGroup.position.set(0, -0.3, 0.06)
+
+    const capeMat = new THREE.MeshPhysicalMaterial({ color: '#A1887F', roughness: 0.75, sheen: 0.4, sheenColor: '#D7CCC8' })
+    const brassMat = new THREE.MeshPhysicalMaterial({ color: '#B45309', metalness: 0.85, roughness: 0.2 })
+
+    // 목과 어깨를 포근하게 감싸는 원추형 숄 케이프 망토
+    const mantle = new THREE.Mesh(new THREE.CylinderGeometry(0.82, 1.25, 0.52, 28, 1, true, -Math.PI * 0.85, Math.PI * 1.7), capeMat)
+    mantle.position.set(0, -0.18, 0)
+    capeGroup.add(mantle)
+
+    // 목 앞쪽 앤틱 버클 잠금 체인
+    const buckle = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.07, 0.08), brassMat)
+    buckle.position.set(0, -0.06, 0.9)
+    capeGroup.add(buckle)
+
+    bodyGroup.add(capeGroup)
   }
 
   // 4. 등 장식 & 만능 날개 (back / wingKind) - 대형 날개 연출
@@ -1762,6 +1917,41 @@ function add3DDecorations(
         bodyGroup.add(wing)
       })
     }
+  } else if (deco?.back === 'vintage-leather-satchel') {
+    // 🎒 클래식 사첼 책가방: 카라멜 브라운 가죽과 골드 메탈 버클, 상단 손잡이
+    const satchelGroup = new THREE.Group()
+    satchelGroup.position.set(0, 0.04, -1.02)
+
+    const leatherMat = new THREE.MeshPhysicalMaterial({ color: '#A0522D', roughness: 0.45, clearcoat: 0.35 })
+    const flapMat = new THREE.MeshPhysicalMaterial({ color: '#8B4513', roughness: 0.4, clearcoat: 0.4 })
+    const goldMat = new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.9, roughness: 0.15 })
+
+    // 가방 메인 바디
+    const bagBody = new THREE.Mesh(new THREE.BoxGeometry(0.88, 0.94, 0.44), leatherMat)
+    satchelGroup.add(bagBody)
+
+    // 상단 덮개 플랩
+    const flap = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.52, 0.46), flapMat)
+    flap.position.set(0, 0.22, 0.01)
+    satchelGroup.add(flap)
+
+    // 2개의 세로 골드 버클 스트랩
+    ;[-0.26, 0.26].forEach((bx) => {
+      const strap = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.55, 0.48), leatherMat)
+      strap.position.set(bx, 0.08, 0)
+      satchelGroup.add(strap)
+
+      const buckle = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.08, 0.5), goldMat)
+      buckle.position.set(bx, -0.04, 0)
+      satchelGroup.add(buckle)
+    })
+
+    // 상단 손잡이 아치
+    const handle = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.035, 8, 16, Math.PI), leatherMat)
+    handle.position.set(0, 0.48, 0)
+    satchelGroup.add(handle)
+
+    bodyGroup.add(satchelGroup)
   } else if (deco?.back === 'explorer-pack') {
     const pack = new THREE.Mesh(
       new THREE.BoxGeometry(0.9, 0.95, 0.48),
@@ -1823,6 +2013,90 @@ function add3DDecorations(
     emblem.position.set(0, 0, 0.08)
     shieldGroup.add(emblem)
     bodyGroup.add(shieldGroup)
+  } else if (deco?.hand === 'tiny-wood-rollingpin') {
+    // 🥖 달콤 반죽 미니 밀대: 손 옆에 비스듬히 쥔 따뜻한 단풍나무 밀대 롤러와 양쪽 손잡이
+    const pinGroup = new THREE.Group()
+    pinGroup.position.set(1.05, -0.05, 0.65)
+    pinGroup.rotation.z = -0.42
+    pinGroup.rotation.y = 0.25
+
+    const woodMat = new THREE.MeshPhysicalMaterial({ color: '#D7CCC8', roughness: 0.65, clearcoat: 0.2 })
+    const rollerMat = new THREE.MeshPhysicalMaterial({ color: '#FFE0B2', roughness: 0.5, clearcoat: 0.35 })
+    const ribbonMat = new THREE.MeshPhysicalMaterial({ color: '#E11D48', roughness: 0.3 })
+
+    // 중앙 롤러
+    const roller = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.85, 16), rollerMat)
+    pinGroup.add(roller)
+
+    // 양쪽 끝 가느다란 손잡이 2개
+    ;[-1, 1].forEach((side) => {
+      const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.24, 12), woodMat)
+      handle.position.y = side * 0.52
+      pinGroup.add(handle)
+
+      const cap = new THREE.Mesh(new THREE.SphereGeometry(0.065, 10, 8), woodMat)
+      cap.position.y = side * 0.64
+      pinGroup.add(cap)
+    })
+
+    // 중앙 미니 레드 리본 장식
+    const ribbon = new THREE.Mesh(new THREE.TorusGeometry(0.13, 0.025, 8, 16), ribbonMat)
+    ribbon.rotation.x = Math.PI / 2
+    pinGroup.add(ribbon)
+
+    bodyGroup.add(pinGroup)
+  } else if (deco?.hand === 'bubble-detective-magnifier') {
+    // 🔍 황금 버블 돋보기: 24K 골드 프레임과 맑은 볼록렌즈, 주변을 맴도는 무지개 비눗방울 3개
+    const magGroup = new THREE.Group()
+    magGroup.position.set(1.08, 0.02, 0.68)
+    magGroup.rotation.z = -0.35
+    magGroup.rotation.y = -0.2
+
+    const goldMat = new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.95, roughness: 0.12, clearcoat: 1.0 })
+    const glassMat = new THREE.MeshPhysicalMaterial({
+      color: '#E0F2FE',
+      transmission: 0.95,
+      transparent: true,
+      opacity: 0.45,
+      roughness: 0.04,
+      clearcoat: 1.0,
+      ior: 1.52,
+    })
+    const bubbleMat = new THREE.MeshPhysicalMaterial({
+      color: '#F472B6',
+      emissive: '#60A5FA',
+      emissiveIntensity: 0.4,
+      transmission: 0.92,
+      transparent: true,
+      opacity: 0.65,
+      roughness: 0.05,
+      clearcoat: 1.0,
+    })
+
+    // 돋보기 손잡이
+    const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.05, 0.68, 12), goldMat)
+    handle.position.y = -0.32
+    magGroup.add(handle)
+
+    // 돋보기 림 & 렌즈
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.042, 16, 28), goldMat)
+    rim.position.y = 0.32
+    magGroup.add(rim)
+
+    const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.02, 24), glassMat)
+    lens.rotation.x = Math.PI / 2
+    lens.position.y = 0.32
+    magGroup.add(lens)
+
+    // 렌즈 주변에 퐁퐁 솟아오른 3개의 무지개 비눗방울
+    const bubbleOffsets = [[0.22, 0.58, 0.12], [-0.25, 0.48, -0.08], [0.32, 0.22, 0.15]]
+    bubbleOffsets.forEach(([bx, by, bz], bi) => {
+      const bubble = new THREE.Mesh(new THREE.SphereGeometry(0.075 + (bi % 2) * 0.025, 12, 12), bubbleMat)
+      bubble.position.set(bx, by, bz)
+      magGroup.add(bubble)
+    })
+
+    bodyGroup.add(magGroup)
   } else if (deco?.hand === 'lantern-staff' || deco?.hand === 'star-wand' || deco?.hand === 'lollipop-wand') {
     const handGroup = new THREE.Group()
     handGroup.position.set(1.15, -0.05, 0.75)
@@ -2140,7 +2414,7 @@ export default function Monster3DView({
   // 🚀 성능 최적화: 부모 리렌더링 시 불필요한 Three.js 씬 재구축을 원천 차단하는 시그니처 키
   const deco = look.mallang?.decorations ?? look.decorations
   const wingKind = look.mallang?.wingKind
-  const lookSignature = `${activeSpecies}_${dessertBase}_${paletteKey}_${look.evoStage ?? 1}_${look.evoBranch ?? ''}_${look.expression ?? ''}_${look.mutation ?? ''}_${deco?.head ?? ''}_${deco?.back ?? ''}_${deco?.neck ?? ''}_${deco?.face ?? ''}_${deco?.effect ?? ''}_${wingKind ?? ''}`
+  const lookSignature = `${activeSpecies}_${dessertBase}_${paletteKey}_${look.evoStage ?? 1}_${look.evoBranch ?? ''}_${look.expression ?? ''}_${look.mutation ?? ''}_${deco?.head ?? ''}_${deco?.back ?? ''}_${deco?.neck ?? ''}_${deco?.face ?? ''}_${deco?.hand ?? ''}_${deco?.effect ?? ''}_${wingKind ?? ''}`
 
   // 스프링 물리 상태 레퍼런스 (포인터 터치·드래그 시 실시간 반응)
   const physRef = useRef({
