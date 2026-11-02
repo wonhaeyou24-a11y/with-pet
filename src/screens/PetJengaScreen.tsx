@@ -209,90 +209,13 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
     }, 420)
   }
 
-  // ⚖️ 3. [대표님 핵심 요청] 천천히 무게중심에 의해 기우는 실제 같은 서스펜스 물리 연출!
+  // ⚖️ 3. [대표님 핵심 요청] 진짜 물리 무게중심(Center of Mass) 및 서스펜스 속도감 물리 연출!
   const handleLandingImpact = (landedX: number) => {
-    const lastTier = activeTiers[activeTiers.length - 1]
-    const lastOffsetX = lastTier ? lastTier.offsetX : 0
+    const prevTier = activeTiers[activeTiers.length - 1]
+    const localDiff = prevTier ? Math.abs(landedX - prevTier.offsetX) : Math.abs(landedX)
+    const maxOverhang = prevTier ? (prevTier.petSize || 40) * 0.82 : 48
 
-    // 내가 드롭한 X 위치와 바로 아래 층 중심과의 차이 (diff)
-    const diff = Math.abs(landedX - lastOffsetX)
-
-    let accuracy: 'PERFECT' | 'GREAT' | 'WOBBLE' = 'WOBBLE'
-    let sound: DessertSoundKind = 'mochi-squish'
-    let notice = { text: '⚠️ WOBBLE! 기우뚱!', color: '#F59E0B', sub: '무게중심이 흔들려요!' }
-
-    // 점점 작아진 펫 크기(24~46px)에 비례한 정밀 균형 판정
-    const maxPerfect = Math.max(6, currentPetSize * 0.22)
-    const maxGreat = Math.max(15, currentPetSize * 0.52)
-    const maxTolerable = Math.max(26, currentPetSize * 0.85)
-
-    if (diff <= maxPerfect) {
-      accuracy = 'PERFECT'
-      sound = 'sugar-crack'
-      notice = { text: '✨ PERFECT! 무결점 균형!', color: '#10B981', sub: '중심축이 완벽히 맞아떨어졌어요!' }
-    } else if (diff <= maxGreat) {
-      accuracy = 'GREAT'
-      sound = 'mochi-squish'
-      notice = { text: '👍 GREAT! 쫀득 안착!', color: '#3B82F6', sub: '살짝 쏠렸지만 안정적으로 버텨요!' }
-    } else {
-      accuracy = 'WOBBLE'
-      sound = 'wax-tap'
-      notice = { text: '⚠️ WOBBLE! 위태위태!', color: '#EF4444', sub: '무게중심이 심하게 기울어집니다!' }
-    }
-
-    setBurstKind(sound)
-    setBurstKey((k) => k + 1)
-    playDessertAsmr(sound, accuracy === 'PERFECT' ? 3 : 1)
-
-    // 착지 시 무게중심 충격으로 탑이 천천히 기우는 각도 계산
-    const leanDelta = (landedX - lastOffsetX) * 0.55
-    const nextCumulativeTilt = activeTilt + leanDelta
-
-    // 💥 붕괴 판정: 누적 기울기가 ±24도 초과 또는 오차가 허용치 초과 시 와르르!
-    const willCollapse = Math.abs(nextCumulativeTilt) >= 24 || diff >= maxTolerable
-
-    setGameState('swaying')
-    setAccuracyNotice(notice)
-
-    // 🎬 [천천히 무게중심에 따라 기우는 모습 3단계 연출]
-    if (towerRef.current) {
-      // 1단계 (0 ~ 450ms): 착지 무게중심에 의해 탑이 천천히 기우뚱 쏠림!
-      towerRef.current.style.transition = 'transform 0.5s cubic-bezier(0.2, 0.8, 0.4, 1)'
-      towerRef.current.style.transform = `rotate(${nextCumulativeTilt * 1.3}deg)`
-
-      window.setTimeout(() => {
-        if (!towerRef.current) return
-
-        if (willCollapse) {
-          // 💥 무게중심 한계 초과: 기울기를 못 이기고 점점 더 넘어가며 와르르 붕괴!
-          towerRef.current.style.transition = 'transform 0.65s cubic-bezier(0.55, 0.055, 0.675, 0.19)'
-          towerRef.current.style.transform = `rotate(${nextCumulativeTilt > 0 ? 58 : -58}deg)`
-
-          window.setTimeout(() => {
-            handleTowerCollapse(nextCumulativeTilt)
-          }, 650)
-        } else {
-          // 2단계 (450 ~ 900ms): 아슬아슬하게 반대쪽으로 반동하며 균형을 테스트!
-          towerRef.current.style.transition = 'transform 0.45s cubic-bezier(0.4, 0.1, 0.2, 1)'
-          towerRef.current.style.transform = `rotate(${nextCumulativeTilt * 0.75}deg)`
-
-          window.setTimeout(() => {
-            if (!towerRef.current) return
-            // 3단계 (900 ~ 1350ms): 휴~ 중심을 되찾고 안정적으로 정착!
-            towerRef.current.style.transition = 'transform 0.4s ease-out'
-            towerRef.current.style.transform = `rotate(${nextCumulativeTilt * 0.45}deg)`
-
-            window.setTimeout(() => {
-              handleSwaySuccess(nextCumulativeTilt, accuracy, landedX)
-            }, 400)
-          }, 450)
-        }
-      }, 500)
-    }
-  }
-
-  // ✨ 흔들림을 버텨내고 최종 안착 성공 처리
-  const handleSwaySuccess = (finalTilt: number, accuracy: 'PERFECT' | 'GREAT' | 'WOBBLE', landedX: number) => {
+    // 💥 1. 새로 드롭한 펫을 즉시 탑 층으로 생성 (떨어뜨린 X 좌표 그대로 유지하여 사라짐 없이 즉각 안착!)
     const newTier: TowerTier = {
       id: `tier-${Date.now()}`,
       floor: currentFloor,
@@ -300,25 +223,122 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
       petName: petName,
       species: myMonster.species,
       look: myLook,
-      offsetX: landedX,
+      offsetX: landedX, // 대표님이 떨어뜨린 바로 그 위치에 정확히 안착!
       petSize: currentPetSize,
-      accuracy,
+      accuracy: 'WOBBLE',
       placedAt: new Date().toISOString(),
     }
 
+    const allTiers = [...activeTiers, newTier]
+
+    // 📐 2. 물리 무게중심 (Center of Mass): 모든 층의 (오프셋 * 무게) 합산 / 총 무게
+    const totalWeight = allTiers.reduce((sum, t) => sum + (t.petSize || 40), 0)
+    const totalMoment = allTiers.reduce((sum, t) => sum + t.offsetX * (t.petSize || 40), 0)
+    const centerOfMass = totalMoment / totalWeight
+
+    // ⚖️ 3. 지지선 균형 판정 (비뚤어져도 무게중심만 맞으면 무너지지 않는 진짜 돌탑의 손맛!)
+    // - 황금 받침대 유효 지지 한계: ±30px
+    // - 개별 층 접촉면 한계: localDiff <= maxOverhang (허공에 완전히 떨어진 경우만 미끄러짐)
+    const willSlideOff = localDiff > maxOverhang
+    const willTipOver = Math.abs(centerOfMass) > 30
+    const willCollapse = willSlideOff || willTipOver
+
+    let accuracy: 'PERFECT' | 'GREAT' | 'WOBBLE' = 'WOBBLE'
+    let sound: DessertSoundKind = 'mochi-squish'
+    let notice = { text: '⚠️ WOBBLE! 기우뚱!', color: '#F59E0B', sub: '무게중심이 흔들려요!' }
+
+    if (!willCollapse) {
+      if (Math.abs(centerOfMass) <= 7) {
+        accuracy = 'PERFECT'
+        sound = 'sugar-crack'
+        notice = { text: '✨ PERFECT! 황금 무게중심!', color: '#10B981', sub: `중심 오차 ${centerOfMass.toFixed(1)}px! 환상적인 균형!` }
+      } else if (Math.abs(centerOfMass) <= 18) {
+        accuracy = 'GREAT'
+        sound = 'mochi-squish'
+        notice = { text: '👍 GREAT! 지그재그 균형!', color: '#3B82F6', sub: '삐뚤빼뚤하지만 무게중심이 절묘하게 맞아떨어졌어요!' }
+      } else {
+        accuracy = 'WOBBLE'
+        sound = 'wax-tap'
+        notice = { text: '⚠️ WOBBLE! 아슬아슬 버팀!', color: '#F59E0B', sub: '기우뚱했지만 받침대 안쪽에서 간신히 버텼어요!' }
+      }
+    } else {
+      sound = 'mochi-squish'
+      notice = {
+        text: willSlideOff ? '💥 미끄덩! 허공 낙하!' : '💥 와르르! 무게중심 붕괴!',
+        color: '#EF4444',
+        sub: willSlideOff ? '아래 펫과의 접촉면을 완전히 벗어났어요!' : '탑 전체의 무게중심이 받침대 밖으로 쏠렸어요!',
+      }
+    }
+
+    newTier.accuracy = accuracy
+
+    // 즉시 상태에 반영하여 드롭한 펫이 사라지지 않고 탑 꼭대기에 그대로 보이게 함!
+    if (mode === 'relay') {
+      setRelayState((prev) => ({ ...prev, tiers: allTiers }))
+    } else {
+      setSoloTiers(allTiers)
+    }
+
+    setBurstKind(sound)
+    setBurstKey((k) => k + 1)
+    playDessertAsmr(sound, accuracy === 'PERFECT' ? 3 : 1)
+
+    setGameState('swaying')
+    setAccuracyNotice(notice)
+
+    // 🎬 4. [대표님 핵심 요청] 진짜 물리 법칙에 따른 3단계 서스펜스 속도감 연출!
+    const targetTiltDeg = centerOfMass * 0.85
+
+    if (towerRef.current) {
+      // 1단계 (0 ~ 650ms): 착지 하중에 의해 탑이 삐걱거리며 천천히 기우뚱 넘어가는 관성 회전
+      towerRef.current.style.transition = 'transform 0.65s cubic-bezier(0.25, 0.1, 0.25, 1)'
+      towerRef.current.style.transform = `rotate(${targetTiltDeg * 1.35}deg)`
+
+      window.setTimeout(() => {
+        if (!towerRef.current) return
+
+        if (willCollapse) {
+          // 💥 붕괴 2단계 (650 ~ 1450ms): 기울기를 못 이기고 중력 가속도가 붙으며 휙! 와르르 무너짐!
+          towerRef.current.style.transition = 'transform 0.8s cubic-bezier(0.6, -0.05, 0.9, 0.4)'
+          towerRef.current.style.transform = `rotate(${centerOfMass >= 0 ? 68 : -68}deg)`
+
+          window.setTimeout(() => {
+            handleTowerCollapse(targetTiltDeg)
+          }, 800)
+        } else {
+          // 2단계 (650 ~ 1200ms): 멈칫하다가 "덜컹!" 반대로 서서히 튕기며 탄성 감쇠 (심장 쫄깃한 구간!)
+          towerRef.current.style.transition = 'transform 0.55s cubic-bezier(0.34, 1.35, 0.64, 1)'
+          towerRef.current.style.transform = `rotate(${targetTiltDeg * 0.45}deg)`
+
+          window.setTimeout(() => {
+            if (!towerRef.current) return
+            // 3단계 (1200 ~ 1550ms): 자연스러운 평형 각도로 미세 정착!
+            towerRef.current.style.transition = 'transform 0.35s ease-out'
+            towerRef.current.style.transform = `rotate(${targetTiltDeg}deg)`
+
+            window.setTimeout(() => {
+              finalizeSwaySuccess(targetTiltDeg, accuracy, allTiers)
+            }, 350)
+          }, 550)
+        }
+      }, 650)
+    }
+  }
+
+  // ✨ 흔들림을 버텨내고 최종 안착 성공 처리
+  const finalizeSwaySuccess = (finalTilt: number, accuracy: 'PERFECT' | 'GREAT' | 'WOBBLE', allTiers: TowerTier[]) => {
     setGameState('settled')
     playBabyGiggleSound(accuracy === 'PERFECT' ? '까르르' : '헤헤헤', 'cheer')
 
     if (mode === 'relay') {
-      const updatedTiers = [...relayState.tiers, newTier]
       const addedCoins = accuracy === 'PERFECT' ? 35 : accuracy === 'GREAT' ? 25 : 15
       const updatedPotCoins = relayState.potCoins + addedCoins
       const updatedPotRibbons = relayState.potRibbons + (accuracy === 'PERFECT' ? 4 : 2)
-      const updatedRecord = Math.max(relayState.highestRecord, updatedTiers.length)
+      const updatedRecord = Math.max(relayState.highestRecord, allTiers.length)
 
       const updatedRelay: RelayTowerState = {
         ...relayState,
-        tiers: updatedTiers,
+        tiers: allTiers,
         potCoins: updatedPotCoins,
         potRibbons: updatedPotRibbons,
         highestRecord: updatedRecord,
@@ -330,21 +350,20 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
       setRelayState(updatedRelay)
       localStorage.setItem(RELAY_STORAGE_KEY, JSON.stringify(updatedRelay))
       onRewardCoins?.(addedCoins, accuracy === 'PERFECT' ? 2 : 1)
-      setToastMsg(`🎉 ${currentFloor}단 균형 잡기 성공! (+${addedCoins}🪙 획득, 팟에 적립!)`)
+      setToastMsg(`🎉 ${currentFloor}단 안착 성공! (+${addedCoins}🪙 획득, 팟에 적립!)`)
 
-      if (updatedTiers.length % 5 === 0) {
+      if (allTiers.length % 5 === 0) {
         setTimeout(() => {
           playDessertAsmr('starlight-ting', 3)
-          setToastMsg(`🌟 [${updatedTiers.length}단 돌파 잭팟!] 마을 전체에 축하 선물이 배달됩니다!`)
+          setToastMsg(`🌟 [${allTiers.length}단 돌파 잭팟!] 마을 전체에 축하 선물이 배달됩니다!`)
         }, 1200)
       }
     } else {
-      const updatedTiers = [...soloTiers, newTier]
-      setSoloTiers(updatedTiers)
+      setSoloTiers(allTiers)
       setSoloTilt(finalTilt)
-      if (updatedTiers.length > soloBestScore) {
-        setSoloBestScore(updatedTiers.length)
-        localStorage.setItem(SOLO_RECORD_STORAGE_KEY, String(updatedTiers.length))
+      if (allTiers.length > soloBestScore) {
+        setSoloBestScore(allTiers.length)
+        localStorage.setItem(SOLO_RECORD_STORAGE_KEY, String(allTiers.length))
       }
       onRewardCoins?.(20, 1)
       setToastMsg(`🎉 솔로 ${currentFloor}층 돌파 성공! (+20🪙)`)
@@ -601,6 +620,7 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
                   position: 'absolute',
                   top: 48 + currentPetSize,
                   left: '50%',
+                  marginLeft: -0.75,
                   transform: 'translate3d(0px, 0, 0)',
                   width: 1.5,
                   height: 250,
@@ -619,6 +639,7 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
                 position: 'absolute',
                 top: 48,
                 left: '50%',
+                marginLeft: -Math.round(currentPetSize / 2),
                 transform: 'translate3d(0px, 0, 0)',
                 willChange: 'transform',
                 zIndex: 35,

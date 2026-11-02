@@ -9,7 +9,7 @@ import { recordMissionAction } from '../config/missions'
 import { ELEMENT_INFO } from '../config/species'
 import { monsterLook, type MonsterRow } from '../lib/api'
 import { PLAZA_SHOWCASE_FRIENDS, type PlazaFriendEntry } from '../lib/battleEngine'
-import { playDessertAsmr } from '../lib/sound'
+import { playDessertAsmr, playBabyGiggleSound } from '../lib/sound'
 import { supabase } from '../lib/supabase'
 import { normalizeDessertSpecies } from '../monsters/dessertNormalizer'
 import { callBattle, isRealMonsterId } from '../lib/battleApi'
@@ -542,6 +542,7 @@ export default function DessertPlaza({
   function handleSelectFriend(idx: number) {
     setSelectedIdx(idx)
     const coord = PLAZA_COORDS[idx % PLAZA_COORDS.length]
+    playBabyGiggleSound('헤헤헤', 'giggle')
     playDessertAsmr('acorn-snap')
     const targetZoom = Math.max(zoom, 1.1)
     setZoom(targetZoom)
@@ -1102,40 +1103,90 @@ export default function DessertPlaza({
               </span>
             </div>
 
-            {/* 미니 돌탑 비주얼 연출: 황금 받침대 위에 포개진 앙증맞은 3단 디저트 펫들 */}
+            {/* 🪨 [대표님 요청] 정갈하고 아름다운 전통 디저트 돌탑(Stone Pagoda) 랜드마크 */}
             <div
               style={{
                 position: 'relative',
                 display: 'flex',
-                flexDirection: 'column-reverse',
+                flexDirection: 'column',
                 alignItems: 'center',
-                transformOrigin: 'bottom center',
+                filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.35))',
+                transform: 'scale(1.05)',
+                transition: 'transform 0.2s ease',
               }}
             >
-              {/* 돌탑 바닥 황금 접시 */}
-              <div
-                style={{
-                  width: 72,
-                  height: 14,
-                  borderRadius: 8,
-                  background: 'linear-gradient(180deg, #F59E0B 0%, #B45309 100%)',
-                  border: '1.5px solid #FDE047',
-                  boxShadow: '0 4px 10px rgba(0,0,0,0.4)',
-                  marginTop: 2,
-                }}
-              />
-              {/* 1단 쿠키 */}
-              <div style={{ marginTop: 0, marginBottom: -6 }}>
-                <span style={{ fontSize: 24 }}>🍪</span>
-              </div>
-              {/* 2단 푸딩 */}
-              <div style={{ marginTop: 0, marginBottom: -6 }}>
-                <span style={{ fontSize: 22 }}>🍮</span>
-              </div>
-              {/* 3단 모찌 */}
-              <div style={{ marginTop: 0, marginBottom: -6 }}>
-                <span style={{ fontSize: 20 }}>🍡</span>
-              </div>
+              <svg width="78" height="88" viewBox="0 0 78 88" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  {/* 자연석 그라데이션 */}
+                  <linearGradient id="stoneBase" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#94A3B8" />
+                    <stop offset="40%" stopColor="#64748B" />
+                    <stop offset="100%" stopColor="#334155" />
+                  </linearGradient>
+                  <linearGradient id="stone2" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#A1A1AA" />
+                    <stop offset="50%" stopColor="#71717A" />
+                    <stop offset="100%" stopColor="#3F3F46" />
+                  </linearGradient>
+                  <linearGradient id="stone3" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#CBD5E1" />
+                    <stop offset="50%" stopColor="#94A3B8" />
+                    <stop offset="100%" stopColor="#475569" />
+                  </linearGradient>
+                  <linearGradient id="stone4" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#D4D4D8" />
+                    <stop offset="60%" stopColor="#A1A1AA" />
+                    <stop offset="100%" stopColor="#52525B" />
+                  </linearGradient>
+                  <linearGradient id="stoneTop" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#FEF08A" />
+                    <stop offset="30%" stopColor="#FDE047" />
+                    <stop offset="100%" stopColor="#D97706" />
+                  </linearGradient>
+                  {/* 이끼 녹색 */}
+                  <linearGradient id="mossGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#86EFAC" />
+                    <stop offset="100%" stopColor="#15803D" />
+                  </linearGradient>
+                </defs>
+
+                {/* 1단 바닥 큰 주춧돌 (자연석) */}
+                <ellipse cx="39" cy="74" rx="34" ry="11" fill="url(#stoneBase)" />
+                <ellipse cx="38" cy="71.5" rx="31" ry="8.5" fill="#64748B" opacity="0.6" />
+                <path d="M12 73 Q39 67 66 73" stroke="#CBD5E1" strokeWidth="1.2" strokeLinecap="round" opacity="0.5" fill="none" />
+
+                {/* 바닥 이끼 포인트 */}
+                <ellipse cx="18" cy="76" rx="4.5" ry="2.5" fill="url(#mossGrad)" opacity="0.85" />
+                <ellipse cx="58" cy="77" rx="3.5" ry="2" fill="url(#mossGrad)" opacity="0.85" />
+
+                {/* 2단 중형 강돌 */}
+                <ellipse cx="39" cy="59" rx="26" ry="9" fill="url(#stone2)" />
+                <ellipse cx="38.5" cy="57" rx="23.5" ry="7" fill="#71717A" opacity="0.6" />
+                <path d="M18 58 Q39 53 60 58" stroke="#E4E4E7" strokeWidth="1" strokeLinecap="round" opacity="0.5" fill="none" />
+
+                {/* 3단 청석 몽돌 */}
+                <ellipse cx="39" cy="45" rx="20" ry="7.5" fill="url(#stone3)" />
+                <ellipse cx="38.5" cy="43.5" rx="18" ry="6" fill="#94A3B8" opacity="0.6" />
+                <path d="M22 44 Q39 40 56 44" stroke="#F1F5F9" strokeWidth="0.9" strokeLinecap="round" opacity="0.6" fill="none" />
+
+                {/* 4단 둥근 조약돌 */}
+                <ellipse cx="39" cy="32" rx="14.5" ry="6.2" fill="url(#stone4)" />
+                <ellipse cx="38.5" cy="30.8" rx="12.5" ry="4.8" fill="#A1A1AA" opacity="0.6" />
+                <path d="M28 31 Q39 28 50 31" stroke="#FAFAFA" strokeWidth="0.8" strokeLinecap="round" opacity="0.6" fill="none" />
+
+                {/* 5단 꼭대기 황금 소원 꼭지돌 (영롱한 골드 스톤) */}
+                <ellipse cx="39" cy="19" rx="9" ry="5.5" fill="url(#stoneTop)" />
+                <ellipse cx="38.5" cy="17.8" rx="7.2" ry="4" fill="#FEF08A" opacity="0.8" />
+                <circle cx="37" cy="16.5" r="1.5" fill="#FFFFFF" />
+
+                {/* 반짝이는 소원 스파클 */}
+                <path d="M39 6 L40 10 L44 11 L40 12 L39 16 L38 12 L34 11 L38 10 Z" fill="#FDE047" opacity="0.9">
+                  <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite" />
+                </path>
+                <circle cx="50" cy="14" r="1.2" fill="#FEF08A">
+                  <animate attributeName="opacity" values="0.2;0.9;0.2" dur="1.6s" repeatCount="indefinite" />
+                </circle>
+              </svg>
             </div>
 
             {/* 발밑 타원 그림자 */}

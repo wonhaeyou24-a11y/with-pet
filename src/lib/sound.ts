@@ -372,7 +372,9 @@ export function playDessertAsmr(kind: DessertSoundKind, comboStep = 0): SoundMet
   return meta
 }
 
-// 👶 펫 터치 시 진짜 아기 목소리로 "까르르~", "헤헤헤!", "아잉~"을 말하는 음성 + Web Audio 하모닉스 듀얼 재생
+// 👶 펫 터치 시 진짜 사랑스러운 아기 웃음소리("까르르~", "헤헤헤!", "아잉~") 순수 어쿠스틱 포먼트 사운드
+// - 대표님 피드백 반영: Windows/OS의 로봇 같은 아저씨 목소리(InJoon 등 TTS 남성 음성)를 전면 배제하고,
+//   어떤 기기(PC/아이폰/안드로이드)에서든 100% 맑고 앙증맞은 천사 아기 목소리로 합성 재생!
 export function playBabyGiggleSound(
   voiceWord: '까르르' | '헤헤헤' | '아잉' | '꺄앙' = '까르르',
   variant: 'giggle' | 'chuckle' | 'cheer' = 'giggle',
@@ -380,72 +382,119 @@ export function playBabyGiggleSound(
   try {
     if (isAsmrMuted()) return
 
-    // 1. 🗣️ 브라우저 내장 Web Speech API로 실제 사랑스러운 한국어 아기 음성("까르르~", "헤헤헤!", "아잉~") 직접 발성
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      try {
-        window.speechSynthesis.cancel() // 이전 재생 즉시 취소 후 새 음성 발성
-        const u = new SpeechSynthesisUtterance(voiceWord)
-        u.lang = 'ko-KR'
-        u.pitch = 1.95 // 앙증맞고 높은 아기 피치
-        u.rate = 1.35 // 종알종알 빠른 아기 말투
-        u.volume = 0.95
-
-        // 한국어 여성/하이톤 음성 우선 선택
-        const voices = window.speechSynthesis.getVoices()
-        const koVoice = voices.find((v) => v.lang.startsWith('ko') && (v.name.includes('Yuna') || v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Korean')))
-          ?? voices.find((v) => v.lang.startsWith('ko'))
-        if (koVoice) u.voice = koVoice
-
-        window.speechSynthesis.speak(u)
-      } catch {
-        // 음성 권한 문제 시 아래 Web Audio가 안전하게 백업
-      }
-    }
-
-    // 2. 🎵 Web Audio API: 맑은 방울 종소리와 퐁퐁 솟아오르는 비브라토 하모닉스 합성
     const ctx = getAudioContext()
     if (!ctx) return
 
     const now = ctx.currentTime
     const master = getMasterBus(ctx)
 
-    const variantMultiplier = variant === 'cheer' ? 1.12 : variant === 'chuckle' ? 0.92 : 1.0
-    const burstCount = voiceWord === '까르르' ? 5 : voiceWord === '헤헤헤' ? 4 : 3
-    const baseFreq = (voiceWord === '까르르' ? 780 : voiceWord === '헤헤헤' ? 620 : 860) * variantMultiplier
-    const interval = 0.068
+    // 🍼 실제 아기 성대 주파수 특성(F0: 680~1050Hz, 포먼트 공명 F1: 850~1100Hz, F2: 2400~3200Hz)
+    const variantPitchMult = variant === 'cheer' ? 1.15 : variant === 'chuckle' ? 0.95 : 1.05
 
-    for (let i = 0; i < burstCount; i++) {
-      const startTime = now + i * interval
+    if (voiceWord === '아잉') {
+      // 💖 아잉: 애교 넘치는 아기 옹알이 벤딩 (우~ -> 아잉~!)
+      const dur = 0.38
       const osc = ctx.createOscillator()
+      const oscSub = ctx.createOscillator()
       const gain = ctx.createGain()
-      const filter = ctx.createBiquadFilter()
+      const formant1 = ctx.createBiquadFilter()
+      const formant2 = ctx.createBiquadFilter()
 
-      osc.type = i % 2 === 0 ? 'sine' : 'triangle'
+      osc.type = 'sine'
+      oscSub.type = 'triangle'
 
-      // 음정이 퐁퐁 솟아오르는 귀여운 아기 웃음 피치 벤딩
-      const startPitch = baseFreq * (1 + i * 0.08)
-      const peakPitch = startPitch * 1.32
-      osc.frequency.setValueAtTime(startPitch, startTime)
-      osc.frequency.exponentialRampToValueAtTime(peakPitch, startTime + interval * 0.35)
-      osc.frequency.exponentialRampToValueAtTime(startPitch * 0.92, startTime + interval * 0.85)
+      // 귀여운 억양 피치 궤적 (620Hz -> 960Hz -> 820Hz)
+      const base = 640 * variantPitchMult
+      osc.frequency.setValueAtTime(base, now)
+      osc.frequency.exponentialRampToValueAtTime(base * 1.55, now + dur * 0.45)
+      osc.frequency.exponentialRampToValueAtTime(base * 1.25, now + dur)
 
-      filter.type = 'bandpass'
-      filter.frequency.setValueAtTime(peakPitch * 1.3, startTime)
-      filter.Q.setValueAtTime(3.2, startTime)
+      oscSub.frequency.setValueAtTime(base * 1.01, now)
+      oscSub.frequency.exponentialRampToValueAtTime(base * 1.56, now + dur * 0.45)
+      oscSub.frequency.exponentialRampToValueAtTime(base * 1.26, now + dur)
 
-      gain.gain.setValueAtTime(0.001, startTime)
-      gain.gain.linearRampToValueAtTime(0.38, startTime + interval * 0.2)
-      gain.gain.exponentialRampToValueAtTime(0.001, startTime + interval * 0.88)
+      // 아기 목소리 포먼트 필터
+      formant1.type = 'bandpass'
+      formant1.frequency.setValueAtTime(1100, now)
+      formant1.Q.setValueAtTime(4.2, now)
 
-      osc.connect(filter)
-      filter.connect(gain)
+      formant2.type = 'bandpass'
+      formant2.frequency.setValueAtTime(2600, now)
+      formant2.Q.setValueAtTime(5.0, now)
+
+      gain.gain.setValueAtTime(0.001, now)
+      gain.gain.linearRampToValueAtTime(0.38, now + 0.04)
+      gain.gain.exponentialRampToValueAtTime(0.28, now + dur * 0.7)
+      gain.gain.exponentialRampToValueAtTime(0.001, now + dur)
+
+      osc.connect(formant1)
+      oscSub.connect(formant2)
+      formant1.connect(gain)
+      formant2.connect(gain)
       gain.connect(master)
 
-      osc.start(startTime)
-      osc.stop(startTime + interval * 0.92)
+      osc.start(now)
+      oscSub.start(now)
+      osc.stop(now + dur)
+      oscSub.stop(now + dur)
+    } else {
+      // 🌟 까르르 / 헤헤헤 / 꺄앙: 통통 튀는 아기 웃음소리 버스트 연쇄
+      const isGiggle = voiceWord === '까르르'
+      const burstCount = isGiggle ? 5 : voiceWord === '헤헤헤' ? 3 : 4
+      const interval = isGiggle ? 0.062 : 0.082
+      const baseFreq = (isGiggle ? 760 : voiceWord === '헤헤헤' ? 680 : 840) * variantPitchMult
+
+      for (let i = 0; i < burstCount; i++) {
+        const startTime = now + i * interval
+        const burstDur = interval * 0.88
+        const osc = ctx.createOscillator()
+        const oscHarmonic = ctx.createOscillator()
+        const gain = ctx.createGain()
+        const formantF1 = ctx.createBiquadFilter()
+        const formantF2 = ctx.createBiquadFilter()
+
+        osc.type = 'sine'
+        oscHarmonic.type = 'triangle'
+
+        // 아기 웃음의 퐁퐁 솟아오르는 피치 벤딩
+        const pitchHop = baseFreq * (1 + (i % 2 === 0 ? i * 0.09 : (i - 1) * 0.09 + 0.16))
+        const peakPitch = pitchHop * 1.35
+
+        osc.frequency.setValueAtTime(pitchHop, startTime)
+        osc.frequency.exponentialRampToValueAtTime(peakPitch, startTime + burstDur * 0.3)
+        osc.frequency.exponentialRampToValueAtTime(pitchHop * 0.95, startTime + burstDur * 0.85)
+
+        oscHarmonic.frequency.setValueAtTime(pitchHop * 2, startTime)
+        oscHarmonic.frequency.exponentialRampToValueAtTime(peakPitch * 2, startTime + burstDur * 0.3)
+
+        // 아동 성대 F1/F2 포먼트 공명
+        formantF1.type = 'bandpass'
+        formantF1.frequency.setValueAtTime(peakPitch * 1.25, startTime)
+        formantF1.Q.setValueAtTime(3.8, startTime)
+
+        formantF2.type = 'bandpass'
+        formantF2.frequency.setValueAtTime(peakPitch * 2.8, startTime)
+        formantF2.Q.setValueAtTime(4.5, startTime)
+
+        // 부드럽고 앙증맞은 웃음 엔벨로프
+        gain.gain.setValueAtTime(0.001, startTime)
+        gain.gain.linearRampToValueAtTime(0.42, startTime + burstDur * 0.22)
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + burstDur)
+
+        osc.connect(formantF1)
+        oscHarmonic.connect(formantF2)
+        formantF1.connect(gain)
+        formantF2.connect(gain)
+        gain.connect(master)
+
+        osc.start(startTime)
+        oscHarmonic.start(startTime)
+        osc.stop(startTime + burstDur)
+        oscHarmonic.stop(startTime + burstDur)
+      }
     }
   } catch {
-    // 오디오 미지원 시 안전 무시 (Zero-Crash)
+    // Zero-Crash 예외 보장
   }
 }
 
