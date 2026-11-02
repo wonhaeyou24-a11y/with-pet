@@ -168,3 +168,101 @@ end $$;
 
 revoke all on function public.shop_buy(text) from public, anon;
 grant execute on function public.shop_buy(text) to authenticated;
+
+-- 기본 지급 및 보유 아이템 검증 도우미
+create or replace function public._item_ok(p_owned jsonb, p_item text) returns boolean
+language sql
+immutable
+set search_path = public
+as $$
+  select (p_owned ? p_item) or p_item = any(array['berry-beret', 'sleep-mask', 'bell-ribbon', 'room-patisserie', 'sofa-macaron', 'lamp-starlight', 'nest', 'base-nest']);
+$$;
+revoke all on function public._item_ok(jsonb, text) from public, anon, authenticated;
+
+-- 마이룸 설정 저장 (16종 테마 및 17종 가구 지원)
+create or replace function public.room_save(p_theme text, p_furniture jsonb) returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  uid uuid := auth.uid();
+  p record;
+  f text;
+  clean jsonb := '[]'::jsonb;
+begin
+  if uid is null then return jsonb_build_object('ok', false, 'code', 'auth', 'message', '다시 로그인해 주세요.'); end if;
+  select * into p from public.players where id = uid;
+  if not found then return jsonb_build_object('ok', false, 'code', 'no_player', 'message', '플레이어 정보를 찾지 못했어요.'); end if;
+  if p_theme is null or p_theme not like 'room-%' or not exists (select 1 from public.shop_items where id = p_theme) or not public._item_ok(p.owned_items, p_theme) then
+    return jsonb_build_object('ok', false, 'code', 'bad_theme', 'message', '아직 구매하지 않은 테마입니다. 부티크에서 구매해보세요!');
+  end if;
+  if jsonb_typeof(p_furniture) is distinct from 'array' then
+    return jsonb_build_object('ok', false, 'code', 'bad_furniture', 'message', '가구 목록이 올바르지 않아요.');
+  end if;
+  for f in select jsonb_array_elements_text(p_furniture) loop
+    if f like 'room-%' or not exists (select 1 from public.shop_items where id = f) or not public._item_ok(p.owned_items, f) then
+      return jsonb_build_object('ok', false, 'code', 'bad_furniture', 'message', '아직 구매하지 않은 가구입니다. 부티크에서 구매해보세요!');
+    end if;
+    if not (clean ? f) then clean := clean || to_jsonb(f); end if;
+  end loop;
+  if jsonb_array_length(clean) > 12 then
+    return jsonb_build_object('ok', false, 'code', 'too_many', 'message', '가구는 12개까지 놓을 수 있어요.');
+  end if;
+  insert into public.room_settings (owner, theme_id, furniture, updated_at) values (uid, p_theme, clean, now())
+    on conflict (owner) do update set theme_id = excluded.theme_id, furniture = excluded.furniture, updated_at = now();
+  return jsonb_build_object('ok', true, 'theme', p_theme, 'furniture', clean);
+end $$;
+
+-- 꾸민 몬스터 모습 저장 (패션 91종 + 받침대 12종 및 염색 지원)
+create or replace function public.look_save(p_monster uuid, p_custom jsonb) returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  uid uuid := auth.uid();
+  p record;
+  mo record;
+  decor jsonb;
+  clean_decor jsonb := '{}'::jsonb;
+  k text;
+  v jsonb;
+  clean jsonb;
+  b text;
+begin
+  if uid is null then return jsonb_build_object('ok', false, 'code', 'auth', 'message', '다시 로그인해 주세요.'); end if;
+  select * into mo from public.monsters where id = p_monster and owner = uid;
+  if not found then return jsonb_build_object('ok', false, 'code', 'no_monster', 'message', '내 몬스터를 찾지 못했어요.'); end if;
+  if jsonb_typeof(p_custom) is distinct from 'object' or length(p_custom::text) > 32000 then
+    return jsonb_build_object('ok', false, 'code', 'bad_look', 'message', '꾸민 모습이 너무 크거나 올바르지 않아요.');
+  end if;
+  select * into p from public.players where id = uid;
+  decor := coalesce(p_custom->'decorations', '{}'::jsonb);
+  if jsonb_typeof(decor) = 'object' then
+    for k, v in select * from jsonb_each(decor) loop
+      if k = 'dye' then
+        if jsonb_typeof(v) = 'number' then clean_decor := jsonb_set(clean_decor, array[k], v, true); end if;
+      elsif k in ('head', 'face', 'neck', 'back', 'hand', 'bg', 'effect') and jsonb_typeof(v) = 'string' then
+        if public._item_ok(p.owned_items, v #>> '{}') and exists (select 1 from public.shop_items where id = v #>> '{}') then
+          clean_decor := jsonb_set(clean_decor, array[k], v, true);
+        end if;
+      end if;
+    end loop;
+  end if;
+  clean := jsonb_set(p_custom, '{decorations}', clean_decor, true);
+
+  -- 12종 디저트 받침대(dessertBase) 안전 검증 및 보존
+  if p_custom ? 'dessertBase' and jsonb_typeof(p_custom->'dessertBase') = 'string' then
+    b := p_custom->>'dessertBase';
+    if public._item_ok(p.owned_items, b) and exists (select 1 from public.shop_items where id = b) then
+      clean := jsonb_set(clean, '{dessertBase}', to_jsonb(b), true);
+    end if;
+  end if;
+
+  update public.monsters set look_custom = clean where id = mo.id;
+  return jsonb_build_object('ok', true, 'look', clean);
+end $$;
+
+revoke all on function public.room_save(text, jsonb), public.look_save(uuid, jsonb) from public, anon;
+grant execute on function public.room_save(text, jsonb), public.look_save(uuid, jsonb) to authenticated;

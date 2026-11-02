@@ -18,6 +18,8 @@ import { getPvpMatchRecords, formatTimeAgo, type PvpMatchRecord } from '../lib/p
 import MonsterSnapshot from '../monsters/MonsterSnapshot'
 import WorldBoss3DView from '../monsters/WorldBoss3DView'
 import { BackIcon, ElementIcon } from '../ui/Icons'
+import { ROOM_THEMES, type RoomThemeDef } from '../config/boutique'
+import ScenicBackdrop from '../ui/ScenicBackdrop'
 import {
   createWorldBossMonster,
   getWorldBossStatus,
@@ -516,6 +518,11 @@ export default function DessertPlaza({
   // 펫마다 저장소를 읽는 계산은 지인 목록이 바뀔 때만 한다 (드래그·산책 중 매번 다시 하지 않는다)
   const entryLooks = useMemo(() => entries.map((e) => monsterLook(e.monster)), [entries])
   const selLook = useMemo(() => monsterLook(selectedFriend.monster), [selectedFriend.monster])
+  const friendScenicTheme = useMemo(() => {
+    const bgId = selLook.decorations?.bg
+    if (!bgId) return null
+    return ROOM_THEMES.find((t: RoomThemeDef) => t.id === bgId) ?? null
+  }, [selLook.decorations?.bg])
   const myLookMemo = useMemo(() => monsterLook(myMonster), [myMonster])
   const themeObj = PLAZA_THEMES[currentTheme]
 
@@ -1340,22 +1347,32 @@ export default function DessertPlaza({
           <div className="row" style={{ gap: 8, minWidth: 0, flex: 1 }}>
             <span
               style={{
-                width: 44,
-                height: 44,
+                width: 48,
+                height: 48,
                 borderRadius: 14,
-                background: '#FFF3E0',
-                border: '1.5px solid #FFB74D',
+                background: friendScenicTheme?.cardGradient || '#FFF3E0',
+                border: `1.5px solid ${friendScenicTheme?.accentColor || '#FFB74D'}`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 overflow: 'hidden',
                 flexShrink: 0,
+                position: 'relative',
               }}
             >
-              <MonsterSnapshot look={selLook} size={42} title={selectedFriend.monster.name ?? undefined} />
+              {friendScenicTheme && (
+                <ScenicBackdrop
+                  themeId={friendScenicTheme.id}
+                  mode="pet-card"
+                  style={{ position: 'absolute', inset: 0, zIndex: 0, opacity: 0.85 }}
+                />
+              )}
+              <div style={{ position: 'relative', zIndex: 1 }}>
+                <MonsterSnapshot look={selLook} size={42} title={selectedFriend.monster.name ?? undefined} />
+              </div>
             </span>
             <div style={{ minWidth: 0, flex: 1 }}>
-              <div className="row" style={{ gap: 4 }}>
+              <div className="row" style={{ gap: 4, flexWrap: 'wrap' }}>
                 <strong style={{ fontSize: 13, color: '#3E2723' }}>
                   {selectedFriend.monster.name}
                 </strong>
@@ -1366,6 +1383,25 @@ export default function DessertPlaza({
                   <ElementIcon element={selectedFriend.monster.element} size={10} />
                   {ELEMENT_INFO[selectedFriend.monster.element].label}
                 </span>
+                {friendScenicTheme && (
+                  <span
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 800,
+                      padding: '1px 6px',
+                      borderRadius: 6,
+                      background: 'rgba(255,255,255,0.9)',
+                      color: friendScenicTheme.accentColor || '#E91E63',
+                      border: `1px solid ${friendScenicTheme.accentColor || '#FF80AB'}`,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 2,
+                    }}
+                  >
+                    <span>{friendScenicTheme.icon}</span>
+                    <span>{friendScenicTheme.travelBadge || friendScenicTheme.name}</span>
+                  </span>
+                )}
               </div>
               <div style={{ fontSize: 10, color: '#8D6E63', marginTop: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <span>파티시에: <strong style={{ color: '#5D4037' }}>{selectedFriend.ownerNickname}</strong></span>

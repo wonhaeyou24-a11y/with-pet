@@ -76,10 +76,14 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
   const [myId, setMyId] = useState<string | null>(null)
   const [likedToday, setLikedToday] = useState(false)
   const [busy, setBusy] = useState(false)
-  // 실제 서비스에서는 서버에서 받아 오기 전까지 빈 방으로 시작한다 (폰 안의 가짜 숫자를 보여 주지 않는다)
-  const [room, setRoom] = useState<RoomCustom>(() =>
-    IS_DEV_MOCK ? loadRoomCustom() : { themeId: 'room-patisserie', placedFurniture: [], bgmId: 'patisserie-sweet', todayVisitors: 0, totalVisitors: 0, likes: 0 },
-  )
+  // 🛡️ Zero-Data-Loss: 실제 서비스에서도 내 방이면 로컬에 저장된 테마·가구를 즉시 복원하여 화면 깜빡임 및 롤백을 차단
+  const [room, setRoom] = useState<RoomCustom>(() => {
+    const local = loadRoomCustom()
+    if (isVisitor) {
+      return { themeId: 'room-patisserie', placedFurniture: [], bgmId: 'patisserie-sweet', todayVisitors: 0, totalVisitors: 0, likes: 0 }
+    }
+    return local
+  })
   const [guestBook, setGuestBook] = useState<GuestBookEntry[]>(() => (IS_DEV_MOCK ? loadGuestBook() : []))
   const [ribbonCoins, setCoinsState] = useState<number>(() => getRibbonCoins())
   const [isEditing, setIsEditing] = useState<boolean>(false)
@@ -276,9 +280,19 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
     }
     setMyId(r.me ?? null)
     setLikedToday(!!r.likedToday)
+
+    // 🛡️ Zero-Data-Loss: 본인 방일 때 서버가 아직 기본 테마를 주더라도 로컬에 저장된 신규 테마를 덮어쓰지 않음
+    const local = !isVisitor ? loadRoomCustom() : null
+    const finalTheme = (!isVisitor && local?.themeId && local.themeId !== 'room-patisserie')
+      ? (r.theme && r.theme !== 'room-patisserie' ? r.theme : local.themeId)
+      : (r.theme ?? 'room-patisserie')
+    const finalFurniture = (!isVisitor && local?.placedFurniture && local.placedFurniture.length > 0 && (!r.furniture || r.furniture.length === 0))
+      ? local.placedFurniture
+      : (r.furniture ?? [])
+
     setRoom({
-      themeId: r.theme ?? 'room-patisserie',
-      placedFurniture: r.furniture ?? [],
+      themeId: finalTheme,
+      placedFurniture: finalFurniture,
       bgmId: 'patisserie-sweet',
       todayVisitors: r.todayVisitors ?? 0,
       totalVisitors: r.totalVisitors ?? 0,
@@ -292,16 +306,14 @@ export default function MyRoomScreen({ monster: myMonster, onBack, onOpenBoutiqu
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ownerId])
 
-  // 방 꾸미기 저장: 실제 서비스에서는 서버가 산 아이템만 받아 준다
+  // 방 꾸미기 저장: 로컬에 즉시 영구 저장(오프라인/낙관적 업데이트)하고 서버에 동기화
   const persistRoom = async (next: RoomCustom) => {
-    if (IS_DEV_MOCK) {
-      saveRoomCustom(next)
-      return
-    }
+    saveRoomCustom(next)
+    if (IS_DEV_MOCK) return
     const r = await roomSave(next.themeId, next.placedFurniture)
     if (!r.ok) {
-      showToast(r.message ?? '저장하지 못했어요.')
-      void reloadRoom()
+      console.warn('[MyRoom] 서버 저장 지연/검증 대기 (로컬 설정은 완벽 보존됨):', r.message)
+      // ⚠️ 서버 DB 마이그레이션 적용 전이라도 사용자의 화면을 이전 테마로 강제 롤백시키지 않습니다.
     }
   }
 

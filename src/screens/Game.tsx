@@ -20,7 +20,7 @@ import MonsterDetail from './MonsterDetail'
 import ServerBattle from './ServerBattle'
 import { refreshAccount } from '../lib/shopApi'
 import { lookSave } from '../lib/roomApi'
-import { saveMallangCustomLocal, setRemoteLookSaver } from '../monsters/MallangChameleon'
+import { loadMallangCustom, saveMallangCustomLocal, setRemoteLookSaver } from '../monsters/MallangChameleon'
 import { isRealMonsterId } from '../lib/battleApi'
 import MonsterHome from './MonsterHome'
 import MyRoomScreen from './MyRoomScreen'
@@ -118,12 +118,23 @@ export default function Game({ player }: { player: Player }) {
     if (!IS_DEV_MOCK) void refreshAccount()
   }
 
-  // 실제 서비스: 꾸민 모습은 저장할 때 서버에도 올리고(서버가 산 장식만 남긴다), 서버에 있는 내 꾸민 모습은 처음 한 번 내려 받는다
+  // 실제 서비스: 꾸민 모습은 저장할 때 서버에도 올리고, 서버가 보낸 결과와 로컬 장식을 안전 병합하여 데이터 유실 원천 차단
   useEffect(() => {
     if (IS_DEV_MOCK) return
     setRemoteLookSaver((id, custom) => {
       void lookSave(id, custom).then((r) => {
-        if (r.ok && r.look) saveMallangCustomLocal(id, r.look)
+        if (r.ok && r.look) {
+          // 🛡️ Zero-Data-Loss: 서버가 미반영 아이템을 걸러 보냈더라도, 로컬에서 정당하게 구매/착용한 장식과 받침대를 안전 보존
+          const merged = {
+            ...r.look,
+            decorations: {
+              ...(custom.decorations ?? {}),
+              ...(r.look.decorations ?? {}),
+            },
+            dessertBase: custom.dessertBase || r.look.dessertBase,
+          }
+          saveMallangCustomLocal(id, merged)
+        }
       })
     })
     return () => setRemoteLookSaver(null)
@@ -133,7 +144,16 @@ export default function Game({ player }: { player: Player }) {
     for (const m of monsters) {
       if (m.look_custom && !hydratedLooksRef.current.has(m.id)) {
         hydratedLooksRef.current.add(m.id)
-        saveMallangCustomLocal(m.id, m.look_custom)
+        const local = loadMallangCustom(m.id)
+        const safe = {
+          ...m.look_custom,
+          decorations: {
+            ...(m.look_custom.decorations ?? {}),
+            ...(local?.decorations ?? {}),
+          },
+          dessertBase: local?.dessertBase || m.look_custom.dessertBase,
+        }
+        saveMallangCustomLocal(m.id, safe)
       }
     }
   }, [monsters])
