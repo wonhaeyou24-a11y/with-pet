@@ -724,29 +724,6 @@ export default function DessertPlaza({
         </div>
 
         <div className="row" style={{ gap: 6, alignItems: 'center' }}>
-          {/* 🪨 위태위태 펫 젠가 (릴레이 돌탑 쌓기) 퀵 버튼 */}
-          <button
-            type="button"
-            onClick={() => setShowJenga(true)}
-            style={{
-              padding: '4px 10px',
-              borderRadius: 999,
-              border: '1.5px solid #C084FC',
-              background: 'linear-gradient(135deg, #7C3AED, #9333EA)',
-              color: '#FFFFFF',
-              fontSize: 11,
-              fontWeight: 900,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-              cursor: 'pointer',
-              boxShadow: '0 2px 6px rgba(124, 58, 237, 0.35)',
-            }}
-          >
-            <span>🪨</span>
-            <span>돌탑 젠가</span>
-          </button>
-
           {/* 🍁 현실 사계절 및 이벤트 자동 동기화 뱃지 (지인/방문자는 선택창이 보이지 않고 계절 뱃지만 표시) */}
           <div
             style={{
@@ -1071,6 +1048,101 @@ export default function DessertPlaza({
               </div>
             </div>
           )}
+
+          {/* 🪨🧁 [대표님 요청: 광장 랜드마크] 우리 마을 디저트 돌탑 젠가 (광장에 돌탑을 세워두고 터치 시 젠가 입장!) */}
+          <div
+            onClick={(e) => {
+              e.stopPropagation()
+              playDessertAsmr('mochi-squish')
+              setShowJenga(true)
+            }}
+            style={{
+              position: 'absolute',
+              left: 520,
+              top: 110,
+              width: 120,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              zIndex: 110,
+              cursor: 'pointer',
+              userSelect: 'none',
+              filter: 'drop-shadow(0 8px 18px rgba(0,0,0,0.35))',
+            }}
+            title="터치하여 위태위태 펫 젠가 돌탑에 참여하세요!"
+          >
+            {/* 머리 위 입장 유도 반짝이 배너 */}
+            <div
+              style={{
+                background: 'linear-gradient(135deg, #7C3AED 0%, #EC4899 100%)',
+                color: '#FFFBEB',
+                fontSize: 9.5,
+                fontWeight: 900,
+                padding: '3px 10px',
+                borderRadius: 999,
+                boxShadow: '0 3px 10px rgba(124, 58, 237, 0.5)',
+                whiteSpace: 'nowrap',
+                marginBottom: 2,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                border: '1.5px solid #FDE047',
+              }}
+            >
+              <span>🪨</span>
+              <span>마을 펫 돌탑</span>
+              <span style={{ background: '#FDE047', color: '#581C87', padding: '0 4px', borderRadius: 999, fontSize: 8 }}>
+                입장 ✨
+              </span>
+            </div>
+
+            {/* 미니 돌탑 비주얼 연출: 황금 받침대 위에 포개진 앙증맞은 3단 디저트 펫들 */}
+            <div
+              style={{
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column-reverse',
+                alignItems: 'center',
+                transformOrigin: 'bottom center',
+              }}
+            >
+              {/* 돌탑 바닥 황금 접시 */}
+              <div
+                style={{
+                  width: 72,
+                  height: 14,
+                  borderRadius: 8,
+                  background: 'linear-gradient(180deg, #F59E0B 0%, #B45309 100%)',
+                  border: '1.5px solid #FDE047',
+                  boxShadow: '0 4px 10px rgba(0,0,0,0.4)',
+                  marginTop: 2,
+                }}
+              />
+              {/* 1단 쿠키 */}
+              <div style={{ marginTop: 0, marginBottom: -6 }}>
+                <span style={{ fontSize: 24 }}>🍪</span>
+              </div>
+              {/* 2단 푸딩 */}
+              <div style={{ marginTop: 0, marginBottom: -6 }}>
+                <span style={{ fontSize: 22 }}>🍮</span>
+              </div>
+              {/* 3단 모찌 */}
+              <div style={{ marginTop: 0, marginBottom: -6 }}>
+                <span style={{ fontSize: 20 }}>🍡</span>
+              </div>
+            </div>
+
+            {/* 발밑 타원 그림자 */}
+            <div
+              style={{
+                width: 76,
+                height: 16,
+                borderRadius: '50%',
+                background: 'radial-gradient(ellipse, rgba(0,0,0,0.3) 0%, transparent 70%)',
+                marginTop: -4,
+              }}
+            />
+          </div>
 
           {/* 내 대표 펫 산책 노드 (실제 3D Three.js 디저트 펫 디자인 & 실시간 광장 자율 산책) */}
           {(() => {
