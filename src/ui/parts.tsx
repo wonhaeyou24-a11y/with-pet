@@ -26,10 +26,10 @@ export function TopBar({ nickname, onLogout }: { nickname: string; onLogout?: ()
 }
 
 export function StatBars({ stats, compact = false, evoStage = 1 }: { stats: Stats; compact?: boolean; evoStage?: number }) {
-  // 🌟 진화 및 장비 성장에 따른 동적 한계 확장 (1단계: 100, 2단계: 180, 3단계: 300, 스탯 초과 시 자동 확장)
-  const baseLimit = evoStage === 3 ? 300 : evoStage === 2 ? 180 : 100
+  // 🌟 진화 및 장비 성장에 따른 동적 한계 확장 (1단계: 120, 2단계: 250, 3단계: 500, 스탯 초과 시 자동 확장)
+  const baseLimit = evoStage >= 3 ? 500 : evoStage === 2 ? 250 : 120
   const maxVal = Math.max(...Object.values(stats))
-  const dynamicMax = Math.max(baseLimit, Math.ceil(maxVal / 20) * 20)
+  const dynamicMax = Math.max(baseLimit, Math.ceil(maxVal / 50) * 50)
 
   return (
     <div className={compact ? 'stats-grid' : 'stack'} style={compact ? undefined : { gap: 14 }}>

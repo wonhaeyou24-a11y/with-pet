@@ -1841,7 +1841,12 @@ export default function PatisserieTraining({ monster, coins, onUpdate, onGoRest,
                 </span>
               </div>
               {/* 메인의 2열 그리드 컴팩트 바 */}
-              <StatBars stats={monster.stats} compact />
+              <StatBars stats={monster.stats} compact evoStage={monster.evo_stage ?? 1} />
+              {(monster.evo_stage ?? 1) >= 3 && (
+                <div style={{ marginTop: 6, fontSize: 10, color: '#B45309', fontWeight: 800, background: '#FEF3C7', padding: '3px 8px', borderRadius: 8, textAlign: 'center' }}>
+                  👑 로얄 마스터 단계 도달! 진화 후에도 훈련·장비로 1,000+ 이상 무한 성장할 수 있어요!
+                </div>
+              )}
             </div>
 
             {/* 💡 6대 능력치 단련 가이드 & 훈련 연계 (슬림화) */}

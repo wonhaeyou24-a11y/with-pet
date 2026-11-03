@@ -24,9 +24,9 @@ export function getRibbonCoins(): number {
   try {
     const raw = localStorage.getItem(RIBBON_STORAGE_KEY)
     if (!raw) {
-      // 신규 가입자 웰컴 보너스로 150 🎀 지급
-      setRibbonCoins(150)
-      return 150
+      // 웰컴 보너스로 3000 🎀 지급 (명품 귀걸이 및 패션 자유 피팅)
+      setRibbonCoins(3000)
+      return 3000
     }
     const parsed = JSON.parse(raw) as { amount: number; checksum: string }
     if (parsed.checksum !== getCheckSum(parsed.amount)) {
@@ -394,54 +394,54 @@ export const BOUTIQUE_FASHION_ITEMS: BoutiqueItem[] = [
     desc: '양볼에 은은하게 반짝이는 펄 하이라이트 페인팅',
     soundKind: 'syrup-drizzle',
   },
-  // 🐾 [귀걸이/이어 악세사리 컬렉션 - 펫 귀 전용]
+  // 💎 [명품 럭셔리 & 큐트 귀걸이 컬렉션 - 펫 귀 전용]
   {
-    id: 'strawberry-drop-earring',
-    name: '생딸기 드롭 링 귀걸이',
+    id: 'luxury-clover-earring',
+    name: '골드 클로버 자개 귀걸이',
     category: 'fashion',
     slot: 'face',
-    price: 950,
-    rarity: 'rare',
-    charm: 32,
-    icon: '🍓',
-    desc: '귀여운 펫 귀에 대롱대롱 매달린 상큼한 생딸기 참과 24K 골드 링 귀걸이',
-    soundKind: 'sugar-crack',
-  },
-  {
-    id: 'sugar-star-piercing',
-    name: '슈가 스타 트윈 피어싱',
-    category: 'fashion',
-    slot: 'face',
-    price: 900,
-    rarity: 'rare',
-    charm: 30,
-    icon: '⭐',
-    desc: '영롱하게 반짝이는 별모양 설탕 결정과 반짝이는 황금 피어싱 세트',
+    price: 1200,
+    rarity: 'legendary',
+    charm: 42,
+    icon: '🍀',
+    desc: '24K 옐로우 골드 비즈 림과 반짝이는 화이트 천연 자개의 럭셔리 네잎클로버 귀걸이',
     soundKind: 'starlight-ting',
   },
   {
-    id: 'pearl-chime-earring',
-    name: '스노우 펄 드롭 귀걸이',
+    id: 'chanel-camellia-earring',
+    name: '퓨어 까멜리아 이어링',
+    category: 'fashion',
+    slot: 'face',
+    price: 1150,
+    rarity: 'rare',
+    charm: 38,
+    icon: '🌸',
+    desc: '입체적으로 조각된 순백의 세라믹 까멜리아 꽃잎과 센터 다이아몬드 포인트',
+    soundKind: 'starlight-ting',
+  },
+  {
+    id: 'dior-pearl-drop',
+    name: '트라이벌 펄 드롭 귀걸이',
     category: 'fashion',
     slot: 'face',
     price: 1350,
     rarity: 'legendary',
-    charm: 38,
+    charm: 45,
     icon: '🦪',
-    desc: '걸을 때마다 은은하게 찰랑이는 오팔 진주 드롭 비드 귀걸이',
+    desc: '앞뒤 언밸런스 듀얼 펄과 24K 골드 링크가 귓볼을 우아하게 감싸는 명품 펄 드롭',
     soundKind: 'starlight-ting',
   },
   {
-    id: 'gold-ribbon-earcuff',
-    name: '핑크 골드 리본 이어커프',
+    id: 'tiffany-heart-diamond',
+    name: '하트 다이아몬드 드롭',
     category: 'fashion',
     slot: 'face',
-    price: 920,
+    price: 1100,
     rarity: 'rare',
-    charm: 34,
-    icon: '🎀',
-    desc: '앙증맞은 펫 귀 끝에 살포시 감기는 입체 핑크 골드 리본 이어커프',
-    soundKind: 'syrup-drizzle',
+    charm: 36,
+    icon: '💎',
+    desc: '로즈 골드 체인 끝에 영롱하게 매달려 빛을 발하는 프리미엄 하트 컷 다이아몬드',
+    soundKind: 'starlight-ting',
   },
   // 목 (neck)
   {

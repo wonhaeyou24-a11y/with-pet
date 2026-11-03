@@ -141,11 +141,16 @@ function MenuTile({
             position: 'absolute',
             top: -6,
             right: -4,
-            background: isCircleBadge
-              ? 'linear-gradient(135deg, #FF1744 0%, #D50000 100%)'
-              : '#FF1744',
+            background:
+              badge === '완료!'
+                ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)'
+                : badge === '진행중'
+                ? 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)'
+                : badge === 'UP!'
+                ? 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)'
+                : 'linear-gradient(135deg, #FF1744 0%, #D50000 100%)',
             color: '#FFFFFF',
-            fontSize: isCircleBadge ? 11 : 10,
+            fontSize: isCircleBadge ? 11 : 9.5,
             fontWeight: 900,
             minWidth: isCircleBadge ? 21 : 'auto',
             height: isCircleBadge ? 21 : 'auto',
@@ -154,7 +159,12 @@ function MenuTile({
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.25), 0 2px 0 #B71C1C',
+            boxShadow:
+              badge === '완료!'
+                ? '0 2px 5px rgba(16,185,129,0.4), 0 2px 0 #047857'
+                : badge === '진행중'
+                ? '0 2px 5px rgba(59,130,246,0.4), 0 2px 0 #1D4ED8'
+                : '0 2px 4px rgba(0,0,0,0.25), 0 2px 0 #B71C1C',
             border: '2px solid #FFFFFF',
             lineHeight: 1,
             zIndex: 5,
@@ -334,6 +344,13 @@ export default function MonsterHome({
   }, [monster.id])
 
   const isExploring = !!exploreTrip && exploreLeftSec > 0
+  const isExploreComplete = !!exploreTrip && exploreLeftSec <= 0
+  const exploreBadge = isExploreComplete ? '완료!' : isExploring ? '진행중' : undefined
+
+  const isTrainingActive = !!trainSess && trainLeftSec > 0
+  const isTrainDone = !!trainSess && trainLeftSec <= 0
+  const isTowerActive = !!towerSess && !towerDone
+  const trainBadge = (isTrainDone || towerDone) ? '완료!' : (isTrainingActive || isTowerActive) ? '진행중' : undefined
   // 📖 신규 미확인 방명록 새 글 카운트 (지인이 글을 남겼을 때 선명하게 1 뱃지 표시)
   const [unreadGuestBookCount, setUnreadGuestBookCount] = useState<number>(() => getUnreadGuestBookCount())
 
@@ -1147,7 +1164,16 @@ export default function MonsterHome({
         {/* (1) 돌보기 */}
         <MenuTile icon="🍓" title="토핑 · 돌보기" sub="밥·놀기·씻기" from="#FF8A65" to="#E64A19" rim="#BF360C" onClick={onOpenCare} />
         {/* (2) 훈련 */}
-        <MenuTile icon="🧁" title="파티세리 훈련" sub="능력치 UP·타워" from="#4DB6AC" to="#00897B" rim="#00695C" onClick={onOpenTrain} />
+        <MenuTile
+          icon="🧁"
+          title="파티세리 훈련"
+          sub="능력치 UP·타워"
+          badge={trainBadge}
+          from="#4DB6AC"
+          to="#00897B"
+          rim="#00695C"
+          onClick={onOpenTrain}
+        />
         {/* (3) 성장 · 강화 (스킬트리 + 장비강화 + 진화의전당 통합 허브) */}
         <MenuTile
           icon="✨"
@@ -1164,7 +1190,7 @@ export default function MonsterHome({
           icon="🧭"
           title="탐험"
           sub="방치 보상·일지"
-          badge={isExploring ? '진행중' : undefined}
+          badge={exploreBadge}
           from="#10B981"
           to="#059669"
           rim="#047857"

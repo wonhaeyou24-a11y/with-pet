@@ -102,6 +102,7 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
   const [toastMsg, setToastMsg] = useState<string | null>(null)
   const [burstKey, setBurstKey] = useState<number>(0)
   const [burstKind, setBurstKind] = useState<DessertSoundKind>('mochi-squish')
+  const noticeTimerRef = useRef<number | null>(null)
 
   const activeTiers = mode === 'relay' ? relayState.tiers : soloTiers
   const activeTilt = mode === 'relay' ? relayState.cumulativeTilt : soloTilt
@@ -178,6 +179,11 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
     try {
       ;(e.target as HTMLElement).releasePointerCapture(e.pointerId)
     } catch {}
+
+    // 🎯 [대표님 피드백 100% 반영] 화면에서 손을 떼는 순간, 조준한 바로 그 지점으로 퐁당 자유낙하!
+    if (gameState === 'aiming') {
+      executeDrop()
+    }
   }
 
   // 🚀 2. [자연낙하 & 무게중심 기울기 연출 트리거]
@@ -187,9 +193,17 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
     setGameState('dropping')
     const finalDropX = dragXRef.current
 
-    // 계산된 낙하 높이 (탑 층수와 펫 실제 크기에 맞춰 꼭대기까지 슉 떨어짐)
-    const stackHeight = activeTiers.reduce((acc, t) => acc + Math.round((t.petSize || 40) * 0.72), 0)
-    const targetDropY = Math.max(120, 275 - stackHeight)
+    // 📐 타워 꼭대기 실제 DOM 좌표까지의 정확한 낙하 거리 동적 산출
+    let targetDropY = 260
+    if (stageRef.current && aimPetRef.current && towerRef.current) {
+      const aimRect = aimPetRef.current.getBoundingClientRect()
+      const towerRect = towerRef.current.getBoundingClientRect()
+      // 타워 상단까지 낙하 거리
+      const realDist = (towerRect.top - aimRect.top) - (currentPetSize * 0.22)
+      if (realDist > 40) {
+        targetDropY = realDist
+      }
+    }
 
     // 하드웨어 가속 중력 자유낙하 애니메이션 (0.42s)
     aimPetRef.current.style.transition = 'transform 0.42s cubic-bezier(0.45, 0, 0.75, 0.6)'
@@ -278,7 +292,7 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
       } else {
         accuracy = 'WOBBLE'
         sound = 'wax-tap'
-        notice = { text: '⚠️ WOBBLE! 아슬아슬 버팀!', color: '#F59E0B', sub: '기우뚱했지만 받침대 안쪽에서 간신히 버텼어요!' }
+        notice = { text: '💦 아슬아슬 버팀! 휴우~!', color: '#F59E0B', sub: '기우뚱했지만 받침대 안쪽에서 간신히 버텼어요!' }
       }
     } else {
       sound = 'mochi-squish'
@@ -304,6 +318,10 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
 
     setGameState('swaying')
     setAccuracyNotice(notice)
+    if (noticeTimerRef.current) window.clearTimeout(noticeTimerRef.current)
+    noticeTimerRef.current = window.setTimeout(() => {
+      setAccuracyNotice(null)
+    }, 1400)
 
     // 🎬 4. [대표님 핵심 요청] 진짜 물리 법칙에 따른 3단계 서스펜스 속도감 연출!
     const targetTiltDeg = centerOfMass * 0.85
@@ -347,7 +365,12 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
   // ✨ 흔들림을 버텨내고 최종 안착 성공 처리
   const finalizeSwaySuccess = (finalTilt: number, accuracy: 'PERFECT' | 'GREAT' | 'WOBBLE', allTiers: TowerTier[]) => {
     setGameState('settled')
-    playBabyGiggleSound(accuracy === 'PERFECT' ? '까르르' : '헤헤헤', 'cheer')
+    if (accuracy === 'WOBBLE' || Math.abs(finalTilt) >= 8) {
+      // 💡 [대표님 제안 반영] 아슬아슬 세이브: "휴우~ 살았다!" 안도 음성 재생
+      playBabyGiggleSound('휴우~!', 'comfort')
+    } else {
+      playBabyGiggleSound(accuracy === 'PERFECT' ? '까르르' : '헤헤헤', 'cheer')
+    }
 
     if (mode === 'relay') {
       const addedCoins = accuracy === 'PERFECT' ? 35 : accuracy === 'GREAT' ? 25 : 15
@@ -751,7 +774,6 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
                   alignItems: 'center',
                   animation: isTop && gameState === 'settled' ? 'bounceIn 0.35s ease-out' : 'none',
                   filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.5))',
-                  transition: 'left 0.3s ease',
                   zIndex: idx + 2,
                 }}
               >
@@ -831,25 +853,27 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
           </div>
         )}
 
-        {/* 판정 알림 배너 */}
+        {/* 🎯 판정 알림 배너 (탑과 펫을 가리지 않도록 상단 안전 영역 배치 & 터치 통과) */}
         {accuracyNotice && gameState !== 'fallen' && (
           <div
             style={{
               position: 'absolute',
-              top: '20%',
+              top: 10,
               left: '50%',
               transform: 'translateX(-50%)',
-              background: 'rgba(15, 8, 28, 0.92)',
+              background: 'rgba(15, 8, 28, 0.94)',
               border: `2px solid ${accuracyNotice.color}`,
               borderRadius: 14,
-              padding: '6px 14px',
+              padding: '5px 14px',
               textAlign: 'center',
               boxShadow: '0 6px 20px rgba(0,0,0,0.6)',
-              zIndex: 40,
-              animation: 'bounceIn 0.35s ease',
+              zIndex: 45,
+              animation: 'bounceIn 0.3s ease',
+              pointerEvents: 'none',
+              maxWidth: '90%',
             }}
           >
-            <div style={{ fontSize: 13, fontWeight: 900, color: accuracyNotice.color }}>
+            <div style={{ fontSize: 12.5, fontWeight: 900, color: accuracyNotice.color }}>
               {accuracyNotice.text}
             </div>
             <div style={{ fontSize: 9.5, color: '#DDD6FE' }}>{accuracyNotice.sub}</div>

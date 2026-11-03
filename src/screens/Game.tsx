@@ -313,7 +313,13 @@ export default function Game({ player }: { player: Player }) {
           monster={monster}
           onBack={goBack}
           onOpenMyRoom={() => navigateTo('myroom')}
-          onUpdate={(updated) => setMonsters((list) => list.map((m) => (m.id === updated.id ? updated : m)))}
+          onUpdate={(updated) => {
+            setMonsters((list) => {
+              const next = list.map((m) => (m.id === updated.id ? updated : m))
+              saveLocalMonsters(next)
+              return next
+            })
+          }}
         />
       )
     }

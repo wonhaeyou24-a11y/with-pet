@@ -376,8 +376,8 @@ export function playDessertAsmr(kind: DessertSoundKind, comboStep = 0): SoundMet
 // - 대표님 피드백 반영: Windows/OS의 로봇 같은 아저씨 목소리(InJoon 등 TTS 남성 음성)를 전면 배제하고,
 //   어떤 기기(PC/아이폰/안드로이드)에서든 100% 맑고 앙증맞은 천사 아기 목소리로 합성 재생!
 export function playBabyGiggleSound(
-  voiceWord: '까르르' | '헤헤헤' | '아잉' | '꺄앙' = '까르르',
-  variant: 'giggle' | 'chuckle' | 'cheer' = 'giggle',
+  voiceWord: '까르르' | '헤헤헤' | '아잉' | '꺄앙' | '휴우~!' = '까르르',
+  variant: 'giggle' | 'chuckle' | 'cheer' | 'comfort' = 'giggle',
 ): void {
   try {
     if (isAsmrMuted()) return
@@ -389,9 +389,35 @@ export function playBabyGiggleSound(
     const master = getMasterBus(ctx)
 
     // 🍼 실제 아기 성대 주파수 특성(F0: 680~1050Hz, 포먼트 공명 F1: 850~1100Hz, F2: 2400~3200Hz)
-    const variantPitchMult = variant === 'cheer' ? 1.15 : variant === 'chuckle' ? 0.95 : 1.05
+    const variantPitchMult = variant === 'cheer' ? 1.15 : variant === 'chuckle' ? 0.95 : variant === 'comfort' ? 0.9 : 1.05
 
-    if (voiceWord === '아잉') {
+    if (voiceWord === '휴우~!') {
+      // 💨 휴우~!: 위기 탈출 시 아기의 귀엽고 가슴 쓸어내리는 안도 한숨
+      const dur = 0.52
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      const formant = ctx.createBiquadFilter()
+
+      osc.type = 'sine'
+      const base = 720 * variantPitchMult
+      osc.frequency.setValueAtTime(base * 1.25, now)
+      osc.frequency.exponentialRampToValueAtTime(base * 0.75, now + dur)
+
+      formant.type = 'bandpass'
+      formant.frequency.setValueAtTime(950, now)
+      formant.Q.setValueAtTime(3.0, now)
+
+      gain.gain.setValueAtTime(0.001, now)
+      gain.gain.linearRampToValueAtTime(0.32, now + 0.08)
+      gain.gain.exponentialRampToValueAtTime(0.001, now + dur)
+
+      osc.connect(formant)
+      formant.connect(gain)
+      gain.connect(master)
+
+      osc.start(now)
+      osc.stop(now + dur)
+    } else if (voiceWord === '아잉') {
       // 💖 아잉: 애교 넘치는 아기 옹알이 벤딩 (우~ -> 아잉~!)
       const dur = 0.38
       const osc = ctx.createOscillator()
