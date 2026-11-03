@@ -52,10 +52,10 @@ export function checkEvolutionEligibility(monster: EvoMonster): EvolutionEligibi
       canEvolve: false,
       targetStage: null,
       currentStage: 3,
-      requiredLevel: 999,
+      requiredLevel: 15,
       recommendedBranch: asBranch(monster.evo_branch) ?? 'sweet-melty',
       branchScores: { 'sweet-melty': 0, 'crispy-crunch': 0, 'royal-chef': 0, 'gourmet-rainbow': 0 },
-      missingReason: '이미 최종 로얄 마스터 디저트 단계에 도달했습니다.',
+      missingReason: '이미 최고 단계(로얄 마스터 디저트)에 도달했습니다.',
     }
   }
 

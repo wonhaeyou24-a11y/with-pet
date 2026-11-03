@@ -57,6 +57,11 @@ export const DECO_ITEMS: DecoItemDef[] = [
   { id: 'party-whistle-blower', slot: 'face', name: '롤링 파티 피리', rarity: 'common', charm: 22, icon: '🎺', desc: '입에 물고 후- 불면 도로록 풀렸다 말려드는 알록달록 파티 롤링 피리' },
   { id: 'sleep-mask', slot: 'face', name: '포근 수면안대', rarity: 'common', charm: 10, icon: '💤', desc: '이마에 살짝 얹은 구름결 수면안대' },
   { id: 'star-patch', slot: 'face', name: '유성 볼 스티커', rarity: 'rare', charm: 18, icon: '🌟', desc: '양볼에 붙이는 반짝이는 별빛 페인팅' },
+  // 🐾 [귀걸이/이어 악세사리 컬렉션 - 펫 귀 전용]
+  { id: 'strawberry-drop-earring', slot: 'face', name: '생딸기 드롭 링 귀걸이', rarity: 'rare', charm: 32, icon: '🍓', desc: '귀여운 펫 귀에 대롱대롱 매달린 상큼한 생딸기 참과 24K 골드 링 귀걸이' },
+  { id: 'sugar-star-piercing', slot: 'face', name: '슈가 스타 트윈 피어싱', rarity: 'rare', charm: 30, icon: '⭐', desc: '영롱하게 반짝이는 별모양 설탕 결정과 반짝이는 황금 피어싱 세트' },
+  { id: 'pearl-chime-earring', slot: 'face', name: '스노우 펄 드롭 귀걸이', rarity: 'legendary', charm: 38, icon: '🦪', desc: '걸을 때마다 은은하게 찰랑이는 오팔 진주 드롭 비드 귀걸이' },
+  { id: 'gold-ribbon-earcuff', slot: 'face', name: '핑크 골드 리본 이어커프', rarity: 'rare', charm: 34, icon: '🎀', desc: '앙증맞은 펫 귀 끝에 살포시 감기는 입체 핑크 골드 리본 이어커프' },
   // 3. 목 (neck)
   { id: 'chef-coat-tie', slot: 'neck', name: '명장 파티시에 제복 & 타이', rarity: 'legendary', charm: 45, icon: '🧑‍🍳', desc: '프랑스 수제 제과 명장의 더블 버튼 순백 셰프 자켓과 실크 레드 타이' },
   { id: 'preppy-school-tie', slot: 'neck', name: '브리티시 프레피 타이 & 칼라', rarity: 'rare', charm: 30, icon: '🎓', desc: '영국 명문 베이킹 아카데미 스타일의 타탄체크 리본 타이와 금장 단추 셔츠 칼라' },

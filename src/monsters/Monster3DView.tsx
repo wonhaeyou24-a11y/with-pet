@@ -2022,9 +2022,112 @@ export function build3DCharacterMesh(
     addCute3DFace(0.92, 0.15, '#FF8A9E')
   }
 
+  // 🐾 [대표님 핵심 요청] 앙증맞은 디저트 펫 귀 시스템 자동 생성
+  addCute3DEars(bodyGroup, validSpecies, look, basePal, isDoughMode)
+
   const effectGroup = add3DDecorations(bodyGroup, root, look)
   add3DEvolutionVisuals(bodyGroup, root, look)
   return { root, bodyGroup, innerLiquid, effectGroup: effectGroup || undefined }
+}
+
+// 🐾 [대표님 핵심 요청] 디저트 캐릭터 고유의 귀여움을 극대화하는 앙증맞은 3D 디저트 펫 귀 시스템
+function addCute3DEars(
+  bodyGroup: THREE.Group,
+  validSpecies: string,
+  look: MonsterLook & { mallang?: MallangCustom },
+  basePal: { fur: string; eye: string },
+  isDoughMode: boolean,
+) {
+  // 모자나 후드 장식과 자연스럽게 공존하도록 적정 스케일과 각도로 배치
+  const earShape: 'bear' | 'rabbit' | 'cat' | 'puppy' =
+    (look.mallang as any)?.earShape ||
+    ((look as any).parts?.ears as any) ||
+    (validSpecies === 'jelly' || validSpecies === 'smore' ? 'rabbit' :
+     validSpecies === 'chameleon' || validSpecies === 'choco' || validSpecies === 'tanghulu' ? 'cat' : 'bear')
+
+  // 디저트 피부 질감과 자연스럽게 블렌딩되는 귀 재질
+  const earColor = isDoughMode
+    ? '#FFFFFF'
+    : (look as any).color || basePal.fur || '#FFD1DC'
+
+  const earMat = new THREE.MeshPhysicalMaterial({
+    color: earColor,
+    roughness: isDoughMode ? 0.25 : 0.2,
+    clearcoat: 0.6,
+    sheen: 0.5,
+    sheenColor: new THREE.Color(earColor),
+  })
+
+  // 귓속 파스텔 핑크 크림 이너 이어 패드 (부드럽고 앙증맞은 베이비 핑크)
+  const innerPadMat = new THREE.MeshPhysicalMaterial({
+    color: '#FFB8C6',
+    roughness: 0.35,
+    clearcoat: 0.5,
+    sheen: 0.8,
+  })
+
+  ;[-1, 1].forEach((side) => {
+    const earGroup = new THREE.Group()
+
+    if (earShape === 'rabbit') {
+      // 🐰 1. 쫑긋 토끼 마시멜로 귀: 위로 봉긋 솟고 끝이 둥글며 살짝 바깥으로 기울어진 폭신한 귀
+      earGroup.position.set(side * 0.44, 0.94, 0.05)
+      earGroup.rotation.z = side * -0.2
+      earGroup.rotation.x = -0.08
+
+      const outerEar = new THREE.Mesh(new THREE.CapsuleGeometry(0.14, 0.38, 12, 16), earMat)
+      outerEar.scale.set(1.0, 1.25, 0.55)
+      earGroup.add(outerEar)
+
+      const innerPad = new THREE.Mesh(new THREE.CapsuleGeometry(0.08, 0.28, 10, 14), innerPadMat)
+      innerPad.scale.set(0.9, 1.15, 0.3)
+      innerPad.position.set(0, 0.02, 0.06)
+      earGroup.add(innerPad)
+    } else if (earShape === 'cat') {
+      // 🐱 2. 아기 냥이 생크림 삼각 귀: 부드러운 유선형 콘 형태로 끝이 앙증맞게 다듬어진 캣 이어
+      earGroup.position.set(side * 0.54, 0.84, 0.08)
+      earGroup.rotation.z = side * -0.38
+      earGroup.rotation.y = side * 0.15
+
+      const outerEar = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.36, 16), earMat)
+      outerEar.scale.set(1.0, 1.0, 0.65)
+      outerEar.position.y = 0.1
+      earGroup.add(outerEar)
+
+      const innerPad = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.24, 12), innerPadMat)
+      innerPad.scale.set(1.0, 1.0, 0.4)
+      innerPad.position.set(0, 0.08, 0.08)
+      earGroup.add(innerPad)
+    } else if (earShape === 'puppy') {
+      // 🐶 3. 퐁퐁 강아지 귀: 양옆으로 살짝 처져서 말랑말랑한 찹쌀떡 도그 이어
+      earGroup.position.set(side * 0.65, 0.66, 0.1)
+      earGroup.rotation.z = side * 0.35
+
+      const outerEar = new THREE.Mesh(new THREE.SphereGeometry(0.23, 16, 14), earMat)
+      outerEar.scale.set(0.85, 1.35, 0.6)
+      earGroup.add(outerEar)
+
+      const innerPad = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 10), innerPadMat)
+      innerPad.scale.set(0.85, 1.2, 0.3)
+      innerPad.position.set(0, -0.04, 0.1)
+      earGroup.add(innerPad)
+    } else {
+      // 🐻 4. 둥글둥글 곰쿠키 귀 (기본 디폴트): 동글동글 앙증맞은 테디베어 마카롱 귀
+      earGroup.position.set(side * 0.54, 0.82, 0.06)
+      earGroup.rotation.z = side * -0.32
+
+      const outerEar = new THREE.Mesh(new THREE.SphereGeometry(0.22, 18, 16), earMat)
+      outerEar.scale.set(1.05, 1.0, 0.55)
+      earGroup.add(outerEar)
+
+      const innerPad = new THREE.Mesh(new THREE.SphereGeometry(0.13, 14, 12), innerPadMat)
+      innerPad.scale.set(1.0, 0.95, 0.35)
+      innerPad.position.set(0, 0, 0.08)
+      earGroup.add(innerPad)
+    }
+
+    bodyGroup.add(earGroup)
+  })
 }
 
 // M4: 디저트 몬스터 3단계 진화 외형 & 4대 분기별 3D 비주얼 생성
@@ -3292,6 +3395,106 @@ function add3DDecorations(
     shadesGroup.add(bridge)
 
     bodyGroup.add(shadesGroup)
+  } else if (
+    deco?.face === 'strawberry-drop-earring' ||
+    deco?.face === 'sugar-star-piercing' ||
+    deco?.face === 'pearl-chime-earring' ||
+    deco?.face === 'gold-ribbon-earcuff'
+  ) {
+    // 🐾 [귀걸이/이어 악세사리 3D 렌더링 - 펫 귀 전용]
+    const earringKind = deco.face
+    ;[-1, 1].forEach((side) => {
+      const earringGroup = new THREE.Group()
+      // 귀 아래 귓볼 위치
+      earringGroup.position.set(side * 0.62, 0.68, 0.12)
+      earringGroup.rotation.y = side * 0.18
+
+      if (earringKind === 'strawberry-drop-earring') {
+        // 🍓 생딸기 드롭 링 귀걸이: 24K 골드 링 + 딸기 드롭 참 + 초록 꼭지
+        const ring = new THREE.Mesh(
+          new THREE.TorusGeometry(0.08, 0.018, 12, 24),
+          new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.95, roughness: 0.12, clearcoat: 1.0 })
+        )
+        ring.rotation.y = Math.PI / 2
+        earringGroup.add(ring)
+
+        const berry = new THREE.Mesh(
+          new THREE.SphereGeometry(0.085, 14, 12),
+          new THREE.MeshPhysicalMaterial({ color: '#E11D48', roughness: 0.2, clearcoat: 0.9 })
+        )
+        berry.scale.set(0.95, 1.25, 0.95)
+        berry.position.y = -0.11
+        earringGroup.add(berry)
+
+        const cap = new THREE.Mesh(
+          new THREE.ConeGeometry(0.065, 0.04, 5),
+          new THREE.MeshPhysicalMaterial({ color: '#16A34A', roughness: 0.4 })
+        )
+        cap.position.y = -0.04
+        earringGroup.add(cap)
+      } else if (earringKind === 'sugar-star-piercing') {
+        // ⭐ 슈가 스타 트윈 피어싱: 금빛 스터드 + 별빛 보석 피어싱
+        const star = new THREE.Mesh(
+          new THREE.OctahedronGeometry(0.09, 0),
+          new THREE.MeshPhysicalMaterial({
+            color: '#FFD700',
+            metalness: 0.9,
+            roughness: 0.1,
+            emissive: '#FFC107',
+            emissiveIntensity: 0.4,
+            clearcoat: 1.0,
+          })
+        )
+        star.rotation.z = side * 0.4
+        earringGroup.add(star)
+      } else if (earringKind === 'pearl-chime-earring') {
+        // 🦪 스노우 펄 드롭 귀걸이: 화이트 오팔 진주 드롭
+        const stud = new THREE.Mesh(
+          new THREE.SphereGeometry(0.035, 10, 10),
+          new THREE.MeshPhysicalMaterial({ color: '#F1F5F9', metalness: 0.85, roughness: 0.1 })
+        )
+        stud.position.y = 0.05
+        earringGroup.add(stud)
+
+        const chain = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.01, 0.01, 0.08, 8),
+          new THREE.MeshPhysicalMaterial({ color: '#CBD5E1', metalness: 0.9, roughness: 0.1 })
+        )
+        chain.position.y = 0.01
+        earringGroup.add(chain)
+
+        const pearl = new THREE.Mesh(
+          new THREE.SphereGeometry(0.095, 20, 18),
+          new THREE.MeshPhysicalMaterial({
+            color: '#FFFFFF',
+            roughness: 0.08,
+            clearcoat: 1.0,
+            transmission: 0.15,
+            sheen: 1.0,
+            sheenColor: new THREE.Color('#FCE7F3'),
+          })
+        )
+        pearl.position.y = -0.07
+        earringGroup.add(pearl)
+      } else if (earringKind === 'gold-ribbon-earcuff') {
+        // 🎀 핑크 골드 리본 이어커프
+        const cuff = new THREE.Mesh(
+          new THREE.TorusGeometry(0.07, 0.02, 12, 24, Math.PI * 1.5),
+          new THREE.MeshPhysicalMaterial({ color: '#FB7185', metalness: 0.8, roughness: 0.2, clearcoat: 0.8 })
+        )
+        cuff.rotation.x = Math.PI / 2
+        earringGroup.add(cuff)
+
+        const knot = new THREE.Mesh(
+          new THREE.SphereGeometry(0.04, 10, 10),
+          new THREE.MeshPhysicalMaterial({ color: '#FFD700', metalness: 0.9, roughness: 0.1 })
+        )
+        knot.position.set(0, 0.02, 0.06)
+        earringGroup.add(knot)
+      }
+
+      bodyGroup.add(earringGroup)
+    })
   }
 
   // 3. 목 장식 (neck) - 풍성한 볼륨감

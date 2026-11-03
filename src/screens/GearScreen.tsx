@@ -469,42 +469,79 @@ export default function GearScreen({ monster, coins, onCoins, onBack }: Props) {
         </div>
       )}
 
-      {/* 선택한 장비 상세 + 착용·강화 */}
+      {/* 선택한 장비 상세 + 착용·강화 (바깥 터치 또는 닫기 버튼으로 닫기 가능) */}
       {selected && selDef && tab === 'bag' && (
-        <div
-          key={`${selected.id}-${fxKey}`}
-          className="card gear-fx"
-          style={{
-            position: 'absolute',
-            left: 12,
-            right: 12,
-            bottom: 'calc(8px + env(safe-area-inset-bottom, 0px))',
-            padding: '10px 12px',
-            zIndex: 20,
-            border: `2px solid ${GEAR_GRADES[selDef.grade].color}`,
-            background: '#FFFFFF',
-            boxShadow: '0 -6px 18px rgba(0,0,0,0.12)',
-            animation: toast?.kind === 'fail' ? 'gearFail 0.4s ease-out' : toast?.kind === 'win' ? 'gearWin 0.5s ease-out' : undefined,
-          }}
-        >
-          {toast?.kind === 'win' && (
-            <span className="gear-fx" style={{ position: 'absolute', left: '50%', top: '30%', fontSize: 44, animation: 'gearSpark 0.7s ease-out both', pointerEvents: 'none' }}>✨</span>
-          )}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 32 }}>{selDef.icon}</span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 14, fontWeight: 900, color: '#3E2723' }}>
-                {selDef.name} {selected.level > 0 ? `+${selected.level}` : ''}
-                <span style={{ marginLeft: 6, fontSize: 11, color: GEAR_GRADES[selDef.grade].color }}>{GEAR_GRADES[selDef.grade].label}</span>
-              </div>
-              <div style={{ fontSize: 11.5, fontWeight: 800, color: '#6D4C41' }}>{statLine(selDef, selected.level)}</div>
-              {nextRule && (
-                <div style={{ fontSize: 10.5, fontWeight: 800, color: '#8D6E63' }}>
-                  다음 +{selected.level + 1}: 성공 {nextRule.chance}% · 🪙 {nextRule.cost} (실패해도 단계 유지)
+        <>
+          {/* 바깥 배경 터치 시 닫기 백드롭 */}
+          <div
+            onClick={() => setSelectedId(null)}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'rgba(0,0,0,0.25)',
+              zIndex: 18,
+            }}
+          />
+          <div
+            key={`${selected.id}-${fxKey}`}
+            className="card gear-fx"
+            style={{
+              position: 'absolute',
+              left: 12,
+              right: 12,
+              bottom: 'calc(8px + env(safe-area-inset-bottom, 0px))',
+              padding: '12px 14px',
+              zIndex: 20,
+              border: `2px solid ${GEAR_GRADES[selDef.grade].color}`,
+              background: '#FFFFFF',
+              boxShadow: '0 -8px 24px rgba(0,0,0,0.22)',
+              animation: toast?.kind === 'fail' ? 'gearFail 0.4s ease-out' : toast?.kind === 'win' ? 'gearWin 0.5s ease-out' : undefined,
+            }}
+          >
+            {/* ✕ 닫기 버튼 */}
+            <button
+              onClick={() => setSelectedId(null)}
+              style={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                width: 28,
+                height: 28,
+                borderRadius: '50%',
+                border: 'none',
+                background: '#F5F5F5',
+                color: '#616161',
+                fontSize: 14,
+                fontWeight: 900,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+                zIndex: 2,
+              }}
+              aria-label="장비 상세 창 닫기"
+            >
+              ✕
+            </button>
+            {toast?.kind === 'win' && (
+              <span className="gear-fx" style={{ position: 'absolute', left: '50%', top: '30%', fontSize: 44, animation: 'gearSpark 0.7s ease-out both', pointerEvents: 'none' }}>✨</span>
+            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingRight: 24 }}>
+              <span style={{ fontSize: 32 }}>{selDef.icon}</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 900, color: '#3E2723' }}>
+                  {selDef.name} {selected.level > 0 ? `+${selected.level}` : ''}
+                  <span style={{ marginLeft: 6, fontSize: 11, color: GEAR_GRADES[selDef.grade].color }}>{GEAR_GRADES[selDef.grade].label}</span>
                 </div>
-              )}
+                <div style={{ fontSize: 11.5, fontWeight: 800, color: '#6D4C41' }}>{statLine(selDef, selected.level)}</div>
+                {nextRule && (
+                  <div style={{ fontSize: 10.5, fontWeight: 800, color: '#8D6E63' }}>
+                    다음 +{selected.level + 1}: 성공 {nextRule.chance}% · 🪙 {nextRule.cost} (실패해도 단계 유지)
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
             <button
               onClick={() => onEquip(selected, selected.monster !== monster.id)}
@@ -544,6 +581,7 @@ export default function GearScreen({ monster, coins, onCoins, onBack }: Props) {
             </button>
           </div>
         </div>
+        </>
       )}
 
       {toast && (

@@ -116,7 +116,6 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
 
   const stageRef = useRef<HTMLDivElement | null>(null)
   const aimPetRef = useRef<HTMLDivElement | null>(null)
-  const aimLineRef = useRef<HTMLDivElement | null>(null)
   const towerRef = useRef<HTMLDivElement | null>(null)
 
   // 초기 렌더링 시 타워 각도 동기화
@@ -133,7 +132,6 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
     setSoloTilt(0)
     dragXRef.current = 0
     if (aimPetRef.current) aimPetRef.current.style.transform = 'translate3d(0px, 0, 0)'
-    if (aimLineRef.current) aimLineRef.current.style.transform = 'translate3d(0px, 0, 0)'
     setAccuracyNotice(null)
     setGameState('aiming')
   }
@@ -147,7 +145,6 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
     }
     dragXRef.current = 0
     if (aimPetRef.current) aimPetRef.current.style.transform = 'translate3d(0px, 0, 0)'
-    if (aimLineRef.current) aimLineRef.current.style.transform = 'translate3d(0px, 0, 0)'
     setAccuracyNotice(null)
     setGameState('aiming')
   }
@@ -172,9 +169,6 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
     // ⚡ React 리렌더링 없이 GPU Transform 직접 갱신 (마우스/터치 즉각 반응)
     if (aimPetRef.current) {
       aimPetRef.current.style.transform = `translate3d(${newX}px, 0, 0)`
-    }
-    if (aimLineRef.current) {
-      aimLineRef.current.style.transform = `translate3d(${newX}px, 0, 0)`
     }
   }
 
@@ -209,13 +203,24 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
     }, 420)
   }
 
-  // ⚖️ 3. [대표님 핵심 요청] 진짜 물리 무게중심(Center of Mass) 및 서스펜스 속도감 물리 연출!
+  // ⚖️ 3. [대표님 핵심 요청] 타워 회전각 역보정 정밀 착지 + 진짜 지레 토크 무게중심(Center of Mass) 물리 연출!
   const handleLandingImpact = (landedX: number) => {
-    const prevTier = activeTiers[activeTiers.length - 1]
-    const localDiff = prevTier ? Math.abs(landedX - prevTier.offsetX) : Math.abs(landedX)
-    const maxOverhang = prevTier ? (prevTier.petSize || 40) * 0.82 : 48
+    // 📐 타워가 이미 기울어져 있을 경우, 스크린 상 드롭 X 좌표를 타워 로컬 회전 좌표계로 정밀 역투영 (0.1px 오차 방지)
+    const currentTowerRad = ((activeTilt * 0.45) * Math.PI) / 180
+    const stackHeight = activeTiers.reduce((acc, t) => acc + Math.round((t.petSize || 40) * 0.72), 0)
+    
+    // 타워 회전 중심(bottom center) 기준 역변환
+    const cosTheta = Math.cos(currentTowerRad)
+    const sinTheta = Math.sin(currentTowerRad)
+    const correctedLocalX = Math.abs(cosTheta) > 0.001 
+      ? (landedX - stackHeight * sinTheta) / cosTheta 
+      : landedX
 
-    // 💥 1. 새로 드롭한 펫을 즉시 탑 층으로 생성 (떨어뜨린 X 좌표 그대로 유지하여 사라짐 없이 즉각 안착!)
+    const prevTier = activeTiers[activeTiers.length - 1]
+    const localDiff = prevTier ? Math.abs(correctedLocalX - prevTier.offsetX) : Math.abs(correctedLocalX)
+    const maxOverhang = prevTier ? (prevTier.petSize || 40) * 0.85 : 48
+
+    // 💥 1. 새로 드롭한 펫을 즉시 탑 층으로 생성 (대표님이 조준하여 떨어뜨린 바로 그 위치에 100% 일치 안착!)
     const newTier: TowerTier = {
       id: `tier-${Date.now()}`,
       floor: currentFloor,
@@ -223,7 +228,7 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
       petName: petName,
       species: myMonster.species,
       look: myLook,
-      offsetX: landedX, // 대표님이 떨어뜨린 바로 그 위치에 정확히 안착!
+      offsetX: Math.round(correctedLocalX * 10) / 10,
       petSize: currentPetSize,
       accuracy: 'WOBBLE',
       placedAt: new Date().toISOString(),
@@ -231,16 +236,30 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
 
     const allTiers = [...activeTiers, newTier]
 
-    // 📐 2. 물리 무게중심 (Center of Mass): 모든 층의 (오프셋 * 무게) 합산 / 총 무게
-    const totalWeight = allTiers.reduce((sum, t) => sum + (t.petSize || 40), 0)
-    const totalMoment = allTiers.reduce((sum, t) => sum + t.offsetX * (t.petSize || 40), 0)
+    // 📐 2. 고정밀 물리 토크 & 무게중심 (Center of Mass & Torque):
+    // 층고가 높을수록 윗층의 오프셋이 받침대에 미치는 지레 모멘트(Torque) 가중치 정밀 반영
+    let totalWeight = 0
+    let totalMoment = 0
+    let weightedTorque = 0
+    let totalTorqueWeight = 0
+
+    allTiers.forEach((t, i) => {
+      const w = t.petSize || 40
+      const heightArm = (i + 1) * 0.9 // 층고에 따른 모멘트 암 (지레 효과)
+      totalWeight += w
+      totalMoment += t.offsetX * w
+      weightedTorque += t.offsetX * w * heightArm
+      totalTorqueWeight += w * heightArm
+    })
+
     const centerOfMass = totalMoment / totalWeight
+    const effectiveCenter = totalTorqueWeight > 0 ? weightedTorque / totalTorqueWeight : centerOfMass
 
     // ⚖️ 3. 지지선 균형 판정 (비뚤어져도 무게중심만 맞으면 무너지지 않는 진짜 돌탑의 손맛!)
-    // - 황금 받침대 유효 지지 한계: ±30px
+    // - 황금 받침대 유효 지지 한계: ±32px
     // - 개별 층 접촉면 한계: localDiff <= maxOverhang (허공에 완전히 떨어진 경우만 미끄러짐)
     const willSlideOff = localDiff > maxOverhang
-    const willTipOver = Math.abs(centerOfMass) > 30
+    const willTipOver = Math.abs(effectiveCenter) > 32
     const willCollapse = willSlideOff || willTipOver
 
     let accuracy: 'PERFECT' | 'GREAT' | 'WOBBLE' = 'WOBBLE'
@@ -248,11 +267,11 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
     let notice = { text: '⚠️ WOBBLE! 기우뚱!', color: '#F59E0B', sub: '무게중심이 흔들려요!' }
 
     if (!willCollapse) {
-      if (Math.abs(centerOfMass) <= 7) {
+      if (Math.abs(effectiveCenter) <= 6) {
         accuracy = 'PERFECT'
         sound = 'sugar-crack'
-        notice = { text: '✨ PERFECT! 황금 무게중심!', color: '#10B981', sub: `중심 오차 ${centerOfMass.toFixed(1)}px! 환상적인 균형!` }
-      } else if (Math.abs(centerOfMass) <= 18) {
+        notice = { text: '✨ PERFECT! 황금 무게중심!', color: '#10B981', sub: `중심 오차 ${effectiveCenter.toFixed(1)}px! 환상적인 균형!` }
+      } else if (Math.abs(effectiveCenter) <= 16) {
         accuracy = 'GREAT'
         sound = 'mochi-squish'
         notice = { text: '👍 GREAT! 지그재그 균형!', color: '#3B82F6', sub: '삐뚤빼뚤하지만 무게중심이 절묘하게 맞아떨어졌어요!' }
@@ -611,39 +630,17 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
 
         {/* 🐾 상단 내 펫 (120FPS 직접 DOM GPU Transform 제어 & 3D 스냅샷으로 2D 오류 원천 차단) */}
         {(gameState === 'aiming' || gameState === 'dropping') && (
-          <>
-            {/* 수직 레이저 조준 점선 가이드 (아래 탑 꼭대기와의 정렬 상태 실시간 표시) */}
-            {gameState === 'aiming' && (
-              <div
-                ref={aimLineRef}
-                style={{
-                  position: 'absolute',
-                  top: 48 + currentPetSize,
-                  left: '50%',
-                  marginLeft: -0.75,
-                  transform: 'translate3d(0px, 0, 0)',
-                  width: 1.5,
-                  height: 250,
-                  background: 'repeating-linear-gradient(180deg, #FDE047 0, #FDE047 6px, transparent 6px, transparent 12px)',
-                  opacity: 0.65,
-                  pointerEvents: 'none',
-                  willChange: 'transform',
-                  zIndex: 25,
-                }}
-              />
-            )}
-
-            <div
-              ref={aimPetRef}
-              style={{
-                position: 'absolute',
-                top: 48,
-                left: '50%',
-                marginLeft: -Math.round(currentPetSize / 2),
-                transform: 'translate3d(0px, 0, 0)',
-                willChange: 'transform',
-                zIndex: 35,
-                display: 'flex',
+          <div
+            ref={aimPetRef}
+            style={{
+              position: 'absolute',
+              top: 48,
+              left: '50%',
+              marginLeft: -Math.round(currentPetSize / 2),
+              transform: 'translate3d(0px, 0, 0)',
+              willChange: 'transform',
+              zIndex: 35,
+              display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 pointerEvents: 'none',
@@ -679,7 +676,6 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
                 {petName} ({currentFloor}단)
               </div>
             </div>
-          </>
         )}
 
         {/* 🪨 돌탑 전체 컨테이너 (실제 무게중심에 따라 천천히 기우는 서스펜스 물리 연출) */}
@@ -986,7 +982,6 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
                 setGameState('aiming')
                 dragXRef.current = 0
                 if (aimPetRef.current) aimPetRef.current.style.transform = 'translate3d(0px, 0, 0)'
-                if (aimLineRef.current) aimLineRef.current.style.transform = 'translate3d(0px, 0, 0)'
                 setAccuracyNotice(null)
               }}
               style={{

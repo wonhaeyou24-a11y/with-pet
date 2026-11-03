@@ -219,6 +219,13 @@ const SCREENS: Record<string, () => ReactNode> = {
       onBack={noop}
     />
   ),
+  '각성 진화(최고 3단계 완료)': () => (
+    <EvolutionRevealScreen
+      monster={{ ...shiny, name: '로얄두바이', level: 16, evo_stage: 3, evo_branch: 'sweet-melty' }}
+      onUpdateMonster={noop}
+      onBack={noop}
+    />
+  ),
   '디저트 도감(M4)': () => <DessertPokedexScreen onBack={noop} />,
   '몬스터 상세': () => <MonsterDetail monster={{ ...shiny, name: '두바이쫀득' }} onBack={noop} />,
   '알 부화 및 무지개 충전': () => (
@@ -373,14 +380,20 @@ export default function ScreenGallery() {
 
 function GearGallery({ monster }: { monster: MonsterRow }) {
   const [coins, setCoins] = useState(5000)
+  const [ready, setReady] = useState(false)
+
   useEffect(() => {
     void import('../lib/gearApi').then(async (g) => {
+      // 로컬 개발 갤러리에서는 서버 호출 대기 없이 즉시 mock 장비 세팅
       if (g.getGear().items.length === 0) {
-        for (const d of ['wood-spoon', 'apron-cotton', 'sugar-charm']) await g.buyGear(d)
-        const items = g.getGear().items
-        await g.equipGear(items[0].id, monster.id)
+        for (const d of ['wood-spoon', 'apron-cotton', 'sugar-charm']) {
+          await g.buyGear(d)
+        }
       }
+      setReady(true)
     })
   }, [monster.id])
+
+  if (!ready) return <div style={{ padding: 40, textAlign: 'center', color: '#8D6E63' }}>장비 불러오는 중...</div>
   return <GearScreen monster={monster} coins={coins} onCoins={setCoins} onBack={() => {}} />
 }

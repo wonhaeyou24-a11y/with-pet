@@ -59,6 +59,28 @@ export default function Game({ player }: { player: Player }) {
   const [tick, setTick] = useState(0)
   const [hatching, setHatching] = useState<{ rarity: EggRow['rarity']; monster: MonsterRow | null } | null>(null)
   const [subView, setSubView] = useState<MonsterSubView>('home')
+  const historyRef = useRef<MonsterSubView[]>([])
+
+  // 🧭 [UX 동선 최적화] 히스토리 기반 네비게이션: 화면 간 이동 시 이전 화면을 추적하여 자연스러운 복귀 보장
+  const navigateTo = (view: MonsterSubView) => {
+    const hist = historyRef.current
+    if (hist[hist.length - 1] !== subView) {
+      hist.push(subView)
+    }
+    setSubView(view)
+  }
+
+  const goBack = () => {
+    const hist = historyRef.current
+    const prevView = hist.pop() || 'home'
+    setSubView(prevView)
+  }
+
+  const goHome = () => {
+    historyRef.current = []
+    setSubView('home')
+  }
+
   const [battleTarget, setBattleTarget] = useState<PlazaFriendEntry>(PLAZA_SHOWCASE_FRIENDS[0])
   const [battleMode, setBattleMode] = useState<'friendly' | 'boss-raid'>('friendly')
   const [visitTarget, setVisitTarget] = useState<PlazaFriendEntry | null>(null)
@@ -274,23 +296,23 @@ export default function Game({ player }: { player: Player }) {
       return (
         <MonsterDetail
           monster={monster}
-          onBack={() => setSubView('home')}
-          onOpenBoutique={() => setSubView('boutique')}
+          onBack={goBack}
+          onOpenBoutique={() => navigateTo('boutique')}
         />
       )
     }
     if (subView === 'explore') {
-      return <ExploreScreen monster={monster} coins={coins} onUpdate={handleCareUpdate} onGoRest={() => setSubView('care')} onBack={() => setSubView('home')} />
+      return <ExploreScreen monster={monster} coins={coins} onUpdate={handleCareUpdate} onGoRest={() => navigateTo('care')} onBack={goBack} />
     }
     if (subView === 'gear') {
-      return <GearScreen monster={monster} coins={coins} onCoins={setCoins} onBack={() => setSubView('home')} />
+      return <GearScreen monster={monster} coins={coins} onCoins={setCoins} onBack={goBack} />
     }
     if (subView === 'boutique') {
       return (
         <BoutiqueShop
           monster={monster}
-          onBack={() => setSubView('home')}
-          onOpenMyRoom={() => setSubView('myroom')}
+          onBack={goBack}
+          onOpenMyRoom={() => navigateTo('myroom')}
           onUpdate={(updated) => setMonsters((list) => list.map((m) => (m.id === updated.id ? updated : m)))}
         />
       )
@@ -300,8 +322,8 @@ export default function Game({ player }: { player: Player }) {
         <MyRoomScreen
           monster={monster}
           visit={{ ownerId: visitTarget.monster.owner, nickname: visitTarget.ownerNickname, monster: visitTarget.monster }}
-          onBack={() => setSubView('plaza')}
-          onOpenBoutique={() => setSubView('boutique')}
+          onBack={goBack}
+          onOpenBoutique={() => navigateTo('boutique')}
         />
       )
     }
@@ -309,8 +331,8 @@ export default function Game({ player }: { player: Player }) {
       return (
         <MyRoomScreen
           monster={monster}
-          onBack={() => setSubView('home')}
-          onOpenBoutique={() => setSubView('boutique')}
+          onBack={goBack}
+          onOpenBoutique={() => navigateTo('boutique')}
         />
       )
     }
@@ -321,7 +343,7 @@ export default function Game({ player }: { player: Player }) {
           coins={coins}
           foodBag={foodBag}
           onUpdate={handleCareUpdate}
-          onBack={() => setSubView('home')}
+          onBack={goBack}
         />
       )
     }
@@ -331,8 +353,8 @@ export default function Game({ player }: { player: Player }) {
           monster={monster}
           coins={coins}
           onUpdate={handleCareUpdate}
-          onGoRest={() => setSubView('care')}
-          onBack={() => setSubView('home')}
+          onGoRest={() => navigateTo('care')}
+          onBack={goBack}
         />
       )
     }
@@ -343,7 +365,7 @@ export default function Game({ player }: { player: Player }) {
           onUpdateMonster={(nextMonster) => {
             setMonsters((list) => list.map((m) => (m.id === nextMonster.id ? nextMonster : m)))
           }}
-          onBack={() => setSubView('home')}
+          onBack={goBack}
         />
       )
     }
@@ -358,14 +380,14 @@ export default function Game({ player }: { player: Player }) {
           onChallenge={(friend, mode = 'friendly') => {
             setBattleTarget(friend)
             setBattleMode(mode)
-            setSubView('battle')
+            navigateTo('battle')
           }}
-          onOpenSkillTree={() => setSubView('skills')}
+          onOpenSkillTree={() => navigateTo('skills')}
           onVisit={(friend) => {
             setVisitTarget(friend)
-            setSubView('visit')
+            navigateTo('visit')
           }}
-          onBack={() => setSubView('home')}
+          onBack={goHome}
         />
       )
     }
@@ -379,7 +401,7 @@ export default function Game({ player }: { player: Player }) {
             defenderOwnerName={battleTarget.ownerNickname}
             battleMode={battleMode}
             onCoins={setCoinsFromServer}
-            onBack={() => setSubView('plaza')}
+            onBack={goBack}
           />
         )
       }
@@ -390,7 +412,7 @@ export default function Game({ player }: { player: Player }) {
           defenderOwnerName={battleTarget.ownerNickname}
           battleMode={battleMode}
           onRewardClaimed={earnLocalCoins}
-          onBack={() => setSubView('plaza')}
+          onBack={goBack}
         />
       )
     }
@@ -401,7 +423,7 @@ export default function Game({ player }: { player: Player }) {
           onUpdateMonster={(nextMonster) => {
             setMonsters((list) => list.map((m) => (m.id === nextMonster.id ? nextMonster : m)))
           }}
-          onBack={() => setSubView('home')}
+          onBack={goBack}
         />
       )
     }
@@ -424,7 +446,7 @@ export default function Game({ player }: { player: Player }) {
                 }
               : undefined
           }
-          onBack={() => setSubView('home')}
+          onBack={goBack}
         />
       )
     }
@@ -433,17 +455,17 @@ export default function Game({ player }: { player: Player }) {
         nickname={player.nickname}
         monster={monster}
         coins={coins}
-        onDetail={() => setSubView('detail')}
-        onOpenCare={() => setSubView('care')}
-        onOpenTrain={() => setSubView('train')}
-        onOpenSkills={() => setSubView('skills')}
-        onOpenPlaza={() => setSubView('plaza')}
-        onOpenEvolution={() => setSubView('evolution')}
-        onOpenDex={() => setSubView('pokedex')}
-        onOpenMyRoom={() => setSubView('myroom')}
-        onOpenBoutique={() => setSubView('boutique')}
-        onOpenGear={() => setSubView('gear')}
-        onOpenExplore={() => setSubView('explore')}
+        onDetail={() => navigateTo('detail')}
+        onOpenCare={() => navigateTo('care')}
+        onOpenTrain={() => navigateTo('train')}
+        onOpenSkills={() => navigateTo('skills')}
+        onOpenPlaza={() => navigateTo('plaza')}
+        onOpenEvolution={() => navigateTo('evolution')}
+        onOpenDex={() => navigateTo('pokedex')}
+        onOpenMyRoom={() => navigateTo('myroom')}
+        onOpenBoutique={() => navigateTo('boutique')}
+        onOpenGear={() => navigateTo('gear')}
+        onOpenExplore={() => navigateTo('explore')}
         onRewardCoins={earnLocalCoins}
         onCoins={setCoinsFromServer}
         onResetTestEgg={

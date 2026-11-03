@@ -117,6 +117,7 @@ export default function EvolutionRevealScreen({ monster, onUpdateMonster, onBack
     }
   }
 
+  const isMaxStage = (monster.evo_stage ?? 1) >= 3
   const evoData = SPECIES_EVOLUTIONS[monster.species]
   const targetTitle = evoData?.titles[targetStage]?.[selectedBranch] ?? `${branchMeta.name} 파티세리`
   const targetName = evoData?.stageNames[targetStage]?.[selectedBranch] ?? `${monster.name} (${branchMeta.name})`
@@ -685,9 +686,9 @@ export default function EvolutionRevealScreen({ monster, onUpdateMonster, onBack
           {/* 2. 진화 목표 및 스탯 요약 배너 */}
           <div
             style={{
-              background: 'rgba(255, 255, 255, 0.08)',
+              background: isMaxStage ? 'rgba(255, 215, 0, 0.12)' : 'rgba(255, 255, 255, 0.08)',
               borderRadius: 12,
-              border: `1.5px solid ${branchMeta.color}`,
+              border: isMaxStage ? '1.5px solid #FFD700' : `1.5px solid ${branchMeta.color}`,
               padding: '6px 10px',
               display: 'flex',
               alignItems: 'center',
@@ -696,23 +697,26 @@ export default function EvolutionRevealScreen({ monster, onUpdateMonster, onBack
             }}
           >
             <div>
-              <div style={{ fontSize: 10.5, color: '#B39DDB', fontWeight: 700 }}>
-                목표 진화형: {targetStage}단계 [{branchMeta.name}]
+              <div style={{ fontSize: 10.5, color: isMaxStage ? '#FFE082' : '#B39DDB', fontWeight: 700 }}>
+                {isMaxStage ? '👑 최종 진화 완료: 3단계 [로얄 마스터]' : `목표 진화형: ${targetStage}단계 [${branchMeta.name}]`}
               </div>
-              <strong style={{ fontSize: 13.5, color: '#FFFFFF' }}>{targetName}</strong>
-              <div style={{ fontSize: 10, color: '#FFB74D' }}>칭호: {targetTitle}</div>
+              <strong style={{ fontSize: 13.5, color: '#FFFFFF' }}>{isMaxStage ? monster.name : targetName}</strong>
+              <div style={{ fontSize: 10, color: '#FFB74D' }}>
+                칭호: {isMaxStage ? (evoData?.titles[3]?.[selectedBranch] ?? '로얄 마스터 파티세리') : targetTitle}
+              </div>
             </div>
             <div
               style={{
-                background: eligibility.canEvolve ? '#4CAF50' : '#E53935',
+                background: isMaxStage ? 'linear-gradient(90deg, #F59E0B, #D97706)' : eligibility.canEvolve ? '#4CAF50' : '#E53935',
                 color: '#FFFFFF',
                 padding: '3px 8px',
                 borderRadius: 999,
                 fontSize: 10.5,
                 fontWeight: 900,
+                boxShadow: isMaxStage ? '0 2px 6px rgba(245, 158, 11, 0.4)' : undefined,
               }}
             >
-              {eligibility.canEvolve ? '진화 가능!' : `Lv.${eligibility.requiredLevel} 필요`}
+              {isMaxStage ? '👑 최고 단계' : eligibility.canEvolve ? '진화 가능!' : `Lv.${eligibility.requiredLevel} 필요`}
             </div>
           </div>
 
@@ -808,23 +812,29 @@ export default function EvolutionRevealScreen({ monster, onUpdateMonster, onBack
                 padding: '12px',
                 borderRadius: 14,
                 border: 'none',
-                background: eligibility.canEvolve
-                  ? `linear-gradient(90deg, ${branchMeta.color}, #FFD700)`
-                  : 'rgba(255,255,255,0.12)',
-                color: eligibility.canEvolve ? '#1F112B' : '#888888',
+                background: isMaxStage
+                  ? 'linear-gradient(90deg, #F59E0B, #D97706)'
+                  : eligibility.canEvolve
+                    ? `linear-gradient(90deg, ${branchMeta.color}, #FFD700)`
+                    : 'rgba(255,255,255,0.12)',
+                color: isMaxStage ? '#FFFFFF' : eligibility.canEvolve ? '#1F112B' : '#888888',
                 fontSize: 14.5,
                 fontWeight: 900,
                 cursor: eligibility.canEvolve ? 'pointer' : 'not-allowed',
-                boxShadow: eligibility.canEvolve
-                  ? `0 4px 16px ${branchMeta.color}88`
-                  : 'none',
+                boxShadow: isMaxStage
+                  ? '0 4px 16px rgba(245, 158, 11, 0.4)'
+                  : eligibility.canEvolve
+                    ? `0 4px 16px ${branchMeta.color}88`
+                    : 'none',
               }}
             >
               {evolveStep !== 'idle'
                 ? '✨ 시네마틱 각성 진화 진행 중...'
-                : eligibility.canEvolve
-                  ? `👑 [${branchMeta.name}] 시네마틱 각성 진화 시작!`
-                  : `🔒 Lv.${eligibility.requiredLevel} 달성 후 진화 가능`}
+                : isMaxStage
+                  ? '👑 최고 단계 진화 완료 (로얄 마스터 3단계)'
+                  : eligibility.canEvolve
+                    ? `👑 [${branchMeta.name}] 시네마틱 각성 진화 시작!`
+                    : `🔒 Lv.${eligibility.requiredLevel} 달성 후 진화 가능`}
             </button>
           </div>
         </div>
