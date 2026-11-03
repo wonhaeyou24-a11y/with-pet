@@ -5046,7 +5046,7 @@ function add3DDecorations(
 
 // 브라우저의 동시 WebGL 컨텍스트 한도(최대 16개) 초과로 인한 컨텍스트 소실을 완벽 차단하기 위한 안전 카운터
 let activeWebglContexts = 0
-const MAX_ACTIVE_WEBGL = 8
+const MAX_ACTIVE_WEBGL = 12
 
 export default function Monster3DView({
   look,

@@ -16,6 +16,7 @@ import WorldBoss3DView from '../monsters/WorldBoss3DView'
 import BattleFighter, { type Pose } from '../ui/BattleFighter'
 import BattleFx from '../ui/BattleFx'
 import MonsterView from '../monsters/MonsterView'
+import MonsterSnapshot from '../monsters/MonsterSnapshot'
 import { BackIcon, ElementIcon } from '../ui/Icons'
 import { getSensoryReactionClass, SensoryBurst } from '../ui/SensoryFx'
 import { DECO_ITEMS } from '../monsters/Decorations'
@@ -1471,7 +1472,7 @@ export default function AsmrBattleArena({
                     <span>{participant.ownerName}</span>
                   </div>
                   {/* 동적 크기(Scale) 적용: 소수 정예는 큼직하게(46px), 중규모는 36px, 대규모 군단은 앙증맞게(22~28px) */}
-                  <MonsterView look={participant.look} size={participant.petSize} prefer2D={true} />
+                  <MonsterSnapshot look={participant.look} size={participant.petSize} />
                 </div>
               ))}
 

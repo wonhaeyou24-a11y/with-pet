@@ -2,7 +2,7 @@
 // (턴마다 3D 화면을 다시 만들던 이전 방식을 대신한다.) 돌진할 때는 뒤따르는 잔상이 붙는다.
 
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
-import MonsterView from '../monsters/MonsterView'
+import MonsterSnapshot from '../monsters/MonsterSnapshot'
 import { getMonsterSnapshot, snapshotKey } from '../monsters/snapshotRenderer'
 import type { MallangCustom } from '../monsters/MallangChameleon'
 import type { MonsterLook } from '../monsters/types'
@@ -95,7 +95,7 @@ export default function BattleFighter({ look, size, title, pose, hitClass, hitKe
       <div style={{ position: 'relative', zIndex: 2, transform: pose.transform, transition: move, willChange: 'transform' }}>
         <div ref={hitRef} style={{ filter: flash ? 'brightness(2.4) saturate(0.35)' : 'none', transition: 'filter 90ms linear' }}>
           {url === null ? (
-            <MonsterView look={look} size={size} prefer2D title={title} />
+            <MonsterSnapshot look={look} size={size} title={title} />
           ) : (
             <img
               src={url ?? undefined}

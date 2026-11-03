@@ -8,6 +8,7 @@ import { ELEMENT_INFO, SPECIES_INFO } from '../config/species'
 import { fetchDiscoveredDexEntries } from '../lib/evolutionEngine'
 import { getSpeciesSoundKind, playDessertAsmr } from '../lib/sound'
 import MonsterView from '../monsters/MonsterView'
+import MonsterSnapshot from '../monsters/MonsterSnapshot'
 import type { MonsterLook } from '../monsters/types'
 import { BackIcon, ElementIcon } from '../ui/Icons'
 
@@ -452,7 +453,7 @@ export default function DessertPokedexScreen({ onBack, onSwitchPet }: Props) {
                 }}
               >
                 {isUnlocked ? (
-                  <MonsterView look={mockLook} size={64} title={item.name} />
+                  <MonsterSnapshot look={mockLook} size={64} title={item.name} />
                 ) : (
                   <div
                     style={{

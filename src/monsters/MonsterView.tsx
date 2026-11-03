@@ -3,6 +3,7 @@ import { BackDecorations, FrontDecorations } from './Decorations'
 import { normalizeDessertSpecies } from './dessertNormalizer'
 import { CHAMELEON_PALETTES, MorphBodyPaintOverlay, SyrupToppingLayer, UniversalWingLayer } from './MallangChameleon'
 import Monster3DView from './Monster3DView'
+import MonsterSnapshot from './MonsterSnapshot'
 import './monsters.css'
 import { SPECIES } from './registry'
 import type { BodyType, MonsterLook } from './types'
@@ -22,12 +23,13 @@ type Props = {
   fluid?: boolean
   // 메챠 카멜레온 공방에서 몸통 위에 직접 브러시/스탬프를 찍을 때 사용하는 좌표 콜백
   interactive?: boolean
-  // 2D 브러시 페인팅 탭이 아닐 때는 기본으로 Three.js 실시간 3D 모드를 사용한다
+  // 레거시 호환용 (3D 스냅샷으로 안전 렌더링)
   prefer2D?: boolean
   onCanvasPoint?: (x: number, y: number, phase: 'down' | 'move' | 'up') => void
 }
 
-// 실시간 3D(Three.js WebGL) 말랑·바삭 캐릭터를 우선 렌더링하고, 2D 바디페인팅 모드이거나 WebGL 미지원 시 레이어 SVG로 폴백한다
+// 🛡️ [2D 깜빡임/노출 원천 차단] 100% 실시간 3D(Three.js) 캐릭터를 우선 렌더링하며,
+// WebGL 컨텍스트 일시 부족 시에도 옛날 2D SVG가 아닌 3D 스냅샷(MonsterSnapshot)을 보여줍니다.
 export default function MonsterView({
   look,
   size = 240,
@@ -51,7 +53,7 @@ export default function MonsterView({
     palette: look.mallang?.skinPalette ?? look.palette,
   }
 
-  // 실시간 Three.js 3D 모드 (바디 페인팅 직접 드로잉 중이 아닐 때 기본 활성화)
+  // 1. 공방 바디페인팅 인터랙티브 캔버스가 아니고 prefer2D도 아닐 때: Three.js 실시간 3D
   if (!prefer2D && !interactive && !fallback2D) {
     return (
       <Monster3DView
@@ -60,6 +62,26 @@ export default function MonsterView({
         fluid={fluid}
         onFallbackNeeded={() => setFallback2D(true)}
       />
+    )
+  }
+
+  // 2. 🛡️ 핵심 수정: WebGL 컨텍스트 부족(fallback2D)이나 prefer2D 발생 시,
+  // 옛날 2D 캐릭터 SVG가 노출되지 않도록 실제 3D 모델의 고화질 3D 스냅샷(MonsterSnapshot)으로 100% 안전 치유!
+  if (!interactive) {
+    return (
+      <div
+        style={{
+          width: size,
+          height: size,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'visible',
+        }}
+        title={title ?? def.name}
+      >
+        <MonsterSnapshot look={effectiveLook} size={size} title={title ?? def.name} />
+      </div>
     )
   }
 
