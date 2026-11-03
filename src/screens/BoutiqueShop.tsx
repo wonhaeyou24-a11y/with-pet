@@ -1,7 +1,7 @@
 // 🛍️ 파티세리 부티크 상점: 패션 장신구 & 마이룸 인테리어 쇼핑 (3D 피팅룸 지원)
 // 100dvh 모바일 최적화, 무스크롤 덱 구조, Zero-Crash 무결성 보장
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import {
   BOUTIQUE_FASHION_ITEMS,
   BOUTIQUE_PLATING_ITEMS,
@@ -54,10 +54,12 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
     })
   }, [])
 
-  // 3D 피팅룸 미리보기 상태 (실제 저장은 구매 후 장착 시)
+  // 3D 피팅룸 미리보기 상태 (실제 영구 저장은 구매 완료 또는 보유 아이템 장착 시에만 적용)
   const savedCustom = loadMallangCustom(monster.id)
-  const [previewDeco, setPreviewDeco] = useState<MonsterDecorations>(
-    savedCustom?.decorations ?? {
+
+  // 🛡️ 과거 버그로 미구매 아이템이 잘못 저장되어 있는 경우 자동 정화 (Sanitization)
+  const sanitizeDeco = (rawDeco?: MonsterDecorations): MonsterDecorations => {
+    const base: MonsterDecorations = {
       head: null,
       face: null,
       neck: null,
@@ -66,14 +68,37 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
       bg: null,
       effect: null,
       dye: 0,
-    },
+    }
+    if (!rawDeco) return base
+    const currentOwned = getOwnedBoutiqueItems()
+    const result: MonsterDecorations = { ...rawDeco }
+    const checkSlots: (keyof MonsterDecorations)[] = ['head', 'face', 'neck', 'back', 'hand', 'bg', 'effect']
+    for (const s of checkSlots) {
+      const val = result[s]
+      if (typeof val === 'string' && val.length > 0) {
+        // 부티크 카탈로그에서 유료 아이템인데 보유 목록에 없다면 제거
+        const catalogItem = BOUTIQUE_FASHION_ITEMS.find((it) => it.id === val)
+        if (catalogItem && catalogItem.price > 0 && !currentOwned.has(val)) {
+          (result as any)[s] = null
+        }
+      }
+    }
+    return result
+  }
+
+  const [previewDeco, setPreviewDeco] = useState<MonsterDecorations>(() =>
+    sanitizeDeco(savedCustom?.decorations),
   )
   const [selectedFashionItem, setSelectedFashionItem] = useState<BoutiqueItem>(BOUTIQUE_FASHION_ITEMS[0])
   const [selectedPlatingItem, setSelectedPlatingItem] = useState<BoutiqueItem>(BOUTIQUE_PLATING_ITEMS[0])
-  // 💡 대표님 3번 피드백 반영: 상점 아이템 구매 및 착용 시 전체 펫 뷰에 즉시 100% 반영
+
+  // 🛡️ 원래 저장되어 있던 데코 보관 (미구매 피팅 후 뒤로가기 시 롤백용)
+  const activeSavedDecoRef = useRef<MonsterDecorations>(sanitizeDeco(savedCustom?.decorations))
+
+  // 💡 대표님 피드백 반영: 구매 완료 또는 보유 아이템 착용 시에만 전체 펫 뷰 및 영구 저장소에 반영
   const notifyMonsterUpdate = (nextDeco?: MonsterDecorations, nextBase?: DessertBaseId) => {
     const currentCustom = loadMallangCustom(monster.id) ?? {}
-    const updatedDeco = nextDeco ?? previewDeco
+    const updatedDeco = nextDeco ?? activeSavedDecoRef.current
     const updatedBase = nextBase ?? currentBase
     const mergedCustom: MallangCustom = {
       ...currentCustom,
@@ -186,28 +211,32 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
     }
   }
 
-  // 패션 아이템 미리보기 피팅 및 선택 시 착용/해제 토글
+  // 패션 아이템 미리보기 피팅 (🛡️ 구매 전에는 상점 피팅룸에서만 보이고 홈 화면에는 절대 저장/반영되지 않음!)
   const handleSelectFashionItem = (item: BoutiqueItem) => {
     setSelectedFashionItem(item)
     playDessertAsmr('wax-pop')
 
     if (item.slot) {
       setPreviewDeco((prev) => {
-        // 이미 착용 중인 아이템을 다시 선택하면 착용 해제(null), 아니면 장착!
-        const isEquipped = prev[item.slot!] === item.id
+        // 이미 피팅 중인 아이템을 다시 누르면 벗기(null), 아니면 입어보기!
+        const isFitted = prev[item.slot!] === item.id
         const nextDeco = {
           ...prev,
-          [item.slot!]: isEquipped ? null : item.id,
+          [item.slot!]: isFitted ? null : item.id,
         }
-        const currentCustom = loadMallangCustom(monster.id) ?? {}
-        saveMallangCustom(monster.id, { ...currentCustom, decorations: nextDeco })
-        notifyMonsterUpdate(nextDeco)
         return nextDeco
       })
+
+      const isOwned = ownedItems.has(item.id) || item.price === 0
+      if (isOwned) {
+        showToast(`👀 ${item.name}을(를) 피팅룸에 입어봤어요! 아래 [바로 착용]을 누르면 홈에 적용돼요.`)
+      } else {
+        showToast(`👀 ${item.name}을(를) 피팅룸에서 미리 입어봤어요! 마음에 들면 구매해 보세요.`)
+      }
     }
   }
 
-  // 패션 아이템 구매
+  // 패션 아이템 구매 (🛡️ 결제 완료 시에만 실제 착용 및 영구 저장소/홈 화면 동기화)
   const handlePurchaseFashion = async (item: BoutiqueItem) => {
     if (buying) return
     setBuying(true)
@@ -215,14 +244,17 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
     setBuying(false)
     if (res.success) {
       playDessertAsmr('sugar-crack')
-      setCoinsState(getRibbonCoins())
-      setOwnedItems(new Set(getOwnedBoutiqueItems()))
+      const updatedCoins = getRibbonCoins()
+      const updatedOwned = new Set(getOwnedBoutiqueItems())
+      setCoinsState(updatedCoins)
+      setOwnedItems(updatedOwned)
       showToast(`🎉 ${item.name}을(를) 구매했습니다!`)
 
-      // 바로 펫에게 착용 및 기존 커스텀과 안전 병합 저장
+      // 구매 즉시 펫에게 정식 착용 및 영구 저장
       if (item.slot) {
         const nextDeco = { ...previewDeco, [item.slot]: item.id }
         setPreviewDeco(nextDeco)
+        activeSavedDecoRef.current = nextDeco
         const currentCustom = loadMallangCustom(monster.id) ?? {}
         saveMallangCustom(monster.id, { ...currentCustom, decorations: nextDeco })
         notifyMonsterUpdate(nextDeco)
@@ -311,7 +343,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
     }
   }
 
-  // 패션 장착/해제 토글
+  // 패션 장착/해제 토글 (보유 중인 아이템 착용 시 실제 저장)
   const handleEquipFashion = (item: BoutiqueItem) => {
     if (!item.slot) return
     const isEquipped = previewDeco[item.slot] === item.id
@@ -320,6 +352,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
       [item.slot]: isEquipped ? null : item.id,
     }
     setPreviewDeco(nextDeco)
+    activeSavedDecoRef.current = nextDeco
     const currentCustom = loadMallangCustom(monster.id) ?? {}
     saveMallangCustom(monster.id, { ...currentCustom, decorations: nextDeco })
     notifyMonsterUpdate(nextDeco)
@@ -335,13 +368,28 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
       neck: null,
       back: null,
       hand: null,
+      bg: null,
       effect: null,
+      dye: 0,
     }
     setPreviewDeco(emptyDeco)
+    activeSavedDecoRef.current = emptyDeco
     const currentCustom = loadMallangCustom(monster.id) ?? {}
     saveMallangCustom(monster.id, { ...currentCustom, decorations: emptyDeco })
+    notifyMonsterUpdate(emptyDeco)
     playDessertAsmr('mochi-squish')
     showToast('✨ 모든 장신구를 벗었습니다.')
+  }
+
+  // 🛡️ 상점 닫기 안전 핸들러 (피팅룸에서 미구매 아이템을 입어보던 상태를 홈 화면에 남기지 않고 원복)
+  const handleSafeBack = () => {
+    try {
+      // 실제 영구 저장된 최신 커스텀 상태로 홈 화면 몬스터 뷰를 정화/복구
+      const currentCustom = loadMallangCustom(monster.id)
+      const confirmedDeco = activeSavedDecoRef.current || currentCustom?.decorations
+      notifyMonsterUpdate(confirmedDeco, currentCustom?.dessertBase)
+    } catch {}
+    onBack()
   }
 
   return (
@@ -378,7 +426,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <button
-            onClick={onBack}
+            onClick={handleSafeBack}
             style={{
               background: '#FFF0F5',
               border: '1px solid #FBCFE8',

@@ -575,55 +575,60 @@ export function FrontDecorations({
         </g>
       )}
 
-      {/* 💎 명품 럭셔리 & 큐트 귀걸이 4종 (양쪽 귓볼 정밀 렌더링) */}
+      {/* 💎 명품 럭셔리 & 큐트 귀걸이 4종 (양쪽 귓볼 정밀 렌더링 - 2배 선명도 스케일업) */}
       {deco?.face === 'luxury-clover-earring' && (
         <g>
-          {[64, 176].map((cx) => (
-            <g key={cx} transform={`translate(${cx}, 122)`}>
-              {/* 골드 비즈 클로버 */}
-              <circle cx={-3.5} cy={0} r={3} fill="#FFFDF9" stroke="#FFD700" strokeWidth={1.2} />
-              <circle cx={3.5} cy={0} r={3} fill="#FFFDF9" stroke="#FFD700" strokeWidth={1.2} />
-              <circle cx={0} cy={-3.5} r={3} fill="#FFFDF9" stroke="#FFD700" strokeWidth={1.2} />
-              <circle cx={0} cy={3.5} r={3} fill="#FFFDF9" stroke="#FFD700" strokeWidth={1.2} />
-              <circle cx={0} cy={0} r={1.8} fill="#FFD700" />
+          {[60, 180].map((cx) => (
+            <g key={cx} transform={`translate(${cx}, 124)`}>
+              {/* 24K 골드 비즈 림 & 화이트 자개 4잎 */}
+              <circle cx={-5.5} cy={0} r={5} fill="#FFFDF9" stroke="#FFD700" strokeWidth={1.8} />
+              <circle cx={5.5} cy={0} r={5} fill="#FFFDF9" stroke="#FFD700" strokeWidth={1.8} />
+              <circle cx={0} cy={-5.5} r={5} fill="#FFFDF9" stroke="#FFD700" strokeWidth={1.8} />
+              <circle cx={0} cy={5.5} r={5} fill="#FFFDF9" stroke="#FFD700" strokeWidth={1.8} />
+              <circle cx={0} cy={0} r={3.2} fill="#FFD700" stroke="#B45309" strokeWidth={0.8} />
+              <circle cx={-1.5} cy={-1.5} r={1.2} fill="#FFFFFF" opacity={0.9} />
             </g>
           ))}
         </g>
       )}
       {deco?.face === 'chanel-camellia-earring' && (
         <g>
-          {[64, 176].map((cx) => (
-            <g key={cx} transform={`translate(${cx}, 122)`}>
-              {/* 순백 까멜리아 & 다이아몬드 */}
-              <circle cx={0} cy={0} r={5.5} fill="#FFFFFF" stroke="#E2E8F0" strokeWidth={1} />
-              <circle cx={-2.5} cy={-2} r={2.5} fill="#FFFFFF" stroke="#CBD5E1" strokeWidth={0.8} />
-              <circle cx={2.5} cy={-2} r={2.5} fill="#FFFFFF" stroke="#CBD5E1" strokeWidth={0.8} />
-              <circle cx={0} cy={2.8} r={2.5} fill="#FFFFFF" stroke="#CBD5E1" strokeWidth={0.8} />
-              <polygon points="0,-1.5 1.5,0 0,1.5 -1.5,0" fill="#38BDF8" stroke="#0284C7" strokeWidth={0.6} />
+          {[60, 180].map((cx) => (
+            <g key={cx} transform={`translate(${cx}, 124)`}>
+              {/* 순백 세라믹 까멜리아 & 센터 다이아몬드 */}
+              <circle cx={0} cy={0} r={9} fill="#FFFFFF" stroke="#CBD5E1" strokeWidth={1.4} />
+              <circle cx={-4} cy={-3.5} r={4} fill="#FFFFFF" stroke="#94A3B8" strokeWidth={1} />
+              <circle cx={4} cy={-3.5} r={4} fill="#FFFFFF" stroke="#94A3B8" strokeWidth={1} />
+              <circle cx={0} cy={4.5} r={4} fill="#FFFFFF" stroke="#94A3B8" strokeWidth={1} />
+              <polygon points="0,-3 3,0 0,3 -3,0" fill="#38BDF8" stroke="#0284C7" strokeWidth={1} />
+              <circle cx={-0.8} cy={-0.8} r={0.8} fill="#FFFFFF" />
             </g>
           ))}
         </g>
       )}
       {deco?.face === 'dior-pearl-drop' && (
         <g>
-          {[64, 176].map((cx) => (
-            <g key={cx} transform={`translate(${cx}, 120)`}>
-              {/* 앞쪽 미니 펄 + 골드 링크 + 드롭 라지 펄 */}
-              <circle cx={0} cy={0} r={2.6} fill="#FFFFFF" stroke="#FFD700" strokeWidth={0.8} />
-              <path d="M 0 1 Q 2 5 0 8" fill="none" stroke="#FFD700" strokeWidth={1.2} />
-              <circle cx={0} cy={9} r={4.6} fill="#FDF2F8" stroke="#E2E8F0" strokeWidth={1} />
+          {[60, 180].map((cx) => (
+            <g key={cx} transform={`translate(${cx}, 122)`}>
+              {/* 스터드 펄 + 24K 골드 링크 + 드롭 로열 펄 */}
+              <circle cx={0} cy={0} r={4.2} fill="#FFFFFF" stroke="#FFD700" strokeWidth={1.4} />
+              <circle cx={-1} cy={-1} r={1.2} fill="#FFFFFF" />
+              <path d="M 0 3 Q 3 9 0 13" fill="none" stroke="#FFD700" strokeWidth={2} />
+              <circle cx={0} cy={16} r={7.5} fill="#FFF1F2" stroke="#FDA4AF" strokeWidth={1.5} />
+              <circle cx={-2} cy={14} r={2} fill="#FFFFFF" opacity={0.95} />
             </g>
           ))}
         </g>
       )}
       {deco?.face === 'tiffany-heart-diamond' && (
         <g>
-          {[64, 176].map((cx) => (
-            <g key={cx} transform={`translate(${cx}, 120)`}>
-              {/* 로즈골드 링 + 하트 컷 다이아몬드 */}
-              <circle cx={0} cy={0} r={2.4} fill="none" stroke="#F472B6" strokeWidth={1.2} />
-              <line x1={0} y1={2.4} x2={0} y2={6} stroke="#F472B6" strokeWidth={1} />
-              <path d="M 0 7 C -3 4 -5 7 -2 9.5 L 0 12 L 2 9.5 C 5 7 3 4 0 7 Z" fill="#E0F2FE" stroke="#38BDF8" strokeWidth={0.8} />
+          {[60, 180].map((cx) => (
+            <g key={cx} transform={`translate(${cx}, 122)`}>
+              {/* 로즈골드 후프 링 + 체인 + 하트 컷 다이아몬드 */}
+              <circle cx={0} cy={0} r={4} fill="none" stroke="#F43F5E" strokeWidth={1.8} />
+              <line x1={0} y1={4} x2={0} y2={10} stroke="#F43F5E" strokeWidth={1.6} />
+              <path d="M 0 11 C -5 6 -9 11 -3 15 L 0 19 L 3 15 C 9 11 5 6 0 11 Z" fill="#E0F2FE" stroke="#0284C7" strokeWidth={1.2} />
+              <circle cx={-1.5} cy={13} r={1.2} fill="#FFFFFF" opacity={0.9} />
             </g>
           ))}
         </g>

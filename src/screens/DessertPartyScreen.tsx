@@ -330,69 +330,16 @@ const ArtisanChocoView: React.FC<{ choco: ArtisanChocoItem; size?: number }> = (
   )
 }
 
-// 🧁 실물 사진 속 그 주름 유산지 베이킹 컵 (Fluted pleats baking cup)
-const FlutedBakingCup: React.FC<{
-  children?: React.ReactNode
-  isLong?: boolean
-  cupTheme?: 'dark-choco' | 'gold-kraft' | 'white'
-  isSelected?: boolean
-  onClick?: () => void
-}> = ({ children, isLong = false, cupTheme = 'dark-choco', isSelected = false, onClick }) => {
-  const isGold = cupTheme === 'gold-kraft'
-  return (
-    <div
-      onClick={onClick}
-      style={{
-        position: 'relative',
-        width: isLong ? '95%' : '90%',
-        aspectRatio: isLong ? '2.2 / 1' : '1 / 1',
-        borderRadius: isLong ? 26 : '50%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: isGold
-          ? 'radial-gradient(circle, #D4AF37 30%, #AA8222 70%, #6E4E24 100%)'
-          : 'radial-gradient(circle, #3D1E0E 25%, #241108 65%, #150904 100%)',
-        backgroundImage: isLong
-          ? undefined
-          : isGold
-          ? `repeating-conic-gradient(from 0deg, rgba(255,248,220,0.42) 0deg 7.5deg, rgba(90,55,20,0.55) 7.5deg 15deg)`
-          : `repeating-conic-gradient(from 0deg, rgba(90,45,20,0.42) 0deg 7.5deg, rgba(20,9,4,0.7) 7.5deg 15deg)`,
-        boxShadow: isSelected
-          ? '0 0 0 2.5px #F59E0B, 0 4px 12px rgba(245,158,11,0.5), inset 0 3px 8px rgba(0,0,0,0.9)'
-          : '0 3px 8px rgba(0,0,0,0.6), inset 0 3px 10px rgba(0,0,0,0.85)',
-        border: isSelected ? '1.5px solid #FDE68A' : isGold ? '1px solid #C59B27' : '1px solid #451A03',
-        cursor: 'pointer',
-        transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-        transform: isSelected ? 'scale(1.04)' : 'scale(1)',
-        boxSizing: 'border-box',
-        overflow: 'hidden',
-      }}
-    >
-      {/* 컵 바닥 안쪽 깊이감 음영 */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: '10%',
-          borderRadius: isLong ? 18 : '50%',
-          background: isGold ? 'rgba(75, 45, 15, 0.45)' : 'rgba(15, 7, 3, 0.65)',
-          boxShadow: 'inset 0 3px 8px rgba(0,0,0,0.9)',
-          pointerEvents: 'none',
-        }}
-      />
-      <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
-        {children}
-      </div>
-    </div>
-  )
-}
-
-// 🎀 실물 사진 5, 6번의 새틴 리본이 달린 뚜껑 & 카드 라벨
-const RibbonBoxLid: React.FC<{
+// 📸 대표님 요청 반영: 실제 감성 즉석 사진 상자 뚜껑 & 앨범 타이틀 라벨
+const PhotoMemoryBoxLid: React.FC<{
   title?: string
   subtitle?: string
   badgeText?: string
-}> = ({ title = 'Chocolatier Collection', subtitle = '수제 컬렉션', badgeText = 'Handcrafted 🍫' }) => {
+}> = ({
+  title = 'Our Sweet Memories 포토 박스',
+  subtitle = '실제 사진 상자에 담긴 달콤한 순간 📸',
+  badgeText = '추억의 사진함 🎞️',
+}) => {
   return (
     <div
       style={{
@@ -402,34 +349,34 @@ const RibbonBoxLid: React.FC<{
         justifyContent: 'space-between',
         padding: '8px 12px',
         borderRadius: 14,
-        background: 'linear-gradient(135deg, #242424 0%, #141414 60%, #0A0A0A 100%)',
-        border: '1.5px solid #383838',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.55), inset 0 1px 2px rgba(255,255,255,0.15)',
+        background: 'linear-gradient(135deg, #451A03 0%, #291204 100%)',
+        border: '1.5px solid #78350F',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.35), inset 0 1px 2px rgba(255,255,255,0.2)',
         marginBottom: 8,
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <div
           style={{
-            width: 24,
-            height: 24,
-            borderRadius: 6,
-            background: 'linear-gradient(135deg, #78350F 0%, #451A03 100%)',
-            border: '1px solid #D97706',
+            width: 26,
+            height: 26,
+            borderRadius: 7,
+            background: 'linear-gradient(135deg, #D97706 0%, #B45309 100%)',
+            border: '1px solid #FCD34D',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: 13,
-            boxShadow: '0 2px 6px rgba(0,0,0,0.5)',
+            fontSize: 14,
+            boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
           }}
         >
-          🎀
+          📸
         </div>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <span style={{ fontSize: 11.5, fontWeight: 900, color: '#FDE68A', letterSpacing: '0.02em' }}>
+          <span style={{ fontSize: 11.5, fontWeight: 900, color: '#FDE68A', letterSpacing: '0.01em' }}>
             {title}
           </span>
-          <span style={{ fontSize: 9.5, fontWeight: 800, color: '#D4AF37' }}>
+          <span style={{ fontSize: 9.5, fontWeight: 800, color: '#FCD34D' }}>
             {subtitle}
           </span>
         </div>
@@ -437,18 +384,147 @@ const RibbonBoxLid: React.FC<{
 
       <div
         style={{
-          background: '#FFFFFF',
-          color: '#1C1917',
+          background: '#FFFBEB',
+          color: '#78350F',
           padding: '3px 8px',
           borderRadius: 6,
-          border: '1px solid #E2E8F0',
-          boxShadow: '0 2px 5px rgba(0,0,0,0.25)',
+          border: '1px solid #FDE68A',
+          boxShadow: '0 2px 5px rgba(0,0,0,0.15)',
           fontSize: 9.5,
           fontWeight: 900,
           letterSpacing: '-0.01em',
         }}
       >
         {badgeText}
+      </div>
+    </div>
+  )
+}
+
+// 📸 대표님 요청 반영: 기계적 슬롯 대신 실제 폴라로이드 즉석 인화 사진 카드 (Polaroid Photo Card)
+const PolaroidPhotoCard: React.FC<{
+  children?: React.ReactNode
+  title?: string
+  subtitle?: string
+  isSelected?: boolean
+  isEmpty?: boolean
+  onClick?: () => void
+  tiltDeg?: number
+  tapeColor?: string
+}> = ({
+  children,
+  title,
+  subtitle,
+  isSelected = false,
+  isEmpty = false,
+  onClick,
+  tiltDeg = 0,
+  tapeColor = 'rgba(251, 207, 232, 0.85)',
+}) => {
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        position: 'relative',
+        width: '92%',
+        aspectRatio: '0.82 / 1',
+        borderRadius: 8,
+        background: isEmpty ? 'rgba(255,255,255,0.7)' : '#FFFFFF',
+        boxShadow: isSelected
+          ? '0 0 0 2.5px #EC4899, 0 8px 18px rgba(236,72,153,0.35)'
+          : isEmpty
+          ? '0 2px 6px rgba(0,0,0,0.06)'
+          : '0 4px 12px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.08)',
+        border: isSelected
+          ? '1.5px solid #F472B6'
+          : isEmpty
+          ? '1.5px dashed #CBD5E1'
+          : '1px solid #E2E8F0',
+        cursor: 'pointer',
+        transition: 'all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        transform: isSelected ? 'scale(1.04) rotate(0deg)' : `rotate(${tiltDeg}deg)`,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        padding: '6px 5px 6px 5px',
+        boxSizing: 'border-box',
+        overflow: 'visible',
+      }}
+    >
+      {/* 🏷️ 상단 감성 마스킹 테이프 장식 */}
+      <div
+        style={{
+          position: 'absolute',
+          top: -6,
+          width: 32,
+          height: 11,
+          background: tapeColor,
+          opacity: 0.9,
+          borderRadius: 2,
+          boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
+          transform: 'rotate(-2deg)',
+          zIndex: 5,
+        }}
+      />
+
+      {/* 📷 사진 인화 뷰파인더 영역 (따뜻한 파스텔 배경) */}
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          flex: 1,
+          borderRadius: 5,
+          background: isEmpty
+            ? '#F8FAFC'
+            : 'linear-gradient(135deg, #FEF3C7 0%, #FDF2F8 50%, #EFF6FF 100%)',
+          border: '1px solid #F1F5F9',
+          boxShadow: isEmpty ? 'none' : 'inset 0 1px 4px rgba(0,0,0,0.06)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'hidden',
+        }}
+      >
+        {children}
+      </div>
+
+      {/* ✍️ 폴라로이드 하단 감성 손글씨 메모 여백 */}
+      <div
+        style={{
+          width: '100%',
+          paddingTop: 4,
+          paddingBottom: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          lineHeight: 1.15,
+        }}
+      >
+        <span
+          style={{
+            fontSize: 9,
+            fontWeight: 900,
+            color: isEmpty ? '#94A3B8' : '#1E293B',
+            letterSpacing: '-0.02em',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            maxWidth: '95%',
+          }}
+        >
+          {title || (isEmpty ? '📷 사진 꽂기' : '달콤한 순간 💖')}
+        </span>
+        <span
+          style={{
+            fontSize: 7.5,
+            fontWeight: 800,
+            color: isEmpty ? '#CBD5E1' : '#EC4899',
+            letterSpacing: '0.02em',
+          }}
+        >
+          {subtitle || (isEmpty ? '터치해서 담기' : '📸 Sweet Snap')}
+        </span>
       </div>
     </div>
   )
@@ -964,7 +1040,7 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
     setTimeout(() => setGiftSentToast(null), 4000)
   }
 
-  // 🏆 대표님 첨부 실물 사진 5종 100% 동일 렌더러
+  // 🏆 대표님 요청 100% 반영: 기계적인 슬롯 상자 ➔ 감성 가득한 '실제 사진 상자 & 폴라로이드 포토 앨범' 렌더러
   const renderLuxuryShowcaseBase = (
     _baseType: PartyBaseType,
     capacity: SlotCapacity,
@@ -975,11 +1051,10 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
     onSlotClear?: (idx: number) => void
   ) => {
     const currentTheme = overrideTheme || boxTheme
-    const isWalnut = currentTheme === 'walnut-9'
-    const isWhite = currentTheme === 'white-9'
-    const isTray = currentTheme === 'tray-24'
-    const is16 = currentTheme === 'black-16'
-    const is4 = currentTheme === 'black-4'
+    const is16 = capacity === 16 || currentTheme === 'black-16'
+    const is24 = capacity === 24 || currentTheme === 'tray-24'
+    const is9 = capacity === 9 || currentTheme === 'walnut-9' || currentTheme === 'white-9'
+    const is4 = !is16 && !is24 && !is9
 
     const gridCols =
       capacity === 24
@@ -990,300 +1065,183 @@ export const DessertPartyScreen: React.FC<DessertPartyScreenProps> = ({
         ? 'repeat(3, 1fr)'
         : 'repeat(2, 1fr)'
 
-    const petSize = capacity === 24 ? 40 : capacity === 16 ? 48 : capacity === 9 ? 56 : 64
-    const cellMinHeight = capacity === 24 ? 66 : capacity === 16 ? 82 : capacity === 9 ? 94 : 108
+    const petSize = capacity === 24 ? 38 : capacity === 16 ? 46 : capacity === 9 ? 54 : 64
+    const tapeColors = [
+      'rgba(251, 207, 232, 0.9)', // 파스텔 핑크
+      'rgba(167, 243, 208, 0.9)', // 파스텔 민트
+      'rgba(254, 240, 138, 0.9)', // 파스텔 레몬
+      'rgba(233, 213, 255, 0.9)', // 파스텔 라벤더
+      'rgba(186, 230, 253, 0.9)', // 파스텔 스카이
+    ]
 
     return (
       <div style={{ position: 'relative', width: '100%', maxWidth: 360, margin: '4px auto', boxSizing: 'border-box' }}>
-        {/* 🎀 실물 사진 5, 6번의 새틴 리본 뚜껑 & 라벨 */}
-        {(is4 || is16) && (
-          <RibbonBoxLid
-            title={is4 ? '4구 쇼콜라티에 기프트 박스' : '16구 쇼콜라티에 마스터 컬렉션'}
-            subtitle={is4 ? '실물 사진 5번 에디션 🎀' : '실물 사진 6번 럭셔리 에디션 🎀'}
-            badgeText={is4 ? '4구 수제 세트' : '16구 마스터'}
-          />
-        )}
-
-        {/* 🪵 실물 사진 7번의 월넛 원목 라벨 */}
-        {isWalnut && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '6px 12px',
-              borderRadius: 12,
-              background: 'linear-gradient(135deg, #3D1C08 0%, #241106 100%)',
-              border: '1.5px solid #8D5A32',
-              boxShadow: '0 3px 8px rgba(0,0,0,0.5)',
-              marginBottom: 8,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 14 }}>🪵</span>
-              <span style={{ fontSize: 11.5, fontWeight: 900, color: '#FDE68A' }}>
-                9구 월넛 원목 & 골드 파티션 (사진 7번)
-              </span>
-            </div>
-            <span style={{ fontSize: 9.5, fontWeight: 800, color: '#D4AF37', background: 'rgba(0,0,0,0.4)', padding: '2px 6px', borderRadius: 6 }}>
-              프리미엄 원목
-            </span>
-          </div>
-        )}
-
-        {/* 🤍 실물 사진 3번의 퓨어 화이트 라벨 */}
-        {isWhite && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '6px 12px',
-              borderRadius: 12,
-              background: '#FFFFFF',
-              border: '1.5px solid #CBD5E1',
-              boxShadow: '0 3px 8px rgba(0,0,0,0.06)',
-              marginBottom: 8,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 14 }}>🤍</span>
-              <span style={{ fontSize: 11.5, fontWeight: 900, color: '#1E293B' }}>
-                9구 퓨어 화이트 기프트 상자 (사진 3번)
-              </span>
-            </div>
-            <span style={{ fontSize: 9.5, fontWeight: 800, color: '#E11D48', background: '#FFF1F2', padding: '2px 6px', borderRadius: 6 }}>
-              화이트 하트
-            </span>
-          </div>
-        )}
-
-        {/* ✨ 실물 사진 4번의 24구 마스터 트레이 라벨 */}
-        {isTray && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '6px 12px',
-              borderRadius: 12,
-              background: '#18181B',
-              border: '1.5px solid #3F3F46',
-              boxShadow: '0 3px 8px rgba(0,0,0,0.6)',
-              marginBottom: 8,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 14 }}>🍫</span>
-              <span style={{ fontSize: 11.5, fontWeight: 900, color: '#FDE68A' }}>
-                24구 쇼콜라티에 몰드 트레이 (사진 4번)
-              </span>
-            </div>
-            <span style={{ fontSize: 9.5, fontWeight: 800, color: '#F59E0B' }}>
-              24구 컬렉션
-            </span>
-          </div>
-        )}
+        {/* 📸 대표님 요청 반영: 실제 원목/크라프트 즉석 사진 상자 뚜껑 & 앨범 타이틀 */}
+        <PhotoMemoryBoxLid
+          title={
+            is4
+              ? '4구 펫 추억 스냅 사진함 📸'
+              : is9
+              ? '9구 프리미엄 펫 포토 앨범 상자 📸'
+              : '디저트 펫 마스터 포토 컬렉션 📸'
+          }
+          subtitle="실제 사진 상자에 소중히 담긴 내 펫들의 달콤한 순간 ✨"
+          badgeText={is4 ? '4구 스냅함 🎞️' : is9 ? '9구 앨범 🎞️' : '마스터 포토 🎞️'}
+        />
 
         {/* ========================================================================= */}
-        {/* 🎁 상자 본체 (실물 사진과 100% 동일한 외벽 + 내벽 + 십자 격자 파티션) */}
+        {/* 🎁 실제 사진 상자 본체 (따뜻한 원목 프레임 + 부드러운 린넨 바닥) */}
         {/* ========================================================================= */}
         <div
           style={{
             position: 'relative',
-            padding: isTray ? 8 : 12,
-            borderRadius: isWalnut ? 16 : isWhite ? 18 : 16,
-            background: isWalnut
-              ? 'linear-gradient(145deg, #4A2B18 0%, #30190D 40%, #1A0D06 100%)'
-              : isWhite
-              ? 'linear-gradient(145deg, #FFFFFF 0%, #F8FAFC 60%, #F1F5F9 100%)'
-              : isTray
-              ? 'linear-gradient(145deg, #27272A 0%, #18181B 60%, #09090B 100%)'
-              : 'linear-gradient(145deg, #1C1C1C 0%, #111111 60%, #080808 100%)',
-            border: isWalnut
-              ? '10px solid #361C0E'
-              : isWhite
-              ? '8px solid #E2E8F0'
-              : isTray
-              ? '6px solid #18181B'
-              : '8px solid #141414',
-            boxShadow: isWhite
-              ? '0 20px 45px -10px rgba(0,0,0,0.18), inset 0 1px 2px rgba(255,255,255,0.9)'
-              : '0 24px 50px -10px rgba(0,0,0,0.95), inset 0 2px 4px rgba(255,215,0,0.2), inset 0 -2px 6px rgba(0,0,0,0.9)',
+            padding: 10,
+            borderRadius: 18,
+            background: 'linear-gradient(145deg, #4A2306 0%, #301402 60%, #1C0A01 100%)',
+            border: '8px solid #5C2B0B',
+            boxShadow: '0 20px 42px -8px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,215,0,0.2), inset 0 -2px 6px rgba(0,0,0,0.9)',
             boxSizing: 'border-box',
           }}
         >
-          {/* 상자 내부 안감 */}
+          {/* 사진 상자 내부: 부드러운 내추럴 아이보리 패브릭/린넨 안감 */}
           <div
             style={{
-              padding: '4px',
-              borderRadius: 8,
-              background: isWhite ? '#F8FAFC' : '#140A04',
-              boxShadow: 'inset 0 4px 14px rgba(0,0,0,0.9)',
+              padding: '10px 8px',
+              borderRadius: 12,
+              background: 'linear-gradient(135deg, #FAF7F2 0%, #F5EBE1 100%)',
+              border: '1.5px dashed #D6C7B2',
+              boxShadow: 'inset 0 3px 10px rgba(74,35,6,0.25)',
             }}
           >
-            {/* ✨ 샴페인 골드 금속 십자 격자 파티션 */}
+            {/* 📸 폴라로이드 즉석 사진 그리드 배열 */}
             <div
               style={{
                 display: 'grid',
                 gridTemplateColumns: gridCols,
-                gap: capacity >= 16 ? '2.5px' : '3.5px',
-                background: isWhite
-                  ? '#CBD5E1'
-                  : isTray
-                  ? '#27272A'
-                  : 'linear-gradient(135deg, #DFBE72 0%, #B89758 50%, #8C6D38 100%)',
-                padding: capacity >= 16 ? '2.5px' : '3.5px',
-                borderRadius: 6,
-                boxShadow: isWhite
-                  ? 'inset 0 1px 2px rgba(255,255,255,0.8)'
-                  : 'inset 0 1px 2px rgba(255,255,255,0.45), 0 3px 10px rgba(0,0,0,0.7)',
+                gap: capacity >= 16 ? '8px 4px' : '12px 8px',
+                alignItems: 'center',
+                justifyItems: 'center',
               }}
             >
               {slotsArr.slice(0, capacity).map((item, idx) => {
                 const isSelected = selectedSlotIndex === idx
-                const isLongRoll = item?.look?.mallang?.doughShape === 'long-roll'
+                const tiltDeg = idx % 4 === 0 ? -1.5 : idx % 4 === 1 ? 1.4 : idx % 4 === 2 ? -1.0 : 1.2
+                const tapeColor = tapeColors[idx % tapeColors.length]
+
+                if (!item) {
+                  // ✨ 비어있는 즉석 사진 프레임
+                  return (
+                    <PolaroidPhotoCard
+                      key={idx}
+                      isEmpty={true}
+                      isSelected={isSelected && interactive}
+                      tiltDeg={tiltDeg}
+                      tapeColor={tapeColor}
+                      onClick={() => {
+                        if (interactive && onSlotClick) {
+                          onSlotClick(idx)
+                        }
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 2,
+                        }}
+                      >
+                        <span style={{ fontSize: capacity >= 16 ? 16 : 22, color: '#CBD5E1' }}>📷</span>
+                        <span style={{ fontSize: 8, fontWeight: 900, color: '#94A3B8' }}>사진 담기</span>
+                      </div>
+                    </PolaroidPhotoCard>
+                  )
+                }
+
+                // 📸 실제 사진 상자에 꽂힌 내 펫의 즉석 폴라로이드 사진
+                const photoTitle = item.petName || (item.choco ? '수제 초코 데코' : '달콤한 펫')
+                const photoSubtitle = item.isMine
+                  ? '💖 나의 펫'
+                  : item.ownerName
+                  ? `🐾 ${item.ownerName}의 펫`
+                  : '📸 Sweet Snap'
 
                 return (
                   <div
                     key={idx}
                     data-slot-idx={idx}
-                    onClick={() => {
-                      if (interactive && onSlotClick) {
-                        onSlotClick(idx)
-                      }
-                    }}
-                    style={{
-                      position: 'relative',
-                      gridColumn: isLongRoll ? 'span 2' : 'span 1',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      minHeight: cellMinHeight,
-                      background: isWhite ? '#FFFFFF' : '#180C06',
-                      borderRadius: 3,
-                      padding: 2,
-                      cursor: 'pointer',
-                      boxShadow: isSelected && interactive
-                        ? 'inset 0 0 0 2px #F59E0B, 0 0 8px rgba(245,158,11,0.6)'
-                        : 'inset 0 2px 6px rgba(0,0,0,0.85)',
-                      transition: 'all 0.15s ease',
-                      boxSizing: 'border-box',
-                    }}
+                    style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center' }}
                   >
-                    {/* 🧁 실제 주름 유산지 베이킹 컵 */}
-                    <FlutedBakingCup
-                      isLong={isLongRoll}
-                      cupTheme={isWalnut ? 'gold-kraft' : isWhite ? 'white' : 'dark-choco'}
+                    <PolaroidPhotoCard
+                      title={photoTitle}
+                      subtitle={photoSubtitle}
                       isSelected={isSelected && interactive}
+                      tiltDeg={tiltDeg}
+                      tapeColor={tapeColor}
+                      onClick={() => {
+                        if (interactive && onSlotClick) {
+                          onSlotClick(idx)
+                        }
+                      }}
                     >
-                      {item ? (
-                        /* 칸에 담긴 아이템 (내 펫 OR 수제 초콜릿 데코) */
-                        <div
-                          style={{
-                            position: 'relative',
-                            width: '100%',
-                            height: '100%',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          {item.itemType === 'choco' && item.choco ? (
-                            /* 🍫 수제 초콜릿 데코 (레터링 / 하트 / 금박 구 등) */
-                            <ArtisanChocoView choco={item.choco} size={petSize} />
-                          ) : (
-                            /* 🐾 내 3D 디저트 펫 */
-                            <div
-                              style={{
-                                width: isLongRoll ? petSize * 1.6 : petSize,
-                                height: petSize,
-                                pointerEvents: 'none',
-                                animation: `breathing-wiggle 3s ease-in-out infinite ${idx * 0.2}s`,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }}
-                            >
-                              <Monster3DView look={item.look || myCurrentLook} size={petSize} interactive={false} />
-                            </div>
-                          )}
-
-                          {/* 이름 라벨 태그 */}
-                          <span
-                            style={{
-                              position: 'absolute',
-                              bottom: 1,
-                              fontSize: capacity >= 16 ? 7.5 : 8.5,
-                              fontWeight: 900,
-                              color: '#FFFBEB',
-                              background: 'rgba(26,12,6,0.88)',
-                              padding: '1px 5px',
-                              borderRadius: 5,
-                              border: '1px solid #78350F',
-                              maxWidth: '92%',
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                            }}
-                          >
-                            {item.petName}
-                          </span>
-
-                          {/* 🐾 슬롯 비우기 / 펫 꺼내기 버튼 (대표님 피드백 반영: 한눈에 보이고 쉽게 탭되는 크기) */}
-                          {interactive && item.isMine && (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                if (onSlotClear) {
-                                  onSlotClear(idx)
-                                } else {
-                                  handleClearSoloSlot(idx)
-                                }
-                              }}
-                              style={{
-                                position: 'absolute',
-                                top: -3,
-                                right: -3,
-                                width: 22,
-                                height: 22,
-                                borderRadius: '50%',
-                                background: 'linear-gradient(135deg, #EF4444, #DC2626)',
-                                color: '#FFFFFF',
-                                fontSize: 12,
-                                fontWeight: 900,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                border: '2px solid #FFFFFF',
-                                cursor: 'pointer',
-                                boxShadow: '0 2px 6px rgba(0,0,0,0.6)',
-                                zIndex: 12,
-                              }}
-                              title="상자에서 꺼내기 (슬롯 비우기)"
-                            >
-                              ✕
-                            </button>
-                          )}
-                        </div>
+                      {item.itemType === 'choco' && item.choco ? (
+                        /* 🍫 수제 초콜릿 데코 */
+                        <ArtisanChocoView choco={item.choco} size={petSize} />
                       ) : (
-                        /* ✨ 비어있는 주름 유산지 컵 (실물 사진처럼 정갈한 빈 컵 연출) */
+                        /* 🐾 내 3D 디저트 펫 스냅샷 */
                         <div
                           style={{
+                            width: petSize,
+                            height: petSize,
+                            pointerEvents: 'none',
+                            animation: `breathing-wiggle 3s ease-in-out infinite ${idx * 0.25}s`,
                             display: 'flex',
-                            flexDirection: 'column',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            gap: 1,
                           }}
                         >
-                          <span style={{ fontSize: capacity >= 16 ? 12 : 16, color: '#B89758', fontWeight: 900 }}>+</span>
+                          <Monster3DView look={item.look || myCurrentLook} size={petSize} interactive={false} />
                         </div>
                       )}
-                    </FlutedBakingCup>
+                    </PolaroidPhotoCard>
+
+                    {/* 🐾 슬롯 비우기 / 사진 꺼내기 버튼 (사진 우측 상단 핀셋 스티커) */}
+                    {interactive && item.isMine && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          if (onSlotClear) {
+                            onSlotClear(idx)
+                          } else {
+                            handleClearSoloSlot(idx)
+                          }
+                        }}
+                        style={{
+                          position: 'absolute',
+                          top: -6,
+                          right: 2,
+                          width: 22,
+                          height: 22,
+                          borderRadius: '50%',
+                          background: 'linear-gradient(135deg, #EF4444, #DC2626)',
+                          color: '#FFFFFF',
+                          fontSize: 12,
+                          fontWeight: 900,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          border: '2px solid #FFFFFF',
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.35)',
+                          zIndex: 15,
+                        }}
+                        title="사진 상자에서 꺼내기"
+                      >
+                        ✕
+                      </button>
+                    )}
                   </div>
                 )
               })}
