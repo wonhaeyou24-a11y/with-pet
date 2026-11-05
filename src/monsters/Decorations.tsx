@@ -62,6 +62,11 @@ export const DECO_ITEMS: DecoItemDef[] = [
   { id: 'chanel-camellia-earring', slot: 'ear', name: '퓨어 까멜리아 이어링', rarity: 'rare', charm: 38, icon: '🌸', desc: '입체적으로 조각된 순백의 세라믹 까멜리아 꽃잎과 센터 다이아몬드 포인트' },
   { id: 'dior-pearl-drop', slot: 'ear', name: '트라이벌 펄 드롭 귀걸이', rarity: 'legendary', charm: 45, icon: '🦪', desc: '앞뒤 언밸런스 듀얼 펄과 24K 골드 링크가 귓볼을 우아하게 감싸는 명품 펄 드롭' },
   { id: 'tiffany-heart-diamond', slot: 'ear', name: '하트 다이아몬드 드롭', rarity: 'rare', charm: 36, icon: '💎', desc: '로즈 골드 체인 끝에 영롱하게 매달려 빛을 발하는 프리미엄 하트 컷 다이아몬드' },
+  { id: 'luxury-gold-hoop', slot: 'ear', name: '트위스트 골드 후프링', rarity: 'rare', charm: 37, icon: '💫', desc: '24K 옐로우 골드 트위스트 텍스처 링과 반짝이는 스타 참이 달랑이는 볼드 럭셔리 후프 귀걸이' },
+  { id: 'cartier-emerald-teardrop', slot: 'ear', name: '로열 에메랄드 드롭', rarity: 'legendary', charm: 46, icon: '💚', desc: '영롱한 딥 그린 천연 에메랄드 페어컷 스톤과 플래티넘 다이아몬드 헤일로 세팅의 하이주얼리 귀걸이' },
+  { id: 'starlight-sapphire-earring', slot: 'ear', name: '블루 사파이어 스타', rarity: 'rare', charm: 40, icon: '🌟', desc: '깊고 푸른 밤하늘을 담은 로열 사파이어 8각 별 펜던트와 은빛 광채 드롭 귀걸이' },
+  { id: 'pink-ribbon-pearl-earring', slot: 'ear', name: '로즈 리본 핑크펄 이어링', rarity: 'rare', charm: 38, icon: '🎀', desc: '로즈골드 리본 매듭 아래로 찰랑이는 파스텔 핑크 천연 담수 진주 드롭 귀걸이' },
+  { id: 'cozy-pompom-earring', slot: 'ear', name: '스노우 밍크 폼폼 드롭', rarity: 'common', charm: 32, icon: '🤍', desc: '가느다란 18K 골드 체인 끝에 달린 보송보송 솜사탕 화이트 밍크 폼폼 귀걸이' },
   // 3. 목 (neck)
   { id: 'chef-coat-tie', slot: 'neck', name: '명장 파티시에 제복 & 타이', rarity: 'legendary', charm: 45, icon: '🧑‍🍳', desc: '프랑스 수제 제과 명장의 더블 버튼 순백 셰프 자켓과 실크 레드 타이' },
   { id: 'preppy-school-tie', slot: 'neck', name: '브리티시 프레피 타이 & 칼라', rarity: 'rare', charm: 30, icon: '🎓', desc: '영국 명문 베이킹 아카데미 스타일의 타탄체크 리본 타이와 금장 단추 셔츠 칼라' },
@@ -629,6 +634,82 @@ export function FrontDecorations({
               <line x1={0} y1={4} x2={0} y2={10} stroke="#F43F5E" strokeWidth={1.6} />
               <path d="M 0 11 C -5 6 -9 11 -3 15 L 0 19 L 3 15 C 9 11 5 6 0 11 Z" fill="#E0F2FE" stroke="#0284C7" strokeWidth={1.2} />
               <circle cx={-1.5} cy={13} r={1.2} fill="#FFFFFF" opacity={0.9} />
+            </g>
+          ))}
+        </g>
+      )}
+      {(deco?.ear === 'luxury-gold-hoop' || deco?.face === 'luxury-gold-hoop') && (
+        <g>
+          {[60, 180].map((cx) => (
+            <g key={cx} transform={`translate(${cx}, 123)`}>
+              {/* 24K 골드 트위스트 후프 링 & 스타 참 */}
+              <circle cx={0} cy={0} r={6.5} fill="none" stroke="#FFD700" strokeWidth={2.4} strokeDasharray="3 1.5" />
+              <circle cx={0} cy={0} r={4.5} fill="none" stroke="#B45309" strokeWidth={0.6} />
+              <path d="M 0 7 L 1.5 10 L 4.5 10.5 L 2 12.5 L 2.8 15.5 L 0 13.8 L -2.8 15.5 L -2 12.5 L -4.5 10.5 L -1.5 10 Z" fill="#FDE047" stroke="#CA8A04" strokeWidth={0.8} />
+              <circle cx={0} cy={11.5} r={0.8} fill="#FFFFFF" />
+            </g>
+          ))}
+        </g>
+      )}
+      {(deco?.ear === 'cartier-emerald-teardrop' || deco?.face === 'cartier-emerald-teardrop') && (
+        <g>
+          {[60, 180].map((cx) => (
+            <g key={cx} transform={`translate(${cx}, 122)`}>
+              {/* 플래티넘 헤일로 + 영롱한 딥 에메랄드 물방울 페어컷 */}
+              <circle cx={0} cy={0} r={3.2} fill="#E2E8F0" stroke="#94A3B8" strokeWidth={1.2} />
+              <line x1={0} y1={3.2} x2={0} y2={8} stroke="#CBD5E1" strokeWidth={1.5} />
+              {/* 물방울 헤일로 베이스 */}
+              <path d="M 0 8 C -5.5 12 -5.5 17 0 21 C 5.5 17 5.5 12 0 8 Z" fill="#059669" stroke="#E2E8F0" strokeWidth={1.4} />
+              {/* 내부 페어컷 젬 */}
+              <path d="M 0 10 C -3.8 13.5 -3.8 16.5 0 19.5 C 3.8 16.5 3.8 13.5 0 10 Z" fill="#10B981" />
+              <circle cx={-1.2} cy={14} r={1.2} fill="#A7F3D0" opacity={0.9} />
+            </g>
+          ))}
+        </g>
+      )}
+      {(deco?.ear === 'starlight-sapphire-earring' || deco?.face === 'starlight-sapphire-earring') && (
+        <g>
+          {[60, 180].map((cx) => (
+            <g key={cx} transform={`translate(${cx}, 123)`}>
+              {/* 로열 사파이어 8포인트 스타 참 & 실버 링크 */}
+              <circle cx={0} cy={0} r={2.8} fill="#E2E8F0" stroke="#94A3B8" strokeWidth={1} />
+              <line x1={0} y1={2.8} x2={0} y2={7} stroke="#CBD5E1" strokeWidth={1.4} />
+              <g transform="translate(0, 13)">
+                <polygon points="0,-7 2,-2 7,0 2,2 0,7 -2,2 -7,0 -2,-2" fill="#1E40AF" stroke="#60A5FA" strokeWidth={1} />
+                <polygon points="0,-4.5 1.4,-1.4 4.5,0 1.4,1.4 0,4.5 -1.4,1.4 -4.5,0 -1.4,-1.4" fill="#3B82F6" />
+                <circle cx={0} cy={0} r={1.5} fill="#DBEAFE" />
+              </g>
+            </g>
+          ))}
+        </g>
+      )}
+      {(deco?.ear === 'pink-ribbon-pearl-earring' || deco?.face === 'pink-ribbon-pearl-earring') && (
+        <g>
+          {[60, 180].map((cx) => (
+            <g key={cx} transform={`translate(${cx}, 123)`}>
+              {/* 로즈골드 리본 매듭 + 핑크 담수 펄 드롭 */}
+              <path d="M -5 -2 C -5 -6 0 -1 0 0 C 0 -1 5 -6 5 -2 C 5 2 0 1 0 0 C 0 1 -5 2 -5 -2 Z" fill="#FDA4AF" stroke="#E11D48" strokeWidth={1.2} />
+              <circle cx={0} cy={0} r={1.8} fill="#FB7185" />
+              <line x1={0} y1={1.5} x2={0} y2={6.5} stroke="#FDA4AF" strokeWidth={1.2} />
+              <circle cx={0} cy={11} r={5} fill="#FDF2F8" stroke="#F472B6" strokeWidth={1.2} />
+              <circle cx={-1.5} cy={9.5} r={1.4} fill="#FFFFFF" opacity={0.9} />
+            </g>
+          ))}
+        </g>
+      )}
+      {(deco?.ear === 'cozy-pompom-earring' || deco?.face === 'cozy-pompom-earring') && (
+        <g>
+          {[60, 180].map((cx) => (
+            <g key={cx} transform={`translate(${cx}, 122)`}>
+              {/* 골드 체인 + 솜사탕 화이트 밍크 폼폼 */}
+              <circle cx={0} cy={0} r={2.5} fill="#FFD700" stroke="#B45309" strokeWidth={0.8} />
+              <line x1={0} y1={2.5} x2={0} y2={9} stroke="#FFD700" strokeWidth={1.4} strokeDasharray="1.5 1" />
+              {/* 폼폼 솜털 구름 */}
+              <circle cx={0} cy={16} r={7.5} fill="#FFFFFF" stroke="#E2E8F0" strokeWidth={1.4} />
+              <circle cx={-3.5} cy={14} r={4} fill="#FFFFFF" opacity={0.8} />
+              <circle cx={3.5} cy={14} r={4} fill="#FFFFFF" opacity={0.8} />
+              <circle cx={0} cy={19} r={4.5} fill="#FFFFFF" opacity={0.8} />
+              <circle cx={-1.5} cy={13.5} r={1.8} fill="#F8FAFC" />
             </g>
           ))}
         </g>

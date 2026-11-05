@@ -1101,6 +1101,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
               return (
                 <div
                   key={item.id}
+                  data-item-id={item.id}
                   onClick={() => handleSelectFashionItem(item)}
                   style={{
                     padding: '8px 6px',

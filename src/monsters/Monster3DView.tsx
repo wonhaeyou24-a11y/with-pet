@@ -3364,18 +3364,24 @@ function add3DDecorations(
     (deco?.face === 'luxury-clover-earring' ||
     deco?.face === 'chanel-camellia-earring' ||
     deco?.face === 'dior-pearl-drop' ||
-    deco?.face === 'tiffany-heart-diamond'
+    deco?.face === 'tiffany-heart-diamond' ||
+    deco?.face === 'luxury-gold-hoop' ||
+    deco?.face === 'cartier-emerald-teardrop' ||
+    deco?.face === 'starlight-sapphire-earring' ||
+    deco?.face === 'pink-ribbon-pearl-earring' ||
+    deco?.face === 'cozy-pompom-earring'
       ? deco.face
       : null)
 
   if (earringKind) {
     ;[-1, 1].forEach((side) => {
       const earringGroup = new THREE.Group()
-      // 머리 위 쫑긋한 귀 하단(x: ±0.64, y: 0.54)에서 정면으로 찰랑이며(z: 0.22) 빛나도록 배치!
-      earringGroup.position.set(side * 0.64, 0.54, 0.22)
+      // 머리 위 쫑긋한 귀 하단 귓볼(x: ±0.70, y: 0.66)에서 몸체 앞으로 시원하게 나와(z: 0.42) 달랑이며 빛나도록 배치!
+      earringGroup.position.set(side * 0.70, 0.66, 0.42)
+      earringGroup.scale.set(1.25, 1.25, 1.25)
       // 정면 카메라를 향해 자연스럽게 기울여 쥬얼리 정면이 한눈에 보이도록 회전
-      earringGroup.rotation.y = side * 0.30
-      earringGroup.rotation.z = side * -0.15
+      earringGroup.rotation.y = side * 0.25
+      earringGroup.rotation.z = side * -0.10
 
       if (earringKind === 'luxury-clover-earring') {
         // 🍀 반클리프풍 골드 클로버: 24K 순금 비즈 림 + 은은한 화이트 자개 4잎 (대폭 스케일업!)
@@ -3534,6 +3540,217 @@ function add3DDecorations(
         heartGroup.add(lobeR)
 
         earringGroup.add(heartGroup)
+      } else if (earringKind === 'luxury-gold-hoop') {
+        // 💫 24K 트위스트 골드 후프링 & 스타 참: 볼드 럭셔리 골드 링 + 달랑이는 8각 골드 스타
+        const goldMat = new THREE.MeshPhysicalMaterial({
+          color: '#FFD700',
+          metalness: 0.96,
+          roughness: 0.08,
+          clearcoat: 1.0,
+          emissive: new THREE.Color('#553C00'),
+          emissiveIntensity: 0.45,
+        })
+
+        // 볼드 골드 후프 링 (귓볼 관통 링)
+        const hoop = new THREE.Mesh(new THREE.TorusGeometry(0.095, 0.024, 12, 24), goldMat)
+        hoop.rotation.y = Math.PI / 2
+        hoop.position.y = 0.04
+        earringGroup.add(hoop)
+
+        // 댕글링 골드 체인
+        const dropLink = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.08, 8), goldMat)
+        dropLink.position.y = -0.06
+        earringGroup.add(dropLink)
+
+        // 8각 골드 스타 펜던트
+        const starGroup = new THREE.Group()
+        starGroup.position.y = -0.14
+        const star1 = new THREE.Mesh(new THREE.OctahedronGeometry(0.085, 0), goldMat)
+        star1.scale.set(1.0, 1.25, 0.4)
+        const star2 = new THREE.Mesh(new THREE.OctahedronGeometry(0.085, 0), goldMat)
+        star2.scale.set(1.25, 1.0, 0.4)
+        starGroup.add(star1)
+        starGroup.add(star2)
+        const centerGem = new THREE.Mesh(
+          new THREE.SphereGeometry(0.035, 10, 10),
+          new THREE.MeshPhysicalMaterial({ color: '#FFFFFF', roughness: 0.05, clearcoat: 1.0, emissive: new THREE.Color('#FFFFFF'), emissiveIntensity: 0.6 })
+        )
+        centerGem.position.z = 0.02
+        starGroup.add(centerGem)
+        earringGroup.add(starGroup)
+      } else if (earringKind === 'cartier-emerald-teardrop') {
+        // 💚 까르띠에풍 로열 에메랄드 드롭: 플래티넘 헤일로 + 영롱한 딥 에메랄드 물방울 페어컷
+        const platinumMat = new THREE.MeshPhysicalMaterial({
+          color: '#F1F5F9',
+          metalness: 0.92,
+          roughness: 0.1,
+          clearcoat: 1.0,
+          emissive: new THREE.Color('#1E293B'),
+          emissiveIntensity: 0.3,
+        })
+        const emeraldMat = new THREE.MeshPhysicalMaterial({
+          color: '#10B981',
+          metalness: 0.1,
+          roughness: 0.04,
+          transmission: 0.82,
+          transparent: true,
+          opacity: 0.95,
+          clearcoat: 1.0,
+          emissive: new THREE.Color('#047857'),
+          emissiveIntensity: 0.5,
+        })
+
+        // 플래티넘 스터드
+        const stud = new THREE.Mesh(new THREE.SphereGeometry(0.06, 12, 10), platinumMat)
+        stud.position.y = 0.06
+        earringGroup.add(stud)
+
+        // 플래티넘 드롭 링크
+        const link = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.09, 8), platinumMat)
+        link.position.y = -0.01
+        earringGroup.add(link)
+
+        // 물방울 에메랄드 젬 그룹 (콘 + 스피어로 완벽한 페어컷 형성)
+        const dropGroup = new THREE.Group()
+        dropGroup.position.y = -0.14
+        const haloFrame = new THREE.Mesh(new THREE.TorusGeometry(0.085, 0.018, 10, 20), platinumMat)
+        dropGroup.add(haloFrame)
+
+        const pearTop = new THREE.Mesh(new THREE.ConeGeometry(0.075, 0.12, 12), emeraldMat)
+        pearTop.rotation.z = Math.PI
+        pearTop.position.y = 0.02
+        dropGroup.add(pearTop)
+
+        const pearBottom = new THREE.Mesh(new THREE.SphereGeometry(0.075, 14, 12), emeraldMat)
+        pearBottom.position.y = -0.04
+        dropGroup.add(pearBottom)
+
+        earringGroup.add(dropGroup)
+      } else if (earringKind === 'starlight-sapphire-earring') {
+        // 🌟 로열 블루 사파이어 스타: 깊고 푸른 사파이어 스타 + 은빛 광채 헤일로
+        const silverMat = new THREE.MeshPhysicalMaterial({
+          color: '#E2E8F0',
+          metalness: 0.92,
+          roughness: 0.12,
+          clearcoat: 1.0,
+        })
+        const sapphireMat = new THREE.MeshPhysicalMaterial({
+          color: '#2563EB',
+          metalness: 0.15,
+          roughness: 0.03,
+          transmission: 0.85,
+          transparent: true,
+          opacity: 0.96,
+          clearcoat: 1.0,
+          emissive: new THREE.Color('#1D4ED8'),
+          emissiveIntensity: 0.55,
+        })
+
+        // 실버 상단 후프
+        const topRing = new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.018, 10, 20), silverMat)
+        topRing.rotation.y = Math.PI / 2
+        topRing.position.y = 0.05
+        earringGroup.add(topRing)
+
+        // 사파이어 8포인트 스타 펜던트
+        const sapphireStar = new THREE.Group()
+        sapphireStar.position.y = -0.12
+
+        const starCore1 = new THREE.Mesh(new THREE.OctahedronGeometry(0.09, 0), sapphireMat)
+        starCore1.scale.set(1.3, 0.7, 0.45)
+        const starCore2 = new THREE.Mesh(new THREE.OctahedronGeometry(0.09, 0), sapphireMat)
+        starCore2.scale.set(0.7, 1.3, 0.45)
+        sapphireStar.add(starCore1)
+        sapphireStar.add(starCore2)
+
+        const diamondSparkle = new THREE.Mesh(
+          new THREE.SphereGeometry(0.032, 10, 10),
+          new THREE.MeshPhysicalMaterial({ color: '#E0F2FE', roughness: 0.05, clearcoat: 1.0, emissive: new THREE.Color('#60A5FA'), emissiveIntensity: 0.7 })
+        )
+        diamondSparkle.position.z = 0.025
+        sapphireStar.add(diamondSparkle)
+
+        earringGroup.add(sapphireStar)
+      } else if (earringKind === 'pink-ribbon-pearl-earring') {
+        // 🎀 로즈 리본 핑크펄: 로즈골드 리본 매듭 + 은은한 파스텔 핑크 담수 진주 드롭
+        const roseGoldMat = new THREE.MeshPhysicalMaterial({
+          color: '#FB7185',
+          metalness: 0.94,
+          roughness: 0.12,
+          clearcoat: 1.0,
+          emissive: new THREE.Color('#881337'),
+          emissiveIntensity: 0.35,
+        })
+        const pinkPearlMat = new THREE.MeshPhysicalMaterial({
+          color: '#FDF2F8',
+          roughness: 0.08,
+          clearcoat: 1.0,
+          sheen: 1.0,
+          sheenColor: new THREE.Color('#F472B6'),
+          emissive: new THREE.Color('#3B0764'),
+          emissiveIntensity: 0.15,
+        })
+
+        // 로즈골드 리본 루프 좌/우
+        const ribbonGroup = new THREE.Group()
+        ribbonGroup.position.y = 0.04
+        const loopL = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.016, 10, 16), roseGoldMat)
+        loopL.position.set(-0.045, 0, 0)
+        loopL.rotation.z = 0.35
+        const loopR = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.016, 10, 16), roseGoldMat)
+        loopR.position.set(0.045, 0, 0)
+        loopR.rotation.z = -0.35
+        const knot = new THREE.Mesh(new THREE.SphereGeometry(0.032, 10, 10), roseGoldMat)
+        ribbonGroup.add(loopL)
+        ribbonGroup.add(loopR)
+        ribbonGroup.add(knot)
+        earringGroup.add(ribbonGroup)
+
+        // 핑크 펄 드롭 (대형 구체 펄)
+        const pearl = new THREE.Mesh(new THREE.SphereGeometry(0.12, 18, 16), pinkPearlMat)
+        pearl.position.y = -0.12
+        earringGroup.add(pearl)
+      } else if (earringKind === 'cozy-pompom-earring') {
+        // 🤍 스노우 밍크 폼폼 드롭: 18K 골드 체인 + 보송보송 솜사탕 화이트 밍크 폼폼
+        const chainMat = new THREE.MeshPhysicalMaterial({
+          color: '#FFD700',
+          metalness: 0.95,
+          roughness: 0.1,
+          clearcoat: 1.0,
+        })
+        const furMat = new THREE.MeshPhysicalMaterial({
+          color: '#FFFFFF',
+          roughness: 0.95,
+          sheen: 1.0,
+          sheenColor: new THREE.Color('#F1F5F9'),
+          clearcoat: 0.2,
+          emissive: new THREE.Color('#334155'),
+          emissiveIntensity: 0.15,
+        })
+
+        // 골드 후크 & 체인
+        const hook = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.014, 8, 16, Math.PI), chainMat)
+        hook.position.y = 0.05
+        earringGroup.add(hook)
+
+        const dropChain = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.11, 8), chainMat)
+        dropChain.position.y = -0.01
+        earringGroup.add(dropChain)
+
+        // 밍크 폼폼 (중심 대형 볼 + 주변 솜털 볼 클러스터)
+        const pompomGroup = new THREE.Group()
+        pompomGroup.position.y = -0.15
+        const mainPuff = new THREE.Mesh(new THREE.SphereGeometry(0.125, 16, 14), furMat)
+        pompomGroup.add(mainPuff)
+
+        // 주변 미세 솜털 6개
+        for (let i = 0; i < 6; i++) {
+          const ang = (i * Math.PI * 2) / 6
+          const puff = new THREE.Mesh(new THREE.SphereGeometry(0.065, 10, 8), furMat)
+          puff.position.set(Math.cos(ang) * 0.075, Math.sin(ang) * 0.075, 0.02)
+          pompomGroup.add(puff)
+        }
+        earringGroup.add(pompomGroup)
       }
 
       bodyGroup.add(earringGroup)
