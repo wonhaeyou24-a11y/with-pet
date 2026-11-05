@@ -359,24 +359,19 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
     }, 420)
   }
 
-  // ⚖️ 3. [대표님 핵심 요청] 타워 회전각 역보정 정밀 착지 + 진짜 지레 토크 무게중심(Center of Mass) 물리 연출!
+  // ⚖️ 3. [대표님 핵심 요청] 0.1px 오차 없는 정밀 착지 + 진짜 지레 토크 무게중심(Center of Mass) 물리 엔진!
   const handleLandingImpact = (landedX: number) => {
-    // 📐 타워가 이미 기울어져 있을 경우, 스크린 상 드롭 X 좌표를 타워 로컬 회전 좌표계로 정밀 역투영 (0.1px 오차 방지)
-    const currentTowerRad = ((activeTilt * 0.45) * Math.PI) / 180
-    const stackHeight = activeTiers.reduce((acc, t) => acc + Math.round((t.petSize || 40) * 0.72), 0)
-    
-    // 타워 회전 중심(bottom center) 기준 역변환
-    const cosTheta = Math.cos(currentTowerRad)
-    const sinTheta = Math.sin(currentTowerRad)
-    const correctedLocalX = Math.abs(cosTheta) > 0.001 
-      ? (landedX - stackHeight * sinTheta) / cosTheta 
-      : landedX
+    // 🎯 [인위적 맨 위 펫 강제 이동 버그 완전 제거]
+    // 사용자가 조준하여 손을 뗀 바로 그 X 좌표(landedX)에 100% 오차 없이 정확히 안착!
+    const exactDropX = Math.round(landedX * 10) / 10
 
     const prevTier = activeTiers[activeTiers.length - 1]
-    const localDiff = prevTier ? Math.abs(correctedLocalX - prevTier.offsetX) : Math.abs(correctedLocalX)
-    const maxOverhang = prevTier ? (prevTier.petSize || 40) * 0.85 : 48
+    const prevX = prevTier ? prevTier.offsetX : 0
+    const localDiff = Math.abs(exactDropX - prevX)
+    // 두 펫의 접촉 가능 유효 반경 (아래 펫 몸체 너비의 약 80%에 걸치면 안착 가능)
+    const maxContactRadius = prevTier ? (prevTier.petSize + currentPetSize) * 0.44 : 48
 
-    // 💥 1. 새로 드롭한 펫을 즉시 탑 층으로 생성 (대표님이 조준하여 떨어뜨린 바로 그 위치에 100% 일치 안착!)
+    // 💥 1. 새로 드롭한 펫을 사용자가 조준한 바로 그 절대 X 위치에 100% 정밀 안착!
     const newTier: TowerTier = {
       id: `tier-${Date.now()}`,
       floor: currentFloor,
@@ -384,7 +379,7 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
       petName: petName,
       species: myMonster.species,
       look: myLook,
-      offsetX: Math.round(correctedLocalX * 10) / 10,
+      offsetX: exactDropX,
       petSize: currentPetSize,
       accuracy: 'WOBBLE',
       placedAt: new Date().toISOString(),
@@ -392,8 +387,8 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
 
     const allTiers = [...activeTiers, newTier]
 
-    // 📐 2. 고정밀 물리 토크 & 무게중심 (Center of Mass & Torque):
-    // 층고가 높을수록 윗층의 오프셋이 받침대에 미치는 지레 모멘트(Torque) 가중치 정밀 반영
+    // 📐 2. 고정밀 물리 지레 토크 & 무게중심 (Torque & Center of Mass):
+    // 각 층의 무게(w)와 층고에 따른 모멘트 암(heightArm)을 가중치로 한 정밀 지레 토크 산출
     let totalWeight = 0
     let totalMoment = 0
     let weightedTorque = 0
@@ -401,7 +396,7 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
 
     allTiers.forEach((t, i) => {
       const w = t.petSize || 40
-      const heightArm = (i + 1) * 0.9 // 층고에 따른 모멘트 암 (지레 효과)
+      const heightArm = 1 + i * 0.65 // 위층으로 갈수록 받침대에 가해지는 전복 지레 모멘트가 커짐
       totalWeight += w
       totalMoment += t.offsetX * w
       weightedTorque += t.offsetX * w * heightArm
@@ -412,10 +407,10 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
     const effectiveCenter = totalTorqueWeight > 0 ? weightedTorque / totalTorqueWeight : centerOfMass
 
     // ⚖️ 3. 지지선 균형 판정 (비뚤어져도 무게중심만 맞으면 무너지지 않는 진짜 돌탑의 손맛!)
-    // - 황금 받침대 유효 지지 한계: ±32px
-    // - 개별 층 접촉면 한계: localDiff <= maxOverhang (허공에 완전히 떨어진 경우만 미끄러짐)
-    const willSlideOff = localDiff > maxOverhang
-    const willTipOver = Math.abs(effectiveCenter) > 32
+    // - 황금 받침대(폭 140px) 유효 지지 한계: ±28px
+    // - 아래 층과의 접촉면 한계: localDiff <= maxContactRadius (허공에 완전히 떨어진 경우만 미끄러짐)
+    const willSlideOff = activeTiers.length > 0 && localDiff > maxContactRadius
+    const willTipOver = Math.abs(effectiveCenter) > 28
     const willCollapse = willSlideOff || willTipOver
 
     let accuracy: 'PERFECT' | 'GREAT' | 'WOBBLE' = 'WOBBLE'
@@ -423,25 +418,25 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
     let notice = { text: '⚠️ WOBBLE! 기우뚱!', color: '#F59E0B', sub: '무게중심이 흔들려요!' }
 
     if (!willCollapse) {
-      if (Math.abs(effectiveCenter) <= 6) {
+      if (Math.abs(effectiveCenter) <= 7) {
         accuracy = 'PERFECT'
         sound = 'sugar-crack'
-        notice = { text: '✨ PERFECT! 황금 무게중심!', color: '#10B981', sub: `중심 오차 ${effectiveCenter.toFixed(1)}px! 환상적인 균형!` }
-      } else if (Math.abs(effectiveCenter) <= 16) {
+        notice = { text: '✨ PERFECT! 황금 무게중심!', color: '#10B981', sub: `중심 오차 ${effectiveCenter.toFixed(1)}px! 환상적인 수직 균형!` }
+      } else if (Math.abs(effectiveCenter) <= 18) {
         accuracy = 'GREAT'
         sound = 'mochi-squish'
-        notice = { text: '👍 GREAT! 지그재그 균형!', color: '#3B82F6', sub: '삐뚤빼뚤하지만 무게중심이 절묘하게 맞아떨어졌어요!' }
+        notice = { text: '👍 GREAT! 지그재그 균형!', color: '#3B82F6', sub: `오차 ${effectiveCenter.toFixed(1)}px! 삐뚤빼뚤하지만 무게중심이 절묘해요!` }
       } else {
         accuracy = 'WOBBLE'
         sound = 'wax-tap'
-        notice = { text: '💦 아슬아슬 버팀! 휴우~!', color: '#F59E0B', sub: '기우뚱했지만 받침대 안쪽에서 간신히 버텼어요!' }
+        notice = { text: '💦 아슬아슬 버팀! 휴우~!', color: '#F59E0B', sub: `기우뚱! 받침대 끝자락(${effectiveCenter.toFixed(1)}px)에서 간신히 버텼어요!` }
       }
     } else {
       sound = 'mochi-squish'
       notice = {
-        text: willSlideOff ? '💥 미끄덩! 허공 낙하!' : '💥 와르르! 무게중심 붕괴!',
+        text: willSlideOff ? '💥 미끄덩! 허공 낙하!' : '💥 와르르! 무게중심 전복!',
         color: '#EF4444',
-        sub: willSlideOff ? '아래 펫과의 접촉면을 완전히 벗어났어요!' : '탑 전체의 무게중심이 받침대 밖으로 쏠렸어요!',
+        sub: willSlideOff ? '아래 펫과의 접촉면을 완전히 벗어나 미끄러졌어요!' : `무게중심(${effectiveCenter.toFixed(1)}px)이 받침대 지지선을 벗어났어요!`,
       }
     }
 
@@ -463,44 +458,44 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
     if (noticeTimerRef.current) window.clearTimeout(noticeTimerRef.current)
     noticeTimerRef.current = window.setTimeout(() => {
       setAccuracyNotice(null)
-    }, 1400)
+    }, 1500)
 
-    // 🎬 4. [대표님 핵심 요청] 진짜 물리 법칙에 따른 3단계 서스펜스 속도감 연출!
-    const targetTiltDeg = centerOfMass * 0.85
+    // 🎬 4. [대표님 핵심 요청] 실제 물리학 감속(Damping)에 따른 3단계 서스펜스 속도감 연출!
+    const targetTiltDeg = effectiveCenter * 0.58
 
     if (towerRef.current) {
-      // 1단계 (0 ~ 650ms): 착지 하중에 의해 탑이 삐걱거리며 천천히 기우뚱 넘어가는 관성 회전
-      towerRef.current.style.transition = 'transform 0.65s cubic-bezier(0.25, 0.1, 0.25, 1)'
-      towerRef.current.style.transform = `rotate(${targetTiltDeg * 1.35}deg)`
+      // 1단계 (0 ~ 450ms): 착지 하중에 의해 탑이 삐걱거리며 무게중심 방향으로 기우뚱 넘어가는 관성 회전
+      towerRef.current.style.transition = 'transform 0.45s cubic-bezier(0.25, 0.1, 0.25, 1)'
+      towerRef.current.style.transform = `rotate(${targetTiltDeg * 1.25}deg)`
 
       window.setTimeout(() => {
         if (!towerRef.current) return
 
         if (willCollapse) {
-          // 💥 붕괴 2단계 (650 ~ 1450ms): 기울기를 못 이기고 중력 가속도가 붙으며 휙! 와르르 무너짐!
+          // 💥 붕괴 2단계 (450 ~ 1250ms): 기울기를 못 이기고 중력 가속도가 붙으며 휙! 와르르 무너짐!
           towerRef.current.style.transition = 'transform 0.8s cubic-bezier(0.6, -0.05, 0.9, 0.4)'
-          towerRef.current.style.transform = `rotate(${centerOfMass >= 0 ? 68 : -68}deg)`
+          towerRef.current.style.transform = `rotate(${effectiveCenter >= 0 ? 68 : -68}deg)`
 
           window.setTimeout(() => {
             handleTowerCollapse(targetTiltDeg)
           }, 800)
         } else {
-          // 2단계 (650 ~ 1200ms): 멈칫하다가 "덜컹!" 반대로 서서히 튕기며 탄성 감쇠 (심장 쫄깃한 구간!)
-          towerRef.current.style.transition = 'transform 0.55s cubic-bezier(0.34, 1.35, 0.64, 1)'
-          towerRef.current.style.transform = `rotate(${targetTiltDeg * 0.45}deg)`
+          // 2단계 (450 ~ 850ms): 멈칫하다가 "덜컹!" 반대로 살짝 튕기는 탄성 반동 (심장 쫄깃한 구간!)
+          towerRef.current.style.transition = 'transform 0.4s cubic-bezier(0.34, 1.35, 0.64, 1)'
+          towerRef.current.style.transform = `rotate(${targetTiltDeg * -0.2}deg)`
 
           window.setTimeout(() => {
             if (!towerRef.current) return
-            // 3단계 (1200 ~ 1550ms): 자연스러운 평형 각도로 미세 정착!
+            // 3단계 (850 ~ 1200ms): 최종 평형 각도로 자연스럽게 정착!
             towerRef.current.style.transition = 'transform 0.35s ease-out'
             towerRef.current.style.transform = `rotate(${targetTiltDeg}deg)`
 
             window.setTimeout(() => {
               finalizeSwaySuccess(targetTiltDeg, accuracy, allTiers)
             }, 350)
-          }, 550)
+          }, 400)
         }
-      }, 650)
+      }, 450)
     }
   }
 
@@ -593,6 +588,26 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
       }
 
       const allTiers = [...currentRelay.tiers, newFriendTier]
+
+      // 탑 전체 지레 토크 & 무게중심 정밀 재계산
+      let totalW = 0
+      let weightedT = 0
+      let totalTW = 0
+      allTiers.forEach((t, i) => {
+        const w = t.petSize || 40
+        const arm = 1 + i * 0.65
+        totalW += w
+        weightedT += t.offsetX * w * arm
+        totalTW += w * arm
+      })
+      const newEffectiveCenter = totalTW > 0 ? weightedT / totalTW : 0
+      const newTiltDeg = newEffectiveCenter * 0.58
+
+      if (towerRef.current) {
+        towerRef.current.style.transition = 'transform 0.45s ease-out'
+        towerRef.current.style.transform = `rotate(${newTiltDeg}deg)`
+      }
+
       const updatedRelay: RelayTowerState = {
         ...currentRelay,
         tiers: allTiers,
@@ -600,7 +615,7 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
         potRibbons: currentRelay.potRibbons + 3,
         highestRecord: Math.max(currentRelay.highestRecord, allTiers.length),
         lastPlayerName: `${friend.ownerName} (${friend.petName})`,
-        cumulativeTilt: currentRelay.cumulativeTilt + (friendOffset * 0.12),
+        cumulativeTilt: newTiltDeg,
         isFallen: false,
       }
 
