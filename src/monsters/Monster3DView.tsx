@@ -2030,7 +2030,7 @@ export function build3DCharacterMesh(
   return { root, bodyGroup, innerLiquid, effectGroup: effectGroup || undefined }
 }
 
-// 🐾 [대표님 핵심 요청] 토끼귀(머리 위) 대신 사람 귀 위치(양볼 옆 눈높이)에 앙증맞게 위치한 3D 디저트 펫 귀
+// 🐾 [대표님 핵심 요청] 사람 귀(볼 옆) 대신 원래의 머리 위 양쪽 상단 앙증맞은 3D 디저트 펫 귀
 function addCute3DEars(
   bodyGroup: THREE.Group,
   _validSpecies: string,
@@ -2062,27 +2062,28 @@ function addCute3DEars(
   ;[-1, 1].forEach((side) => {
     const earGroup = new THREE.Group()
 
-    // 👂 대표님 요청: 토끼귀(머리 위)가 아닌 양 볼 옆 사람 귀 위치(눈/볼 높이)에 앙증맞게 배치!
-    // x: side * 0.86, y: 0.14, z: 0.08
-    earGroup.position.set(side * 0.86, 0.14, 0.08)
-    earGroup.rotation.y = side * 0.25 // 앞쪽을 살짝 바라보는 자연스러운 각도
-    earGroup.rotation.z = side * -0.08
+    // 👂 대표님 요청: 사람 귀(볼 옆)가 아니라 원래의 머리 위 양쪽 상단에 쫑긋하게 배치!
+    // x: side * 0.58, y: 0.74, z: 0.12
+    earGroup.position.set(side * 0.58, 0.74, 0.12)
+    earGroup.rotation.y = side * 0.18 // 앞쪽을 살짝 바라보는 자연스러운 각도
+    earGroup.rotation.z = side * -0.22 // 머리 위에서 바깥쪽으로 사랑스럽게 쫑긋 선 각도
+    earGroup.rotation.x = -0.10
 
-    // 1. 외이(귓바퀴): 위쪽이 둥글고 아래쪽 귓볼이 도톰한 앙증맞은 라운드 쉘
-    const outerEar = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 14), earMat)
-    outerEar.scale.set(0.65, 1.15, 0.55)
+    // 1. 외이(귓바퀴): 앙증맞고 도톰한 디저트 라운드 쉘
+    const outerEar = new THREE.Mesh(new THREE.SphereGeometry(0.24, 16, 14), earMat)
+    outerEar.scale.set(0.85, 1.1, 0.7)
     earGroup.add(outerEar)
 
-    // 2. 내이(귓속 이너 패드): 부드러운 베이비 핑크 홈
-    const innerPad = new THREE.Mesh(new THREE.SphereGeometry(0.11, 12, 10), innerPadMat)
-    innerPad.scale.set(0.6, 0.95, 0.3)
-    innerPad.position.set(side * 0.02, 0.02, 0.06)
+    // 2. 내이(귓속 이너 패드): 부드러운 베이비 핑크 크림 패드
+    const innerPad = new THREE.Mesh(new THREE.SphereGeometry(0.15, 14, 12), innerPadMat)
+    innerPad.scale.set(0.75, 0.95, 0.45)
+    innerPad.position.set(0, 0, 0.08)
     earGroup.add(innerPad)
 
-    // 3. 귓볼(Earlobe): 아래쪽에 포동포동하게 자리잡아 귀걸이가 달릴 포인트
+    // 3. 귓볼/귀 하단(Earlobe): 귀걸이가 찰랑이며 달릴 앵커 포인트
     const earLobe = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 10), earMat)
-    earLobe.position.set(0, -0.11, 0.02)
-    earLobe.scale.set(0.7, 0.85, 0.6)
+    earLobe.position.set(side * 0.04, -0.15, 0.06)
+    earLobe.scale.set(0.8, 0.8, 0.6)
     earGroup.add(earLobe)
 
     bodyGroup.add(earGroup)
@@ -3354,20 +3355,27 @@ function add3DDecorations(
     shadesGroup.add(bridge)
 
     bodyGroup.add(shadesGroup)
-  } else if (
-    deco?.face === 'luxury-clover-earring' ||
+  }
+
+  // 💎 [명품 럭셔리 & 큐트 귀걸이 3D 렌더링 - 펫 귀(상단)와 안경(얼굴) 완벽 독립 공존]
+  // 귀걸이(ear)와 안경(face)이 별개 슬롯으로 분리되어 동시에 착용 및 렌더링됩니다!
+  const earringKind =
+    deco?.ear ||
+    (deco?.face === 'luxury-clover-earring' ||
     deco?.face === 'chanel-camellia-earring' ||
     deco?.face === 'dior-pearl-drop' ||
     deco?.face === 'tiffany-heart-diamond'
-  ) {
-    // 💎 [명품 럭셔리 & 큐트 귀걸이 3D 렌더링 - 2.5배 볼드 스케일 & 전방 돌출 블링블링 연출]
-    const earringKind = deco.face
+      ? deco.face
+      : null)
+
+  if (earringKind) {
     ;[-1, 1].forEach((side) => {
       const earringGroup = new THREE.Group()
-      // 귓볼 바로 아래(x: ±0.90, y: 0.04)이며 볼살에 파묻히지 않도록 전방(z: 0.26)으로 선명하게 돌출!
-      earringGroup.position.set(side * 0.90, 0.04, 0.26)
-      // 정면 카메라를 향해 약 24도 기울여 쥬얼리 정면이 한눈에 보이도록 회전
-      earringGroup.rotation.y = side * 0.42
+      // 머리 위 쫑긋한 귀 하단(x: ±0.64, y: 0.54)에서 정면으로 찰랑이며(z: 0.22) 빛나도록 배치!
+      earringGroup.position.set(side * 0.64, 0.54, 0.22)
+      // 정면 카메라를 향해 자연스럽게 기울여 쥬얼리 정면이 한눈에 보이도록 회전
+      earringGroup.rotation.y = side * 0.30
+      earringGroup.rotation.z = side * -0.15
 
       if (earringKind === 'luxury-clover-earring') {
         // 🍀 반클리프풍 골드 클로버: 24K 순금 비즈 림 + 은은한 화이트 자개 4잎 (대폭 스케일업!)
@@ -5064,7 +5072,7 @@ export default function Monster3DView({
   // 🚀 성능 최적화: 부모 리렌더링 시 불필요한 Three.js 씬 재구축을 원천 차단하는 시그니처 키
   const deco = look.mallang?.decorations ?? look.decorations
   const wingKind = look.mallang?.wingKind
-  const lookSignature = `${activeSpecies}_${dessertBase}_${paletteKey}_${look.evoStage ?? 1}_${look.evoBranch ?? ''}_${look.expression ?? ''}_${look.mutation ?? ''}_${deco?.head ?? ''}_${deco?.back ?? ''}_${deco?.neck ?? ''}_${deco?.face ?? ''}_${deco?.hand ?? ''}_${deco?.effect ?? ''}_${wingKind ?? ''}`
+  const lookSignature = `${activeSpecies}_${dessertBase}_${paletteKey}_${look.evoStage ?? 1}_${look.evoBranch ?? ''}_${look.expression ?? ''}_${look.mutation ?? ''}_${deco?.head ?? ''}_${deco?.back ?? ''}_${deco?.neck ?? ''}_${deco?.face ?? ''}_${deco?.ear ?? ''}_${deco?.hand ?? ''}_${deco?.effect ?? ''}_${wingKind ?? ''}`
 
   // 스프링 물리 상태 레퍼런스 (포인터 터치·드래그 시 실시간 반응)
   const physRef = useRef({

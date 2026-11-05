@@ -2,7 +2,7 @@
 import { INK } from './Biped'
 import type { MonsterDecorations, MonsterMedals } from './types'
 
-export type DecoSlot = 'head' | 'face' | 'neck' | 'back' | 'hand' | 'bg' | 'effect'
+export type DecoSlot = 'head' | 'face' | 'ear' | 'neck' | 'back' | 'hand' | 'bg' | 'effect'
 
 export interface DecoItemDef {
   id: string
@@ -57,11 +57,11 @@ export const DECO_ITEMS: DecoItemDef[] = [
   { id: 'party-whistle-blower', slot: 'face', name: '롤링 파티 피리', rarity: 'common', charm: 22, icon: '🎺', desc: '입에 물고 후- 불면 도로록 풀렸다 말려드는 알록달록 파티 롤링 피리' },
   { id: 'sleep-mask', slot: 'face', name: '포근 수면안대', rarity: 'common', charm: 10, icon: '💤', desc: '이마에 살짝 얹은 구름결 수면안대' },
   { id: 'star-patch', slot: 'face', name: '유성 볼 스티커', rarity: 'rare', charm: 18, icon: '🌟', desc: '양볼에 붙이는 반짝이는 별빛 페인팅' },
-  // 💎 [명품 럭셔리 & 큐트 귀걸이 컬렉션 - 펫 귀 전용]
-  { id: 'luxury-clover-earring', slot: 'face', name: '골드 클로버 자개 귀걸이', rarity: 'legendary', charm: 42, icon: '🍀', desc: '24K 옐로우 골드 비즈 림과 반짝이는 화이트 천연 자개의 럭셔리 네잎클로버 귀걸이' },
-  { id: 'chanel-camellia-earring', slot: 'face', name: '퓨어 까멜리아 이어링', rarity: 'rare', charm: 38, icon: '🌸', desc: '입체적으로 조각된 순백의 세라믹 까멜리아 꽃잎과 센터 다이아몬드 포인트' },
-  { id: 'dior-pearl-drop', slot: 'face', name: '트라이벌 펄 드롭 귀걸이', rarity: 'legendary', charm: 45, icon: '🦪', desc: '앞뒤 언밸런스 듀얼 펄과 24K 골드 링크가 귓볼을 우아하게 감싸는 명품 펄 드롭' },
-  { id: 'tiffany-heart-diamond', slot: 'face', name: '하트 다이아몬드 드롭', rarity: 'rare', charm: 36, icon: '💎', desc: '로즈 골드 체인 끝에 영롱하게 매달려 빛을 발하는 프리미엄 하트 컷 다이아몬드' },
+  // 💎 [명품 럭셔리 & 큐트 귀걸이 컬렉션 - 펫 귀(ear) 전용 독립 슬롯]
+  { id: 'luxury-clover-earring', slot: 'ear', name: '골드 클로버 자개 귀걸이', rarity: 'legendary', charm: 42, icon: '🍀', desc: '24K 옐로우 골드 비즈 림과 반짝이는 화이트 천연 자개의 럭셔리 네잎클로버 귀걸이' },
+  { id: 'chanel-camellia-earring', slot: 'ear', name: '퓨어 까멜리아 이어링', rarity: 'rare', charm: 38, icon: '🌸', desc: '입체적으로 조각된 순백의 세라믹 까멜리아 꽃잎과 센터 다이아몬드 포인트' },
+  { id: 'dior-pearl-drop', slot: 'ear', name: '트라이벌 펄 드롭 귀걸이', rarity: 'legendary', charm: 45, icon: '🦪', desc: '앞뒤 언밸런스 듀얼 펄과 24K 골드 링크가 귓볼을 우아하게 감싸는 명품 펄 드롭' },
+  { id: 'tiffany-heart-diamond', slot: 'ear', name: '하트 다이아몬드 드롭', rarity: 'rare', charm: 36, icon: '💎', desc: '로즈 골드 체인 끝에 영롱하게 매달려 빛을 발하는 프리미엄 하트 컷 다이아몬드' },
   // 3. 목 (neck)
   { id: 'chef-coat-tie', slot: 'neck', name: '명장 파티시에 제복 & 타이', rarity: 'legendary', charm: 45, icon: '🧑‍🍳', desc: '프랑스 수제 제과 명장의 더블 버튼 순백 셰프 자켓과 실크 레드 타이' },
   { id: 'preppy-school-tie', slot: 'neck', name: '브리티시 프레피 타이 & 칼라', rarity: 'rare', charm: 30, icon: '🎓', desc: '영국 명문 베이킹 아카데미 스타일의 타탄체크 리본 타이와 금장 단추 셔츠 칼라' },
@@ -575,8 +575,8 @@ export function FrontDecorations({
         </g>
       )}
 
-      {/* 💎 명품 럭셔리 & 큐트 귀걸이 4종 (양쪽 귓볼 정밀 렌더링 - 2배 선명도 스케일업) */}
-      {deco?.face === 'luxury-clover-earring' && (
+      {/* 💎 명품 럭셔리 & 큐트 귀걸이 4종 (양쪽 귓볼 정밀 렌더링 - 2배 선명도 스케일업 & 안경과 독립 렌더링) */}
+      {(deco?.ear === 'luxury-clover-earring' || deco?.face === 'luxury-clover-earring') && (
         <g>
           {[60, 180].map((cx) => (
             <g key={cx} transform={`translate(${cx}, 124)`}>
@@ -591,7 +591,7 @@ export function FrontDecorations({
           ))}
         </g>
       )}
-      {deco?.face === 'chanel-camellia-earring' && (
+      {(deco?.ear === 'chanel-camellia-earring' || deco?.face === 'chanel-camellia-earring') && (
         <g>
           {[60, 180].map((cx) => (
             <g key={cx} transform={`translate(${cx}, 124)`}>
@@ -606,7 +606,7 @@ export function FrontDecorations({
           ))}
         </g>
       )}
-      {deco?.face === 'dior-pearl-drop' && (
+      {(deco?.ear === 'dior-pearl-drop' || deco?.face === 'dior-pearl-drop') && (
         <g>
           {[60, 180].map((cx) => (
             <g key={cx} transform={`translate(${cx}, 122)`}>
@@ -620,7 +620,7 @@ export function FrontDecorations({
           ))}
         </g>
       )}
-      {deco?.face === 'tiffany-heart-diamond' && (
+      {(deco?.ear === 'tiffany-heart-diamond' || deco?.face === 'tiffany-heart-diamond') && (
         <g>
           {[60, 180].map((cx) => (
             <g key={cx} transform={`translate(${cx}, 122)`}>

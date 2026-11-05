@@ -62,6 +62,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
     const base: MonsterDecorations = {
       head: null,
       face: null,
+      ear: null,
       neck: null,
       back: null,
       hand: null,
@@ -72,7 +73,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
     if (!rawDeco) return base
     const currentOwned = getOwnedBoutiqueItems()
     const result: MonsterDecorations = { ...rawDeco }
-    const checkSlots: (keyof MonsterDecorations)[] = ['head', 'face', 'neck', 'back', 'hand', 'bg', 'effect']
+    const checkSlots: (keyof MonsterDecorations)[] = ['head', 'face', 'ear', 'neck', 'back', 'hand', 'bg', 'effect']
     for (const s of checkSlots) {
       const val = result[s]
       if (typeof val === 'string' && val.length > 0) {
@@ -365,6 +366,7 @@ export default function BoutiqueShop({ monster, onBack, onOpenMyRoom, onUpdate }
     const emptyDeco: MonsterDecorations = {
       head: null,
       face: null,
+      ear: null,
       neck: null,
       back: null,
       hand: null,

@@ -19,10 +19,11 @@ export type Expression =
 export type Element = 'fire' | 'water' | 'grass' | 'electric' | 'wind' | 'earth'
 export type MutationType = 'crystal' | 'shadow' | 'gold'
 
-// 장식 7칸 슬롯 (기획서 "장식 (외형 전용)" 7칸 기준 + 별조각 염색 팔레트 번호)
+// 장식 8칸 슬롯 (기획서 "장식 (외형 전용)" 기준 + 귀걸이 독립 슬롯 + 별조각 염색 팔레트 번호)
 export interface MonsterDecorations {
   head?: string | null // 머리: 별마법사 모자, 딸기 베레모, 왕관 등
   face?: string | null // 얼굴: 연금술 안경, 포근 수면안대, 별 스티커 등
+  ear?: string | null // 귀: 명품 클로버 귀걸이, 샤넬 까멜리아, 디올 진주, 티파니 하트 등
   neck?: string | null // 목: 룬 무늬 머플러, 방울 리본, 마법 망토 칼라 등
   back?: string | null // 등: 유성 날개, 탐험가 배낭, 천사 날개 등
   hand?: string | null // 손: 별빛 등불 지팡이, 무지개 막대사탕, 룬 마법서 등
