@@ -43,160 +43,24 @@ export interface RelayTowerState {
   isFallen: boolean
 }
 
-const RELAY_STORAGE_KEY = 'pet_together_jenga_relay_v5'
-const SOLO_RECORD_STORAGE_KEY = 'pet_together_jenga_solo_record_v5'
-
-// 👥 [실제 지인 연합 릴레이 주자 풀] - 지인 펫들과 1단씩 번갈아 쌓는 생생한 비동기 릴레이
-export const RELAY_FRIENDS_POOL: {
-  ownerName: string
-  petName: string
-  species: string
-  look: MonsterLook
-  cheerMsg: string
-}[] = [
-  {
-    ownerName: '말랑 님',
-    petName: '딸기모찌',
-    species: 'mochi',
-    cheerMsg: '1단은 내가 든든하게 받쳐둘게! 🍓',
-    look: {
-      species: 'mochi',
-      palette: 0,
-      bodyType: 'normal',
-      scale: 0.85,
-      ears: 0,
-      tail: 0,
-      top: 0,
-      expression: 'mochi-sparkle',
-      patternSeed: 12,
-      shiny: false,
-      mallang: { dessertBase: 'strawberry-cake' },
-    } as MonsterLook,
-  },
-  {
-    ownerName: '젤리 님',
-    petName: '별빛구미',
-    species: 'jelly',
-    cheerMsg: '살짝 흔들렸지만 중심 잡았어! ✨',
-    look: {
-      species: 'jelly',
-      palette: 3,
-      bodyType: 'normal',
-      scale: 0.8,
-      ears: 0,
-      tail: 0,
-      top: 1,
-      expression: 'round',
-      patternSeed: 88,
-      shiny: false,
-      mallang: { dessertBase: 'macaron-cushion' },
-    } as MonsterLook,
-  },
-  {
-    ownerName: '슈슈 님',
-    petName: '유리알탕후루',
-    species: 'tanghulu',
-    cheerMsg: '바삭 빠작! 다음 주자 힘내! 🍬',
-    look: {
-      species: 'tanghulu',
-      palette: 0,
-      bodyType: 'normal',
-      scale: 0.8,
-      ears: 0,
-      tail: 0,
-      top: 0,
-      expression: 'sharp',
-      patternSeed: 55,
-      shiny: false,
-      mallang: { dessertBase: 'parfait-cup' },
-    } as MonsterLook,
-  },
-  {
-    ownerName: '마포 님',
-    petName: '두바이쿠키',
-    species: 'dubai-cookie',
-    cheerMsg: '카다이프 중심력 발동 완료! 🍫',
-    look: {
-      species: 'dubai-cookie',
-      palette: 2,
-      bodyType: 'normal',
-      scale: 0.85,
-      ears: 1,
-      tail: 0,
-      top: 0,
-      expression: 'round',
-      patternSeed: 33,
-      shiny: false,
-      mallang: { dessertBase: 'choco-cookie' },
-    } as MonsterLook,
-  },
-  {
-    ownerName: '초코 님',
-    petName: '가나슈퐁듀',
-    species: 'choco',
-    cheerMsg: '달콤하게 사르르 얹어뒀어! 🔥',
-    look: {
-      species: 'choco',
-      palette: 1,
-      bodyType: 'normal',
-      scale: 0.8,
-      ears: 1,
-      tail: 1,
-      top: 0,
-      expression: 'sharp',
-      patternSeed: 77,
-      shiny: false,
-      mallang: { dessertBase: 'strawberry-cake' },
-    } as MonsterLook,
-  },
-]
+const RELAY_STORAGE_KEY = 'pet_together_jenga_relay_v6_clean'
+const SOLO_RECORD_STORAGE_KEY = 'pet_together_jenga_solo_record_v6_clean'
 
 // 📐 1단부터 위로 올라갈수록 펫의 크기가 뚜렷하게 작아지는 피라미드 스케일링 (54px -> 48px -> 42px -> 36px -> 30px -> 25px -> 20px)
 export function getTierPetSize(floor: number): number {
   return Math.max(20, Math.round(54 - (floor - 1) * 5.5))
 }
 
-// 기본 지인 릴레이 돌탑 초기 데이터: 지인들이 이미 1~2단을 아슬아슬하게 세워둔 상태로 시작하여 진짜 릴레이 체감!
+// 🧁 기본 돌탑 초기 데이터: 가짜 테스터 펫 없이 1단부터 내 펫으로 직접 쌓는 깨끗한 황금 받침대
 function getInitialRelayState(): RelayTowerState {
-  const f1 = RELAY_FRIENDS_POOL[0]
-  const f2 = RELAY_FRIENDS_POOL[1]
-  const initialTiers: TowerTier[] = [
-    {
-      id: 'init-tier-1',
-      floor: 1,
-      ownerName: f1.ownerName,
-      petName: f1.petName,
-      species: f1.species,
-      look: f1.look,
-      offsetX: 0,
-      petSize: getTierPetSize(1),
-      accuracy: 'PERFECT',
-      placedAt: new Date(Date.now() - 3600000).toISOString(),
-      cheerMsg: f1.cheerMsg,
-    },
-    {
-      id: 'init-tier-2',
-      floor: 2,
-      ownerName: f2.ownerName,
-      petName: f2.petName,
-      species: f2.species,
-      look: f2.look,
-      offsetX: 4.5,
-      petSize: getTierPetSize(2),
-      accuracy: 'GREAT',
-      placedAt: new Date(Date.now() - 1800000).toISOString(),
-      cheerMsg: f2.cheerMsg,
-    },
-  ]
-
   return {
     towerId: `tower-${Date.now()}`,
-    tiers: initialTiers,
-    potCoins: 250,
-    potRibbons: 30,
-    highestRecord: 2,
-    lastPlayerName: `${f2.ownerName} (${f2.petName})`,
-    cumulativeTilt: 2.8,
+    tiers: [],
+    potCoins: 100,
+    potRibbons: 10,
+    highestRecord: 0,
+    lastPlayerName: '',
+    cumulativeTilt: 0,
     isFallen: false,
   }
 }
@@ -241,9 +105,6 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
   const [burstKind, setBurstKind] = useState<DessertSoundKind>('mochi-squish')
   const noticeTimerRef = useRef<number | null>(null)
 
-  // 👥 [비동기 지인 릴레이 턴 상태] 지인 펫들과 번갈아 돌탑을 쌓아올리는 협동 릴레이
-  const [friendRelayActive, setFriendRelayActive] = useState<boolean>(false)
-  const [currentFriendTurn, setCurrentFriendTurn] = useState<typeof RELAY_FRIENDS_POOL[0] | null>(null)
   const [activeSpeechBubble, setActiveSpeechBubble] = useState<{ id: string; text: string } | null>(null)
 
   const activeTiers = mode === 'relay' ? relayState.tiers : soloTiers
@@ -261,11 +122,11 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
   const aimPetRef = useRef<HTMLDivElement | null>(null)
   const towerRef = useRef<HTMLDivElement | null>(null)
 
-  // 초기 렌더링 시 타워 각도 동기화
+  // 초기 렌더링 시 타워 각도 동기화 (왜곡 없는 1:1 물리 각도)
   useEffect(() => {
     if (towerRef.current && (gameState === 'ready' || gameState === 'aiming' || gameState === 'settled')) {
       towerRef.current.style.transition = 'transform 0.4s ease-out'
-      towerRef.current.style.transform = `rotate(${activeTilt * 0.45}deg)`
+      towerRef.current.style.transform = `rotate(${activeTilt}deg)`
     }
   }, [activeTilt, gameState])
 
@@ -368,8 +229,8 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
     const prevTier = activeTiers[activeTiers.length - 1]
     const prevX = prevTier ? prevTier.offsetX : 0
     const localDiff = Math.abs(exactDropX - prevX)
-    // 두 펫의 접촉 가능 유효 반경 (아래 펫 몸체 너비의 약 80%에 걸치면 안착 가능)
-    const maxContactRadius = prevTier ? (prevTier.petSize + currentPetSize) * 0.44 : 48
+    // 💡 두 펫의 접촉 가능 유효 반경 (몸체의 85%까지 허용 - 헛손질해서 완전히 허공에 떨어진 극단적 경우만 미끄러짐)
+    const maxContactRadius = prevTier ? (prevTier.petSize + currentPetSize) * 0.85 : 65
 
     // 💥 1. 새로 드롭한 펫을 사용자가 조준한 바로 그 절대 X 위치에 100% 정밀 안착!
     const newTier: TowerTier = {
@@ -407,10 +268,10 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
     const effectiveCenter = totalTorqueWeight > 0 ? weightedTorque / totalTorqueWeight : centerOfMass
 
     // ⚖️ 3. 지지선 균형 판정 (비뚤어져도 무게중심만 맞으면 무너지지 않는 진짜 돌탑의 손맛!)
-    // - 황금 받침대(폭 140px) 유효 지지 한계: ±28px
+    // - 황금 받침대(폭 140px, 반경 70px) 유효 지지 한계: ±36px
     // - 아래 층과의 접촉면 한계: localDiff <= maxContactRadius (허공에 완전히 떨어진 경우만 미끄러짐)
     const willSlideOff = activeTiers.length > 0 && localDiff > maxContactRadius
-    const willTipOver = Math.abs(effectiveCenter) > 28
+    const willTipOver = Math.abs(effectiveCenter) > 36
     const willCollapse = willSlideOff || willTipOver
 
     let accuracy: 'PERFECT' | 'GREAT' | 'WOBBLE' = 'WOBBLE'
@@ -418,11 +279,11 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
     let notice = { text: '⚠️ WOBBLE! 기우뚱!', color: '#F59E0B', sub: '무게중심이 흔들려요!' }
 
     if (!willCollapse) {
-      if (Math.abs(effectiveCenter) <= 7) {
+      if (Math.abs(effectiveCenter) <= 8) {
         accuracy = 'PERFECT'
         sound = 'sugar-crack'
         notice = { text: '✨ PERFECT! 황금 무게중심!', color: '#10B981', sub: `중심 오차 ${effectiveCenter.toFixed(1)}px! 환상적인 수직 균형!` }
-      } else if (Math.abs(effectiveCenter) <= 18) {
+      } else if (Math.abs(effectiveCenter) <= 22) {
         accuracy = 'GREAT'
         sound = 'mochi-squish'
         notice = { text: '👍 GREAT! 지그재그 균형!', color: '#3B82F6', sub: `오차 ${effectiveCenter.toFixed(1)}px! 삐뚤빼뚤하지만 무게중심이 절묘해요!` }
@@ -461,10 +322,11 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
     }, 1500)
 
     // 🎬 4. [대표님 핵심 요청] 실제 물리학 감속(Damping)에 따른 3단계 서스펜스 속도감 연출!
-    const targetTiltDeg = effectiveCenter * 0.58
+    // 왼쪽으로 기울어있던 탑에 오른쪽에 놓으면 effectiveCenter가 0으로 회복되어 탑이 똑바로 서는 진짜 물리!
+    const targetTiltDeg = effectiveCenter * 0.55
 
     if (towerRef.current) {
-      // 1단계 (0 ~ 450ms): 착지 하중에 의해 탑이 삐걱거리며 무게중심 방향으로 기우뚱 넘어가는 관성 회전
+      // 1단계 (0 ~ 450ms): 착지 하중에 의해 탑이 삐걱거리며 무게중심 방향으로 기우뚱 회전
       towerRef.current.style.transition = 'transform 0.45s cubic-bezier(0.25, 0.1, 0.25, 1)'
       towerRef.current.style.transform = `rotate(${targetTiltDeg * 1.25}deg)`
 
@@ -472,12 +334,17 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
         if (!towerRef.current) return
 
         if (willCollapse) {
-          // 💥 붕괴 2단계 (450 ~ 1250ms): 기울기를 못 이기고 중력 가속도가 붙으며 휙! 와르르 무너짐!
+          // 💥 붕괴 2단계:
+          // 허공 미끄러짐이면 드롭한 방향으로, 무게중심 전복이면 유효 무게중심이 쏠린 방향으로 와르르!
+          const collapseAngle = willSlideOff
+            ? (exactDropX >= prevX ? 65 : -65)
+            : (effectiveCenter >= 0 ? 68 : -68)
+
           towerRef.current.style.transition = 'transform 0.8s cubic-bezier(0.6, -0.05, 0.9, 0.4)'
-          towerRef.current.style.transform = `rotate(${effectiveCenter >= 0 ? 68 : -68}deg)`
+          towerRef.current.style.transform = `rotate(${collapseAngle}deg)`
 
           window.setTimeout(() => {
-            handleTowerCollapse(targetTiltDeg)
+            handleTowerCollapse(collapseAngle)
           }, 800)
         } else {
           // 2단계 (450 ~ 850ms): 멈칫하다가 "덜컹!" 반대로 살짝 튕기는 탄성 반동 (심장 쫄깃한 구간!)
@@ -509,141 +376,46 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
       playBabyGiggleSound(accuracy === 'PERFECT' ? '까르르' : '헤헤헤', 'cheer')
     }
 
-    if (mode === 'relay') {
-      const addedCoins = accuracy === 'PERFECT' ? 35 : accuracy === 'GREAT' ? 25 : 15
-      const updatedPotCoins = relayState.potCoins + addedCoins
-      const updatedPotRibbons = relayState.potRibbons + (accuracy === 'PERFECT' ? 4 : 2)
-      const updatedRecord = Math.max(relayState.highestRecord, allTiers.length)
+    const addedCoins = accuracy === 'PERFECT' ? 35 : accuracy === 'GREAT' ? 25 : 15
+    const updatedPotCoins = relayState.potCoins + addedCoins
+    const updatedPotRibbons = relayState.potRibbons + (accuracy === 'PERFECT' ? 4 : 2)
+    const updatedRecord = Math.max(relayState.highestRecord, allTiers.length)
 
-      const updatedRelay: RelayTowerState = {
-        ...relayState,
-        tiers: allTiers,
-        potCoins: updatedPotCoins,
-        potRibbons: updatedPotRibbons,
-        highestRecord: updatedRecord,
-        lastPlayerName: '나 (' + petName + ')',
-        cumulativeTilt: finalTilt,
-        isFallen: false,
-      }
+    const updatedRelay: RelayTowerState = {
+      ...relayState,
+      tiers: allTiers,
+      potCoins: updatedPotCoins,
+      potRibbons: updatedPotRibbons,
+      highestRecord: updatedRecord,
+      lastPlayerName: '나 (' + petName + ')',
+      cumulativeTilt: finalTilt,
+      isFallen: false,
+    }
 
-      setRelayState(updatedRelay)
-      localStorage.setItem(RELAY_STORAGE_KEY, JSON.stringify(updatedRelay))
-      onRewardCoins?.(addedCoins, accuracy === 'PERFECT' ? 2 : 1)
-      setToastMsg(`🎉 ${currentFloor}단 안착 성공! (+${addedCoins}🪙 획득, 팟에 적립!)`)
+    setRelayState(updatedRelay)
+    localStorage.setItem(RELAY_STORAGE_KEY, JSON.stringify(updatedRelay))
 
-      if (allTiers.length % 5 === 0) {
-        setTimeout(() => {
-          playDessertAsmr('starlight-ting', 3)
-          setToastMsg(`🌟 [${allTiers.length}단 돌파 잭팟!] 마을 전체에 축하 선물이 배달됩니다!`)
-        }, 1200)
-      }
-
-      // 👥 [비동기 지인 릴레이 바통 터치!] 1.4초 후 다음 지인 주자가 바통을 이어받아 1단을 함께 쌓음!
-      window.setTimeout(() => {
-        executeFriendRelayTurn(updatedRelay)
-      }, 1500)
-    } else {
+    if (mode === 'solo') {
       setSoloTiers(allTiers)
       setSoloTilt(finalTilt)
       if (allTiers.length > soloBestScore) {
         setSoloBestScore(allTiers.length)
         localStorage.setItem(SOLO_RECORD_STORAGE_KEY, String(allTiers.length))
       }
-      onRewardCoins?.(20, 1)
-      setToastMsg(`🎉 솔로 ${currentFloor}층 돌파 성공! (+20🪙)`)
     }
-  }
 
-  // 👥 [비동기 지인 릴레이 턴 실행] 지인 펫이 탑 위에 비동기로 1단을 안착시켜 탑을 함께 높여나감!
-  const executeFriendRelayTurn = (currentRelay: RelayTowerState) => {
-    if (currentRelay.isFallen) return
-    const nextFriendIdx = currentRelay.tiers.length % RELAY_FRIENDS_POOL.length
-    const friend = RELAY_FRIENDS_POOL[nextFriendIdx]
-    setCurrentFriendTurn(friend)
-    setFriendRelayActive(true)
+    onRewardCoins?.(addedCoins, accuracy === 'PERFECT' ? 2 : 1)
+    setToastMsg(`🎉 ${allTiers.length}단 안착 성공! (+${addedCoins}🪙 획득, 팟에 적립!)`)
 
-    setToastMsg(`📢 [릴레이 바통 터치!] 다음 주자 ${friend.ownerName}의 ${friend.petName}이(가) 조준합니다!`)
-    playDessertAsmr('wax-pop')
+    if (allTiers.length % 5 === 0) {
+      setTimeout(() => {
+        playDessertAsmr('starlight-ting', 3)
+        setToastMsg(`🌟 [${allTiers.length}단 돌파 잭팟!] 마을 전체에 축하 선물이 배달됩니다!`)
+      }, 1200)
+    }
 
-    // 1.4초 후 지인 펫이 탑 꼭대기에 톡! 안착하는 시뮬레이션
-    window.setTimeout(() => {
-      const friendFloor = currentRelay.tiers.length + 1
-      const friendSize = getTierPetSize(friendFloor)
-      const prevTier = currentRelay.tiers[currentRelay.tiers.length - 1]
-      // 지인의 자연스러운 조준 편차 (-6px ~ +6px)
-      const friendOffset = prevTier ? prevTier.offsetX + (Math.random() * 10 - 5) : (Math.random() * 8 - 4)
-
-      const newFriendTier: TowerTier = {
-        id: `tier-friend-${Date.now()}`,
-        floor: friendFloor,
-        ownerName: friend.ownerName,
-        petName: friend.petName,
-        species: friend.species,
-        look: friend.look,
-        offsetX: Math.round(friendOffset * 10) / 10,
-        petSize: friendSize,
-        accuracy: 'GREAT',
-        placedAt: new Date().toISOString(),
-        cheerMsg: friend.cheerMsg,
-      }
-
-      const allTiers = [...currentRelay.tiers, newFriendTier]
-
-      // 탑 전체 지레 토크 & 무게중심 정밀 재계산
-      let totalW = 0
-      let weightedT = 0
-      let totalTW = 0
-      allTiers.forEach((t, i) => {
-        const w = t.petSize || 40
-        const arm = 1 + i * 0.65
-        totalW += w
-        weightedT += t.offsetX * w * arm
-        totalTW += w * arm
-      })
-      const newEffectiveCenter = totalTW > 0 ? weightedT / totalTW : 0
-      const newTiltDeg = newEffectiveCenter * 0.58
-
-      if (towerRef.current) {
-        towerRef.current.style.transition = 'transform 0.45s ease-out'
-        towerRef.current.style.transform = `rotate(${newTiltDeg}deg)`
-      }
-
-      const updatedRelay: RelayTowerState = {
-        ...currentRelay,
-        tiers: allTiers,
-        potCoins: currentRelay.potCoins + 30,
-        potRibbons: currentRelay.potRibbons + 3,
-        highestRecord: Math.max(currentRelay.highestRecord, allTiers.length),
-        lastPlayerName: `${friend.ownerName} (${friend.petName})`,
-        cumulativeTilt: newTiltDeg,
-        isFallen: false,
-      }
-
-      setRelayState(updatedRelay)
-      localStorage.setItem(RELAY_STORAGE_KEY, JSON.stringify(updatedRelay))
-
-      // 안착 사운드 & 파티클
-      playDessertAsmr('mochi-squish')
-      playBabyGiggleSound('헤헤헤', 'cheer')
-      setBurstKind('mochi-squish')
-      setBurstKey((k) => k + 1)
-
-      setAccuracyNotice({
-        text: `✨ ${friend.ownerName}의 ${friend.petName} 안착 성공!`,
-        color: '#10B981',
-        sub: `"${friend.cheerMsg}" (누적 팟 +30🪙)`,
-      })
-
-      window.setTimeout(() => {
-        setAccuracyNotice(null)
-        setFriendRelayActive(false)
-        setCurrentFriendTurn(null)
-        setGameState('aiming')
-        dragXRef.current = 0
-        if (aimPetRef.current) aimPetRef.current.style.transform = 'translate3d(0px, 0, 0)'
-        setToastMsg(`🎯 지인 안착 완료! 이제 다시 내 차례 (${allTiers.length + 1}단 조준)!`)
-      }, 1600)
-    }, 1400)
+    // 💡 [대표님 핵심 피드백 반영] 테스터 봇의 강제 턴 난입을 완전 차단!
+    // 사용자가 원하는 만큼 계속 자유롭게 1단, 2단, 3단... 연속으로 탑을 쌓아 올릴 수 있습니다!
   }
 
   // 💥 탑 와르르 쓰러짐 처리
@@ -859,20 +631,20 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
         }}
       >
         {/* 🎯 조준 안내 힌트 텍스트 */}
-        {(gameState === 'aiming' || friendRelayActive) && (
+        {gameState === 'aiming' && (
           <div
             style={{
               position: 'absolute',
               top: 14,
               left: '50%',
               transform: 'translateX(-50%)',
-              background: friendRelayActive ? 'rgba(88, 28, 135, 0.88)' : 'rgba(15, 8, 28, 0.75)',
-              border: friendRelayActive ? '1px solid #C084FC' : '1px solid rgba(253, 224, 71, 0.4)',
+              background: 'rgba(15, 8, 28, 0.75)',
+              border: '1px solid rgba(253, 224, 71, 0.4)',
               borderRadius: 999,
               padding: '4px 14px',
               fontSize: 10.5,
               fontWeight: 800,
-              color: friendRelayActive ? '#F5D0FE' : '#FEF08A',
+              color: '#FEF08A',
               display: 'flex',
               alignItems: 'center',
               gap: 4,
@@ -881,16 +653,12 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
               animation: 'pulse 1.8s infinite',
             }}
           >
-            {friendRelayActive && currentFriendTurn ? (
-              <span>👥 [지인 릴레이 턴] {currentFriendTurn.ownerName}님이 조준 중입니다...</span>
-            ) : (
-              <span>👈 [내 차례] 좌우로 부드럽게 드래그하여 조준 후 [드롭]하세요 👉</span>
-            )}
+            <span>👈 좌우로 부드럽게 드래그하여 조준선을 맞춘 후 [드롭]하세요 👉</span>
           </div>
         )}
 
-        {/* 🐾 상단 펫 (내 펫 또는 릴레이 지인 펫: 120FPS 직접 DOM GPU Transform 제어 & 3D 스냅샷) */}
-        {(gameState === 'aiming' || gameState === 'dropping' || friendRelayActive) && (
+        {/* 🐾 상단 펫 (내 펫 120FPS 직접 DOM GPU Transform 제어 & 3D 스냅샷) */}
+        {(gameState === 'aiming' || gameState === 'dropping') && (
           <div
             ref={aimPetRef}
             style={{
@@ -919,16 +687,16 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
               }}
             >
               <MonsterSnapshot
-                look={friendRelayActive && currentFriendTurn ? currentFriendTurn.look : myLook}
+                look={myLook}
                 size={currentPetSize}
-                title={friendRelayActive && currentFriendTurn ? currentFriendTurn.petName : petName}
+                title={petName}
               />
             </div>
 
             <div
               style={{
                 marginTop: 2,
-                background: friendRelayActive ? 'rgba(139, 92, 246, 0.95)' : 'rgba(236,72,153,0.92)',
+                background: 'rgba(236,72,153,0.92)',
                 color: '#FFF',
                 fontSize: 8.5,
                 fontWeight: 900,
@@ -939,9 +707,7 @@ export const PetJengaScreen: React.FC<PetJengaProps> = ({ myMonster, onClose, on
                 border: '1px solid rgba(255,255,255,0.4)',
               }}
             >
-              {friendRelayActive && currentFriendTurn
-                ? `✨ ${currentFriendTurn.ownerName} · ${currentFriendTurn.petName} (${currentFloor}단)`
-                : `👑 나 · ${petName} (${currentFloor}단)`}
+              👑 나 · {petName} ({currentFloor}단)
             </div>
           </div>
         )}
